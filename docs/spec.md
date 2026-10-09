@@ -131,6 +131,42 @@ Edge cases to handle:
 - Grouped or framed elements: list the frame name as a section header.
 - Very large diagrams: cap the text at about 4,000 characters and rely on the PNG for the rest.
 
+Current prototype: each chat request sends the current elements, and the server
+validates up to 500 elements and 1,000 characters per label. The text converter
+quotes labels, includes element IDs to distinguish duplicate names, preserves
+arrow direction, lists frame/group sections, and marks unsupported visual content.
+Descriptions over 4,000 characters are cut at a line boundary with an explicit
+truncation notice. Missing or cleared canvases are represented explicitly.
+
+Explicit text bindings take priority for labels. Otherwise, unbound text is used
+as a label only when its rotated bounds fit inside exactly one live, unlabeled
+component in the same frame. Position-derived labels are marked in the description.
+Text outside shapes, overlapping multiple components, or inside an already labeled
+component remains a note.
+
+Bound arrow endpoints take priority. Unsnapped endpoints use shape geometry only
+when one component is within 24 canvas units and is at least 12 units closer than
+the next candidate. Inferred endpoints are marked; ambiguous or deleted targets
+remain unresolved. The latest description is attached to the current candidate
+message as quoted user data, with server instructions to treat it as the current
+snapshot and ignore instructions embedded in labels.
+
+The prototype also sends an optional `previousScene`, captured from the last
+completed chat turn. Both scenes are validated and converted with the same
+semantic graph extractor, so positional label matching and endpoint resolution
+agree between the current description and the diff. IDs identify component
+additions/removals/renames, connection changes, note edits, and frame changes.
+Coordinates, layer ordering, and inference confidence are ignored when semantics
+are unchanged. Change summaries are capped at 2,000 characters with an explicit
+truncation marker. The first turn is marked as an initial diagram; unchanged
+turns and cleared canvases are reported explicitly.
+
+The browser isolates the sent elements from later drawing edits, and advances
+the baseline only after a complete, nonempty AI reply. Failed, interrupted, or
+incomplete replies leave the previous baseline intact. The baseline is currently
+in memory and resets on refresh. Development logs show the current description
+and change summary. PNG input is the next increment.
+
 ## Interviewer engine
 
 Interview quality comes from server-side structure (phases, rubric, time) wrapped around the model, not from one large prompt.

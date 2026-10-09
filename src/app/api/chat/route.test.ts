@@ -1,5 +1,7 @@
 import { APIError } from "openai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import basicScene from "@/lib/fixtures/basic-system.json";
+import cacheElements from "@/lib/fixtures/cache-elements.json";
 
 const mocks = vi.hoisted(() => ({
   streamInterviewerReply: vi.fn(),
@@ -50,13 +52,86 @@ describe("POST /api/chat", () => {
     await expect(response.text()).resolves.toBe("Hi there");
   });
 
-  it("forwards only the validated messages to the model", async () => {
-    await post({ messages, scene: { elements: [] } });
+  it("forwards validated messages and extracted diagram context to the model", async () => {
+    await post({ messages, scene: basicScene });
 
     expect(mocks.streamInterviewerReply).toHaveBeenCalledWith(
       [{ role: "user", content: "Hello" }],
+      expect.stringContaining('"Client" ["client"] -> "API" ["api"]'),
+      expect.stringContaining("Initial diagram"),
       expect.any(AbortSignal),
     );
+  });
+
+  it("supplies current empty and missing canvas context rather than an older diagram", async () => {
+    await post({ messages, scene: { elements: [] } });
+    expect(mocks.streamInterviewerReply).toHaveBeenLastCalledWith(
+      messages,
+      expect.stringContaining("empty"),
+      expect.stringContaining("Initial diagram"),
+      expect.any(AbortSignal),
+    );
+    await post({ messages });
+    expect(mocks.streamInterviewerReply).toHaveBeenLastCalledWith(
+      messages,
+      expect.stringContaining("no scene was provided"),
+      expect.stringContaining("unavailable"),
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("extracts the diff from validated scenes and passes it with the current diagram", async () => {
+    await post({
+      messages,
+      scene: { elements: [...basicScene.elements, ...cacheElements] },
+      previousScene: basicScene,
+    });
+    expect(mocks.streamInterviewerReply).toHaveBeenLastCalledWith(
+      messages,
+      expect.stringContaining('"Cache" ["cache"]'),
+      expect.stringContaining('Added component: "Cache" ["cache"]'),
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("reports unchanged and cleared scenes", async () => {
+    await post({ messages, scene: basicScene, previousScene: basicScene });
+    expect(mocks.streamInterviewerReply).toHaveBeenLastCalledWith(
+      messages,
+      expect.any(String),
+      "No diagram changes.",
+      expect.any(AbortSignal),
+    );
+    await post({
+      messages,
+      scene: { elements: [] },
+      previousScene: basicScene,
+    });
+    expect(mocks.streamInterviewerReply).toHaveBeenLastCalledWith(
+      messages,
+      expect.stringContaining("empty"),
+      expect.stringContaining("Whiteboard cleared."),
+      expect.any(AbortSignal),
+    );
+  });
+
+  it("rejects an invalid previous scene before calling the model", async () => {
+    const response = await post({
+      messages,
+      scene: basicScene,
+      previousScene: { elements: [{ id: "bad" }] },
+    });
+    expect(response.status).toBe(400);
+    expect(mocks.streamInterviewerReply).not.toHaveBeenCalled();
+  });
+
+  it("rejects an invalid scene before calling the provider", async () => {
+    const response = await post({
+      messages,
+      scene: { elements: [{ id: "bad", type: "arrow" }] },
+    });
+    expect(response.status).toBe(400);
+    expect(mocks.streamInterviewerReply).not.toHaveBeenCalled();
   });
 
   it("rejects a malformed body", async () => {

@@ -1,33 +1,23 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { WhiteboardScene } from "@/components/whiteboard";
 import type { ChatMessage } from "@/lib/chat";
+import type { Scene } from "@/lib/scene";
+import { captureScene } from "@/lib/scene-snapshot";
+import { receiveChatTurn } from "@/lib/chat-stream";
 
-async function* readTextStream(body: ReadableStream<Uint8Array>) {
-  const reader = body.getReader();
-  // Decodes incrementally so a multi-byte character split across two chunks
-  // is not mangled.
-  const decoder = new TextDecoder();
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const text = decoder.decode(value, { stream: true });
-      if (text) yield text;
-    }
-    const tail = decoder.decode();
-    if (tail) yield tail;
-  } finally {
-    reader.releaseLock();
-  }
-}
+type ChatPanelProps = {
+  getScene: () => WhiteboardScene;
+};
 
-export function ChatPanel() {
+export function ChatPanel({ getScene }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const previousSceneRef = useRef<Scene | undefined>(undefined);
 
   // Spec: keep turns in order by blocking sends while the reply streams.
   const canSend = input.trim().length > 0 && !isStreaming;
@@ -44,11 +34,16 @@ export function ChatPanel() {
     setIsStreaming(true);
 
     try {
+      const sentScene = captureScene(getScene().elements);
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // `scene` is omitted until the whiteboard exists.
-        body: JSON.stringify({ messages: next }),
+        // Capture the drawing at send time so later edits don't change this turn.
+        body: JSON.stringify({
+          messages: next,
+          scene: sentScene,
+          previousScene: previousSceneRef.current,
+        }),
       });
 
       if (!response.ok || !response.body) {
@@ -63,22 +58,29 @@ export function ChatPanel() {
         ...current,
         { role: "assistant", content: "" },
       ]);
-      for await (const chunk of readTextStream(response.body)) {
-        setMessages((current) => {
-          const last = current.at(-1);
-          if (!last || last.role !== "assistant") return current;
-          return [
-            ...current.slice(0, -1),
-            { ...last, content: last.content + chunk },
-          ];
-        });
-        logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-      }
+      await receiveChatTurn(
+        response.body,
+        sentScene,
+        (chunk) => {
+          setMessages((current) => {
+            const last = current.at(-1);
+            if (!last || last.role !== "assistant") return current;
+            return [
+              ...current.slice(0, -1),
+              { ...last, content: last.content + chunk },
+            ];
+          });
+          logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
+        },
+        (scene) => {
+          previousSceneRef.current = scene;
+        },
+      );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong");
       // Drop an empty assistant bubble so a failed turn can be retried.
       setMessages((current) =>
-        current.at(-1)?.role === "assistant" && !current.at(-1)?.content
+        current.at(-1)?.role === "assistant" && !current.at(-1)?.content.trim()
           ? current.slice(0, -1)
           : current,
       );

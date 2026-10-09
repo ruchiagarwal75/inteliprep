@@ -8,7 +8,9 @@ scorecard against a rubric.
 truth for architecture, the interviewer engine, phases, the data model, and the
 API surface. If a change contradicts the spec, update the spec in the same PR.
 
-Status: scaffold only. No features are built yet.
+Status: early prototype with diagram-aware streaming chat and an Excalidraw
+whiteboard and diagram change detection. Image input, interview phases, and
+persistence come later.
 
 ## Stack
 
@@ -22,8 +24,8 @@ Status: scaffold only. No features are built yet.
 | Tests     | Vitest (Node environment)                    |
 | Hosting   | Vercel (planned)                             |
 
-Not yet installed — add when the milestone needs them (see spec): Excalidraw,
-an LLM SDK, Postgres/Supabase, auth, Zod.
+Excalidraw, the OpenAI SDK, and Zod are installed. Add Postgres/Supabase and auth
+when their milestones need them (see spec).
 
 ## Commands
 
@@ -45,7 +47,7 @@ Run `npm run check` before committing.
 ```
 src/
   app/          # App Router routes, layouts, and API route handlers
-  components/   # React components (chat panel, whiteboard placeholder)
+  components/   # React components (interview workspace, chat panel, whiteboard)
   lib/          # Pure logic and server-only modules: schemas, prompts, LLM client
 tests/          # Cross-module tests; unit tests co-locate as *.test.ts
 docs/spec.md    # Phase 1 tech spec — read before big changes
@@ -81,11 +83,23 @@ Conventions:
 
 ## What exists today
 
-- `/interview` — split view, whiteboard placeholder left, chat right.
-- `POST /api/chat` — validates `{ messages, scene? }`, streams the reply back as
-  plain text. `scene` is accepted and ignored until scene-to-text lands. The
-  later session route uses SSE instead (see spec "API design").
-- No persistence: messages live in React state and vanish on refresh.
+- `/interview` — split view, Excalidraw whiteboard left, chat right. The workspace
+  keeps the latest scene in memory and attaches it to each chat request.
+- `POST /api/chat` — validates `{ messages, scene?, previousScene? }`, streams the
+  reply back as plain text. The server extracts a shared semantic graph for each
+  scene and passes the current description and the change summary as user data
+  to the interviewer. The later session route uses SSE instead (see spec "API design").
+- Scene limits: 500 elements, 1,000 characters per label, and 4,000 characters
+  of diagram context. Unsupported visuals and unresolved connections are marked
+  explicitly. Raw editor state and image files are omitted from chat requests.
+- Diagram changes are capped at 2,000 characters. IDs identify additions,
+  removals, renames, rewiring, note edits, and frame changes; layout-only edits
+  are ignored. The browser stores an isolated snapshot after each complete,
+  nonempty reply. Failed or interrupted replies do not advance that baseline.
+- In development, `/api/chat` logs the extracted diagram text under
+  `[chat] Current whiteboard diagram` and the diff under `[chat] Whiteboard changes`
+  in the dev server terminal.
+- No persistence: messages and the whiteboard scene vanish on refresh.
 
 ## Notes
 

@@ -16,6 +16,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
     "next": "16.3.8",
     "openai": "^7.27.0",
     "react": "19.2.8",

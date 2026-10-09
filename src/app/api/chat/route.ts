@@ -1,6 +1,9 @@
 import { APIError } from "openai";
 import { chatRequestSchema } from "@/lib/chat";
 import { hasApiKey, streamInterviewerReply } from "@/lib/llm";
+import { sceneToGraph } from "@/lib/scene-graph";
+import { graphToText } from "@/lib/scene-to-text";
+import { diffSceneGraphs } from "@/lib/scene-diff";
 
 export const runtime = "nodejs";
 
@@ -43,7 +46,22 @@ export async function POST(request: Request): Promise<Response> {
     return error("Server is missing OPENAI_KEY", 500);
   }
 
-  const deltas = streamInterviewerReply(parsed.data.messages, request.signal);
+  const graph = sceneToGraph(parsed.data.scene);
+  const diagramText = graphToText(graph);
+  const previousGraph = parsed.data.previousScene
+    ? sceneToGraph(parsed.data.previousScene)
+    : undefined;
+  const changeText = diffSceneGraphs(graph, previousGraph);
+  if (process.env.NODE_ENV === "development") {
+    console.log("[chat] Current whiteboard diagram:\n%s", diagramText);
+    console.log("[chat] Whiteboard changes:\n%s", changeText);
+  }
+  const deltas = streamInterviewerReply(
+    parsed.data.messages,
+    diagramText,
+    changeText,
+    request.signal,
+  );
 
   // Pull the first delta before answering, so an upstream failure still maps to
   // a real status code and a readable message instead of an empty body.

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sceneSchema } from "@/lib/scene";
 
 /** Roles exchanged with the model. The database uses interviewer/candidate
  * (see docs/spec.md "Data model"); that mapping lands with persistence. */
@@ -11,8 +12,8 @@ export const chatMessageSchema = z.object({
 
 export const chatRequestSchema = z.object({
   messages: z.array(chatMessageSchema).min(1).max(100),
-  /** Excalidraw scene. Accepted but unused until scene-to-text lands. */
-  scene: z.unknown().optional(),
+  scene: sceneSchema.optional(),
+  previousScene: sceneSchema.optional(),
 });
 
 export type ChatRole = z.infer<typeof chatRoleSchema>;

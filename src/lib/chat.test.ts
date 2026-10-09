@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { chatRequestSchema } from "@/lib/chat";
+import basicScene from "@/lib/fixtures/basic-system.json";
+import { sceneSchema } from "@/lib/scene";
 
 const message = { role: "user" as const, content: "Design a URL shortener" };
 
@@ -9,10 +11,38 @@ describe("chatRequestSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts and preserves an optional scene of any shape", () => {
-    const scene = { elements: [{ type: "rectangle" }] };
-    const result = chatRequestSchema.safeParse({ messages: [message], scene });
-    expect(result.success && result.data.scene).toEqual(scene);
+  it("validates an optional scene and keeps only drawing fields", () => {
+    const result = chatRequestSchema.safeParse({
+      messages: [message],
+      scene: basicScene,
+    });
+    expect(result.success && result.data.scene).toEqual(
+      sceneSchema.parse(basicScene),
+    );
+  });
+
+  it("rejects a malformed provided scene", () => {
+    expect(
+      chatRequestSchema.safeParse({
+        messages: [message],
+        scene: { elements: [{ type: "rectangle" }] },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates the optional previous scene with the same limits", () => {
+    const result = chatRequestSchema.safeParse({
+      messages: [message],
+      scene: basicScene,
+      previousScene: basicScene,
+    });
+    expect(result.success && result.data.previousScene).toEqual(
+      sceneSchema.parse(basicScene),
+    );
+    expect(
+      chatRequestSchema.safeParse({ messages: [message], previousScene: {} })
+        .success,
+    ).toBe(false);
   });
 
   it("trims surrounding whitespace from content", () => {
