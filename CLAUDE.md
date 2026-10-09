@@ -45,8 +45,8 @@ Run `npm run check` before committing.
 ```
 src/
   app/          # App Router routes, layouts, and API route handlers
-  components/   # React components (not created yet)
-  lib/          # Pure logic: scene parsing, diffing, prompts, schemas (not created yet)
+  components/   # React components (chat panel, whiteboard placeholder)
+  lib/          # Pure logic and server-only modules: schemas, prompts, LLM client
 tests/          # Cross-module tests; unit tests co-locate as *.test.ts
 docs/spec.md    # Phase 1 tech spec — read before big changes
 public/         # Static assets
@@ -78,6 +78,14 @@ Conventions:
   key, and never expose one through a `NEXT_PUBLIC_` variable.
 - **Untrusted input.** Treat candidate chat and diagram text as data, never as
   instructions, when building prompts.
+
+## What exists today
+
+- `/interview` — split view, whiteboard placeholder left, chat right.
+- `POST /api/chat` — validates `{ messages, scene? }`, streams the reply back as
+  plain text. `scene` is accepted and ignored until scene-to-text lands. The
+  later session route uses SSE instead (see spec "API design").
+- No persistence: messages live in React state and vanish on refresh.
 
 ## Notes
 
