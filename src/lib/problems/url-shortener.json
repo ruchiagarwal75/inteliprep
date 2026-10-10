@@ -1,0 +1,73 @@
+{
+  "id": "url-shortener",
+  "title": "Design a URL shortener",
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Send me a message when you're ready to explain how a request flows through it."
+  },
+  "summary": "Design a service that creates short links and redirects visitors to their original URLs.",
+  "prompt": "Design a URL shortener. Users submit an original URL, receive a unique short link, and visitors following the short link are redirected to the original URL.",
+  "requirements": [
+    "Creating a short link and redirecting visitors are the required core workflows.",
+    "Links are publicly accessible; authentication is not required for the core exercise.",
+    "Links should be retained for five years unless the candidate proposes and justifies a different retention policy.",
+    "Custom aliases, expiration, and click analytics are optional extensions; agree on their scope with the candidate before exploring them.",
+    "The candidate should propose and justify redirect latency and availability goals. Do not impose an unconfigured numeric SLA."
+  ],
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design a URL shortener that creates short links and redirects visitors to their original URLs. What requirements would you clarify before starting your design?",
+      "expectations": "Focus on clear requirements, basic API and data modeling, correct link creation and redirects, capacity estimates, and a simple single-region design. Ask approachable follow-ups and let the candidate explain choices before increasing complexity.",
+      "scaleHints": [
+        "Assume 100,000 new links per day and 10 million redirects per day when the candidate asks about scale."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design a URL shortener for a large user base. What functional and non-functional requirements would you clarify first?",
+      "expectations": "Expect quantified scale estimates, explicit consistency and reliability choices, efficient redirect paths, handling of hot links and collisions, and operational tradeoffs. Ask for reasoning and failure behavior without suggesting missing components.",
+      "scaleHints": [
+        "Assume 1 million new links per day and 100 million redirects per day when the candidate asks about scale.",
+        "For peak capacity estimates, assume traffic can reach ten times its daily average."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design a globally available URL shortener. What product requirements and reliability goals would you clarify before choosing an architecture?",
+      "expectations": "Expect clear global availability and latency goals, regional failure reasoning, consistency and ownership tradeoffs, abuse mitigation, migration strategy, and operational cost awareness. Explore second-order consequences and ask the candidate to defend priorities without prescribing an architecture.",
+      "scaleHints": [
+        "Assume 10 million new links per day and 1 billion redirects per day when the candidate asks about scale.",
+        "Users are geographically distributed; discuss operation during a regional outage after the core design is explained.",
+        "For peak capacity estimates, assume traffic can reach ten times its daily average."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and estimation",
+      "strong": "Defines core workflows and scope, distinguishes reads from writes, quantifies peak throughput and retention, and states latency and availability goals."
+    },
+    {
+      "area": "Identifiers and correctness",
+      "strong": "Explains uniqueness, collision handling, retries and idempotency, alias ownership, and behavior for unknown or expired links."
+    },
+    {
+      "area": "API, storage, and redirect path",
+      "strong": "Defines a coherent API and durable mapping model, explains lookup behavior and performance choices, and connects each component to a requirement."
+    },
+    {
+      "area": "Scaling and reliability",
+      "strong": "Explains distribution, hot-link behavior, failures and recovery, consistency tradeoffs, and the consequences of their chosen topology at the selected level."
+    },
+    {
+      "area": "Tradeoffs and operations",
+      "strong": "Discusses observability, abuse controls, cost, evolution, and optional analytics without letting extensions obscure the core redirect workflow."
+    }
+  ],
+  "followUps": [
+    "What happens if two create requests are processed at the same time?",
+    "How does your design behave when a single short link becomes unusually popular?",
+    "What does a visitor experience if one part of the redirect path fails?",
+    "Which consistency guarantees matter to someone following a newly created link?",
+    "How would you detect a rise in failed redirects and identify its cause?",
+    "What changes if your highest-traffic region becomes unavailable?"
+  ]
+}

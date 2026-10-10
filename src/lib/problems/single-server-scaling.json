@@ -1,0 +1,73 @@
+{
+  "id": "single-server-scaling",
+  "title": "Scale a single server",
+  "drawingPolicy": {
+    "discussionTurns": 2,
+    "invitation": "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Send me a message when you're ready to walk through it."
+  },
+  "summary": "A small website runs on one server and gets slower as traffic grows. Improve it one step at a time.",
+  "prompt": "A small website runs on one machine. Its web application and data are on that machine. As more people visit, the website gets slower. Explain how you would find the bottleneck and improve the architecture one step at a time, while keeping the website working and its existing data available.",
+  "requirements": [
+    "Start with one machine running the web application and holding the website's data.",
+    "The website shows pages and lets users save simple updates. Existing data must remain available when the architecture changes.",
+    "Keep the exercise in one region at every difficulty level. Global distribution, new product features, and advanced distributed-system design are outside the core exercise.",
+    "The goal is to handle growing traffic with reasonable response times. When asked for a concrete latency target, use under 500 milliseconds for a typical page request.",
+    "Let the candidate choose a bottleneck to investigate and explain their proposed improvement. If a measurement or implementation detail is unspecified, ask them to state a simple assumption."
+  ],
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! A small website runs on one server. As more people visit, it gets slower. What would you check first to understand why?",
+      "expectations": "This is a beginner-friendly exercise for testing the interview and whiteboard flow. Use plain language and ask one short question at a time. Start with the current single server, follow the candidate's drawing and proposed changes, and discuss only one bottleneck or improvement at a time. Explore measurement, adding capacity, how requests reach the drawn servers, and whether the change helped. Avoid advanced terminology or unrelated design topics. Do not propose an architecture or name a missing component.",
+      "scaleHints": [
+        "When asked about traffic, assume it starts at 10 requests per second and grows toward 1,000 requests per second.",
+        "When asked about capacity, assume the current server can handle about 100 requests per second while meeting the response-time target."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! A website's application and data run on one server, and response times rise as traffic grows. How would you identify the bottleneck before making a change?",
+      "expectations": "Keep the same small, single-region website exercise. Ask for evidence of the bottleneck, a justified capacity change, the request and data paths in the drawing, and a way to compare performance before and after the change. Explore basic failure behavior and data correctness once the candidate has explained the core improvement. Keep follow-ups concise and avoid prescribing missing components or expanding into a different problem.",
+      "scaleHints": [
+        "When asked about traffic, assume it starts at 10 requests per second and grows toward 1,000 requests per second.",
+        "When asked about capacity, assume the current server can handle about 100 requests per second while meeting the response-time target."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! A small website runs on one server and needs to handle more traffic without losing existing data. How would you prioritize and validate the first architecture change?",
+      "expectations": "Keep the exercise simple and in one region. Ask the candidate to justify priorities, measurement, safe rollout and rollback, correctness during migration, basic failure behavior, and cost or complexity tradeoffs. Go deeper into consequences of the candidate's own changes without introducing global architecture, unrelated features, or missing components. Ask one clear question at a time.",
+      "scaleHints": [
+        "When asked about traffic, assume it starts at 10 requests per second and grows toward 1,000 requests per second.",
+        "When asked about capacity, assume the current server can handle about 100 requests per second while meeting the response-time target."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Understand the starting architecture",
+      "strong": "Explains how a user request reaches the single server and where the application and existing data live."
+    },
+    {
+      "area": "Find the bottleneck",
+      "strong": "Uses response times, error rates, resource usage, and request volume to identify what limits the current server instead of changing the architecture without evidence."
+    },
+    {
+      "area": "Explain the improvement",
+      "strong": "Connects the proposed change to the measured bottleneck and explains the request flow through the updated drawing."
+    },
+    {
+      "area": "Keep the website working",
+      "strong": "Explains how existing data stays available and what users experience if a drawn server becomes unavailable."
+    },
+    {
+      "area": "Check the result",
+      "strong": "Compares throughput, response times, and errors before and after the change and names a clear next measurement."
+    }
+  ],
+  "followUps": [
+    "What would that measurement tell you about the current server?",
+    "Which part of the website would your proposed change improve?",
+    "How does a user's request flow through the drawing you have now?",
+    "What happens to the website's existing data after that change?",
+    "What would users experience if that server stopped responding?",
+    "How would you check whether your change made the website faster?"
+  ]
+}

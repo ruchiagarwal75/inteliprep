@@ -122,7 +122,7 @@ function sceneToText(elements: any[]): string {
 
 **2. Diff.** Compare the new component and connection lists with the last snapshot. Output "added", "removed", and "relabeled" lines. This lets the interviewer say "I see you just added a cache. How do you keep it in sync?"
 
-**3. PNG.** Export with `exportToBlob` at max 1280 px wide. Send it only when the diagram changed since the last turn, to save cost.
+**3. PNG.** Export with `exportToBlob` at max 1280 px on either dimension. Send it only on the first nonempty drawing or when the drawing changed since the last completed turn, to save cost.
 
 Edge cases to handle:
 
@@ -165,7 +165,28 @@ The browser isolates the sent elements from later drawing edits, and advances
 the baseline only after a complete, nonempty AI reply. Failed, interrupted, or
 incomplete replies leave the previous baseline intact. The baseline is currently
 in memory and resets on refresh. Development logs show the current description
-and change summary. PNG input is the next increment.
+and change summary.
+
+The prototype now sends an optional `diagramImage` PNG data URL alongside the
+scene. The browser clones the current drawing and its referenced embedded image
+files before asynchronous export, so text and pixels describe the same turn.
+The image is capped at 1,280 pixels on either dimension and 1 MB; larger PNGs are
+exported at successively smaller dimensions. No editor metadata is embedded.
+The API checks base64 format, PNG header, dimensions, and size, and requires a
+nonempty current scene. It supplies the image as a Responses API `input_image`
+on the latest candidate message, beside the quoted diagram context. Image text
+has the same untrusted-data treatment as diagram labels.
+
+A separate visual fingerprint includes positions, styles, layer order, freehand
+data, background, and referenced image contents. This catches visual changes
+the semantic diff intentionally ignores. Editor revision numbers and file
+retrieval timestamps do not trigger another image. Empty and unchanged drawings
+are sent without a PNG. Image export failures continue with text and a visible
+notice, leaving the image baseline unchanged so a later turn retries. Both
+baselines advance only after a complete, nonempty reply; clearing the drawing
+also clears the image baseline. PNGs are not stored in chat history or replayed
+on later turns, and no server-side image storage is added in this increment.
+Development logs record attachment status without image data.
 
 ## Interviewer engine
 
@@ -188,10 +209,82 @@ The server stores the current phase. After each AI reply, a small classifier cal
 
 Each problem is a JSON file with: the prompt, scale hints to share if asked, rubric areas with what "strong" looks like, and a list of good deep-dive questions. Example rubric areas for a URL shortener: ID generation, read path and caching, storage choice, scaling and sharding, analytics.
 
+Current prototype: the configured problems are "Scale a single server" and
+"Design a URL shortener", each with mid, senior, and staff levels. Their JSON
+configurations hold the exercise,
+product requirements, level-specific openings and expectations, scale hints,
+private rubric, and follow-up bank. The browser receives only public problem
+summaries and the selected opening; Next's `server-only` guard protects the
+configuration modules from client imports.
+
+The default selection is "Scale a single server" at Mid-level, a simple exercise
+for testing the interview and whiteboard flow. A website's application and data
+start on one machine; traffic grows and the candidate measures the bottleneck,
+proposes an improvement, explains the updated drawing, and checks the result.
+Follow-ups use plain language and one question at a time. All difficulty levels
+keep this exercise in one region; the higher levels probe validation and failure
+tradeoffs rather than introducing a different product or global architecture.
+
+The interview page starts with a problem/difficulty picker and disabled chat.
+Start interview calls `POST /api/interview/start` with `{ problemId, level }`.
+The server returns a deterministic assistant opening, so the candidate need not
+send "hello" and starting does not consume an LLM call. The selection is fixed
+in the UI until New interview resets chat and its text/image baselines; the
+existing whiteboard is retained. New interview is disabled while a reply streams.
+
+Each `POST /api/chat` now requires the selected problem ID and level alongside
+the messages and diagram. The server validates them, resolves its own config,
+and includes the selected difficulty expectations and private rubric in trusted
+instructions on every model request. Chat and drawing content remain user data;
+the model is instructed to keep the rubric private, stay on the selected problem,
+continue from the configured opening, and share requirement/scale facts only
+when asked. Invalid or missing selections return 400, and unknown problems return
+404 before any provider call. The start endpoint is a stateless prototype route;
+persisted sessions, full timed phase tracking, timers, and scoring are still planned.
+
+The prototype now has a bounded transition from discussion to drawing. Each
+problem config contains a drawing policy: the simple server exercise allows two
+candidate messages before the drawing invitation, and the URL shortener allows
+three. The opening message does not count. The server derives the step from the
+validated history, bounded candidate pacing actions, and canvas, rather than
+accepting an arbitrary client-supplied phase or instructions.
+At the limit, the model answers a pending clarification or briefly acknowledges
+the candidate without another question; the application then appends the exact
+configured invitation after a completed provider response. This ensures that
+the drawing prompt is delivered even if the model would otherwise keep probing.
+Handoff, drawing, and explanation replies are buffered until completion; extra
+question sentences and walkthrough demands are removed before display while
+preserving factual clarification answers. If a waiting reply contains only
+questions, the app instead gives a short acknowledgement. Discussion and
+explicitly invited diagram-review replies still stream normally.
+
+The delivered invitation is recognized in assistant history. A live shape,
+connection, freehand stroke, or image puts the interview into drawing mode, even
+before the turn limit; a partial canvas never starts review automatically.
+The candidate controls **Draw → Explain → Discuss** using chat buttons or explicit
+messages. Candidate messages may carry only one of three validated actions:
+`draw`, `explain`, or `review`; assistant messages cannot carry these actions.
+"I'm still drawing" pauses questions, "Done" gives the candidate the floor to
+explain, and "Let's discuss" permits review questions. These choices remain active
+across ordinary chat messages, so an explanation can span multiple turns.
+Drawing and explanation replies answer explicit factual clarifications or briefly
+acknowledge the candidate; they do not critique or cross-question the design.
+Only an explicit review request starts follow-ups.
+
+If the candidate edits while in review, the next submitted turn records a `draw`
+action, unless they explicitly choose explanation or discussion for that turn.
+The browser compares captured visual fingerprints, with normalized scene fallback;
+this pacing capture does not advance the completed text/image delivery baselines.
+The server also detects normalized scene edits during review. Deleted elements,
+selection rectangles, and text-only requirement notes do not count as a sketch.
+Clearing a sketch leaves time to redraw rather than restarting setup. Failed,
+incomplete, or silently truncated provider streams do not append the invitation.
+This pacing flow is not yet the full timed six-phase engine described above.
+
 **System prompt rules**
 
 - You are a senior engineer running a system design interview. Be friendly and direct.
-- Ask one question at a time. Keep replies under 80 words.
+- Ask at most one question per reply. Drawing invitations and waiting acknowledgements need no question. Keep replies under 80 words.
 - Never give the answer or name the missing component. Ask questions that lead the candidate to find it.
 - Refer to the diagram by name ("your API gateway", "the arrow to Redis").
 - Push on vague claims: ask why, ask for numbers, ask what breaks.
@@ -237,6 +330,10 @@ Run grading at temperature 0 and validate the JSON with a schema (Zod). Retry on
 | `rubric_coverage` | session\_id, area, status                                                     | status: not touched, touched, deep |
 
 ## API design
+
+The prototype also exposes `GET /api/problems` for public problem summaries and
+`POST /api/interview/start` for a configured opening. These establish the setup
+flow before the persisted `/api/sessions` lifecycle below is implemented.
 
 | Method and path                   | Purpose                 | Body or response                                                     |
 | --------------------------------- | ----------------------- | -------------------------------------------------------------------- |

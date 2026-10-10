@@ -1,48 +1,110 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { WhiteboardScene } from "@/components/whiteboard";
+import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import type { ChatMessage } from "@/lib/chat";
 import type { Scene } from "@/lib/scene";
-import { captureScene } from "@/lib/scene-snapshot";
+import { prepareWhiteboardTurn } from "@/lib/whiteboard-turn";
 import { receiveChatTurn } from "@/lib/chat-stream";
+import { ChatTranscript } from "@/components/chat-transcript";
+import type { InterviewStart } from "@/lib/interview-selection";
+import {
+  actionForTurn,
+  lastCandidateAction,
+  type CandidateAction,
+} from "@/lib/candidate-actions";
+import { InterviewPacing } from "@/components/interview-pacing";
+import { drawingChanged, type PacingCapture } from "@/lib/pacing-capture";
 
 type ChatPanelProps = {
   getScene: () => WhiteboardScene;
+  hasDrawing: boolean;
+  interview?: InterviewStart;
+  onBusyChange: (busy: boolean) => void;
 };
 
-export function ChatPanel({ getScene }: ChatPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function ChatPanel({
+  getScene,
+  hasDrawing,
+  interview,
+  onBusyChange,
+}: ChatPanelProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>(() =>
+    interview ? [interview.openingMessage] : [],
+  );
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageWarning, setImageWarning] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const previousSceneRef = useRef<Scene | undefined>(undefined);
+  const previousImageFingerprintRef = useRef<string | undefined>(undefined);
+  const previousPacingCaptureRef = useRef<PacingCapture | undefined>(undefined);
+  const sendingRef = useRef(false);
 
   // Spec: keep turns in order by blocking sends while the reply streams.
-  const canSend = input.trim().length > 0 && !isStreaming;
+  const canSend = Boolean(interview) && input.trim().length > 0 && !isStreaming;
 
-  async function send() {
-    if (!canSend) return;
-    const next: ChatMessage[] = [
-      ...messages,
-      { role: "user", content: input.trim() },
-    ];
-    setMessages(next);
-    setInput("");
+  async function send(
+    content = input.trim(),
+    requestedAction?: CandidateAction,
+  ) {
+    if (!interview || !content.trim() || isStreaming || sendingRef.current)
+      return;
+    sendingRef.current = true;
+    onBusyChange(true);
+    if (!requestedAction) setInput("");
     setError(null);
+    setImageWarning(null);
     setIsStreaming(true);
+    setMessages([
+      ...messages,
+      {
+        role: "user",
+        content: content.trim(),
+        ...(requestedAction ? { action: requestedAction } : {}),
+      },
+    ]);
 
     try {
-      const sentScene = captureScene(getScene().elements);
+      const turn = await prepareWhiteboardTurn(
+        getScene(),
+        previousImageFingerprintRef.current,
+      );
+      const sentScene = turn.scene;
+      const action = actionForTurn(
+        content,
+        requestedAction,
+        lastCandidateAction(messages),
+        drawingChanged(turn, previousPacingCaptureRef.current),
+      );
+      const next: ChatMessage[] = [
+        ...messages,
+        {
+          role: "user",
+          content: content.trim(),
+          ...(action ? { action } : {}),
+        },
+      ];
+      // Pacing tracks submitted edits even on failed replies; image/text delivery
+      // baselines still advance only after a complete response.
+      previousPacingCaptureRef.current = {
+        scene: sentScene,
+        fingerprint: turn.fingerprint,
+      };
+      setMessages(next);
+      setImageWarning(turn.imageWarning ?? null);
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // Capture the drawing at send time so later edits don't change this turn.
         body: JSON.stringify({
+          problemId: interview.problemId,
+          level: interview.level,
           messages: next,
           scene: sentScene,
           previousScene: previousSceneRef.current,
+          diagramImage: turn.diagramImage,
         }),
       });
 
@@ -74,6 +136,8 @@ export function ChatPanel({ getScene }: ChatPanelProps) {
         },
         (scene) => {
           previousSceneRef.current = scene;
+          if (turn.canCommitImage)
+            previousImageFingerprintRef.current = turn.fingerprint;
         },
       );
     } catch (cause) {
@@ -85,6 +149,8 @@ export function ChatPanel({ getScene }: ChatPanelProps) {
           : current,
       );
     } finally {
+      sendingRef.current = false;
+      onBusyChange(false);
       setIsStreaming(false);
     }
   }
@@ -94,38 +160,18 @@ export function ChatPanel({ getScene }: ChatPanelProps) {
       aria-label="Chat"
       className="flex min-h-0 w-full flex-col rounded-lg border border-black/10 dark:border-white/15"
     >
-      <div
-        ref={logRef}
-        aria-live="polite"
-        className="flex-1 space-y-3 overflow-y-auto p-3"
-      >
-        {messages.length === 0 && (
-          <p className="text-sm text-black/50 dark:text-white/50">
-            Say hello to start the interview.
-          </p>
-        )}
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={message.role === "user" ? "text-right" : "text-left"}
-          >
-            <span
-              className={`inline-block max-w-[85%] rounded-lg px-3 py-2 text-left text-sm whitespace-pre-wrap ${
-                message.role === "user"
-                  ? "bg-foreground text-background"
-                  : "bg-black/5 dark:bg-white/10"
-              }`}
-            >
-              {message.content || "…"}
-            </span>
-          </div>
-        ))}
-        {error && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-            {error}
-          </p>
-        )}
-      </div>
+      <ChatTranscript
+        logRef={logRef}
+        messages={messages}
+        error={error}
+        imageWarning={imageWarning}
+      />
+      <InterviewPacing
+        action={lastCandidateAction(messages)}
+        hasDrawing={hasDrawing}
+        disabled={!interview || isStreaming}
+        onChoose={(message, action) => void send(message, action)}
+      />
 
       <form
         className="flex gap-2 border-t border-black/10 p-3 dark:border-white/15"
@@ -136,8 +182,11 @@ export function ChatPanel({ getScene }: ChatPanelProps) {
       >
         <input
           value={input}
+          disabled={!interview}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Type your message"
+          placeholder={
+            interview ? "Type your message" : "Start an interview to chat"
+          }
           aria-label="Message"
           className="min-w-0 flex-1 rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
         />

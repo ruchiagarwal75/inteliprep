@@ -1,15 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
-import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
+import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import "@excalidraw/excalidraw/index.css";
-
-export type WhiteboardScene = {
-  elements: readonly ExcalidrawElement[];
-  appState: Pick<AppState, "viewBackgroundColor">;
-  files: BinaryFiles;
-};
 
 const Excalidraw = dynamic(
   () => import("@excalidraw/excalidraw").then((module) => module.Excalidraw),

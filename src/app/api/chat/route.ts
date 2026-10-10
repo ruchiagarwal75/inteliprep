@@ -4,6 +4,8 @@ import { hasApiKey, streamInterviewerReply } from "@/lib/llm";
 import { sceneToGraph } from "@/lib/scene-graph";
 import { graphToText } from "@/lib/scene-to-text";
 import { diffSceneGraphs } from "@/lib/scene-diff";
+import { getProblem } from "@/lib/problems";
+import { getInterviewProgress } from "@/lib/interview-progress";
 
 export const runtime = "nodejs";
 
@@ -42,6 +44,9 @@ export async function POST(request: Request): Promise<Response> {
     return error(parsed.error.issues[0]?.message ?? "Invalid request", 400);
   }
 
+  const problem = getProblem(parsed.data.problemId);
+  if (!problem) return error("Unknown interview problem", 404);
+
   if (!hasApiKey()) {
     return error("Server is missing OPENAI_KEY", 500);
   }
@@ -52,15 +57,28 @@ export async function POST(request: Request): Promise<Response> {
     ? sceneToGraph(parsed.data.previousScene)
     : undefined;
   const changeText = diffSceneGraphs(graph, previousGraph);
+  const progress = getInterviewProgress(
+    problem,
+    parsed.data.messages,
+    parsed.data.scene,
+    parsed.data.previousScene,
+  );
   if (process.env.NODE_ENV === "development") {
     console.log("[chat] Current whiteboard diagram:\n%s", diagramText);
     console.log("[chat] Whiteboard changes:\n%s", changeText);
+    console.log(
+      "[chat] Whiteboard image: %s",
+      parsed.data.diagramImage ? "attached" : "not attached",
+    );
+    console.log("[chat] Interview step: %s", progress.step);
   }
   const deltas = streamInterviewerReply(
     parsed.data.messages,
     diagramText,
     changeText,
     request.signal,
+    parsed.data.diagramImage,
+    { problem, level: parsed.data.level, progress },
   );
 
   // Pull the first delta before answering, so an upstream failure still maps to
