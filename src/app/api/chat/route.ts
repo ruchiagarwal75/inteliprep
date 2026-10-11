@@ -5,7 +5,10 @@ import { sceneToGraph } from "@/lib/scene-graph";
 import { graphToText } from "@/lib/scene-to-text";
 import { diffSceneGraphs } from "@/lib/scene-diff";
 import { getProblem } from "@/lib/problems";
-import { getInterviewProgress } from "@/lib/interview-progress";
+import { prepareInterviewTurn } from "@/lib/interview-turn";
+import { InterviewSessionError } from "@/lib/interview-sessions";
+import { INTERVIEW_PHASE_HEADER } from "@/lib/interview-phase";
+import { chatResponse } from "@/lib/chat-response";
 
 export const runtime = "nodejs";
 
@@ -57,12 +60,23 @@ export async function POST(request: Request): Promise<Response> {
     ? sceneToGraph(parsed.data.previousScene)
     : undefined;
   const changeText = diffSceneGraphs(graph, previousGraph);
-  const progress = getInterviewProgress(
-    problem,
-    parsed.data.messages,
-    parsed.data.scene,
-    parsed.data.previousScene,
-  );
+  const abort = new AbortController();
+  const cancel = () => abort.abort();
+  if (request.signal.aborted) cancel();
+  request.signal.addEventListener("abort", cancel, { once: true });
+  let turn;
+  try {
+    turn = await prepareInterviewTurn(problem, parsed.data, abort.signal);
+  } catch (cause) {
+    request.signal.removeEventListener("abort", cancel);
+    return cause instanceof InterviewSessionError
+      ? error(cause.message, cause.status)
+      : upstreamError(cause);
+  }
+  const release = () => {
+    turn.release();
+    request.signal.removeEventListener("abort", cancel);
+  };
   if (process.env.NODE_ENV === "development") {
     console.log("[chat] Current whiteboard diagram:\n%s", diagramText);
     console.log("[chat] Whiteboard changes:\n%s", changeText);
@@ -70,15 +84,16 @@ export async function POST(request: Request): Promise<Response> {
       "[chat] Whiteboard image: %s",
       parsed.data.diagramImage ? "attached" : "not attached",
     );
-    console.log("[chat] Interview step: %s", progress.step);
+    console.log("[chat] Interview step: %s", turn.context.progress.step);
+    if (turn.phase) console.log("[chat] Interview stage: %s", turn.phase.title);
   }
   const deltas = streamInterviewerReply(
     parsed.data.messages,
     diagramText,
     changeText,
-    request.signal,
+    abort.signal,
     parsed.data.diagramImage,
-    { problem, level: parsed.data.level, progress },
+    turn.context,
   );
 
   // Pull the first delta before answering, so an upstream failure still maps to
@@ -87,34 +102,26 @@ export async function POST(request: Request): Promise<Response> {
   try {
     first = await deltas.next();
   } catch (cause) {
+    release();
     return upstreamError(cause);
   }
-
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        if (!first.done && first.value) {
-          controller.enqueue(encoder.encode(first.value));
-        }
-        for await (const delta of deltas) {
-          controller.enqueue(encoder.encode(delta));
-        }
-        controller.close();
-      } catch (cause) {
-        // Past this point the status is already sent, so the client sees a
-        // truncated reply. The reason only reaches the logs.
-        console.error("chat stream interrupted", cause);
-        controller.error(cause);
-      }
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
+  return chatResponse(
+    deltas,
+    first,
+    {
       "Content-Type": "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
+      ...(turn.phase
+        ? {
+            [INTERVIEW_PHASE_HEADER]: encodeURIComponent(
+              JSON.stringify(turn.phase),
+            ),
+          }
+        : {}),
     },
-  });
+    turn.commit,
+    release,
+    cancel,
+  );
 }

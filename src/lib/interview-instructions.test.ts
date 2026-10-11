@@ -6,6 +6,26 @@ import { INTERVIEWER_INSTRUCTIONS } from "@/lib/interviewer-input";
 import { getInterviewProgress } from "@/lib/interview-progress";
 
 describe("buildInterviewInstructions", () => {
+  it("attaches the server-selected stage and its covered criteria while giving pacing priority", () => {
+    const problem = getProblem("single-server-scaling");
+    if (!problem) throw new Error("Missing problem config");
+    const phase = problem.phases[3];
+    const instructions = buildInterviewInstructions({
+      problem,
+      level: "mid",
+      phase,
+      coveredCriteria: [0],
+      progress: { step: "drawing", candidateTurns: 8, discussionTurnLimit: 2 },
+    });
+    expect(instructions).toContain(phase.goal);
+    expect(instructions).toContain(phase.interviewerGuidance);
+    expect(instructions).toContain('"covered_criterion_indexes":[0]');
+    expect(instructions).toContain(
+      "Drawing and explanation pacing takes priority",
+    );
+    expect(instructions).toContain("Do not critique the sketch");
+    expect(instructions).not.toContain(problem.phases[2].interviewerGuidance);
+  });
   it("includes server-derived drawing progress in trusted instructions", () => {
     const problem = getProblem("single-server-scaling");
     if (!problem) throw new Error("Missing problem config");

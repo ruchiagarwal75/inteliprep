@@ -31,6 +31,7 @@ describe("problem registry", () => {
       "scaleHints",
       "expectations",
       "requirements",
+      "phases",
     ])
       expect(JSON.stringify(catalog)).not.toContain(privateField);
     catalog[0].levels.pop();
@@ -42,7 +43,7 @@ describe("problem registry", () => {
       if (!problem) throw new Error("Missing problem config");
       for (const level of interviewLevelSchema.options) {
         const result = createInterviewStart(problem, level);
-        expect(result).toEqual({
+        expect(result).toMatchObject({
           problemId,
           level,
           openingMessage: {
@@ -50,6 +51,14 @@ describe("problem registry", () => {
             content: problem.levels[level].openingMessage,
           },
         });
+        expect(result.sessionId).toMatch(/^[0-9a-f-]{36}$/);
+        expect(result.phase).toEqual({
+          id: problem.phases[0].id,
+          title: problem.phases[0].title,
+          position: 1,
+          total: problem.phases.length,
+        });
+        expect(JSON.stringify(result)).not.toContain("completionCriteria");
         expect(result.openingMessage.content.match(/\?/g)).toHaveLength(1);
         expect(result.openingMessage.content.split(/\s+/).length).toBeLessThan(
           80,

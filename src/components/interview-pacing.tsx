@@ -1,24 +1,7 @@
-import type { CandidateAction } from "@/lib/candidate-actions";
-
-const controls: { action: CandidateAction; label: string; message: string }[] =
-  [
-    {
-      action: "draw",
-      label: "Draw / pause questions",
-      message: "I'd like time to work on my drawing. Please hold questions.",
-    },
-    {
-      action: "explain",
-      label: "Explain my drawing",
-      message:
-        "I'm ready to explain my drawing. Please let me finish before asking questions.",
-    },
-    {
-      action: "review",
-      label: "Discuss my design",
-      message: "I've finished explaining. Let's discuss my design.",
-    },
-  ];
+import {
+  designDiscussionControl,
+  type CandidateAction,
+} from "@/lib/candidate-actions";
 
 export function InterviewPacing({
   action,
@@ -32,6 +15,7 @@ export function InterviewPacing({
   onChoose: (message: string, action: CandidateAction) => void;
 }) {
   const current = action ?? (hasDrawing ? "draw" : undefined);
+  const designControl = designDiscussionControl(current);
   return (
     <div className="border-t border-black/10 p-3 dark:border-white/15">
       <p
@@ -39,11 +23,11 @@ export function InterviewPacing({
         aria-live="polite"
       >
         {current === "review"
-          ? "Discussion is open. Pause questions whenever you want to draw more."
+          ? "Discussion is open. Pause to draw or explain an update whenever you need."
           : current === "explain"
-            ? "Your turn to explain. Questions wait until you choose Discuss my design."
+            ? "Explain across as many messages as you need. Choose Done explaining when you're ready for questions."
             : current === "draw"
-              ? "Take your time drawing. Choose Explain my drawing when ready."
+              ? "Take your time drawing. Choose Explain my design when ready."
               : "Draw, then explain at your own pace. You choose when discussion begins."}
       </p>
       <div
@@ -51,18 +35,28 @@ export function InterviewPacing({
         role="group"
         aria-label="Interview pace"
       >
-        {controls.map((control) => (
-          <button
-            key={control.action}
-            type="button"
-            disabled={disabled || (control.action !== "draw" && !hasDrawing)}
-            aria-pressed={current === control.action}
-            onClick={() => onChoose(control.message, control.action)}
-            className="rounded-md border border-black/15 px-2 py-1.5 text-xs disabled:opacity-40 aria-pressed:bg-black/10 dark:border-white/20 dark:aria-pressed:bg-white/10"
-          >
-            {control.label}
-          </button>
-        ))}
+        <button
+          type="button"
+          disabled={disabled}
+          aria-pressed={current === "draw"}
+          onClick={() =>
+            onChoose(
+              "I'd like time to work on my drawing. Please hold questions.",
+              "draw",
+            )
+          }
+          className="rounded-md border border-black/15 px-2 py-1.5 text-xs disabled:opacity-40 aria-pressed:bg-black/10 dark:border-white/20 dark:aria-pressed:bg-white/10"
+        >
+          Draw / pause questions
+        </button>
+        <button
+          type="button"
+          disabled={disabled || !hasDrawing}
+          onClick={() => onChoose(designControl.message, designControl.action)}
+          className="rounded-md border border-black/15 px-2 py-1.5 text-xs disabled:opacity-40 dark:border-white/20"
+        >
+          {designControl.label}
+        </button>
       </div>
     </div>
   );

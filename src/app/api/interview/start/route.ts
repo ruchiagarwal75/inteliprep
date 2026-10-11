@@ -1,5 +1,6 @@
 import { interviewSelectionSchema } from "@/lib/interview-selection";
 import { createInterviewStart, getProblem } from "@/lib/problems";
+import { InterviewSessionError } from "@/lib/interview-sessions";
 
 export async function POST(request: Request): Promise<Response> {
   let body: unknown;
@@ -22,7 +23,13 @@ export async function POST(request: Request): Promise<Response> {
       { error: "Unknown interview problem" },
       { status: 404 },
     );
-  return Response.json(createInterviewStart(problem, parsed.data.level), {
-    headers: { "Cache-Control": "no-store" },
-  });
+  try {
+    return Response.json(createInterviewStart(problem, parsed.data.level), {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch (cause) {
+    if (cause instanceof InterviewSessionError)
+      return Response.json({ error: cause.message }, { status: cause.status });
+    throw cause;
+  }
 }

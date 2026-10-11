@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { interviewPhaseSchema } from "@/lib/interview-phase";
 
 /** Public selection and response types; no interviewer configuration lives here. */
 export const interviewLevelSchema = z.enum(["mid", "senior", "staff"]);
@@ -12,6 +13,8 @@ export const interviewSelectionSchema = z.object({
   level: interviewLevelSchema,
 });
 export const interviewStartSchema = interviewSelectionSchema.extend({
+  sessionId: z.uuid(),
+  phase: interviewPhaseSchema,
   openingMessage: z.object({
     role: z.literal("assistant"),
     content: z.string().min(1).max(8_000),

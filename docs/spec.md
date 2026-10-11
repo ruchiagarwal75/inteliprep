@@ -35,7 +35,7 @@ Success metrics for launch:
 1. Candidate signs in and picks a problem (for example, "Design a URL shortener") and a level (mid, senior, staff).
 2. The session starts. The interviewer greets them and states the problem in one or two lines.
 3. Candidate asks clarifying questions in chat and draws on the whiteboard.
-4. On each candidate message, the app sends the chat and the current diagram to the backend. The interviewer replies with one follow-up.
+4. On each candidate message, the app sends the chat and current diagram to the backend. The interviewer answers clarifications, waits during drawing/explanation, or asks at most one follow-up during discussion.
 5. The interviewer moves through phases as the candidate covers each one or as time runs out.
 6. At 45 minutes (or when the candidate clicks End), the interviewer wraps up.
 7. The app shows a scorecard with scores per area, strengths, gaps, and the final diagram.
@@ -203,7 +203,9 @@ Interview quality comes from server-side structure (phases, rubric, time) wrappe
 | 5. Deep dive             | 12 min      | Two rubric areas explored in depth              |
 | 6. Tradeoffs and wrap-up | 8 min       | Bottlenecks, failure modes, candidate questions |
 
-The server stores the current phase. After each AI reply, a small classifier call (or a JSON field in the same reply) says whether the phase is done. The server also forces a move when a phase runs 50% over its time.
+The table above is the planned timed interview flow. The current prototype uses
+the problem-specific, untimed stages below. Timer-driven transitions are deferred;
+stage changes must preserve the candidate's drawing and explanation pacing.
 
 **Problem config (hidden from the candidate)**
 
@@ -214,7 +216,7 @@ Current prototype: the configured problems are "Scale a single server" and
 configurations hold the exercise,
 product requirements, level-specific openings and expectations, scale hints,
 private rubric, and follow-up bank. The browser receives only public problem
-summaries and the selected opening; Next's `server-only` guard protects the
+summaries, public stage labels, session ID, and selected opening; Next's `server-only` guard protects the
 configuration modules from client imports.
 
 The default selection is "Scale a single server" at Mid-level, a simple exercise
@@ -239,8 +241,46 @@ instructions on every model request. Chat and drawing content remain user data;
 the model is instructed to keep the rubric private, stay on the selected problem,
 continue from the configured opening, and share requirement/scale facts only
 when asked. Invalid or missing selections return 400, and unknown problems return
-404 before any provider call. The start endpoint is a stateless prototype route;
-persisted sessions, full timed phase tracking, timers, and scoring are still planned.
+404 before any provider call. The start endpoint creates a temporary server session
+and returns `sessionId` and the initial public `phase` alongside the opening.
+Durable sessions, resume, timers, and scoring are still planned.
+
+**Current stage tracking**
+
+Each private problem configuration contains an ordered `phases` list. Every entry
+defines an ID, public title, goal, completion criteria, interviewer guidance, and
+transition policy. Single-server scaling uses five stages: Understand the bottleneck,
+Draw and explain, Discuss improvements, Validate results, and Wrap up. The URL
+shortener uses Clarify requirements, Draw and explain, Explore the core design,
+Scaling and reliability, and Tradeoffs and wrap-up.
+
+The initial stage ends at the existing drawing handoff or when the candidate
+starts drawing earlier. The drawing stage advances only when a live sketch exists
+and the candidate explicitly invites discussion. The later discussion and validation
+stages use a separate structured coverage check before generating the next reply.
+Each covered criterion needs an exact quote from recent candidate messages; assistant
+answers, invented quotes, duplicated criteria, and malformed results cannot advance
+the stage. Partial coverage accumulates across completed turns. The server applies
+at most one stage transition per turn. A failed assessment leaves the current stage
+and the normal interviewer reply can continue. The final stage gives a brief closing
+recap without another design question; scoring remains separate future work.
+
+Stage and pacing are independent. Drawing or explaining within any later stage
+holds questions, skips coverage assessment, and preserves the stage and existing
+coverage. The candidate can resume discussion without returning to setup.
+
+The UI always submits the started session ID; client stage or coverage claims are
+ignored. The response carries planned public labels in `X-Interview-Phase`. The UI
+indicator and server stage state advance only after a complete, nonempty reply.
+Failed, empty, interrupted, or cancelled replies do not advance stage state. The
+server rejects concurrent turns and changed problem/difficulty selections with 409.
+Legacy requests without a session ID retain stateless diagram-aware chat behavior.
+
+Sessions are temporary process-local state, shared across local route bundles and
+hot reloads, bounded to 500 entries, and expire after two hours of inactivity.
+An expired or missing session returns 404 with a new-interview instruction. This
+prototype store does not support durable resume, server restarts, or distributed
+deployment. Database-backed sessions and ownership checks remain planned.
 
 The prototype now has a bounded transition from discussion to drawing. Each
 problem config contains a drawing policy: the simple server exercise allows two
@@ -262,7 +302,11 @@ The delivered invitation is recognized in assistant history. A live shape,
 connection, freehand stroke, or image puts the interview into drawing mode, even
 before the turn limit; a partial canvas never starts review automatically.
 The candidate controls **Draw → Explain → Discuss** using chat buttons or explicit
-messages. Candidate messages may carry only one of three validated actions:
+messages. A single contextual design button starts as **Explain my design**, changes
+to **Done explaining** to invite questions, and becomes **Explain an update** during
+discussion. **Draw / pause questions** remains separate. The candidate can explain
+across multiple messages before opening discussion. Candidate messages may carry
+only one of three validated actions:
 `draw`, `explain`, or `review`; assistant messages cannot carry these actions.
 "I'm still drawing" pauses questions, "Done" gives the candidate the floor to
 explain, and "Let's discuss" permits review questions. These choices remain active

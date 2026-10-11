@@ -4,6 +4,26 @@ import { z } from "zod";
 export const candidateActionSchema = z.enum(["draw", "explain", "review"]);
 export type CandidateAction = z.infer<typeof candidateActionSchema>;
 
+/** One contextual control gives the candidate the floor, then opens questions. */
+export function designDiscussionControl(action?: CandidateAction): {
+  action: CandidateAction;
+  label: string;
+  message: string;
+} {
+  if (action === "explain")
+    return {
+      action: "review",
+      label: "Done explaining",
+      message: "I've finished explaining. Let's discuss my design.",
+    };
+  return {
+    action: "explain",
+    label: action === "review" ? "Explain an update" : "Explain my design",
+    message:
+      "I'm ready to explain my design. Please let me finish before asking questions.",
+  };
+}
+
 type ActionMessage = {
   role: string;
   content: string;
@@ -41,7 +61,8 @@ export function inferCandidateAction(
     /^(?:i've|i have) (?:finished|completed) (?:my )?(?:explanation|explaining)\b/u.test(
       text,
     ) ||
-    /^that's my explanation\b/u.test(text)
+    /^that's my explanation\b/u.test(text) ||
+    /^(?:done|finished) explaining[.!\s]*$/u.test(text)
   )
     return "review";
   if (
@@ -52,7 +73,8 @@ export function inferCandidateAction(
       text,
     ) ||
     /^(?:let me explain|here(?:'s| is) my explanation)\b/u.test(text) ||
-    /^(?:done|ready)[.!\s]*$/u.test(text)
+    /^(?:done|ready)[.!\s]*$/u.test(text) ||
+    /^explain (?:my (?:design|drawing)|an update)[.!\s]*$/u.test(text)
   )
     return "explain";
   return undefined;

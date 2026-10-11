@@ -44,7 +44,9 @@ describe("POST /api/interview/start", () => {
       expect(Object.keys(body).sort()).toEqual([
         "level",
         "openingMessage",
+        "phase",
         "problemId",
+        "sessionId",
       ]);
       expect(body.openingMessage.content).toContain("URL shortener");
       expect(body.openingMessage.content).not.toContain("Use this instead");

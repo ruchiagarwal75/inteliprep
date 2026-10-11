@@ -69,5 +69,60 @@
     "Which consistency guarantees matter to someone following a newly created link?",
     "How would you detect a rise in failed redirects and identify its cause?",
     "What changes if your highest-traffic region becomes unavailable?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Clarify the required link creation and redirect workflows before drawing.",
+      "completionCriteria": [
+        "Candidate establishes the core workflow and scope."
+      ],
+      "interviewerGuidance": "Keep clarification brief and respect the configured three-message drawing handoff. Let the candidate sketch early.",
+      "transition": "initial"
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate sketch and explain link creation and redirects.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after having the floor to explain."
+      ],
+      "interviewerGuidance": "Give the candidate time to draw and explain across multiple messages. Do not ask review questions until explicitly invited.",
+      "transition": "drawing"
+    },
+    {
+      "id": "explore-core-design",
+      "title": "Explore the core design",
+      "goal": "Understand the candidate's API, durable mapping, identifiers, and request paths.",
+      "completionCriteria": [
+        "Candidate explains how short links are created and redirected using their chosen API and stored mapping.",
+        "Candidate explains uniqueness or collision behavior and a consequence or tradeoff of their chosen design."
+      ],
+      "interviewerGuidance": "Ask one focused question about an uncovered core design choice. Use actual labels and the candidate's explanation. Do not suggest missing components.",
+      "transition": "coverage"
+    },
+    {
+      "id": "scaling-and-reliability",
+      "title": "Scaling and reliability",
+      "goal": "Discuss capacity and failure behavior at the selected difficulty.",
+      "completionCriteria": [
+        "Candidate explains how their design handles expected traffic or a hot link.",
+        "Candidate explains a component failure or recovery path and how they would measure redirect success."
+      ],
+      "interviewerGuidance": "Explore scaling and failures in the candidate's design at the selected level. Do not require global deployment at mid-level or invent numeric goals.",
+      "transition": "coverage"
+    },
+    {
+      "id": "tradeoffs-and-wrap-up",
+      "title": "Tradeoffs and wrap-up",
+      "goal": "Close with the candidate's key choices and stated tradeoffs.",
+      "completionCriteria": [
+        "The candidate's design and stated tradeoffs are summarized."
+      ],
+      "interviewerGuidance": "Give a concise closing recap of the candidate's own choices and limitations. Do not invent issues, assign scores, restart, or ask another design question.",
+      "transition": "wrap-up"
+    }
   ]
 }

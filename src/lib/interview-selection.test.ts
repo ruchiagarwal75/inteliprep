@@ -31,7 +31,17 @@ describe("interviewSelectionSchema", () => {
 
 describe("interviewStartSchema", () => {
   it("requires a nonempty assistant opening and rejects user or system messages", () => {
-    const selection = { problemId: "url-shortener", level: "senior" };
+    const selection = {
+      problemId: "url-shortener",
+      level: "senior",
+      sessionId: "70bb97f5-d799-47cc-a1ad-f61f8de4b72c",
+      phase: {
+        id: "clarify-requirements",
+        title: "Clarify requirements",
+        position: 1,
+        total: 5,
+      },
+    };
     expect(
       interviewStartSchema.safeParse({
         ...selection,

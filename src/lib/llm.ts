@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import type { ChatMessage } from "@/lib/chat";
 import {
   buildInterviewerInput,
@@ -14,25 +13,8 @@ import {
   EXPLANATION_WAIT_REPLY,
 } from "@/lib/drawing-reply";
 
-export class MissingApiKeyError extends Error {
-  constructor() {
-    super("OPENAI_KEY is not set");
-    this.name = "MissingApiKeyError";
-  }
-}
-
-/** Reads config lazily so importing this module never throws at build time. */
-function createClient(): OpenAI {
-  const apiKey = process.env.OPENAI_KEY;
-  if (!apiKey) throw new MissingApiKeyError();
-  return new OpenAI({ apiKey });
-}
-
-export function hasApiKey(): boolean {
-  return Boolean(process.env.OPENAI_KEY);
-}
-
-const model = () => process.env.OPENAI_MODEL ?? "gpt-4o";
+import { createOpenAIClient, interviewerModel } from "@/lib/openai-client";
+export { MissingApiKeyError, hasApiKey } from "@/lib/openai-client";
 
 /** Streams the interviewer's reply as plain text deltas. */
 export async function* streamInterviewerReply(
@@ -43,9 +25,9 @@ export async function* streamInterviewerReply(
   diagramImage?: string,
   interview?: InterviewContext,
 ): AsyncGenerator<string> {
-  const stream = await createClient().responses.create(
+  const stream = await createOpenAIClient().responses.create(
     {
-      model: model(),
+      model: interviewerModel(),
       instructions: interview
         ? buildInterviewInstructions(interview)
         : INTERVIEWER_INSTRUCTIONS,
@@ -61,8 +43,13 @@ export async function* streamInterviewerReply(
   );
 
   const step = interview?.progress?.step;
+  const closing =
+    interview?.phase?.transition === "wrap-up" && step === "review";
   const drawingReply =
-    step === "invite-drawing" || step === "drawing" || step === "explaining";
+    closing ||
+    step === "invite-drawing" ||
+    step === "drawing" ||
+    step === "explaining";
   let bufferedReply = "";
   let completed = false;
   for await (const event of stream) {
@@ -89,6 +76,8 @@ export async function* streamInterviewerReply(
     if (reply) yield reply;
     if (step === "invite-drawing" && interview)
       yield `${reply ? "\n\n" : ""}${interview.problem.drawingPolicy.invitation}`;
+    else if (!reply && closing)
+      yield "Thanks for walking through your design and its tradeoffs.";
     else if (!reply)
       yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
   }

@@ -9,6 +9,8 @@ import {
   type InterviewStart,
   type ProblemSummary,
 } from "@/lib/interview-selection";
+import { phasesSchema, publicPhase } from "@/lib/phase-config";
+import { createInterviewSession } from "@/lib/interview-sessions";
 
 const levelConfig = z.object({
   openingMessage: z.string().min(1).max(8_000),
@@ -20,6 +22,7 @@ const problemSchema = z.object({
   title: z.string().min(1),
   summary: z.string().min(1),
   prompt: z.string().min(1),
+  phases: phasesSchema,
   drawingPolicy: z.object({
     discussionTurns: z.number().int().min(1).max(10),
     invitation: z.string().trim().min(1).max(1_000),
@@ -63,6 +66,8 @@ export function createInterviewStart(
   return {
     problemId: problem.id,
     level,
+    sessionId: createInterviewSession({ problemId: problem.id, level }),
+    phase: publicPhase(problem.phases, 0),
     openingMessage: {
       role: "assistant",
       content: problem.levels[level].openingMessage,

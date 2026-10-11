@@ -9,8 +9,8 @@ truth for architecture, the interviewer engine, phases, the data model, and the
 API surface. If a change contradicts the spec, update the spec in the same PR.
 
 Status: early prototype with diagram-aware streaming chat, an Excalidraw
-whiteboard, diagram change detection, and PNG image input. Interview phases and
-persistence come later. Candidates can start single-server scaling or the URL
+whiteboard, diagram change detection, PNG image input, and server-owned stage
+tracking. Timers and durable persistence come later. Candidates can start single-server scaling or the URL
 shortener at mid, senior, or staff difficulty with a configured opening and
 private server rubric. The default is the simple scaling exercise at Mid-level.
 
@@ -99,9 +99,10 @@ Conventions:
   the rubric, scale hints, requirements, and follow-up bank remain on the server.
 - `GET /api/problems` — returns the public catalog. The server-rendered interview
   page uses the same projection, without sending private config in page props.
-- `POST /api/interview/start` — validates `{ problemId, level }`, returns the
-  selected IDs and one configured assistant opening. It makes no LLM call.
-- `POST /api/chat` — validates `{ problemId, level, messages, scene?, previousScene?, diagramImage? }`, streams the
+- `POST /api/interview/start` — validates `{ problemId, level }`, creates a temporary
+  server session, and returns its ID, initial public stage, selected IDs, and one
+  configured assistant opening. It makes no LLM call.
+- `POST /api/chat` — validates `{ problemId, level, sessionId?, messages, scene?, previousScene?, diagramImage? }`, streams the
   reply back as plain text. The server extracts a shared semantic graph for each
   scene and passes the current description and the change summary as user data
   to the interviewer. The later session route uses SSE instead (see spec "API design").
@@ -109,6 +110,30 @@ Conventions:
   level, requirements, scale assumptions, rubric, and follow-up bank in trusted
   instructions. Client-supplied rubric or instruction fields are ignored. Missing
   selections and invalid levels return 400; unknown problem IDs return 404.
+- Each problem has five ordered stages in its private `phases` configuration:
+  ID, public title, goal, completion criteria, interviewer guidance, and transition
+  policy. Single-server scaling uses Understand the bottleneck → Draw and explain
+  → Discuss improvements → Validate results → Wrap up. The URL shortener uses
+  Clarify requirements → Draw and explain → Explore the core design → Scaling and
+  reliability → Tradeoffs and wrap-up.
+- The workspace always sends the started session ID. The server locks a session
+  while replying and owns its stage and accumulated criterion coverage; arbitrary
+  client phase/coverage fields are ignored. Initial discussion moves to drawing at
+  the existing handoff or an early sketch/pacing request. Drawing moves to discussion
+  only with a live sketch and explicit candidate permission. Later stages use a
+  separate strict-JSON coverage check with exact candidate quotes; invalid evidence
+  or assessment failures keep the stage. Stages advance at most one step per turn.
+  Drawing/explanation pauses preserve the stage and hold questions without running
+  the coverage checker. Wrap-up replies close without another design question.
+- Planned stage labels travel in `X-Interview-Phase`; the stage indicator and server
+  stage state advance only after a completed, nonempty reply. Failed, empty,
+  interrupted, or cancelled replies retain the prior stage. Legacy chat requests
+  without a session ID keep their existing stateless drawing-aware behavior.
+- Temporary sessions live in a bounded process-wide map (500 sessions, two-hour
+  inactivity expiry), shared by local route bundles and hot reloads. A missing or
+  expired session returns 404; mismatched selections or concurrent turns return 409.
+  This is local prototype state; durable storage, auth, and multi-instance deployment
+  support remain future work. Development logs include the public stage title.
 - Drawing handoff is configured per problem: two candidate messages for the
   simple server exercise, three for the URL shortener. The server derives a
   discussion/drawing/explanation/review step from validated history and live canvas content.
@@ -116,8 +141,10 @@ Conventions:
   another question, and the server appends the exact drawing invitation after
   the provider reports completion. That delivered invitation marks the drawing
   step in history. A nonempty sketch does not start review: the candidate keeps
-  the floor to draw, pause, and explain across multiple messages. Chat controls
-  send bounded user-message actions (`draw`, `explain`, `review`); explicit natural
+  the floor to draw, pause, and explain across multiple messages. A combined
+  Explain my design control changes to Done explaining, which opens discussion;
+  during review it becomes Explain an update. Draw / pause questions remains
+  separate. Controls send bounded user-message actions (`draw`, `explain`, `review`); explicit natural
   requests such as "I'm still drawing", "Done", or "Let's discuss" also work.
   "Done" starts explanation, and only an explicit discussion request allows
   follow-up questions. These choices persist through ordinary chat messages.
@@ -153,9 +180,9 @@ Conventions:
   in the dev server terminal. `[chat] Whiteboard image` logs attachment status
   without the PNG data. `[chat] Interview step` logs the current handoff step.
 - No persistence: messages and the whiteboard scene vanish on refresh.
-- Selection is also in memory. Server-owned sessions, the full timed phase engine,
-  timers, and scorecards remain later increments; this start endpoint does not create a
-  persisted session. Vitest maps `server-only` to Next's empty server entrypoint;
+- Selection is also in memory. The full timed phase engine, resume, timers, and
+  scorecards remain later increments; the temporary server session is not persisted.
+  Vitest maps `server-only` to Next's empty server entrypoint;
   Next enforces the client import boundary during builds.
 
 ## Notes

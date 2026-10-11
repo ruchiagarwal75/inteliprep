@@ -47,6 +47,29 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("drawing handoff streaming", () => {
+  it("closes the final stage without adding another design question", async () => {
+    mocks.create.mockImplementation(async function* () {
+      yield {
+        type: "response.output_text.delta",
+        delta: "You compared CPU and latency. What else could fail?",
+      };
+      yield { type: "response.completed" };
+    });
+    const context = interview("review");
+    context.phase = context.problem.phases.at(-1);
+    expect(await reply(context)).toBe("You compared CPU and latency.");
+  });
+  it("keeps holding questions when the candidate draws during the final stage", async () => {
+    const context = interview("drawing");
+    context.phase = context.problem.phases.at(-1);
+    mocks.create.mockImplementation(async function* () {
+      yield { type: "response.output_text.delta", delta: "What could fail?" };
+      yield { type: "response.completed" };
+    });
+    expect(await reply(context)).toContain(
+      "Take your time with the whiteboard",
+    );
+  });
   it("appends the exact configured invitation after a completed answer even when the model does not invite drawing", async () => {
     const context = interview("invite-drawing");
     expect(await reply(context)).toBe(

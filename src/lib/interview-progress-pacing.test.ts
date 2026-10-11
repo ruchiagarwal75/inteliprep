@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@/lib/chat";
 import { getInterviewProgress } from "@/lib/interview-progress";
-import { actionForTurn } from "@/lib/candidate-actions";
+import {
+  actionForTurn,
+  designDiscussionControl,
+} from "@/lib/candidate-actions";
 import { getProblem } from "@/lib/problems";
 import { sceneSchema } from "@/lib/scene";
 import basicScene from "@/lib/fixtures/basic-system.json";
@@ -21,6 +24,40 @@ const empty = sceneSchema.parse({ elements: [] });
 const drawing = sceneSchema.parse(basicScene);
 
 describe("candidate-paced drawing and explanation", () => {
+  it("holds questions through the combined control's explanation step and opens review only on completion", () => {
+    const start = designDiscussionControl("draw");
+    const history: ChatMessage[] = [
+      { role: "user", content: start.message, action: start.action },
+      { role: "assistant", content: "Go ahead with your explanation." },
+      { role: "user", content: "The server handles requests and stores data." },
+      { role: "assistant", content: "I'm listening." },
+      {
+        role: "user",
+        content: "More CPU capacity helps at the cost of a larger machine.",
+      },
+    ];
+    expect(getInterviewProgress(problem(), history, drawing).step).toBe(
+      "explaining",
+    );
+    const finish = designDiscussionControl("explain");
+    history.push({
+      role: "user",
+      content: finish.message,
+      action: finish.action,
+    });
+    expect(getInterviewProgress(problem(), history, drawing).step).toBe(
+      "review",
+    );
+    const update = designDiscussionControl("review");
+    history.push({
+      role: "user",
+      content: update.message,
+      action: update.action,
+    });
+    expect(getInterviewProgress(problem(), history, drawing).step).toBe(
+      "explaining",
+    );
+  });
   it("holds questions through a multi-message explanation until discussion is explicitly requested", () => {
     const history: ChatMessage[] = [
       ...turns(2),

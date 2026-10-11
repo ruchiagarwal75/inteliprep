@@ -69,5 +69,60 @@
     "What happens to the website's existing data after that change?",
     "What would users experience if that server stopped responding?",
     "How would you check whether your change made the website faster?"
+  ],
+  "phases": [
+    {
+      "id": "understand-bottleneck",
+      "title": "Understand the bottleneck",
+      "goal": "Understand the starting server and choose evidence to find its bottleneck.",
+      "completionCriteria": [
+        "Candidate identifies a symptom and a measurement to investigate it."
+      ],
+      "interviewerGuidance": "Keep the initial discussion brief. Respect the configured two-message drawing handoff and let the candidate begin sketching earlier.",
+      "transition": "initial"
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Give the candidate time to sketch the current setup, propose a first change, and explain it.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after having the floor to explain."
+      ],
+      "interviewerGuidance": "Let the candidate draw and explain over multiple messages. A partial sketch never means readiness. Do not critique or cross-question before an explicit discussion request.",
+      "transition": "drawing"
+    },
+    {
+      "id": "discuss-improvements",
+      "title": "Discuss improvements",
+      "goal": "Explore how the candidate's proposed change addresses the measured bottleneck.",
+      "completionCriteria": [
+        "Candidate explains a proposed capacity or architecture change and why it helps the chosen bottleneck.",
+        "Candidate explains the request or data path and a consequence or tradeoff of their change."
+      ],
+      "interviewerGuidance": "Ask one short question about the candidate's own change or its consequences. Focus on uncovered criteria. Do not prescribe missing components or repeat already covered reasoning.",
+      "transition": "coverage"
+    },
+    {
+      "id": "validate-results",
+      "title": "Validate results",
+      "goal": "Establish how the candidate would check the improvement and keep the website working.",
+      "completionCriteria": [
+        "Candidate describes a before-and-after measurement or load test using throughput, latency, CPU, or errors.",
+        "Candidate describes how they would check failure behavior or existing data correctness after the change."
+      ],
+      "interviewerGuidance": "Ask about measuring success and checking failures or data correctness. Follow the candidate's choices without introducing a new architecture.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Close with a concise recap of the candidate's design and stated limitations.",
+      "completionCriteria": [
+        "The candidate's design and explicitly stated tradeoffs are summarized."
+      ],
+      "interviewerGuidance": "Summarize only the candidate's stated design and limitations in a short closing acknowledgement. Do not invent shortcomings, assign scores, restart the interview, or ask another design question.",
+      "transition": "wrap-up"
+    }
   ]
 }

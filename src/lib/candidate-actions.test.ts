@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   actionForTurn,
+  designDiscussionControl,
   inferCandidateAction,
   lastCandidateAction,
 } from "@/lib/candidate-actions";
@@ -22,6 +23,8 @@ describe("candidate pacing", () => {
     ["Let me explain how the request flows", "explain"],
     ["I'm still explaining the design", "explain"],
     ["Here's my explanation: requests hit the server", "explain"],
+    ["Explain my design", "explain"],
+    ["Explain an update", "explain"],
     ["I'm ready for questions", "review"],
     ["Let's discuss my design", "review"],
     ["Please review my drawing", "review"],
@@ -29,6 +32,7 @@ describe("candidate pacing", () => {
     ["I've finished explaining. Let's discuss my design.", "review"],
     ["I'm done explaining", "review"],
     ["That's my explanation", "review"],
+    ["Done explaining", "review"],
   ])("recognizes an explicit request: %s", (text, action) => {
     expect(inferCandidateAction(text)).toBe(action);
   });
@@ -84,5 +88,32 @@ describe("candidate pacing", () => {
     expect(
       actionForTurn("I'm ready for questions", "draw", "review", false),
     ).toBe("draw");
+  });
+  it("keeps a multi-message explanation open until the candidate finishes using the combined control", () => {
+    const start = designDiscussionControl("draw");
+    const history = [
+      { role: "user", content: start.message, action: start.action },
+    ];
+    history.push({
+      role: "user",
+      content: "Requests go to the server, then the data store.",
+      action: start.action,
+    });
+    const mode = lastCandidateAction(history);
+    expect(mode).toBe("explain");
+    const finish = designDiscussionControl(mode);
+    history.push({
+      role: "user",
+      content: finish.message,
+      action: finish.action,
+    });
+    expect(lastCandidateAction(history)).toBe("review");
+    const update = designDiscussionControl(lastCandidateAction(history));
+    history.push({
+      role: "user",
+      content: update.message,
+      action: update.action,
+    });
+    expect(lastCandidateAction(history)).toBe("explain");
   });
 });
