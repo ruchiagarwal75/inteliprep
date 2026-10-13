@@ -9,6 +9,7 @@ const eventSchema = z.discriminatedUnion("type", [
     type: z.literal("complete"),
     phase: interviewPhaseSchema.optional(),
     resumeToken: resumeTokenSchema.optional(),
+    replyKind: z.literal("listening").optional(),
   }),
 ]);
 export type CompletedInterviewTurn = Omit<

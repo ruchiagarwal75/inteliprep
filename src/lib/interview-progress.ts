@@ -21,7 +21,10 @@ export function getInterviewProgress(
   const invited = messages.some(
     (message) =>
       message.role === "assistant" &&
-      message.content.trim().endsWith(problem.drawingPolicy.invitation),
+      [
+        problem.drawingPolicy.invitation,
+        ...problem.drawingPolicy.legacyInvitations,
+      ].some((invitation) => message.content.trim().endsWith(invitation)),
   );
   const action = lastCandidateAction(messages);
   let step: InterviewProgress["step"] = "discussion";
@@ -31,6 +34,26 @@ export function getInterviewProgress(
   else if (invited) step = "drawing";
   else if (candidateTurns >= discussionTurnLimit) step = "invite-drawing";
   return { step, candidateTurns, discussionTurnLimit };
+}
+
+/** The UI already shows the listening state; subsequent explanations need no chat interruption. */
+export function isListeningContinuation(
+  problem: ProblemDefinition,
+  messages: ChatMessage[],
+  step?: InterviewProgress["step"],
+): boolean {
+  if (step !== "drawing" && step !== "explaining") return false;
+  const index = messages.findLastIndex((message) => message.role === "user");
+  const latest = messages[index];
+  if (
+    !latest ||
+    /[?？]/u.test(latest.content) ||
+    /^(?:what|how|when|where|why|which|is|are|does|do|can|could|would|should)\b/iu.test(
+      latest.content.trim(),
+    )
+  )
+    return false;
+  return getInterviewProgress(problem, messages.slice(0, index)).step === step;
 }
 
 export function drawingStepInstructions(progress: InterviewProgress): string {

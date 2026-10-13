@@ -186,7 +186,8 @@ Conventions:
   "Done" starts explanation, and only an explicit discussion request allows
   follow-up questions. These choices persist through ordinary chat messages.
   Canvas edits never switch pacing modes. Plain explanation messages receive a
-  deterministic neutral waiting reply; explicit factual questions can still be
+  deterministic neutral waiting reply on entry, with quiet listening checkpoints
+  for subsequent explanation messages; explicit factual questions can still be
   answered. During permitted review, the server probes clear app-to-database path
   gaps and mentioned-but-unlabeled cache/CDN components, while preserving uncertainty
   for freehand/image content. Successful text/image baselines remain independent of pacing. Requirement notes
@@ -222,9 +223,10 @@ Conventions:
   messages, selection, stage/checkpoint, delivery/pacing baselines, ended evidence
   for retries, scorecards, drafts, viewport, end time, and grading failures. Draft
   changes save immediately. Drawing autosaves after 400 ms idle and every 10 s
-  while editing; submitted/completed turns save immediately. Refresh reopens the
-  active browser save; a valid /interview?session=<UUID> link takes precedence and
+  while editing; submitted/completed turns save immediately. A bare /interview opens
+  the most recently created interview; a valid /interview?session=<UUID> link takes precedence and
   Back/Forward reopens browser saves. Saved interviews is a dialog with score, signal,
+  creation-date ordering, bounded elapsed time, contained scrolling and overflow hints,
   elapsed time, active marker, and explicit delete confirmation. New interview starts
   the current problem/level/duration in one click with a blank board. Change problem
   opens the picker while retaining the displayed selection. Saves are confirmed after transaction commit,
@@ -270,3 +272,10 @@ signal. This does not reduce area scores. Grading requires concrete reasoning fo
 evidence lacks a diagnostic resource/measurement explanation. Supplied traffic
 numbers cannot prove a bottleneck. Gap captions must describe a useful issue rather
 than only naming a diagram element. Existing successful scorecards remain unchanged.
+Controls are tagged and excluded from candidate quotes, including recognized legacy
+control text. Unsupported numeric scores become Not assessed without discarding
+supported areas. Topic checks for each rubric area keep unasked and unexplained
+areas unassessed; freehand/image uncertainty remains with the visual grader. Setup
+questions consider configured facts supplied in the same reply. The style panel
+starts collapsed behind Styles / Hide styles, and the first native editor snapshot
+normalizes the saved baseline without reporting an edit.

@@ -180,18 +180,24 @@ export function savedInterviewSummary(
           0,
         ) / saved.scorecard.areas.filter((area) => area.score !== null).length
       : undefined,
-    elapsedSeconds:
+    elapsedSeconds: Math.min(
+      saved.scorecard?.session?.allowedSeconds ??
+        (saved.interview.timing?.durationMinutes ?? 45) * 60,
       saved.scorecard?.session?.elapsedSeconds ??
-      Math.max(
-        0,
-        Math.round(
-          (Date.parse(
-            saved.scorecard?.endedAt ?? saved.endedAt ?? saved.updatedAt,
-          ) -
-            Date.parse(saved.interview.timing?.startedAt ?? saved.createdAt)) /
-            1000,
+        Math.max(
+          0,
+          Math.round(
+            (Date.parse(
+              saved.scorecard?.endedAt ?? saved.endedAt ?? saved.updatedAt,
+            ) -
+              Date.parse(saved.interview.timing?.startedAt ?? saved.createdAt) +
+              (saved.interview.timing && !saved.scorecard
+                ? saved.clockOffsetMs
+                : 0)) /
+              1000,
+          ),
         ),
-      ),
+    ),
     gradingError: saved.gradingError,
   };
 }

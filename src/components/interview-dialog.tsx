@@ -19,6 +19,14 @@ export function InterviewDialog({
     if (open && dialog && !dialog.open) dialog.showModal();
     else if (!open && dialog?.open) dialog.close();
   }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
   return (
     <dialog
       ref={dialogRef}
@@ -27,7 +35,7 @@ export function InterviewDialog({
         onClose();
       }}
       onClose={onClose}
-      className="bg-background text-foreground m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto rounded-xl border border-black/20 p-5 shadow-xl backdrop:bg-black/40 dark:border-white/20"
+      className="bg-background text-foreground m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain rounded-xl border border-black/20 p-5 shadow-xl backdrop:bg-black/40 dark:border-white/20"
       aria-label={title}
     >
       <div className="mb-4 flex items-center justify-between gap-3">

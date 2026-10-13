@@ -15,6 +15,7 @@ export type InterviewContext = {
   phase?: PhaseConfig;
   coveredCriteria?: number[];
   reviewQuestion?: string;
+  listening?: boolean;
 };
 
 /** Reattach trusted problem context to every provider call, outside user input. */

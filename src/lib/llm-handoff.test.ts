@@ -51,6 +51,12 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("drawing handoff streaming", () => {
+  it("keeps an ongoing explanation quiet without repeating entry instructions", async () => {
+    expect(await reply({ ...interview("explaining"), listening: true })).toBe(
+      "I'm listening.",
+    );
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
   it("closes the final stage without adding another design question", async () => {
     mocks.create.mockImplementation(async function* () {
       yield {

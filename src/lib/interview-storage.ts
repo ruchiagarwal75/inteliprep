@@ -162,7 +162,11 @@ export function listInterviews() {
               const parsed = savedInterviewSchema.safeParse(row);
               return parsed.success ? [savedInterviewSummary(parsed.data)] : [];
             })
-            .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+            .sort(
+              (a, b) =>
+                Date.parse(b.createdAt) - Date.parse(a.createdAt) ||
+                a.id.localeCompare(b.id),
+            ),
         );
       };
     },

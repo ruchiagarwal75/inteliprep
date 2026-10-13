@@ -3,7 +3,10 @@
   "title": "Design a URL shortener",
   "drawingPolicy": {
     "discussionTurns": 3,
-    "invitation": "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Send me a message when you're ready to explain how a request flows through it."
+    "invitation": "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Send me a message when you're ready to explain how a request flows through it."
+    ]
   },
   "summary": "Design a service that creates short links and redirects visitors to their original URLs.",
   "prompt": "Design a URL shortener. Users submit an original URL, receive a unique short link, and visitors following the short link are redirected to the original URL.",
@@ -44,23 +47,28 @@
   "rubric": [
     {
       "area": "Requirements and estimation",
-      "strong": "Defines core workflows and scope, distinguishes reads from writes, quantifies peak throughput and retention, and states latency and availability goals."
+      "strong": "Defines core workflows and scope, distinguishes reads from writes, quantifies peak throughput and retention, and states latency and availability goals.",
+      "assessmentPattern": "\\b(requirement\\w*|scope|traffic|latency|rps|qps|requests? per|links? per|redirects? per|throughput|availab\\w*|retention|access|public|workflow\\w*|creat\\w*.{0,30}link|submit\\w*.{0,30}url)\\b"
     },
     {
       "area": "Identifiers and correctness",
-      "strong": "Explains uniqueness, collision handling, retries and idempotency, alias ownership, and behavior for unknown or expired links."
+      "strong": "Explains uniqueness, collision handling, retries and idempotency, alias ownership, and behavior for unknown or expired links.",
+      "assessmentPattern": "\\b(identif\\w*|short.?code\\w*|unique\\w*|collisi\\w*|idempot\\w*|retr\\w*|hash\\w*|counter|random\\w*|base.?62|custom.alias\\w*|(?:unknown|expired).{0,20}link)\\b"
     },
     {
       "area": "API, storage, and redirect path",
-      "strong": "Defines a coherent API and durable mapping model, explains lookup behavior and performance choices, and connects each component to a requirement."
+      "strong": "Defines a coherent API and durable mapping model, explains lookup behavior and performance choices, and connects each component to a requirement.",
+      "assessmentPattern": "\\b(api|endpoint\\w*|database|storage|mapping\\w*|lookup\\w*|look.?up\\w*|redirect\\w*|get|post|cache|caching|index\\w*)\\b"
     },
     {
       "area": "Scaling and reliability",
-      "strong": "Explains distribution, hot-link behavior, failures and recovery, consistency tradeoffs, and the consequences of their chosen topology at the selected level."
+      "strong": "Explains distribution, hot-link behavior, failures and recovery, consistency tradeoffs, and the consequences of their chosen topology at the selected level.",
+      "assessmentPattern": "\\b(scal\\w*|capacity|bottleneck|traffic|rps|qps|throughput|distribut\\w*|shard\\w*|partition\\w*|balanc\\w*|replic\\w*|cache|caching|hot.{0,15}link|popular|fail\\w*|outage\\w*|crash\\w*|recover\\w*|consisten\\w*|region\\w*)\\b"
     },
     {
       "area": "Tradeoffs and operations",
-      "strong": "Discusses observability, abuse controls, cost, evolution, and optional analytics without letting extensions obscure the core redirect workflow."
+      "strong": "Discusses observability, abuse controls, cost, evolution, and optional analytics without letting extensions obscure the core redirect workflow.",
+      "assessmentPattern": "\\b(trade.?off\\w*|instead|cost\\w*|complex\\w*|observab\\w*|monitor\\w*|logs?|alarm\\w*|metrics?|abuse|spam|rate.?limit\\w*|analytic\\w*|migrat\\w*|rollout|rollback|evol\\w*|maintain\\w*|debug\\w*|operat\\w*)\\b"
     }
   ],
   "followUps": [
@@ -154,7 +162,7 @@
       "coversCriteria": [2]
     },
     {
-      "pattern": "\\b(stale|staleness|consistency)\\b|few seconds.*(delay|old)",
+      "pattern": "\\b(stale|staleness|consistency)\\b|few seconds.*(delay|old|show|appear|visible)|\\b(updates?|changes?)\\b.{0,70}\\b(delay|late|seconds?|show up|appear|visible)\\b",
       "answers": {
         "mid": "No, a newly created short link must be usable immediately and must redirect to its saved original URL. Yes, optional click analytics may lag by up to 5 seconds. That analytics tolerance does not apply to the core link mapping.",
         "senior": "No, a newly created short link must be usable immediately and must redirect to its saved original URL. Yes, optional click analytics may lag by up to 5 seconds. That analytics tolerance does not apply to the core link mapping.",

@@ -45,6 +45,7 @@ const problemSchema = z.object({
   drawingPolicy: z.object({
     discussionTurns: z.number().int().min(1).max(10),
     invitation: z.string().trim().min(1).max(1_000),
+    legacyInvitations: z.array(z.string()).default([]),
   }),
   requirements: z.array(z.string().min(1)).min(1),
   levels: z.object({
@@ -53,7 +54,13 @@ const problemSchema = z.object({
     staff: levelConfig,
   }),
   rubric: z
-    .array(z.object({ area: z.string().min(1), strong: z.string().min(1) }))
+    .array(
+      z.object({
+        area: z.string().min(1),
+        strong: z.string().min(1),
+        assessmentPattern: z.string().min(1).max(1_000).optional(),
+      }),
+    )
     .min(1),
   followUps: z.array(z.string().min(1)).min(1),
 });

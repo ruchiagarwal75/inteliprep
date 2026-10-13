@@ -10,6 +10,7 @@ import { interviewHref } from "@/lib/interview-navigation";
 import { formatInterviewTime } from "@/lib/interview-timer";
 import { InterviewDialog } from "@/components/interview-dialog";
 import { SIGNAL_LABELS } from "@/lib/scorecard";
+import { InterviewHistoryList } from "@/components/interview-history-list";
 
 export function InterviewHistory({
   entries,
@@ -69,13 +70,13 @@ export function InterviewHistory({
         onClose={() => setVisible(false)}
       >
         <p className="mb-3 text-xs text-black/60 dark:text-white/60">
-          Stored in this browser profile. Interview links reopen saves in this
-          browser; clearing site data removes them.
+          Newest interviews first. Stored in this browser profile. Interview
+          links reopen saves in this browser; clearing site data removes them.
         </p>
         {entries.length === 0 && (
           <p>Start an interview to create your first save.</p>
         )}
-        <ul className="max-h-[65dvh] space-y-3 overflow-y-auto">
+        <InterviewHistoryList open={visible} count={entries.length}>
           {entries.map((entry) => (
             <li
               key={entry.id}
@@ -165,7 +166,7 @@ export function InterviewHistory({
               </div>
             </li>
           ))}
-        </ul>
+        </InterviewHistoryList>
       </InterviewDialog>
     </>
   );

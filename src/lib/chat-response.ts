@@ -5,7 +5,7 @@ export function chatResponse(
   deltas: AsyncGenerator<string>,
   first: IteratorResult<string>,
   headers: HeadersInit,
-  onComplete: () => void,
+  onComplete: (reply: string) => void,
   onRelease: () => void,
   onCancel: () => void,
   checkpoint?: () => CompletedInterviewTurn,
@@ -33,7 +33,7 @@ export function chatResponse(
             "The interviewer returned an empty reply. Please try again.",
           );
         if (!cancelled) {
-          onComplete();
+          onComplete(reply);
           if (checkpoint)
             controller.enqueue(
               encoder.encode(

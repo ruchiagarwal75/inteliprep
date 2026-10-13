@@ -4,6 +4,11 @@ import { acquireInterviewSession } from "@/lib/interview-sessions";
 import { readInterviewPhase } from "@/lib/interview-phase";
 import type { ChatMessage } from "@/lib/chat";
 import basicScene from "@/lib/fixtures/basic-system.json";
+import {
+  INTERVIEW_STREAM_TYPE,
+  receiveInterviewStream,
+} from "@/lib/interview-stream";
+import { unsealSession } from "@/lib/session-token";
 
 const mocks = vi.hoisted(() => ({
   streamInterviewerReply: vi.fn(),
@@ -26,7 +31,10 @@ function post(sessionId: string, messages: ChatMessage[], extra = {}) {
   return POST(
     new Request("http://localhost/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: INTERVIEW_STREAM_TYPE,
+      },
       body: JSON.stringify({
         ...selection,
         sessionId,
@@ -55,6 +63,54 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("requirements checkpoint before drawing-stage progression", () => {
+  it("commits facts supplied by the completed reply and returns the updated stage and checkpoint together", async () => {
+    const interview = createInterviewStart(problem, "mid");
+    mocks.streamInterviewerReply.mockImplementation(async function* () {
+      yield "Traffic grows from 10 to 1,000 requests per second; pages should respond within 500 milliseconds.";
+    });
+    const response = await post(interview.sessionId, [
+      {
+        role: "user",
+        content: "What incoming load should the website handle?",
+      },
+    ]);
+    if (!response.body) throw new Error("Missing body");
+    const completed = await receiveInterviewStream(response.body, () => {});
+    expect(completed.checkpoint.phase?.id).toBe("draw-and-explain");
+    expect(
+      unsealSession(completed.checkpoint.resumeToken ?? "").phaseIndex,
+    ).toBe(1);
+    expect(state(interview.sessionId).phaseIndex).toBe(1);
+  });
+  it("marks continuing explanations for quiet listening, but answers factual questions normally", async () => {
+    const interview = createInterviewStart(problem, "mid");
+    const history: ChatMessage[] = [
+      {
+        role: "user",
+        content: "I'm ready to explain my design",
+        action: "explain",
+        source: "control",
+      },
+    ];
+    const response = await post(interview.sessionId, [
+      ...history,
+      {
+        role: "user",
+        content: "Requests reach the first app server and its database.",
+      },
+    ]);
+    if (!response.body) throw new Error("Missing body");
+    const completed = await receiveInterviewStream(response.body, () => {});
+    expect(response.headers.get("X-Interview-Reply-Kind")).toBe("listening");
+    expect(completed.checkpoint.replyKind).toBe("listening");
+    expect(mocks.streamInterviewerReply.mock.calls[0][5].listening).toBe(true);
+    const clarification = await post(interview.sessionId, [
+      ...history,
+      { role: "user", content: "Is read staleness allowed?" },
+    ]);
+    expect(clarification.headers.get("X-Interview-Reply-Kind")).toBeNull();
+    await clarification.text();
+  });
   it.each(["draw", "explain"] as const)(
     "preserves %s and keeps the first stage while requirements are incomplete",
     async (action) => {

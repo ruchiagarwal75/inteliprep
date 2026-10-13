@@ -116,6 +116,9 @@ export async function POST(request: Request): Promise<Response> {
         : "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
+      ...(turn.context.listening
+        ? { "X-Interview-Reply-Kind": "listening" }
+        : {}),
       ...(turn.phase
         ? {
             [INTERVIEW_PHASE_HEADER]: encodeURIComponent(
@@ -128,7 +131,13 @@ export async function POST(request: Request): Promise<Response> {
     release,
     cancel,
     framed
-      ? () => ({ phase: turn.phase, resumeToken: turn.checkpoint?.() })
+      ? () => ({
+          phase: turn.completedPhase(),
+          resumeToken: turn.checkpoint?.(),
+          ...(turn.context.listening
+            ? { replyKind: "listening" as const }
+            : {}),
+        })
       : undefined,
   );
 }

@@ -14,6 +14,17 @@ const parseSelectedRequest = (body: Record<string, unknown>) =>
   });
 
 describe("chatRequestSchema", () => {
+  it("preserves candidate control provenance and rejects controls attributed to the interviewer", () => {
+    const result = parseSelectedRequest({
+      messages: [{ ...message, action: "explain", source: "control" }],
+    });
+    expect(result.success && result.data.messages[0].source).toBe("control");
+    expect(
+      parseSelectedRequest({
+        messages: [{ role: "assistant", content: "Wait", source: "control" }],
+      }).success,
+    ).toBe(false);
+  });
   it.each(["draw", "explain", "review"])(
     "accepts the bounded candidate action %s",
     (action) => {

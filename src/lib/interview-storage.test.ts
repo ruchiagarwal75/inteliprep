@@ -12,6 +12,7 @@ import {
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
 import { updateSavedInterview } from "@/lib/saved-interview";
 import { scorecardFixture } from "@/lib/fixtures/scorecard-test";
+import { initialInterviewId } from "@/lib/interview-navigation";
 
 beforeEach(() => {
   vi.stubGlobal("indexedDB", new IDBFactory());
@@ -96,8 +97,16 @@ describe("IndexedDB interview library", () => {
     expect(await readInterview(original.id)).toEqual(newer);
   });
   it("orders history newest first and clearing selection preserves all saved interviews", async () => {
-    const first = { ...savedFixture(), updatedAt: "2026-01-01T00:00:00.000Z" };
-    const second = { ...savedFixture(), updatedAt: "2026-01-02T00:00:00.000Z" };
+    const first = {
+      ...savedFixture(),
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-03T00:00:00.000Z",
+    };
+    const second = {
+      ...savedFixture(),
+      createdAt: "2026-01-02T00:00:00.000Z",
+      updatedAt: "2026-01-02T00:00:00.000Z",
+    };
     await saveInterview(first);
     await saveInterview(second);
     expect((await listInterviews()).map((saved) => saved.id)).toEqual([
@@ -106,6 +115,20 @@ describe("IndexedDB interview library", () => {
     ]);
     await selectInterview(first.id);
     expect(await activeInterviewId()).toBe(first.id);
+    expect(initialInterviewId("", await listInterviews())).toBe(second.id);
+    expect(
+      initialInterviewId(`?session=${first.id}`, await listInterviews()),
+    ).toBe(first.id);
+    const reopened = {
+      ...first,
+      updatedAt: "2026-01-04T00:00:00.000Z",
+      revision: crypto.randomUUID(),
+    };
+    await saveInterview(reopened, first.revision);
+    expect((await listInterviews()).map((entry) => entry.id)).toEqual([
+      second.id,
+      first.id,
+    ]);
     await selectInterview();
     expect(await activeInterviewId()).toBeUndefined();
     expect(await listInterviews()).toHaveLength(2);

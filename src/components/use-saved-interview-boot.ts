@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { activeInterviewId, listInterviews } from "@/lib/interview-storage";
-import { interviewIdFromSearch } from "@/lib/interview-navigation";
+import { listInterviews } from "@/lib/interview-storage";
+import { initialInterviewId } from "@/lib/interview-navigation";
 import type { SavedInterviewSummary } from "@/lib/saved-interview";
 
 export function useSavedInterviewBoot({
@@ -23,9 +23,7 @@ export function useSavedInterviewBoot({
     void (async () => {
       try {
         const history = await listInterviews();
-        const id =
-          interviewIdFromSearch(window.location.search) ??
-          (await activeInterviewId());
+        const id = initialInterviewId(window.location.search, history);
         if (!mounted) return;
         onHistory(history);
         if (id) await open(id, "replace");

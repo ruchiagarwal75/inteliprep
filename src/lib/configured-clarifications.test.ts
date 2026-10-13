@@ -12,6 +12,39 @@ function problem(id = "single-server-scaling") {
   return selected;
 }
 describe("configured shared requirements", () => {
+  it.each(["mid", "senior", "staff"] as const)(
+    "answers all three combined traffic, latency and plain-language freshness questions at %s",
+    (level) => {
+      const selected = problem();
+      const answer = configuredClarification(
+        selected,
+        level,
+        "What traffic should I expect and what is the target response time? Is it OK if updates take a few seconds to show up?",
+      );
+      expect(answer?.text).toContain("10 to 1,000 requests per second");
+      expect(answer?.text).toContain("under 500 milliseconds");
+      expect(answer?.text).toContain(
+        "Yes, page reads may show updates up to 5 seconds late.",
+      );
+      expect(answer?.coveredCriteria).toEqual([1]);
+    },
+  );
+  it("recognizes visible-update wording while respecting URL mapping correctness", () => {
+    expect(
+      configuredClarification(
+        problem("url-shortener"),
+        "senior",
+        "Is it OK if updates take a few seconds to show up?",
+      )?.text,
+    ).toMatch(/^No,/u);
+    expect(
+      configuredClarification(
+        problem(),
+        "mid",
+        "May changes appear a few seconds late?",
+      )?.text,
+    ).toContain("up to 5 seconds");
+  });
   it("counts opening facts without crediting arbitrary assistant claims", () => {
     const selected = problem();
     expect(

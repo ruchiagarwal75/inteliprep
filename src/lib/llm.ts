@@ -21,6 +21,7 @@ import {
 import {
   configuredClarification,
   isFactualQuestion,
+  sharedRequirementCriteria,
 } from "@/lib/configured-clarifications";
 export { MissingApiKeyError, hasApiKey } from "@/lib/openai-client";
 
@@ -70,7 +71,11 @@ export async function* streamInterviewerReply(
     !isFactualQuestion(latestCandidate.content)
   ) {
     signal?.throwIfAborted();
-    yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
+    yield interview?.listening
+      ? "I'm listening."
+      : step === "explaining"
+        ? EXPLANATION_WAIT_REPLY
+        : DRAWING_WAIT_REPLY;
     return;
   }
   if (interview?.reviewQuestion) {
@@ -134,10 +139,34 @@ export async function* streamInterviewerReply(
     );
   if (drawingReply || requirementsQuestion) {
     const reply = withoutQuestions(bufferedReply);
+    const afterReply =
+      interview?.phase?.transition === "initial"
+        ? {
+            ...interview,
+            coveredCriteria: [
+              ...new Set([
+                ...(interview.coveredCriteria ?? []),
+                ...sharedRequirementCriteria(
+                  interview.problem,
+                  interview.level,
+                  [...messages, { role: "assistant" as const, content: reply }],
+                ),
+              ]),
+            ],
+          }
+        : interview;
+    const nextQuestion = pendingRequirementsQuestion(afterReply);
+    const justCompletedRequirements =
+      requirementsQuestion &&
+      afterReply?.phase &&
+      afterReply.coveredCriteria?.length ===
+        afterReply.phase.completionCriteria.length;
     if (reply) yield reply;
-    if (requirementsQuestion)
-      yield `${reply ? "\n\n" : ""}${requirementsQuestion}`;
-    else if (step === "invite-drawing" && interview)
+    if (nextQuestion) yield `${reply ? "\n\n" : ""}${nextQuestion}`;
+    else if (
+      (step === "invite-drawing" || justCompletedRequirements) &&
+      interview
+    )
       yield `${reply ? "\n\n" : ""}${interview.problem.drawingPolicy.invitation}`;
     else if (!reply && closing)
       yield "Thanks for walking through your design and its tradeoffs.";

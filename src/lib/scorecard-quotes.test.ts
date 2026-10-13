@@ -2,6 +2,35 @@ import { describe, expect, it } from "vitest";
 import { candidateQuotes } from "@/lib/scorecard-quotes";
 
 describe("candidate quote references", () => {
+  it("excludes button messages and legacy pacing text while preserving real explanations", () => {
+    const quotes = candidateQuotes([
+      { role: "user", content: "Hello" },
+      {
+        role: "user",
+        content:
+          "I'm ready to explain my design. Please let me finish before asking questions.",
+      },
+      {
+        role: "user",
+        content: "I've finished explaining. Let's discuss my design.",
+        action: "review",
+        source: "control",
+      },
+      {
+        role: "user",
+        content:
+          "Please let me finish. Requests reach both app servers and then the database.",
+        action: "explain",
+      },
+    ]);
+    expect(quotes).toEqual([
+      {
+        quoteId: "m3q0",
+        messageIndex: 3,
+        quote: "Requests reach both app servers and then the database.",
+      },
+    ]);
+  });
   it("keeps original message indices and supplies only exact candidate excerpts", () => {
     const quotes = candidateQuotes([
       { role: "assistant", content: "Use 1,000 requests per second." },

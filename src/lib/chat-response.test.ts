@@ -21,6 +21,7 @@ describe("completed reply stage commits", () => {
     );
     expect(await response.text()).toBe("First second");
     expect(complete).toHaveBeenCalledOnce();
+    expect(complete).toHaveBeenCalledWith("First second");
     expect(release).toHaveBeenCalledOnce();
   });
   it.each(["empty", "failed"])(

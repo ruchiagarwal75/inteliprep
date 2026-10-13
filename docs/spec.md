@@ -269,6 +269,9 @@ or existing-data constraints. Recognized older assistant wording of the configur
 single-server scale/latency facts is also shared context. These facts never earn
 candidate technical scores. A sketch, turn count, or readiness alone cannot cover
 missing requirements. The URL shortener still needs candidate-proposed service goals.
+The next setup question is selected after inspecting the completed reply for shared
+configured facts, so facts supplied in that reply are not immediately asked again.
+The completion event includes the resulting stage and checkpoint together.
 
 The server answers configured clarification topics directly, including a clear
 bounded yes/no freshness answer. Other clarifications use the model with the same
@@ -319,12 +322,16 @@ Drawing autosaves retain the latest native canvas without replacing the older
 send-time diagram baselines. A save is confirmed only after its IndexedDB transaction
 commits. A revision check rejects stale writes from another tab rather than overwriting
 newer work; the UI pauses editing and asks the candidate to reopen that browser save.
+The editor's first restored/migrated native snapshot becomes the saved baseline,
+without reporting an edit. Pending autosaves show Saving, then Saved in this browser.
 
 The browser requests NDJSON chat framing using `Accept: application/x-ndjson`.
 Delta events contain text, followed by a completion event with the public stage and
 opaque resume token. The server issues that token only after committing a successful
 reply. The client accepts the token only after a valid completion event and successful
 EOF. Existing API callers retain plain text streaming and the planned-stage header.
+Ongoing drawing/explanation acknowledgements carry `replyKind: "listening"`; the
+browser commits their checkpoint without displaying or saving an assistant bubble.
 No private rubric or stage criteria are included in public responses. The AES-GCM
 checkpoint carries encrypted selection, session ID, committed stage/criterion indexes,
 and, after ending, the timestamp and hash of the immutable grading evidence.
@@ -342,7 +349,13 @@ Refresh restores drafts and the native viewport as well as messages, mode, timer
 and drawing. A valid `/interview?session=<UUID>` link opens that browser-local save
 before considering the active pointer; Back/Forward reopens earlier saves after
 any current turn finishes. Links require the same origin and browser profile.
-Refresh without a session link automatically reopens the selected browser save. Saved interviews provides
+Refresh of an explicit session link reopens that browser save. A bare `/interview`
+first load opens the most recently created interview, even after viewing an older save.
+Saved interviews lists entries by creation date, newest first, matching the date shown.
+The dialog contains its scrolling, locks background page scrolling, and shows whether
+more entries are above or below the visible list. History elapsed time prefers the
+scorecard's server timing; older estimates are clock-aligned and capped at the configured
+duration (45 minutes for legacy untimed saves). Saved interviews provides
 Resume/View and explicit deletion with confirmation. New interview preserves history and starts the displayed selection in one click
 with a blank whiteboard. Change problem clears the active pointer and opens the picker,
 retaining the current selection. Reopening a stored scorecard
@@ -437,7 +450,13 @@ Edits during review keep review mode. The candidate explicitly pauses questions
 with Draw / pause questions or gives themselves the explanation floor with Explain
 an update. “Please let me finish” keeps explanation mode across ordinary messages.
 Such explanation messages get a deterministic neutral acknowledgement, without praise
-or a recap assuming completion. Explicit factual questions can still be answered.
+or a recap assuming completion. Entry guidance appears once; subsequent messages
+keep the UI's listening state without interrupting the transcript. Explicit factual
+questions can still be answered. Invitations and entry guidance name the same
+Explain my design and Done explaining buttons as the UI; saved older invitations
+remain recognized. Generated controls carry `source: "control"`, appear as activity
+labels, and are excluded from candidate quote IDs. Legacy control-only text is also
+excluded; a real explanation accompanying a typed pacing request remains evidence.
 During review, the server probes a clear missing app-to-database path (including
 an unconnected second app) or a cache/CDN the candidate mentioned but has not labeled.
 Unresolved arrows, freehand, and image content preserve uncertainty; model prompts
@@ -497,8 +516,16 @@ rubric area and scores from 1 to 4. Each numeric score, strength, and gap requir
 an exact candidate quote with its original message index or a real live diagram
 element ID. The server prepares bounded candidate excerpts; the grader selects
 their quote IDs and the server attaches the original words, avoiding rewritten
-or paraphrased citations. Invented references, interviewer quotes, and duplicate/missing areas
-reject the result. Invalid output or evidence is retried once. Provider failures
+or paraphrased citations. Unsupported references and findings are removed. A numeric
+score with no verified evidence becomes Not assessed while supported feedback is
+retained. Each private rubric area has a topic pattern used to check whether candidate
+answers, drawing labels, or a focused interviewer question explored that area. The
+opening description and pacing controls do not establish assessment opportunities.
+Unexplored areas remain unassessed even when the grader cites an unrelated real
+quote or diagram. Attached freehand/image content retains visual uncertainty for
+the grader. These topic checks only permit assessment and never establish quality.
+Duplicate/missing
+areas and malformed output still reject the result and are retried once. Provider failures
 leave the interview ended and show Retry scorecard, using the same snapshot.
 
 Unexplored rubric areas show Not assessed with no numeric score. Any unassessed area
@@ -620,6 +647,9 @@ content). Ended selections are read-only summaries. History rows show signal, av
 assessed score, elapsed time, which interview is open, and a visibly active delete
 action with confirmation. Grading failures are saved and shown as failures, rather
 than only “pending”; retries keep the original evidence.
+The desktop drawing style panel starts collapsed, with a Styles / Hide styles toggle.
+Choosing a shape tool leaves the left canvas available instead of opening an overlay
+that intercepts drawing. Editor restoration normalizes the autosave baseline quietly.
 
 Technical grading uses conservative anchors: 3 requires a concrete choice or
 diagnosis with reasoning, while 4 additionally needs validation and tradeoff analysis.

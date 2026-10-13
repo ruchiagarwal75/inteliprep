@@ -104,9 +104,9 @@ describe("separate end-of-interview grading", () => {
     expect(empty.areas.every((area) => area.score === null)).toBe(true);
     expect(mocks.create).not.toHaveBeenCalled();
   });
-  it("retries invalid evidence once and publishes only the verified result", async () => {
+  it("retries an invalid rubric structure once and publishes only the verified result", async () => {
     const invalid = gradingAssessmentFixture();
-    invalid.areas[0].evidence = [{ kind: "message", quoteId: "m0q0" }];
+    invalid.areas[0].areaIndex = invalid.areas[1].areaIndex;
     mocks.create.mockResolvedValueOnce({
       status: "completed",
       output_text: JSON.stringify(invalid),
@@ -119,6 +119,49 @@ describe("separate end-of-interview grading", () => {
     expect(mocks.create.mock.calls[1][0].instructions).toContain(
       "previous assessment failed validation",
     );
+  });
+  it("returns partial feedback on the first try when short-session scores lack evidence", async () => {
+    const assessment = gradingAssessmentFixture();
+    assessment.areas[2].evidence = [];
+    assessment.areas[4].evidence = [{ kind: "message", quoteId: "invented" }];
+    mocks.create.mockResolvedValue({
+      status: "completed",
+      output_text: JSON.stringify(assessment),
+    });
+    const card = await gradeInterview(
+      problem,
+      "mid",
+      gradingSnapshot,
+      endedAtFixture,
+    );
+    expect(card.signal).toBe("insufficient_evidence");
+    expect(card.areas[0].score).toBe(3);
+    expect(card.areas[2].score).toBeNull();
+    expect(card.areas[4].score).toBeNull();
+    expect(mocks.create).toHaveBeenCalledOnce();
+  });
+  it("does not invoke grading for either current or legacy button-only transcripts", async () => {
+    for (const source of [undefined, "control"] as const) {
+      const card = await gradeInterview(
+        problem,
+        "mid",
+        {
+          ...gradingSnapshot,
+          messages: [
+            gradingSnapshot.messages[0],
+            {
+              role: "user",
+              content: "I've finished explaining. Let's discuss my design.",
+              action: "review",
+              ...(source ? { source } : {}),
+            },
+          ],
+        },
+        endedAtFixture,
+      );
+      expect(card.areas.every((area) => area.score === null)).toBe(true);
+    }
+    expect(mocks.create).not.toHaveBeenCalled();
   });
   it.each([
     { status: "completed", output_text: "not JSON" },

@@ -14,6 +14,8 @@ import {
 import { sceneToGraph } from "@/lib/scene-graph";
 import { graphToText } from "@/lib/scene-to-text";
 import { hasCandidateAnswer } from "@/lib/grading-evidence";
+import { repairGradingAssessment } from "@/lib/grading-repair";
+import { areaWasExplored } from "@/lib/grading-opportunity";
 
 const GRADING_INSTRUCTIONS = [
   "Evaluate a finished practice system-design interview against the supplied private problem rubric and candidate level. This is a separate assessment after the interview; do not continue interviewing.",
@@ -26,6 +28,8 @@ const GRADING_INSTRUCTIONS = [
   "Before naming a missing detail, check the entire transcript for it. Make each gap specific and actionable: identify the particular missing threshold, failure behavior, assumption, or reasoning, rather than asking vaguely for more detail or more metrics when metrics were already given. This is a conceptual design interview; assess the proposed reasoning and test plan without requiring actual implementation or executed production tests.",
   "Calibrate conservatively. A 3 requires a concrete technical choice or diagnosis with reasoning; a 4 additionally requires convincing validation and tradeoff analysis. Repeating interviewer traffic or latency numbers only states requirements and must not earn bottleneck diagnosis credit. Naming a component alone does not establish its behavior, correctness, or justification. Don't treat vague agreement, generic promises, or a neat diagram as proof of technical depth.",
   "Every gap must be a complete useful observation with a consequence and a concrete improvement. Never return only a diagram label or an evidence caption such as 'In your final diagram: Clients'.",
+  "Button-generated pacing controls, readiness acknowledgements, and greetings are interaction metadata, not technical evidence. They have no eligible quote IDs. Do not cite them, score their absence of reasoning, or treat Done explaining as refusing to answer a question. An area the interviewer never explored and the candidate never discussed must have score null and no gap or weakness. A numeric score with no eligible evidence is never valid; use null.",
+  "Each private rubric entry includes topic_explored, a server check of whether this topic appears in candidate evidence or an interviewer follow-up. False means score null and no associated weakness. True only permits assessment; it does not establish depth or completion. A quote about redirects is not evidence of scaling, reliability, or operations just because those areas also concern redirects. If reasoning is too limited to assess an area, still use null.",
 ].join("\n\n");
 
 export async function gradeInterview(
@@ -51,15 +55,22 @@ export async function gradeInterview(
     problem: { id: problem.id, prompt: problem.prompt },
     candidate_level: level,
     level_expectations: problem.levels[level].expectations,
-    private_rubric: problem.rubric.map((area, areaIndex) => ({
+    private_rubric: problem.rubric.map(({ area, strong }, areaIndex) => ({
       areaIndex,
-      ...area,
+      area,
+      strong,
+      topic_explored: areaWasExplored(problem, areaIndex, snapshot),
     })),
-    transcript: snapshot.messages.map(({ role, content }, index) => ({
-      index,
-      role,
-      content,
-    })),
+    transcript: snapshot.messages.map(
+      ({ role, content, source, action }, index) => ({
+        index,
+        role,
+        content,
+        ...(source === "control"
+          ? { interaction: "pacing_control", action }
+          : {}),
+      }),
+    ),
     candidate_quotes: candidateQuotes(snapshot.messages),
     final_diagram: graphToText(sceneToGraph(snapshot.scene)),
     diagram_elements:
@@ -119,7 +130,11 @@ export async function gradeInterview(
         level,
         snapshot,
         endedAt,
-        JSON.parse(response.output_text),
+        repairGradingAssessment(
+          problem,
+          snapshot,
+          JSON.parse(response.output_text),
+        ),
       );
     } catch (cause) {
       if (signal?.aborted || cause instanceof APIError || attempt >= 1)

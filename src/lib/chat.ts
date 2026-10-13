@@ -13,10 +13,15 @@ export const chatMessageSchema = z
     role: chatRoleSchema,
     content: z.string().trim().min(1).max(8_000),
     action: candidateActionSchema.optional(),
+    source: z.literal("control").optional(),
   })
   .refine(({ role, action }) => role === "user" || action === undefined, {
     message: "Only candidate messages may include pacing actions",
     path: ["action"],
+  })
+  .refine(({ role, source }) => role === "user" || source === undefined, {
+    message: "Only candidate controls may include a control source",
+    path: ["source"],
   });
 
 export const chatRequestSchema = z

@@ -1,7 +1,10 @@
 import "server-only";
 import type { ChatRequest } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
-import { getInterviewProgress } from "@/lib/interview-progress";
+import {
+  getInterviewProgress,
+  isListeningContinuation,
+} from "@/lib/interview-progress";
 import {
   acquireInterviewSession,
   InterviewSessionError,
@@ -26,8 +29,18 @@ export async function prepareInterviewTurn(
   // Stateless callers retain the configured turn-count handoff and explicit pacing controls.
   if (!request.sessionId)
     return {
-      context: { problem, level: request.level, progress },
+      context: {
+        problem,
+        level: request.level,
+        progress,
+        listening: isListeningContinuation(
+          problem,
+          request.messages,
+          progress.step,
+        ),
+      },
       phase: undefined,
+      completedPhase: () => undefined,
       commit() {},
       release() {},
     };
@@ -79,6 +92,7 @@ export async function prepareInterviewTurn(
       request.scene,
       covered,
     );
+    let completedPlan = plan;
     return {
       context: {
         problem,
@@ -86,6 +100,11 @@ export async function prepareInterviewTurn(
         progress: plan.progress,
         phase: problem.phases[plan.state.phaseIndex],
         coveredCriteria: plan.state.coveredCriteria,
+        listening: isListeningContinuation(
+          problem,
+          request.messages,
+          plan.progress.step,
+        ),
         reviewQuestion:
           plan.progress.step === "review" &&
           problem.phases[plan.state.phaseIndex]?.transition !== "wrap-up" &&
@@ -94,8 +113,26 @@ export async function prepareInterviewTurn(
             : undefined,
       },
       phase: publicPhase(problem.phases, plan.state.phaseIndex),
-      commit() {
-        if (!signal.aborted) lease.commit(plan.state);
+      completedPhase: () =>
+        publicPhase(problem.phases, completedPlan.state.phaseIndex),
+      commit(reply: string) {
+        if (signal.aborted) return;
+        // Facts supplied in this very reply cannot become a repeated setup question.
+        if (current.transition === "initial")
+          completedPlan = planPhaseProgress(
+            problem,
+            lease.state,
+            progress,
+            request.scene,
+            [
+              ...covered,
+              ...sharedRequirementCriteria(problem, request.level, [
+                ...request.messages,
+                { role: "assistant", content: reply },
+              ]),
+            ],
+          );
+        lease.commit(completedPlan.state);
       },
       checkpoint: lease.checkpoint,
       release: lease.release,

@@ -71,7 +71,9 @@ export function useInterviewChat({
       {
         role: "user",
         content: content.trim(),
-        ...(requestedAction ? { action: requestedAction } : {}),
+        ...(requestedAction
+          ? { action: requestedAction, source: "control" as const }
+          : {}),
       },
     ]);
 
@@ -88,6 +90,7 @@ export function useInterviewChat({
           role: "user",
           content: content.trim(),
           ...(action ? { action } : {}),
+          ...(requestedAction ? { source: "control" as const } : {}),
         },
       ];
       if (!requestedAction) setInput("");
@@ -134,11 +137,15 @@ export function useInterviewChat({
         throw new Error(detail ?? `Request failed (${response.status})`);
       }
 
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", content: "" },
-      ]);
+      const listening =
+        response.headers.get("X-Interview-Reply-Kind") === "listening";
+      if (!listening)
+        setMessages((current) => [
+          ...current,
+          { role: "assistant", content: "" },
+        ]);
       const completed = await receiveInterviewStream(response.body, (chunk) => {
+        if (listening) return;
         setMessages((current) => {
           const last = current.at(-1);
           if (!last || last.role !== "assistant") return current;
@@ -156,10 +163,10 @@ export function useInterviewChat({
       onPhaseChange(phase);
       if (turn.canCommitImage)
         previousImageFingerprintRef.current = turn.fingerprint;
-      const finished: ChatMessage[] = [
-        ...next,
-        { role: "assistant", content: completed.reply },
-      ];
+      const finished: ChatMessage[] =
+        completed.checkpoint.replyKind === "listening"
+          ? next
+          : [...next, { role: "assistant", content: completed.reply }];
       setMessages(finished);
       await onSave({
         messages: finished,

@@ -3,7 +3,10 @@
   "title": "Scale a single server",
   "drawingPolicy": {
     "discussionTurns": 2,
-    "invitation": "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Send me a message when you're ready to walk through it."
+    "invitation": "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Send me a message when you're ready to walk through it."
+    ]
   },
   "summary": "A small website runs on one server and gets slower as traffic grows. Improve it one step at a time.",
   "prompt": "A small website runs on one machine. Its web application and data are on that machine. As more people visit, the website gets slower. Explain how you would find the bottleneck and improve the architecture one step at a time, while keeping the website working and its existing data available.",
@@ -43,23 +46,28 @@
   "rubric": [
     {
       "area": "Understand the starting architecture",
-      "strong": "Explains how a user request reaches the single server and where the application and existing data live."
+      "strong": "Explains how a user request reaches the single server and where the application and existing data live.",
+      "assessmentPattern": "\\b(single|one (?:machine|server)|app(?:lication)?|database|data|web(?:site)?)\\b"
     },
     {
       "area": "Find the bottleneck",
-      "strong": "Uses response times, error rates, resource usage, and request volume to identify what limits the current server instead of changing the architecture without evidence."
+      "strong": "Uses response times, error rates, resource usage, and request volume to identify what limits the current server instead of changing the architecture without evidence.",
+      "assessmentPattern": "\\b(bottleneck|cpu|processor|memory|ram|disk|i/o|query|queries|profil\\w*|saturat\\w*|resource|hotspot|server.{0,30}limit)\\b"
     },
     {
       "area": "Explain the improvement",
-      "strong": "Connects the proposed change to the measured bottleneck and explains the request flow through the updated drawing."
+      "strong": "Connects the proposed change to the measured bottleneck and explains the request flow through the updated drawing.",
+      "assessmentPattern": "\\b(add\\w*|scal\\w*|larger|two|balanc\\w*|cache|caching|replic\\w*|split\\w*|mov\\w*|vertical|horizontal|capacity|throughput|improv\\w*)\\b"
     },
     {
       "area": "Keep the website working",
-      "strong": "Explains how existing data stays available and what users experience if a drawn server becomes unavailable."
+      "strong": "Explains how existing data stays available and what users experience if a drawn server becomes unavailable.",
+      "assessmentPattern": "\\b(availab\\w*|durab\\w*|preserv\\w*|correct\\w*|fail\\w*|crash\\w*|redundan\\w*|backup|migrat\\w*|rollout|rollback|continuit\\w*|lost|lose|keep.{0,40}working)\\b"
     },
     {
       "area": "Check the result",
-      "strong": "Compares throughput, response times, and errors before and after the change and names a clear next measurement."
+      "strong": "Compares throughput, response times, and errors before and after the change and names a clear next measurement.",
+      "assessmentPattern": "\\b(load test|stress test|benchmark|verif\\w*|validat\\w*|before.{0,100}after|after.{0,100}before|check.{0,60}(?:result|improv|change|help\\w*|work\\w*)|(?:measur\\w*|monitor\\w*|metrics?).{0,80}(?:success|improv\\w*|after|compar\\w*|confirm\\w*)|(?:know|tell).{0,60}(?:help\\w*|work\\w*|improv\\w*))\\b"
     }
   ],
   "followUps": [
@@ -145,7 +153,7 @@
       "sharedAnswerPattern": "(?=[\\s\\S]*\\b10\\b)(?=[\\s\\S]*\\b1,?000\\b)(?=[\\s\\S]*\\b500\\s*(?:ms|milliseconds)\\b)"
     },
     {
-      "pattern": "\\b(stale|staleness|consistency)\\b|few seconds.*(delay|old)",
+      "pattern": "\\b(stale|staleness|consistency)\\b|few seconds.*(delay|old|show|appear|visible)|\\b(updates?|changes?)\\b.{0,70}\\b(delay|late|seconds?|show up|appear|visible)\\b",
       "answers": {
         "mid": "Yes, page reads may show updates up to 5 seconds late. A successful save must be durable, and existing data must remain available during architecture changes. This tolerance applies to read freshness, not lost updates.",
         "senior": "Yes, page reads may show updates up to 5 seconds late. A successful save must be durable, and existing data must remain available during architecture changes. This tolerance applies to read freshness, not lost updates.",

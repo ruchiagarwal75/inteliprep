@@ -131,6 +131,10 @@ export function InterviewSessionWorkspace({
           <Whiteboard
             initialScene={initialScene}
             onChange={onSceneChange}
+            onInitialize={(scene) => {
+              restoreScene(scene);
+              library.initialized(saved?.id);
+            }}
             readOnly={
               hasEnded || timer.expired || library.isOpening || library.blocked
             }

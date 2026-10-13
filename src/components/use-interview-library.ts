@@ -39,6 +39,7 @@ export function useInterviewLibrary(
     openingRef,
     save,
     changed,
+    initialized,
     getResumeToken,
   } = useInterviewAutosave({
     getScene,
@@ -198,6 +199,7 @@ export function useInterviewLibrary(
     isOpening,
     save,
     changed,
+    initialized,
     open,
     start,
     reset,

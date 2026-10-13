@@ -25,6 +25,22 @@ function stream(text: string) {
 }
 
 describe("completed-turn checkpoint stream", () => {
+  it("delivers quiet listening metadata only with a completed checkpoint", async () => {
+    const event =
+      JSON.stringify({
+        type: "complete",
+        resumeToken: "checkpoint",
+        replyKind: "listening",
+      }) + "\n";
+    const result = await receiveInterviewStream(
+      stream(delta + event),
+      () => {},
+    );
+    expect(result.checkpoint.replyKind).toBe("listening");
+    await expect(
+      receiveInterviewStream(stream(event), () => {}),
+    ).rejects.toThrow();
+  });
   it("handles arbitrary byte boundaries and Unicode and commits after successful EOF", async () => {
     const chunks: string[] = [];
     const result = await receiveInterviewStream(

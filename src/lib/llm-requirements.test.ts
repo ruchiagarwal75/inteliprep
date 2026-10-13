@@ -48,6 +48,14 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("requirements-stage reply control", () => {
+  it("does not drop the freshness part of a multi-question clarification", async () => {
+    const displayed = await reply(
+      "What is the traffic and target response time? Is it OK if updates take a few seconds to show up?",
+    );
+    expect(displayed).toContain(problem.clarifications[0].answers.mid);
+    expect(displayed).toContain(problem.clarifications[1].answers.mid);
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
   it.each(["Okay", "Yes.", "Okay, thanks!", "Got it"])(
     "answers bare %s with the next missing requirement, without a model design follow-up",
     async (content) => {
@@ -67,6 +75,23 @@ describe("requirements-stage reply control", () => {
     expect(await reply("Okay", { ...context, coveredCriteria: [0, 1] })).toBe(
       problem.phases[0].clarificationQuestions?.[2],
     );
+  });
+  it("does not ask for goals supplied in the same generated reply", async () => {
+    mocks.create.mockImplementation(async function* () {
+      yield {
+        type: "response.output_text.delta",
+        delta:
+          "Assume traffic grows from 10 to 1,000 requests per second, with pages completing in under 500 milliseconds. What traffic-growth and response-time goals are you using?",
+      };
+      yield { type: "response.completed" };
+    });
+    const displayed = await reply(
+      "What incoming load should the website handle?",
+    );
+    expect(displayed).toContain("under 500 milliseconds");
+    expect(displayed).toContain(problem.drawingPolicy.invitation);
+    expect(displayed).not.toContain("What traffic-growth");
+    expect(displayed).not.toContain("?");
   });
   it.each(["drawing", "explaining"] as const)(
     "keeps questions paused during %s even with requirements missing",

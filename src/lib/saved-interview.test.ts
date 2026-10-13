@@ -20,6 +20,46 @@ import { scorecardFixture } from "@/lib/fixtures/scorecard-test";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 
 describe("browser session snapshots", () => {
+  it("caps older untimed history at the default duration and preserves shorter attempts", () => {
+    const saved = savedFixture();
+    saved.createdAt = "2026-10-12T10:00:00.000Z";
+    saved.interview.timing = undefined;
+    saved.hasEnded = true;
+    saved.scorecard = {
+      ...scorecardFixture(),
+      session: undefined,
+      endedAt: "2026-10-12T15:12:15.000Z",
+    };
+    saved.updatedAt = "2026-10-13T18:00:00.000Z";
+    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(2700);
+    saved.scorecard.endedAt = "2026-10-12T10:04:00.000Z";
+    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(240);
+  });
+  it("caps timed fallback durations at their deadline, including saves made hours later", () => {
+    const saved = savedFixture();
+    const start = "2026-10-12T10:00:00.000Z";
+    saved.interview.timing = {
+      startedAt: start,
+      deadlineAt: "2026-10-12T10:01:00.000Z",
+      durationMinutes: 1,
+    };
+    saved.updatedAt = "2026-10-12T15:12:15.000Z";
+    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(60);
+    saved.hasEnded = true;
+    saved.endedAt = "2026-10-12T10:00:30.000Z";
+    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(30);
+  });
+  it("aligns browser fallback timestamps with the server clock instead of counting clock drift as time used", () => {
+    const saved = savedFixture();
+    saved.interview.timing = {
+      startedAt: "2026-10-12T10:00:00.000Z",
+      deadlineAt: "2026-10-12T10:45:00.000Z",
+      durationMinutes: 45,
+    };
+    saved.clockOffsetMs = -5 * 60_000;
+    saved.updatedAt = "2026-10-12T10:05:30.000Z";
+    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(30);
+  });
   it("preserves drafts, grading failures and viewport, including across older-save defaults", () => {
     const saved = savedFixture();
     const updated = updateSavedInterview(

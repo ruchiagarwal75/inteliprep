@@ -52,7 +52,8 @@ export function InterviewSetup({
             </h1>
             <p className="text-xs text-black/60 dark:text-white/60">
               {INTERVIEW_LEVEL_LABELS[interview.level]} ·{" "}
-              {interview.timing?.durationMinutes ?? 45} minutes ·{" "}
+              {interview.timing?.durationMinutes ?? 45}{" "}
+              {interview.timing?.durationMinutes === 1 ? "minute" : "minutes"} ·{" "}
               {hasEnded ? "Ended" : "In progress"}
             </p>
           </div>

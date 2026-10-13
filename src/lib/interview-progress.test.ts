@@ -3,6 +3,7 @@ import type { ChatMessage } from "@/lib/chat";
 import {
   getInterviewProgress,
   drawingStepInstructions,
+  isListeningContinuation,
 } from "@/lib/interview-progress";
 import { getProblem } from "@/lib/problems";
 
@@ -21,6 +22,54 @@ function turns(count: number): ChatMessage[] {
   ];
 }
 describe("history-based interview pacing", () => {
+  it("gives entry guidance once, then quietly listens until a question or review request", () => {
+    const history: ChatMessage[] = [
+      { role: "user", content: "Please let me finish", action: "explain" },
+    ];
+    expect(isListeningContinuation(problem(), history, "explaining")).toBe(
+      false,
+    );
+    history.push({
+      role: "user",
+      content: "The first app server reads from the database.",
+    });
+    expect(isListeningContinuation(problem(), history, "explaining")).toBe(
+      true,
+    );
+    expect(
+      isListeningContinuation(
+        problem(),
+        [...history, { role: "user", content: "Is read staleness allowed?" }],
+        "explaining",
+      ),
+    ).toBe(false);
+    expect(
+      isListeningContinuation(
+        problem(),
+        [
+          ...history,
+          {
+            role: "user",
+            content: "I've finished explaining",
+            action: "review",
+          },
+        ],
+        "review",
+      ),
+    ).toBe(false);
+  });
+  it("recognizes saved drawing invitations from before the button instructions changed", () => {
+    const selected = problem();
+    expect(
+      getInterviewProgress(selected, [
+        {
+          role: "assistant",
+          content: selected.drawingPolicy.legacyInvitations[0],
+        },
+        { role: "user", content: "Adding another box" },
+      ]).step,
+    ).toBe("drawing");
+  });
   it("counts candidate messages and uses each configured legacy handoff limit", () => {
     expect(getInterviewProgress(problem(), turns(1))).toEqual({
       step: "discussion",

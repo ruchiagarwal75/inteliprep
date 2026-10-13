@@ -92,11 +92,27 @@ export function useInterviewAutosave({
     const viewChanged =
       JSON.stringify(current.appState) !== JSON.stringify(saved.appState);
     if (!contentChanged && !viewChanged) return;
-    if (!dirtyRef.current && contentChanged) onStatus("Unsaved changes");
+    if (!dirtyRef.current && contentChanged) onStatus("Saving…");
     dirtyRef.current = true;
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(() => void save(), 400);
   }, [save, onStatus, getScene]);
+
+  const initialized = useCallback(
+    (id?: string) => {
+      if (
+        !id ||
+        savedRef.current?.id !== id ||
+        dirtyRef.current ||
+        conflictedRef.current
+      )
+        return;
+      // The editor may migrate native fields or restore its viewport on mount.
+      // Persist that normalized baseline without reporting an edit to the user.
+      void save();
+    },
+    [save],
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -131,6 +147,7 @@ export function useInterviewAutosave({
     openingRef,
     save,
     changed,
+    initialized,
     getResumeToken,
   };
 }
