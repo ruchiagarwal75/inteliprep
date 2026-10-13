@@ -1,4 +1,4 @@
-import { interviewSelectionSchema } from "@/lib/interview-selection";
+import { interviewStartRequestSchema } from "@/lib/interview-selection";
 import { createInterviewStart, getProblem } from "@/lib/problems";
 import { InterviewSessionError } from "@/lib/interview-sessions";
 
@@ -9,7 +9,7 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return Response.json({ error: "Body must be valid JSON" }, { status: 400 });
   }
-  const parsed = interviewSelectionSchema.safeParse(body);
+  const parsed = interviewStartRequestSchema.safeParse(body);
   if (!parsed.success)
     return Response.json(
       {
@@ -24,9 +24,16 @@ export async function POST(request: Request): Promise<Response> {
       { status: 404 },
     );
   try {
-    return Response.json(createInterviewStart(problem, parsed.data.level), {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return Response.json(
+      createInterviewStart(
+        problem,
+        parsed.data.level,
+        parsed.data.durationMinutes,
+      ),
+      {
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
   } catch (cause) {
     if (cause instanceof InterviewSessionError)
       return Response.json({ error: cause.message }, { status: cause.status });

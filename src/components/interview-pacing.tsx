@@ -14,7 +14,7 @@ export function InterviewPacing({
   disabled: boolean;
   onChoose: (message: string, action: CandidateAction) => void;
 }) {
-  const current = action ?? (hasDrawing ? "draw" : undefined);
+  const current = action;
   const designControl = designDiscussionControl(current);
   return (
     <div className="border-t border-black/10 p-3 dark:border-white/15">

@@ -9,6 +9,7 @@ import { prepareInterviewTurn } from "@/lib/interview-turn";
 import { InterviewSessionError } from "@/lib/interview-sessions";
 import { INTERVIEW_PHASE_HEADER } from "@/lib/interview-phase";
 import { chatResponse } from "@/lib/chat-response";
+import { INTERVIEW_STREAM_TYPE } from "@/lib/interview-stream";
 
 export const runtime = "nodejs";
 
@@ -70,7 +71,7 @@ export async function POST(request: Request): Promise<Response> {
   } catch (cause) {
     request.signal.removeEventListener("abort", cancel);
     return cause instanceof InterviewSessionError
-      ? error(cause.message, cause.status)
+      ? error(cause.message, cause.status, cause.code)
       : upstreamError(cause);
   }
   const release = () => {
@@ -105,11 +106,14 @@ export async function POST(request: Request): Promise<Response> {
     release();
     return upstreamError(cause);
   }
+  const framed = request.headers.get("Accept") === INTERVIEW_STREAM_TYPE;
   return chatResponse(
     deltas,
     first,
     {
-      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Type": framed
+        ? INTERVIEW_STREAM_TYPE
+        : "text/plain; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
       ...(turn.phase
@@ -123,5 +127,8 @@ export async function POST(request: Request): Promise<Response> {
     turn.commit,
     release,
     cancel,
+    framed
+      ? () => ({ phase: turn.phase, resumeToken: turn.checkpoint?.() })
+      : undefined,
   );
 }

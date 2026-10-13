@@ -23,9 +23,21 @@ if (!selected) throw new Error("Missing problem");
 const problem = selected;
 const selection = { problemId: problem.id, level: "mid" as const };
 const history: ChatMessage[] = [
-  { role: "user", content: "CPU is high" },
-  { role: "assistant", content: "What did you measure?" },
-  { role: "user", content: "95 percent" },
+  {
+    role: "user",
+    content:
+      "The website serves pages and saves updates; app and data currently run on one server. What traffic and response time should I target?",
+  },
+  {
+    role: "assistant",
+    content:
+      "Traffic grows from 10 to 1,000 requests per second; typical page requests should take under 500 milliseconds.",
+  },
+  {
+    role: "user",
+    content:
+      "I'll use those traffic and response-time goals, and keep existing data available and correct during the change.",
+  },
 ];
 function start() {
   return createInterviewStart(problem, "mid");
@@ -70,6 +82,8 @@ describe("server-owned interview stages", () => {
     const drawing = await post(interview.sessionId);
     expect(readInterviewPhase(drawing.headers)?.position).toBe(2);
     await drawing.text();
+    expect(mocks.assessPhaseCoverage).not.toHaveBeenCalled();
+    mocks.assessPhaseCoverage.mockClear();
     const ready: ChatMessage[] = [
       ...history,
       { role: "user", content: "Let's discuss", action: "review" },
@@ -131,6 +145,7 @@ describe("server-owned interview stages", () => {
   });
   it("ignores client phase claims and never commits an interrupted or empty reply", async () => {
     const interview = start();
+    mocks.assessPhaseCoverage.mockResolvedValue([0, 1, 2]);
     mocks.streamInterviewerReply.mockImplementation(async function* () {
       yield "Partial";
       throw new Error("Lost connection");

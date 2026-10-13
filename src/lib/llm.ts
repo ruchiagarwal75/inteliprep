@@ -14,6 +14,14 @@ import {
 } from "@/lib/drawing-reply";
 
 import { createOpenAIClient, interviewerModel } from "@/lib/openai-client";
+import {
+  isBareAcknowledgement,
+  pendingRequirementsQuestion,
+} from "@/lib/requirements-reply";
+import {
+  configuredClarification,
+  isFactualQuestion,
+} from "@/lib/configured-clarifications";
 export { MissingApiKeyError, hasApiKey } from "@/lib/openai-client";
 
 /** Streams the interviewer's reply as plain text deltas. */
@@ -25,6 +33,60 @@ export async function* streamInterviewerReply(
   diagramImage?: string,
   interview?: InterviewContext,
 ): AsyncGenerator<string> {
+  const latestCandidate = messages.findLast(
+    (message) => message.role === "user",
+  );
+  const step = interview?.progress?.step;
+  const clarification =
+    interview &&
+    latestCandidate &&
+    configuredClarification(
+      interview.problem,
+      interview.level,
+      latestCandidate.content,
+    );
+  const requirementsQuestion = pendingRequirementsQuestion(
+    interview && clarification
+      ? {
+          ...interview,
+          coveredCriteria: [
+            ...(interview.coveredCriteria ?? []),
+            ...clarification.coveredCriteria,
+          ],
+        }
+      : interview,
+  );
+  if (clarification) {
+    signal?.throwIfAborted();
+    yield clarification.text;
+    if (step === "invite-drawing")
+      yield `\n\n${interview.problem.drawingPolicy.invitation}`;
+    else if (requirementsQuestion) yield `\n\n${requirementsQuestion}`;
+    return;
+  }
+  if (
+    (step === "explaining" || step === "drawing") &&
+    latestCandidate &&
+    !isFactualQuestion(latestCandidate.content)
+  ) {
+    signal?.throwIfAborted();
+    yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
+    return;
+  }
+  if (interview?.reviewQuestion) {
+    signal?.throwIfAborted();
+    yield interview.reviewQuestion;
+    return;
+  }
+  if (
+    requirementsQuestion &&
+    latestCandidate &&
+    isBareAcknowledgement(latestCandidate.content)
+  ) {
+    signal?.throwIfAborted();
+    yield requirementsQuestion;
+    return;
+  }
   const stream = await createOpenAIClient().responses.create(
     {
       model: interviewerModel(),
@@ -42,7 +104,6 @@ export async function* streamInterviewerReply(
     { signal },
   );
 
-  const step = interview?.progress?.step;
   const closing =
     interview?.phase?.transition === "wrap-up" && step === "review";
   const drawingReply =
@@ -63,7 +124,7 @@ export async function* streamInterviewerReply(
     }
     if (event.type === "response.completed") completed = true;
     if (event.type === "response.output_text.delta") {
-      if (drawingReply) bufferedReply += event.delta;
+      if (drawingReply || requirementsQuestion) bufferedReply += event.delta;
       else yield event.delta;
     }
   }
@@ -71,10 +132,12 @@ export async function* streamInterviewerReply(
     throw new Error(
       "The interviewer reply did not complete. Please try again.",
     );
-  if (drawingReply) {
+  if (drawingReply || requirementsQuestion) {
     const reply = withoutQuestions(bufferedReply);
     if (reply) yield reply;
-    if (step === "invite-drawing" && interview)
+    if (requirementsQuestion)
+      yield `${reply ? "\n\n" : ""}${requirementsQuestion}`;
+    else if (step === "invite-drawing" && interview)
       yield `${reply ? "\n\n" : ""}${interview.problem.drawingPolicy.invitation}`;
     else if (!reply && closing)
       yield "Thanks for walking through your design and its tradeoffs.";

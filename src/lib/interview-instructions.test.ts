@@ -6,6 +6,60 @@ import { INTERVIEWER_INSTRUCTIONS } from "@/lib/interviewer-input";
 import { getInterviewProgress } from "@/lib/interview-progress";
 
 describe("buildInterviewInstructions", () => {
+  it.each(["single-server-scaling", "url-shortener"])(
+    "defers %s design guidance until the requirements checkpoint is complete",
+    (id) => {
+      const problem = getProblem(id);
+      if (!problem) throw new Error("Missing problem");
+      const initial = buildInterviewInstructions({
+        problem,
+        level: "mid",
+        phase: problem.phases[0],
+      });
+      expect(initial).toContain(problem.requirements[0]);
+      expect(initial).toContain(problem.levels.mid.scaleHints[0]);
+      expect(initial).toContain("Bare yes/okay does not complete");
+      expect(initial).not.toContain('"private_follow_up_bank":');
+      expect(initial).not.toContain('"private_rubric":');
+      expect(initial).not.toContain(problem.levels.mid.expectations);
+      expect(initial).not.toContain(problem.prompt);
+      const design = buildInterviewInstructions({
+        problem,
+        level: "mid",
+        phase: problem.phases[2],
+      });
+      expect(design).toContain(problem.followUps[0]);
+      expect(design).toContain(problem.rubric[0].strong);
+      expect(design).toContain(problem.levels.mid.expectations);
+    },
+  );
+  it.each(["discussion", "drawing", "explaining"] as const)(
+    "focuses the initial stage on missing requirements while respecting %s",
+    (step) => {
+      const problem = getProblem("single-server-scaling");
+      if (!problem) throw new Error("Missing problem");
+      const instructions = buildInterviewInstructions({
+        problem,
+        level: "mid",
+        phase: problem.phases[0],
+        coveredCriteria: [0],
+        progress: { step, candidateTurns: 9, discussionTurnLimit: 2 },
+      });
+      expect(instructions).toContain(
+        "essential requirements checkpoint is still open",
+      );
+      expect(instructions).toContain(
+        "A sketch or a turn count does not complete",
+      );
+      expect(instructions).toContain("Do not quiz bottleneck measurements");
+      expect(instructions).toContain('"covered_criterion_indexes":[0]');
+      expect(instructions).toContain(`"interview_progress":{"step":"${step}"}`);
+      expect(instructions).not.toContain('"discussionTurnLimit":');
+      expect(instructions).not.toContain('"candidateTurns":');
+      if (step !== "discussion")
+        expect(instructions).toContain("wait without questions");
+    },
+  );
   it("attaches the server-selected stage and its covered criteria while giving pacing priority", () => {
     const problem = getProblem("single-server-scaling");
     if (!problem) throw new Error("Missing problem config");
@@ -70,7 +124,7 @@ describe("buildInterviewInstructions", () => {
       expect(instructions).toContain(problem.rubric[0].strong);
       expect(instructions).toContain("Never quote, list, or disclose them");
       expect(instructions).toContain(
-        "only when the candidate asks for clarification",
+        "Do not repeat questions about requirements already supplied",
       );
       expect(instructions).toContain("do not greet them again or restart");
       for (const other of interviewLevelSchema.options.filter(

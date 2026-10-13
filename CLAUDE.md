@@ -10,7 +10,10 @@ API surface. If a change contradicts the spec, update the spec in the same PR.
 
 Status: early prototype with diagram-aware streaming chat, an Excalidraw
 whiteboard, diagram change detection, PNG image input, and server-owned stage
-tracking. Timers and durable persistence come later. Candidates can start single-server scaling or the URL
+tracking, explicit interview ending, evidence-backed scorecards, and IndexedDB
+browser saves with autosave/resume/history, and a 45-minute timer with automatic
+ending. Cloud persistence comes later.
+Candidates can start single-server scaling or the URL
 shortener at mid, senior, or staff difficulty with a configured opening and
 private server rubric. The default is the simple scaling exercise at Mid-level.
 
@@ -88,8 +91,9 @@ Conventions:
 - `/interview` — split view, Excalidraw whiteboard left, chat right. The workspace
   keeps the latest scene in memory and attaches it to each chat request. The setup
   header selects a problem and difficulty; Start interview fetches its opening
-  and unlocks chat. New interview resets chat and both diagram baselines while
-  preserving the whiteboard. Setup changes are disabled during an active interview.
+  and unlocks chat. New interview resets chat, both diagram baselines, and the
+  whiteboard, while retaining the previous session in browser history. Setup changes
+  are disabled during an active interview.
 - Configurations live in `src/lib/problems/single-server-scaling.json` and
   `src/lib/problems/url-shortener.json`. The simple scaling exercise starts with
   one machine running a website and its data, and uses short, approachable
@@ -99,32 +103,63 @@ Conventions:
   the rubric, scale hints, requirements, and follow-up bank remain on the server.
 - `GET /api/problems` — returns the public catalog. The server-rendered interview
   page uses the same projection, without sending private config in page props.
-- `POST /api/interview/start` — validates `{ problemId, level }`, creates a temporary
+- `POST /api/interview/start` — validates `{ problemId, level, durationMinutes? }`, creates a temporary
   server session, and returns its ID, initial public stage, selected IDs, and one
-  configured assistant opening. It makes no LLM call.
+  configured assistant opening. The opening explains the scenario, objective, and
+  scope in short paragraphs before asking one requirements clarification question.
+  It makes no LLM call.
+- New sessions default to 45 minutes; a Duration picker also offers 1 minute (test).
+  The server returns the fixed start/deadline and current server time, and seals
+  the deadline into the resume checkpoint. IndexedDB retains the deadline and
+  clock calibration. The countdown uses the fixed deadline, so refresh/resume
+  and delayed browser callbacks do not restart it. Older unfinished browser saves
+  receive a 45-minute timer on first successful reconnect; completed cards stay intact.
+  At expiry drawing/new chat stop and the native board is frozen. Unsent text is saved
+  as a draft and scoring waits for Include final answer or Score without this answer.
+  An accepted reply finishes and saves before grading. With no draft, grading runs once automatically. Past-deadline session turns
+  return 409/INTERVIEW_TIME_EXPIRED before assessment or reply generation. Manual
+  ending, retries, and cached grading use the same existing flow. Clock expiry does
+  not advance stages or penalize unexplored rubric areas. Closed pages resume the
+  same expiry flow on reopen, including the saved-draft decision.
 - `POST /api/chat` — validates `{ problemId, level, sessionId?, messages, scene?, previousScene?, diagramImage? }`, streams the
   reply back as plain text. The server extracts a shared semantic graph for each
   scene and passes the current description and the change summary as user data
   to the interviewer. The later session route uses SSE instead (see spec "API design").
+- `POST /api/interview/end` — requires the started selection/session and full
+  transcript plus final scene/optional PNG. It freezes the first submitted evidence,
+  ends the interview, and returns a separately graded scorecard. Further chat returns 409. Failed grading retains the frozen evidence for Retry scorecard; a successful
+  result is cached so repeated ends do not call the provider again. Ending and chat
+  share the session lock. The final PNG is exported even if unchanged since chat;
+  export failures continue with diagram text and a notice. The UI freezes the board
+  and retains the transcript for review, with New interview opening a blank board.
+- Grading uses the whole transcript and final diagram, the selected problem's rubric,
+  and level expectations, independent of stage order or early drawing. Scores are
+  1–4 per configured area; unexplored areas are unassessed, rather than invented
+  failures. Numeric scores, strengths, and gaps select candidate quote IDs from a
+  server-prepared excerpt list or live diagram IDs. The server attaches original
+  candidate words; assistant statements cannot count as candidate evidence. Invalid
+  output/evidence is retried once; provider failures allow a manual retry. An interview without a technical answer returns unassessed feedback without a
+  provider call, even if it contains an unexplained drawing or pacing controls. Partial assessment
+  has no overall hire signal. Feedback includes a configured next practice problem.
+  Grading payloads are released after a successful result; scorecards persist in browser history.
 - Every chat turn resolves the problem on the server and attaches the selected
-  level, requirements, scale assumptions, rubric, and follow-up bank in trusted
-  instructions. Client-supplied rubric or instruction fields are ignored. Missing
+  level, requirements, and scale assumptions in trusted instructions. The initial
+  requirements checkpoint defers design expectations, rubric, and follow-up bank
+  until later stages so clarification stays focused. Client-supplied rubric or instruction fields are ignored. Missing
   selections and invalid levels return 400; unknown problem IDs return 404.
-- Each problem has five ordered stages in its private `phases` configuration:
-  ID, public title, goal, completion criteria, interviewer guidance, and transition
-  policy. Single-server scaling uses Understand the bottleneck → Draw and explain
-  → Discuss improvements → Validate results → Wrap up. The URL shortener uses
-  Clarify requirements → Draw and explain → Explore the core design → Scaling and
-  reliability → Tradeoffs and wrap-up.
-- The workspace always sends the started session ID. The server locks a session
-  while replying and owns its stage and accumulated criterion coverage; arbitrary
-  client phase/coverage fields are ignored. Initial discussion moves to drawing at
-  the existing handoff or an early sketch/pacing request. Drawing moves to discussion
-  only with a live sketch and explicit candidate permission. Later stages use a
-  separate strict-JSON coverage check with exact candidate quotes; invalid evidence
-  or assessment failures keep the stage. Stages advance at most one step per turn.
-  Drawing/explanation pauses preserve the stage and hold questions without running
-  the coverage checker. Wrap-up replies close without another design question.
+- Each problem has five ordered private stages: single-server scaling uses Clarify
+  requirements → Draw and explain → Discuss improvements → Validate results → Wrap up.
+  The URL shortener uses Clarify requirements → Draw and explain → Explore the core
+  design → Scaling and reliability → Tradeoffs and wrap-up.
+- Stage and pacing are independent. Requirements provided in the configured opening
+  are shared context; configured factual replies also cover their setup criteria,
+  without requiring the candidate to repeat them. This coverage never earns technical
+  scores. Missing requirements and later design coverage still use exact candidate
+  quotes in a separate structured assessment. Stages advance at most once per
+  completed reply, preserve drawing/explanation pauses, and advance from the drawing
+  stage only with a sketch and explicit discussion permission. Known clarifications
+  are deterministic and bounded (including explicit freshness tolerances). A coverage
+  failure retains the current stage. Wrap-up closes without another design question.
 - Planned stage labels travel in `X-Interview-Phase`; the stage indicator and server
   stage state advance only after a completed, nonempty reply. Failed, empty,
   interrupted, or cancelled replies retain the prior stage. Legacy chat requests
@@ -132,12 +167,14 @@ Conventions:
 - Temporary sessions live in a bounded process-wide map (500 sessions, two-hour
   inactivity expiry), shared by local route bundles and hot reloads. A missing or
   expired session returns 404; mismatched selections or concurrent turns return 409.
-  This is local prototype state; durable storage, auth, and multi-instance deployment
-  support remain future work. Development logs include the public stage title.
-- Drawing handoff is configured per problem: two candidate messages for the
-  simple server exercise, three for the URL shortener. The server derives a
-  discussion/drawing/explanation/review step from validated history and live canvas content.
-  At the limit, the model answers or acknowledges the latest message without
+  Browser checkpoints restore expired/lost process state using authenticated encryption.
+  This is anonymous prototype recovery; cloud storage, auth, and multi-instance locking
+  remain future work. Development logs include the public stage title.
+- The drawing invitation is configured per problem. The two-message simple exercise
+  and three-message URL-shortener limits remain for legacy stateless chat; session
+  stage completion requires confirmed requirements regardless of turn count. The server derives a
+  discussion/drawing/explanation/review step from validated history and candidate controls.
+  At a completed requirements checkpoint (or the legacy turn limit), the model answers or acknowledges the latest message without
   another question, and the server appends the exact drawing invitation after
   the provider reports completion. That delivered invitation marks the drawing
   step in history. A nonempty sketch does not start review: the candidate keeps
@@ -148,9 +185,11 @@ Conventions:
   requests such as "I'm still drawing", "Done", or "Let's discuss" also work.
   "Done" starts explanation, and only an explicit discussion request allows
   follow-up questions. These choices persist through ordinary chat messages.
-  Editing during review records a `draw` action on the next submitted turn unless
-  the candidate explicitly chooses explanation or discussion. Pacing captures
-  are independent of successful text/image delivery baselines. Requirement notes
+  Canvas edits never switch pacing modes. Plain explanation messages receive a
+  deterministic neutral waiting reply; explicit factual questions can still be
+  answered. During permitted review, the server probes clear app-to-database path
+  gaps and mentioned-but-unlabeled cache/CDN components, while preserving uncertainty
+  for freehand/image content. Successful text/image baselines remain independent of pacing. Requirement notes
   and selection rectangles alone do not count as an architecture sketch.
   Handoff, drawing, and explanation replies are buffered until provider completion;
   questions and walkthrough demands are removed before display. Factual answers
@@ -179,9 +218,28 @@ Conventions:
   `[chat] Current whiteboard diagram` and the diff under `[chat] Whiteboard changes`
   in the dev server terminal. `[chat] Whiteboard image` logs attachment status
   without the PNG data. `[chat] Interview step` logs the current handoff step.
-- No persistence: messages and the whiteboard scene vanish on refresh.
-- Selection is also in memory. The full timed phase engine, resume, timers, and
-  scorecards remain later increments; the temporary server session is not persisted.
+- IndexedDB stores full native drawings (including freehand and referenced images),
+  messages, selection, stage/checkpoint, delivery/pacing baselines, ended evidence
+  for retries, scorecards, drafts, viewport, end time, and grading failures. Draft
+  changes save immediately. Drawing autosaves after 400 ms idle and every 10 s
+  while editing; submitted/completed turns save immediately. Refresh reopens the
+  active browser save; a valid /interview?session=<UUID> link takes precedence and
+  Back/Forward reopens browser saves. Saved interviews is a dialog with score, signal,
+  elapsed time, active marker, and explicit delete confirmation. New interview starts
+  the current problem/level/duration in one click with a blank board. Change problem
+  opens the picker while retaining the displayed selection. Saves are confirmed after transaction commit,
+  and revision checks prevent stale tabs overwriting each other. Storage failures
+  show a notice; wait for Saved in this browser before refreshing.
+- The browser requests NDJSON chat events; the final completion event carries the
+  opaque checkpoint after a successful stage commit. The token is accepted only
+  after successful EOF. Plain-text API clients retain existing behavior. Resume
+  and chat/end can restore server stages from tokens after process loss. Ended
+  tokens verify the original frozen evidence hash. Checkpoints derive a key from
+  `INTERVIEW_RESUME_SECRET` or `OPENAI_KEY`; keep a stable dedicated secret to
+  survive provider-key rotation. No rubric or credentials enter browser tokens.
+  Saved scorecards open without a grading request. Clearing site data removes
+  browser saves; they do not sync across devices or origins. Auth and
+  cloud history remain later increments.
   Vitest maps `server-only` to Next's empty server entrypoint;
   Next enforces the client import boundary during builds.
 
@@ -194,3 +252,21 @@ Conventions:
   v14. Left as is deliberately.
 
 @AGENTS.md
+
+## Interview usability and grading calibration
+
+The workspace reserves most laptop height for the board and chat. Chat scrolls to
+the latest message after restoration, sending, and reply updates, and shows a
+thinking/replying status. The board restores its saved viewport; older viewportless
+boards center on content. Dirty detection ignores editor revisions, selections,
+and unused files, while pan/zoom saves quietly. End interview opens a confirmation
+dialog and offers inclusion of an unsent answer. Low-time warnings appear at five
+minutes (15 seconds in test mode) and in the final minute.
+
+Scorecards show server-derived elapsed and allowed time. Attempts under ten minutes
+(of 45), and 1-minute test sessions, have provisional area feedback and no overall
+signal. This does not reduce area scores. Grading requires concrete reasoning for
+3/4 or 4/4, and server validation caps single-server bottleneck scores at 2 when cited
+evidence lacks a diagnostic resource/measurement explanation. Supplied traffic
+numbers cannot prove a bottleneck. Gap captions must describe a useful issue rather
+than only naming a diagram element. Existing successful scorecards remain unchanged.

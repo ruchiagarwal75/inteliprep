@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { BinaryFileData } from "@excalidraw/excalidraw/types";
+import type {
+  BinaryFileData,
+  NormalizedZoomValue,
+} from "@excalidraw/excalidraw/types";
 import {
   captureWhiteboard,
   fingerprintWhiteboard,
+  whiteboardContentKey,
 } from "@/lib/whiteboard-snapshot";
 import {
   PNG_FIXTURE,
@@ -34,6 +38,40 @@ function imageBoard() {
 }
 
 describe("captureWhiteboard", () => {
+  it("does not mark deleted images, their unused files, or selection rectangles as new content", () => {
+    const board = whiteboardFixture();
+    const key = whiteboardContentKey(board);
+    board.files.unused = file();
+    board.elements = [
+      ...board.elements,
+      { ...rectangleFixture(), id: "gone", isDeleted: true },
+      { ...rectangleFixture(), id: "selection", type: "selection" },
+    ];
+    expect(whiteboardContentKey(board)).toBe(key);
+  });
+  it("restores the viewport while excluding it and editor revisions from dirty-content detection", () => {
+    const board = whiteboardFixture();
+    const key = whiteboardContentKey(board);
+    board.appState = {
+      ...board.appState,
+      scrollX: 120,
+      scrollY: -80,
+      zoom: { value: 1.5 as NormalizedZoomValue },
+    };
+    board.elements = board.elements.map((element) => ({
+      ...element,
+      version: 10,
+      updated: 500,
+      versionNonce: 50,
+    }));
+    expect(whiteboardContentKey(board)).toBe(key);
+    expect(captureWhiteboard(board).appState).toEqual(board.appState);
+    board.elements = board.elements.map((element) => ({
+      ...element,
+      x: element.x + 30,
+    }));
+    expect(whiteboardContentKey(board)).not.toBe(key);
+  });
   it("isolates nested drawing data, backgrounds, and referenced image files", () => {
     const groups = ["group"];
     const board = imageBoard();

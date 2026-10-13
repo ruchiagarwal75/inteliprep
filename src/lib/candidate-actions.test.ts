@@ -10,7 +10,8 @@ describe("candidate pacing", () => {
   it.each([
     ["I'm still drawing", "draw"],
     ["I’m not ready for questions", "draw"],
-    ["I'm not done explaining", "draw"],
+    ["I'm not done explaining", "explain"],
+    ["Please let me finish", "explain"],
     ["Please pause questions while I draw", "draw"],
     ["Give me a moment to draw", "draw"],
     ["I need a break", "draw"],
@@ -69,25 +70,13 @@ describe("candidate pacing", () => {
     ).toBeUndefined();
   });
 
-  it("records automatic pauses on edited review turns and lets explicit controls override them", () => {
-    expect(actionForTurn("CPU is still high", undefined, "review", true)).toBe(
-      "draw",
-    );
-    expect(
-      actionForTurn("CPU is still high", undefined, "review", false),
-    ).toBeUndefined();
-    expect(
-      actionForTurn("CPU is still high", undefined, "explain", true),
-    ).toBeUndefined();
-    expect(actionForTurn("Let's discuss", undefined, "review", true)).toBe(
-      "review",
-    );
-    expect(
-      actionForTurn("I'd like to explain", "explain", "review", true),
-    ).toBe("explain");
-    expect(
-      actionForTurn("I'm ready for questions", "draw", "review", false),
-    ).toBe("draw");
+  it("records only explicit pacing choices and preserves ordinary design prose", () => {
+    expect(actionForTurn("CPU is still high", undefined)).toBeUndefined();
+    expect(actionForTurn("CPU is still high", undefined)).toBeUndefined();
+    expect(actionForTurn("CPU is still high", undefined)).toBeUndefined();
+    expect(actionForTurn("Let's discuss", undefined)).toBe("review");
+    expect(actionForTurn("I'd like to explain", "explain")).toBe("explain");
+    expect(actionForTurn("I'm ready for questions", "draw")).toBe("draw");
   });
   it("keeps a multi-message explanation open until the candidate finishes using the combined control", () => {
     const start = designDiscussionControl("draw");

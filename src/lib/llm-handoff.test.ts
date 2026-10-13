@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getProblem } from "@/lib/problems";
 import type { InterviewContext } from "@/lib/interview-instructions";
 import type { InterviewProgress } from "@/lib/interview-progress";
+import {
+  DRAWING_WAIT_REPLY,
+  EXPLANATION_WAIT_REPLY,
+} from "@/lib/drawing-reply";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("openai", () => ({
@@ -83,7 +87,11 @@ describe("drawing handoff streaming", () => {
     "does not append another invitation during %s",
     async (step) => {
       expect(await reply(interview(step))).toBe(
-        "That helps identify the bottleneck.",
+        step === "drawing"
+          ? DRAWING_WAIT_REPLY
+          : step === "explaining"
+            ? EXPLANATION_WAIT_REPLY
+            : "That helps identify the bottleneck.",
       );
     },
   );
@@ -158,8 +166,6 @@ describe("drawing handoff streaming", () => {
     const displayed = await reply(interview("explaining"));
     expect(displayed).toContain("Go ahead with your explanation");
     expect(displayed).not.toContain("?");
-    expect(mocks.create.mock.calls[0][0].instructions).toContain(
-      "Do not assume one message completes the explanation",
-    );
+    expect(mocks.create).not.toHaveBeenCalled();
   });
 });

@@ -47,10 +47,10 @@ describe("POST /api/chat drawing progress", () => {
       discussionTurnLimit: 2,
     });
   });
-  it("does not mistake a partial diagram for permission to ask review questions", async () => {
+  it("does not silently switch mode just because the candidate drew a diagram", async () => {
     await post({ messages: [messages[0]], scene: basicScene });
     expect(mocks.streamInterviewerReply.mock.calls[0][5].progress.step).toBe(
-      "drawing",
+      "discussion",
     );
   });
   it.each([

@@ -36,6 +36,13 @@ export function inferCandidateAction(
 ): CandidateAction | undefined {
   const text = content.trim().toLowerCase().replaceAll("’", "'");
   if (
+    /^(?:please\s+)?let me finish\b(?!\s+(?:my\s+)?(?:sketch|drawing))/u.test(
+      text,
+    ) ||
+    /^(?:i'm|i am) not (?:done|finished) explaining\b/u.test(text)
+  )
+    return "explain";
+  if (
     /^(?:please\s+)?(?:pause\b|wait\b|hold on\b|give me (?:a moment|some time|time|a break)\b|(?:don't|do not) (?:ask|review)\b|let me (?:draw|finish|keep drawing|take a break)\b)/u.test(
       text,
     ) ||
@@ -93,16 +100,10 @@ export function lastCandidateAction(
   return undefined;
 }
 
-/** Editing during review gives the floor back to the candidate, until they opt in. */
+/** Candidate choices control pacing; editing the canvas never changes modes. */
 export function actionForTurn(
   content: string,
   requestedAction: CandidateAction | undefined,
-  currentAction: CandidateAction | undefined,
-  drawingChanged: boolean,
 ): CandidateAction | undefined {
-  return (
-    requestedAction ??
-    inferCandidateAction(content) ??
-    (currentAction === "review" && drawingChanged ? "draw" : undefined)
-  );
+  return requestedAction ?? inferCandidateAction(content);
 }

@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import type { InterviewDuration } from "@/lib/interview-timer";
 import urlShortener from "@/lib/problems/url-shortener.json";
 import singleServerScaling from "@/lib/problems/single-server-scaling.json";
 import {
@@ -10,7 +11,10 @@ import {
   type ProblemSummary,
 } from "@/lib/interview-selection";
 import { phasesSchema, publicPhase } from "@/lib/phase-config";
-import { createInterviewSession } from "@/lib/interview-sessions";
+import {
+  createInterviewSession,
+  interviewSessionCheckpoint,
+} from "@/lib/interview-sessions";
 
 const levelConfig = z.object({
   openingMessage: z.string().min(1).max(8_000),
@@ -23,6 +27,21 @@ const problemSchema = z.object({
   summary: z.string().min(1),
   prompt: z.string().min(1),
   phases: phasesSchema,
+  openingCriteria: z.array(z.number().int().min(0).max(7)).default([]),
+  clarifications: z
+    .array(
+      z.object({
+        pattern: z.string().min(1).max(300),
+        sharedAnswerPattern: z.string().min(1).max(400).optional(),
+        answers: z.object({
+          mid: z.string().min(1),
+          senior: z.string().min(1),
+          staff: z.string().min(1),
+        }),
+        coversCriteria: z.array(z.number().int().min(0).max(7)),
+      }),
+    )
+    .default([]),
   drawingPolicy: z.object({
     discussionTurns: z.number().int().min(1).max(10),
     invitation: z.string().trim().min(1).max(1_000),
@@ -62,11 +81,18 @@ export function listProblems(): ProblemSummary[] {
 export function createInterviewStart(
   problem: ProblemDefinition,
   level: InterviewLevel,
+  durationMinutes: InterviewDuration = 45,
 ): InterviewStart {
+  const selection = { problemId: problem.id, level };
+  const sessionId = createInterviewSession(selection, durationMinutes);
+  const checkpoint = interviewSessionCheckpoint(sessionId, selection);
   return {
     problemId: problem.id,
     level,
-    sessionId: createInterviewSession({ problemId: problem.id, level }),
+    sessionId,
+    resumeToken: checkpoint.resumeToken,
+    timing: checkpoint.timing,
+    serverTime: checkpoint.serverTime,
     phase: publicPhase(problem.phases, 0),
     openingMessage: {
       role: "assistant",

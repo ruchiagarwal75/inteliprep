@@ -1,74 +1,90 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { ChatPanel } from "@/components/chat-panel";
-import { Whiteboard } from "@/components/whiteboard";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
-import { InterviewSetup } from "@/components/interview-setup";
-import type { InterviewStart, ProblemSummary } from "@/lib/interview-selection";
-import { hasSketch } from "@/lib/drawing-state";
-import type { InterviewPhase } from "@/lib/interview-phase";
-import { InterviewStage } from "@/components/interview-stage";
+import type { ProblemSummary } from "@/lib/interview-selection";
+import { useInterviewLibrary } from "@/components/use-interview-library";
+import {
+  useInterviewStarter,
+  type InterviewChoice,
+} from "@/components/use-interview-starter";
+import { useInterviewNavigation } from "@/components/use-interview-navigation";
+import { InterviewSessionWorkspace } from "@/components/interview-session-workspace";
+
+const emptyBoard: WhiteboardScene = {
+  elements: [],
+  appState: { viewBackgroundColor: "#ffffff" },
+  files: {},
+};
 
 export function InterviewWorkspace({
   problems,
 }: {
   problems: ProblemSummary[];
 }) {
-  const [interview, setInterview] = useState<InterviewStart>();
-  const [phase, setPhase] = useState<InterviewPhase>();
-  const [isReplying, setIsReplying] = useState(false);
-  const [hasDrawing, setHasDrawing] = useState(false);
-  const hasDrawingRef = useRef(false);
-  // Drawing updates must not re-render the chat on every pointer movement.
-  const sceneRef = useRef<WhiteboardScene>({
-    elements: [],
-    appState: { viewBackgroundColor: "#ffffff" },
-    files: {},
-  });
-
-  const updateScene = useCallback((scene: WhiteboardScene) => {
-    sceneRef.current = scene;
-    const nextHasDrawing = hasSketch(scene.elements);
-    if (nextHasDrawing !== hasDrawingRef.current) {
-      hasDrawingRef.current = nextHasDrawing;
-      setHasDrawing(nextHasDrawing);
-    }
-  }, []);
-
+  const sceneRef = useRef<WhiteboardScene>(emptyBoard);
+  const [busy, setBusy] = useState(false);
   const getScene = useCallback(() => sceneRef.current, []);
+  const restoreScene = useCallback((scene: WhiteboardScene) => {
+    sceneRef.current = scene;
+  }, []);
+  const library = useInterviewLibrary(getScene, restoreScene);
+  const starter = useInterviewStarter(
+    library.start,
+    () => library.reset(false, "none"),
+    {
+      problemId: problems[0]?.problemId ?? "single-server-scaling",
+      level: "mid",
+      durationMinutes: 45,
+    },
+  );
+  useInterviewNavigation({
+    ready: library.ready,
+    busy: busy || starter.isStarting || library.isOpening,
+    open: library.open,
+    reset: library.reset,
+  });
+  const changed = library.changed;
+  const updateScene = useCallback(
+    (scene: WhiteboardScene) => {
+      sceneRef.current = scene;
+      changed();
+    },
+    [changed],
+  );
+  const selected: InterviewChoice = library.opened
+    ? {
+        problemId: library.opened.interview.problemId,
+        level: library.opened.interview.level,
+        durationMinutes: library.opened.interview.timing?.durationMinutes ?? 45,
+      }
+    : starter.choice;
 
+  if (!library.ready)
+    return (
+      <main className="p-6" role="status">
+        Loading saved interviews…
+      </main>
+    );
   return (
-    <main className="flex min-h-dvh flex-col gap-3 p-3 lg:h-dvh lg:min-h-0">
-      <InterviewSetup
-        problems={problems}
-        interview={interview}
-        isReplying={isReplying}
-        onStart={(started) => {
-          setInterview(started);
-          setPhase(started.phase);
-        }}
-        onReset={() => {
-          setInterview(undefined);
-          setPhase(undefined);
-        }}
-      />
-      <InterviewStage phase={phase} />
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
-        <div className="min-h-[28rem] min-w-0 lg:min-h-0">
-          <Whiteboard onChange={updateScene} />
-        </div>
-        <div className="flex min-h-80 min-w-0 lg:min-h-0">
-          <ChatPanel
-            key={interview ? interview.sessionId : "setup"}
-            getScene={getScene}
-            hasDrawing={hasDrawing}
-            interview={interview}
-            onBusyChange={setIsReplying}
-            onPhaseChange={setPhase}
-          />
-        </div>
-      </div>
-    </main>
+    <InterviewSessionWorkspace
+      key={library.opened?.revision ?? "setup"}
+      saved={library.opened}
+      initialScene={library.opened?.whiteboard ?? emptyBoard}
+      problems={problems}
+      library={library}
+      getScene={getScene}
+      restoreScene={restoreScene}
+      updateScene={updateScene}
+      starter={starter}
+      onBusy={setBusy}
+      onNew={() => {
+        void starter.start(selected, true);
+      }}
+      onChangeProblem={() => {
+        starter.setChoice(selected);
+        void library.reset();
+      }}
+    />
   );
 }

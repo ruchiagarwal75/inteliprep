@@ -22,7 +22,10 @@ describe("POST /api/interview/start", () => {
     const body = await response.json();
     expect(body.problemId).toBe("single-server-scaling");
     expect(body.openingMessage.content).toContain("one server");
-    expect(body.openingMessage.content).toContain("What would you check first");
+    expect(body.openingMessage.content).toContain(
+      "What requirements or constraints",
+    );
+    expect(body.phase.title).toBe("Clarify requirements");
     expect(body.openingMessage.content).not.toMatch(
       /URL shortener|load balancer|cache|rubric/i,
     );
@@ -46,7 +49,10 @@ describe("POST /api/interview/start", () => {
         "openingMessage",
         "phase",
         "problemId",
+        "resumeToken",
+        "serverTime",
         "sessionId",
+        "timing",
       ]);
       expect(body.openingMessage.content).toContain("URL shortener");
       expect(body.openingMessage.content).not.toContain("Use this instead");

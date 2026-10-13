@@ -1,56 +1,68 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import type { ChatMessage } from "@/lib/chat";
 import type { Scene } from "@/lib/scene";
 import { prepareWhiteboardTurn } from "@/lib/whiteboard-turn";
-import { receiveChatTurn } from "@/lib/chat-stream";
-import type { InterviewStart } from "@/lib/interview-selection";
 import {
-  actionForTurn,
-  lastCandidateAction,
-  type CandidateAction,
-} from "@/lib/candidate-actions";
-import { drawingChanged, type PacingCapture } from "@/lib/pacing-capture";
+  INTERVIEW_STREAM_TYPE,
+  receiveInterviewStream,
+} from "@/lib/interview-stream";
+import { actionForTurn, type CandidateAction } from "@/lib/candidate-actions";
+import type { PacingCapture } from "@/lib/pacing-capture";
 
-import { readInterviewPhase, type InterviewPhase } from "@/lib/interview-phase";
+import type { InterviewChatOptions } from "@/components/interview-chat-options";
+import { useChatDraft } from "@/components/use-chat-draft";
 export function useInterviewChat({
   getScene,
   interview,
   onBusyChange,
   onPhaseChange,
-}: {
-  getScene: () => WhiteboardScene;
-  interview?: InterviewStart;
-  onBusyChange: (busy: boolean) => void;
-  onPhaseChange: (phase: InterviewPhase) => void;
-}) {
-  const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    interview ? [interview.openingMessage] : [],
+  disabled = false,
+  restored,
+  onSave,
+  getResumeToken,
+  canSubmit,
+}: InterviewChatOptions) {
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () => restored?.messages ?? (interview ? [interview.openingMessage] : []),
   );
-  const [input, setInput] = useState("");
+  const { input, setInput, getDraft } = useChatDraft(
+    restored?.draftText ?? "",
+    onSave,
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageWarning, setImageWarning] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
-  const previousSceneRef = useRef<Scene | undefined>(undefined);
-  const previousImageFingerprintRef = useRef<string | undefined>(undefined);
-  const previousPacingCaptureRef = useRef<PacingCapture | undefined>(undefined);
+  const previousSceneRef = useRef<Scene | undefined>(restored?.previousScene);
+  const previousImageFingerprintRef = useRef<string | undefined>(
+    restored?.previousImageFingerprint,
+  );
+  const previousPacingCaptureRef = useRef<PacingCapture | undefined>(
+    restored?.pacingCapture,
+  );
   const sendingRef = useRef(false);
 
   // Spec: keep turns in order by blocking sends while the reply streams.
-  const canSend = Boolean(interview) && input.trim().length > 0 && !isStreaming;
+  const canSend =
+    Boolean(interview) && !disabled && input.trim().length > 0 && !isStreaming;
 
   async function send(
     content = input.trim(),
     requestedAction?: CandidateAction,
   ) {
-    if (!interview || !content.trim() || isStreaming || sendingRef.current)
+    if (
+      !interview ||
+      disabled ||
+      !canSubmit() ||
+      !content.trim() ||
+      isStreaming ||
+      sendingRef.current
+    )
       return;
     sendingRef.current = true;
     onBusyChange(true);
-    if (!requestedAction) setInput("");
     setError(null);
     setImageWarning(null);
     setIsStreaming(true);
@@ -69,12 +81,7 @@ export function useInterviewChat({
         previousImageFingerprintRef.current,
       );
       const sentScene = turn.scene;
-      const action = actionForTurn(
-        content,
-        requestedAction,
-        lastCandidateAction(messages),
-        drawingChanged(turn, previousPacingCaptureRef.current),
-      );
+      const action = actionForTurn(content, requestedAction);
       const next: ChatMessage[] = [
         ...messages,
         {
@@ -83,6 +90,7 @@ export function useInterviewChat({
           ...(action ? { action } : {}),
         },
       ];
+      if (!requestedAction) setInput("");
       // Pacing tracks submitted edits even on failed replies; image/text delivery
       // baselines still advance only after a complete response.
       previousPacingCaptureRef.current = {
@@ -91,14 +99,26 @@ export function useInterviewChat({
       };
       setMessages(next);
       setImageWarning(turn.imageWarning ?? null);
+      await onSave({
+        messages: next,
+        pacingCapture: previousPacingCaptureRef.current,
+      });
+      if (!canSubmit())
+        throw new Error(
+          "Time is up. Your interview will end after this turn finishes.",
+        );
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: INTERVIEW_STREAM_TYPE,
+        },
         // Capture the drawing at send time so later edits don't change this turn.
         body: JSON.stringify({
           problemId: interview.problemId,
           level: interview.level,
           sessionId: interview.sessionId,
+          resumeToken: getResumeToken() ?? interview.resumeToken,
           messages: next,
           scene: sentScene,
           previousScene: previousSceneRef.current,
@@ -114,39 +134,45 @@ export function useInterviewChat({
         throw new Error(detail ?? `Request failed (${response.status})`);
       }
 
-      const phase = readInterviewPhase(response.headers);
       setMessages((current) => [
         ...current,
         { role: "assistant", content: "" },
       ]);
-      await receiveChatTurn(
-        response.body,
-        sentScene,
-        (chunk) => {
-          setMessages((current) => {
-            const last = current.at(-1);
-            if (!last || last.role !== "assistant") return current;
-            return [
-              ...current.slice(0, -1),
-              { ...last, content: last.content + chunk },
-            ];
-          });
-          logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-        },
-        (scene) => {
-          previousSceneRef.current = scene;
-          if (phase) onPhaseChange(phase);
-          if (turn.canCommitImage)
-            previousImageFingerprintRef.current = turn.fingerprint;
-        },
-      );
+      const completed = await receiveInterviewStream(response.body, (chunk) => {
+        setMessages((current) => {
+          const last = current.at(-1);
+          if (!last || last.role !== "assistant") return current;
+          return [
+            ...current.slice(0, -1),
+            { ...last, content: last.content + chunk },
+          ];
+        });
+        logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
+      });
+      const phase = completed.checkpoint.phase;
+      if (!phase || !completed.checkpoint.resumeToken)
+        throw new Error("The interview checkpoint is missing. Please retry.");
+      previousSceneRef.current = sentScene;
+      onPhaseChange(phase);
+      if (turn.canCommitImage)
+        previousImageFingerprintRef.current = turn.fingerprint;
+      const finished: ChatMessage[] = [
+        ...next,
+        { role: "assistant", content: completed.reply },
+      ];
+      setMessages(finished);
+      await onSave({
+        messages: finished,
+        phase,
+        resumeToken: completed.checkpoint.resumeToken,
+        previousScene: sentScene,
+        previousImageFingerprint: previousImageFingerprintRef.current,
+      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Something went wrong");
-      // Drop an empty assistant bubble so a failed turn can be retried.
+      // Interrupted replies must not enter a later saved transcript as completed turns.
       setMessages((current) =>
-        current.at(-1)?.role === "assistant" && !current.at(-1)?.content.trim()
-          ? current.slice(0, -1)
-          : current,
+        current.at(-1)?.role === "assistant" ? current.slice(0, -1) : current,
       );
     } finally {
       sendingRef.current = false;
@@ -165,5 +191,7 @@ export function useInterviewChat({
     logRef,
     canSend,
     send,
+    getDraft,
+    setMessages,
   };
 }

@@ -23,6 +23,7 @@ export const chatRequestSchema = z
   .object({
     ...interviewSelectionSchema.shape,
     sessionId: z.uuid().optional(),
+    resumeToken: z.string().min(1).max(8_000).optional(),
     messages: z.array(chatMessageSchema).min(1).max(100),
     scene: sceneSchema.optional(),
     previousScene: sceneSchema.optional(),

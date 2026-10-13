@@ -12,18 +12,19 @@
     "Links are publicly accessible; authentication is not required for the core exercise.",
     "Links should be retained for five years unless the candidate proposes and justifies a different retention policy.",
     "Custom aliases, expiration, and click analytics are optional extensions; agree on their scope with the candidate before exploring them.",
-    "The candidate should propose and justify redirect latency and availability goals. Do not impose an unconfigured numeric SLA."
+    "The candidate should propose and justify redirect latency and availability goals. Do not impose an unconfigured numeric SLA.",
+    "A newly created link must be usable immediately and redirect to its saved URL. Optional click analytics may lag by up to 5 seconds."
   ],
   "levels": {
     "mid": {
-      "openingMessage": "Hi! Let's design a URL shortener that creates short links and redirects visitors to their original URLs. What requirements would you clarify before starting your design?",
+      "openingMessage": "Hi! Let's design a URL shortener. A user submits an original URL and receives a unique short link to share. When someone follows that short link, the service redirects them to the original URL.\n\nYour task is to design how the service creates links, stores their mappings, and handles redirects as usage grows. The core workflows are link creation and redirects; we'll agree on whether extras such as custom aliases or analytics belong in scope. We'll also clarify traffic, service goals, link access, and retention before giving you time to draw and explain your approach.\n\nWhat requirements would you clarify before starting your design?",
       "expectations": "Focus on clear requirements, basic API and data modeling, correct link creation and redirects, capacity estimates, and a simple single-region design. Ask approachable follow-ups and let the candidate explain choices before increasing complexity.",
       "scaleHints": [
         "Assume 100,000 new links per day and 10 million redirects per day when the candidate asks about scale."
       ]
     },
     "senior": {
-      "openingMessage": "Hi! Let's design a URL shortener for a large user base. What functional and non-functional requirements would you clarify first?",
+      "openingMessage": "Hi! Let's design a URL shortener for a large user base. Users submit original URLs, receive unique short links to share, and visitors following those links are redirected to the original URLs.\n\nYour task is to design link creation and redirects so the service remains correct and reliable as traffic grows. Explain the request and data flows, the choices behind your design, and how it handles failures. We'll agree on traffic, service goals, link access, retention, and optional feature scope first, then give you time to draw and explain your approach.\n\nWhat functional and non-functional requirements would you clarify first?",
       "expectations": "Expect quantified scale estimates, explicit consistency and reliability choices, efficient redirect paths, handling of hot links and collisions, and operational tradeoffs. Ask for reasoning and failure behavior without suggesting missing components.",
       "scaleHints": [
         "Assume 1 million new links per day and 100 million redirects per day when the candidate asks about scale.",
@@ -31,7 +32,7 @@
       ]
     },
     "staff": {
-      "openingMessage": "Hi! Let's design a globally available URL shortener. What product requirements and reliability goals would you clarify before choosing an architecture?",
+      "openingMessage": "Hi! Let's design a globally available URL shortener. Users in different regions submit original URLs and receive unique short links. Visitors following those links should be redirected to the original URLs.\n\nYour task is to design link creation and redirects at global scale, including how the service behaves when a region is unavailable. Explain your priorities and the tradeoffs behind your approach. We'll establish traffic, service goals, link access, retention, and the scope of optional features before choosing an architecture. Then you'll have time to draw and explain your design.\n\nWhat product requirements and reliability goals would you clarify before choosing an architecture?",
       "expectations": "Expect clear global availability and latency goals, regional failure reasoning, consistency and ownership tradeoffs, abuse mitigation, migration strategy, and operational cost awareness. Explore second-order consequences and ask the candidate to defend priorities without prescribing an architecture.",
       "scaleHints": [
         "Assume 10 million new links per day and 1 billion redirects per day when the candidate asks about scale.",
@@ -74,11 +75,18 @@
     {
       "id": "clarify-requirements",
       "title": "Clarify requirements",
-      "goal": "Clarify the required link creation and redirect workflows before drawing.",
+      "goal": "Establish the link workflows, agreed scale and service goals, and access/retention constraints before choosing the design.",
       "completionCriteria": [
-        "Candidate establishes the core workflow and scope."
+        "Candidate clarifies or confirms both core workflows: creating a short link and redirecting visitors to the original URL, with optional features scoped explicitly or left out.",
+        "Candidate establishes or clearly confirms creation/redirect traffic expectations and redirect performance or availability goals, using discussed facts or explicit working assumptions.",
+        "Candidate clarifies or confirms link access and retention expectations, using provided requirements or explicit working assumptions."
       ],
-      "interviewerGuidance": "Keep clarification brief and respect the configured three-message drawing handoff. Let the candidate sketch early.",
+      "clarificationQuestions": [
+        "Could you briefly confirm the link workflows and which optional features are in scope?",
+        "What redirect latency and availability goals would you target for the discussed traffic?",
+        "What link-access and retention requirements are you using?"
+      ],
+      "interviewerGuidance": "Clarify only core workflow scope, traffic/service goals, and access/retention constraints. Accept concise confirmation of discussed requirements. Do not require API design, detailed estimates, or architecture choices before drawing. The message budget is guidance, never proof of completion. Respect early drawing/explanation pauses while keeping the requirements checkpoint open until its criteria are covered.",
       "transition": "initial"
     },
     {
@@ -123,6 +131,36 @@
       ],
       "interviewerGuidance": "Give a concise closing recap of the candidate's own choices and limitations. Do not invent issues, assign scores, restart, or ask another design question.",
       "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|requests? per second|rps|qps|scale|links per day|redirects per day)\\b",
+      "answers": {
+        "mid": "Assume 100,000 new links and 10 million redirects per day. You may propose and justify redirect latency and availability goals.",
+        "senior": "Assume 1 million new links and 100 million redirects per day, with peak traffic up to ten times the daily average. You may propose and justify redirect latency and availability goals.",
+        "staff": "Assume 10 million new links and 1 billion redirects per day, with peak traffic up to ten times the daily average and users in different regions. You may propose and justify redirect latency and availability goals."
+      },
+      "coversCriteria": []
+    },
+    {
+      "pattern": "\\b(access|authentication|public|retention|retain|expir|years)\\w*\\b",
+      "answers": {
+        "mid": "Links are public; authentication is outside the core exercise. Retain links for five years unless you propose and justify another policy. Custom aliases, expiration, and analytics are optional; leave them out unless we agree to include them.",
+        "senior": "Links are public; authentication is outside the core exercise. Retain links for five years unless you propose and justify another policy. Custom aliases, expiration, and analytics are optional; leave them out unless we agree to include them.",
+        "staff": "Links are public; authentication is outside the core exercise. Retain links for five years unless you propose and justify another policy. Custom aliases, expiration, and analytics are optional; leave them out unless we agree to include them."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(stale|staleness|consistency)\\b|few seconds.*(delay|old)",
+      "answers": {
+        "mid": "No, a newly created short link must be usable immediately and must redirect to its saved original URL. Yes, optional click analytics may lag by up to 5 seconds. That analytics tolerance does not apply to the core link mapping.",
+        "senior": "No, a newly created short link must be usable immediately and must redirect to its saved original URL. Yes, optional click analytics may lag by up to 5 seconds. That analytics tolerance does not apply to the core link mapping.",
+        "staff": "No, a newly created short link must be usable immediately and must redirect to its saved original URL. Yes, optional click analytics may lag by up to 5 seconds. That analytics tolerance does not apply to the core link mapping."
+      },
+      "coversCriteria": []
     }
   ]
 }

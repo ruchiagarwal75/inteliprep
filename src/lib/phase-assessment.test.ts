@@ -114,4 +114,77 @@ describe("evidence-backed stage assessment", () => {
       }),
     ).toEqual([0, 1]);
   });
+  it("resolves a clear requirements confirmation using bounded conversation context, with candidate-only evidence", async () => {
+    const initial = getProblem("single-server-scaling")?.phases[0];
+    if (!initial) throw new Error("Missing initial stage");
+    vi.stubEnv("OPENAI_KEY", "test-key");
+    const confirmation: ChatMessage[] = [
+      {
+        role: "assistant",
+        content:
+          "The app and data start on one server. Traffic grows to 1,000 requests/sec, responses under 500 ms, and data must stay available.",
+      },
+      {
+        role: "user",
+        content:
+          "I confirm that starting scope, traffic and response-time goals, and preserving existing data.",
+      },
+    ];
+    const result = {
+      criteria: initial.completionCriteria.map((_, criterionIndex) => ({
+        criterionIndex,
+        met: true,
+        messageIndex: 1,
+        quote: confirmation[1].content,
+      })),
+    };
+    mocks.create.mockResolvedValue({
+      status: "completed",
+      output_text: JSON.stringify(result),
+    });
+    expect(await assessPhaseCoverage(initial, confirmation)).toEqual([0, 1, 2]);
+    const request = mocks.create.mock.calls.at(-1)?.[0];
+    const input = JSON.parse(request.input);
+    expect(input.stage_kind).toBe("initial");
+    expect(input.conversation_context).toEqual(
+      confirmation.map((message, index) => ({ ...message, index })),
+    );
+    expect(request.instructions).toContain(
+      "A question alone does not confirm understanding",
+    );
+    expect(
+      coveredPhaseCriteria(initial, confirmation, {
+        criteria: result.criteria.map((criterion) => ({
+          ...criterion,
+          messageIndex: 0,
+          quote: confirmation[0].content,
+        })),
+      }),
+    ).toEqual([]);
+    const longHistory: ChatMessage[] = Array.from({ length: 40 }, () => ({
+      role: "assistant",
+      content: "x".repeat(8_000),
+    }));
+    mocks.create.mockResolvedValue({
+      status: "completed",
+      output_text: JSON.stringify({
+        criteria: initial.completionCriteria.map((_, criterionIndex) => ({
+          criterionIndex,
+          met: false,
+          messageIndex: -1,
+          quote: "",
+        })),
+      }),
+    });
+    await assessPhaseCoverage(initial, longHistory);
+    const bounded = JSON.parse(
+      mocks.create.mock.calls.at(-1)?.[0].input,
+    ).conversation_context;
+    expect(bounded).toHaveLength(24);
+    expect(bounded[0]).toEqual({
+      index: 16,
+      role: "assistant",
+      content: "x".repeat(2_000),
+    });
+  });
 });

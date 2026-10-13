@@ -10,6 +10,11 @@ export const phaseConfigSchema = z.object({
   title: z.string().min(1).max(100),
   goal: z.string().min(1).max(1_000),
   completionCriteria: z.array(z.string().min(1).max(500)).min(1).max(8),
+  clarificationQuestions: z
+    .array(z.string().min(1).max(300))
+    .min(1)
+    .max(8)
+    .optional(),
   interviewerGuidance: z.string().min(1).max(2_000),
   transition: z.enum(["initial", "drawing", "coverage", "wrap-up"]),
 });
@@ -21,8 +26,16 @@ export const phasesSchema = z
   .max(10)
   .refine(
     (phases) =>
+      phases[0]?.clarificationQuestions?.length ===
+      phases[0]?.completionCriteria.length,
+    {
+      message: "Initial-stage clarification questions must match its criteria",
+    },
+  )
+  .refine(
+    (phases) =>
       new Set(phases.map((phase) => phase.id)).size === phases.length &&
-      phases[0].transition === "initial" &&
+      phases[0]?.transition === "initial" &&
       phases[1].transition === "drawing" &&
       phases.at(-1)?.transition === "wrap-up" &&
       phases.slice(2, -1).every((phase) => phase.transition === "coverage"),

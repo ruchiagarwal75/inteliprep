@@ -12,28 +12,28 @@
     "The website shows pages and lets users save simple updates. Existing data must remain available when the architecture changes.",
     "Keep the exercise in one region at every difficulty level. Global distribution, new product features, and advanced distributed-system design are outside the core exercise.",
     "The goal is to handle growing traffic with reasonable response times. When asked for a concrete latency target, use under 500 milliseconds for a typical page request.",
-    "Let the candidate choose a bottleneck to investigate and explain their proposed improvement. If a measurement or implementation detail is unspecified, ask them to state a simple assumption."
+    "Page reads may be up to 5 seconds stale. Successful saves must be durable; read staleness does not permit losing updates."
   ],
   "levels": {
     "mid": {
-      "openingMessage": "Hi! A small website runs on one server. As more people visit, it gets slower. What would you check first to understand why?",
-      "expectations": "This is a beginner-friendly exercise for testing the interview and whiteboard flow. Use plain language and ask one short question at a time. Start with the current single server, follow the candidate's drawing and proposed changes, and discuss only one bottleneck or improvement at a time. Explore measurement, adding capacity, how requests reach the drawn servers, and whether the change helped. Avoid advanced terminology or unrelated design topics. Do not propose an architecture or name a missing component.",
+      "openingMessage": "Hi! Here's the exercise: a small website lets people view pages and save simple updates. Today, the web application and all of its existing data run on one server. As traffic increases, pages become slower and the server struggles to keep up.\n\nYour task is to identify what is limiting the server and improve the architecture one step at a time, so the website can handle more traffic with reasonable response times. Keep the website working in one region and preserve its existing data throughout the changes. We'll clarify requirements first, then give you time to draw and explain your approach.\n\nWhat requirements or constraints would you clarify before changing it?",
+      "expectations": "First establish the essential requirements and constraints; keep clarification brief and respect drawing/explanation pauses. This is a beginner-friendly exercise for testing the interview and whiteboard flow. Use plain language and ask one short question at a time. Start with the current single server, follow the candidate's drawing and proposed changes, and discuss only one bottleneck or improvement at a time. Explore measurement, adding capacity, how requests reach the drawn servers, and whether the change helped. Avoid advanced terminology or unrelated design topics. Do not propose an architecture or name a missing component.",
       "scaleHints": [
         "When asked about traffic, assume it starts at 10 requests per second and grows toward 1,000 requests per second.",
         "When asked about capacity, assume the current server can handle about 100 requests per second while meeting the response-time target."
       ]
     },
     "senior": {
-      "openingMessage": "Hi! A website's application and data run on one server, and response times rise as traffic grows. How would you identify the bottleneck before making a change?",
-      "expectations": "Keep the same small, single-region website exercise. Ask for evidence of the bottleneck, a justified capacity change, the request and data paths in the drawing, and a way to compare performance before and after the change. Explore basic failure behavior and data correctness once the candidate has explained the core improvement. Keep follow-ups concise and avoid prescribing missing components or expanding into a different problem.",
+      "openingMessage": "Hi! Here's the exercise: a website serves pages and lets users save simple updates. Its web application and existing data currently run on one server. As traffic grows, response times rise and the server struggles to keep up.\n\nYour task is to identify the bottleneck and improve the architecture one step at a time. Explain what evidence would guide your changes and how you'd verify that performance improved. Keep the website working in one region and preserve its existing data during the changes. We'll establish the requirements first, then give you time to draw and explain your approach.\n\nWhat scope, performance goals, or constraints would you clarify before making a change?",
+      "expectations": "First establish the essential requirements and constraints; keep clarification brief and respect drawing/explanation pauses. Keep the same small, single-region website exercise. Ask for evidence of the bottleneck, a justified capacity change, the request and data paths in the drawing, and a way to compare performance before and after the change. Explore basic failure behavior and data correctness once the candidate has explained the core improvement. Keep follow-ups concise and avoid prescribing missing components or expanding into a different problem.",
       "scaleHints": [
         "When asked about traffic, assume it starts at 10 requests per second and grows toward 1,000 requests per second.",
         "When asked about capacity, assume the current server can handle about 100 requests per second while meeting the response-time target."
       ]
     },
     "staff": {
-      "openingMessage": "Hi! A small website runs on one server and needs to handle more traffic without losing existing data. How would you prioritize and validate the first architecture change?",
-      "expectations": "Keep the exercise simple and in one region. Ask the candidate to justify priorities, measurement, safe rollout and rollback, correctness during migration, basic failure behavior, and cost or complexity tradeoffs. Go deeper into consequences of the candidate's own changes without introducing global architecture, unrelated features, or missing components. Ask one clear question at a time.",
+      "openingMessage": "Hi! Here's the exercise: a small website serves pages and saves user updates. The application and its existing data run on one server, and the website becomes slower as traffic grows.\n\nYour task is to decide which bottleneck to investigate first and improve the architecture incrementally. Explain how you'd prioritize changes, introduce them safely, and check their effect on performance and reliability. Keep the exercise in one region, keep the website working, and preserve its existing data. We'll establish the goals and constraints first, then give you time to draw and explain your approach.\n\nWhich goals and constraints would you establish before prioritizing the first change?",
+      "expectations": "First establish the essential requirements and constraints; keep clarification brief and respect drawing/explanation pauses. Keep the exercise simple and in one region. Ask the candidate to justify priorities, measurement, safe rollout and rollback, correctness during migration, basic failure behavior, and cost or complexity tradeoffs. Go deeper into consequences of the candidate's own changes without introducing global architecture, unrelated features, or missing components. Ask one clear question at a time.",
       "scaleHints": [
         "When asked about traffic, assume it starts at 10 requests per second and grows toward 1,000 requests per second.",
         "When asked about capacity, assume the current server can handle about 100 requests per second while meeting the response-time target."
@@ -72,13 +72,20 @@
   ],
   "phases": [
     {
-      "id": "understand-bottleneck",
-      "title": "Understand the bottleneck",
-      "goal": "Understand the starting server and choose evidence to find its bottleneck.",
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish the starting scope, traffic and performance goals, and essential data constraints before choosing an architecture change.",
       "completionCriteria": [
-        "Candidate identifies a symptom and a measurement to investigate it."
+        "Candidate clarifies or confirms that the exercise is a website serving pages and saving updates, with its application and existing data initially on one server.",
+        "Candidate establishes or clearly confirms traffic-growth expectations and a response-time goal, using discussed facts or explicit working assumptions.",
+        "Candidate clarifies or confirms that existing data must remain available and correct while the website is improved."
       ],
-      "interviewerGuidance": "Keep the initial discussion brief. Respect the configured two-message drawing handoff and let the candidate begin sketching earlier.",
+      "clarificationQuestions": [
+        "Could you briefly confirm the website's core functions and what runs on the starting server?",
+        "What traffic-growth and response-time goals are you using for this exercise?",
+        "What needs to stay true about the existing data while you improve the website?"
+      ],
+      "interviewerGuidance": "Clarify only the essential scope, traffic/performance goals, and existing-data constraint. Accept a concise confirmation of already discussed assumptions. Do not require detailed capacity estimates or a bottleneck investigation yet. The message budget is guidance for keeping this brief, never proof of completion. Allow early sketching and respect drawing/explanation pauses, but keep this stage until its criteria are covered.",
       "transition": "initial"
     },
     {
@@ -123,6 +130,37 @@
       ],
       "interviewerGuidance": "Summarize only the candidate's stated design and limitations in a short closing acknowledgement. Do not invent shortcomings, assign scores, restart the interview, or ask another design question.",
       "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0, 2],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|requests? per second|rps|qps|latency|response.time|performance goals?|capacity)\\b",
+      "answers": {
+        "mid": "Assume traffic grows from 10 to 1,000 requests per second. A typical page request should complete in under 500 milliseconds; the current server can handle about 100 requests per second while meeting that target.",
+        "senior": "Assume traffic grows from 10 to 1,000 requests per second. A typical page request should complete in under 500 milliseconds; the current server can handle about 100 requests per second while meeting that target.",
+        "staff": "Assume traffic grows from 10 to 1,000 requests per second. A typical page request should complete in under 500 milliseconds; the current server can handle about 100 requests per second while meeting that target."
+      },
+      "coversCriteria": [1],
+      "sharedAnswerPattern": "(?=[\\s\\S]*\\b10\\b)(?=[\\s\\S]*\\b1,?000\\b)(?=[\\s\\S]*\\b500\\s*(?:ms|milliseconds)\\b)"
+    },
+    {
+      "pattern": "\\b(stale|staleness|consistency)\\b|few seconds.*(delay|old)",
+      "answers": {
+        "mid": "Yes, page reads may show updates up to 5 seconds late. A successful save must be durable, and existing data must remain available during architecture changes. This tolerance applies to read freshness, not lost updates.",
+        "senior": "Yes, page reads may show updates up to 5 seconds late. A successful save must be durable, and existing data must remain available during architecture changes. This tolerance applies to read freshness, not lost updates.",
+        "staff": "Yes, page reads may show updates up to 5 seconds late. A successful save must be durable, and existing data must remain available during architecture changes. This tolerance applies to read freshness, not lost updates."
+      },
+      "coversCriteria": []
+    },
+    {
+      "pattern": "\\b(existing data|data.*preserv|retain.*data|data.*available)\\b",
+      "answers": {
+        "mid": "Existing data must remain available and successful user saves must not be lost when the architecture changes. Keep the website working in one region.",
+        "senior": "Existing data must remain available and successful user saves must not be lost when the architecture changes. Keep the website working in one region.",
+        "staff": "Existing data must remain available and successful user saves must not be lost when the architecture changes. Keep the website working in one region."
+      },
+      "coversCriteria": [2]
     }
   ]
 }

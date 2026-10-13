@@ -37,7 +37,7 @@ describe("problem registry", () => {
     catalog[0].levels.pop();
     expect(listProblems()[0].levels).toHaveLength(3);
   });
-  it("starts each level with one configured question without returning private configuration", () => {
+  it("starts each level with a configured problem brief and one clarification question without returning private configuration", () => {
     for (const { problemId } of listProblems()) {
       const problem = getProblem(problemId);
       if (!problem) throw new Error("Missing problem config");
@@ -61,7 +61,7 @@ describe("problem registry", () => {
         expect(JSON.stringify(result)).not.toContain("completionCriteria");
         expect(result.openingMessage.content.match(/\?/g)).toHaveLength(1);
         expect(result.openingMessage.content.split(/\s+/).length).toBeLessThan(
-          80,
+          200,
         );
         expect(JSON.stringify(result)).not.toContain(problem.rubric[0].strong);
         expect(JSON.stringify(result)).not.toContain(

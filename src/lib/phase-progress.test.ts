@@ -20,7 +20,7 @@ const state = (phaseIndex: number, coveredCriteria: number[] = []) => ({
 });
 
 describe("stage progression separate from candidate pacing", () => {
-  it("moves from setup to drawing at handoff or early drawing without skipping to review", () => {
+  it("keeps requirements open despite early drawing, readiness, or the old message limit", () => {
     expect(
       planPhaseProgress(problem, state(0), progress("discussion"), scene).state
         .phaseIndex,
@@ -34,7 +34,74 @@ describe("stage progression separate from candidate pacing", () => {
       expect(
         planPhaseProgress(problem, state(0), progress(step), scene).state
           .phaseIndex,
-      ).toBe(1);
+      ).toBe(0);
+  });
+  it("collects requirements across turns and invites drawing as soon as they are all covered", () => {
+    const first = planPhaseProgress(
+      problem,
+      state(0),
+      progress("invite-drawing"),
+      undefined,
+      [0, 1],
+    );
+    expect(first.state).toEqual(state(0, [0, 1]));
+    expect(first.progress.step).toBe("discussion");
+    const next = planPhaseProgress(
+      problem,
+      first.state,
+      { ...progress("discussion"), candidateTurns: 1 },
+      undefined,
+      [2],
+    );
+    expect(next.state).toEqual(state(1));
+    expect(next.progress.step).toBe("invite-drawing");
+  });
+  it.each(["drawing", "explaining"] as const)(
+    "preserves %s while requirements are missing or become confirmed",
+    (step) => {
+      const pending = planPhaseProgress(
+        problem,
+        state(0),
+        progress(step),
+        scene,
+        [0],
+      );
+      expect(pending.state).toEqual(state(0, [0]));
+      expect(pending.progress.step).toBe(step);
+      const complete = planPhaseProgress(
+        problem,
+        pending.state,
+        progress(step),
+        scene,
+        [1, 2],
+      );
+      expect(complete.state).toEqual(state(1));
+      expect(complete.progress.step).toBe(step);
+    },
+  );
+  it("uses early discussion permission only for missing requirements, then respects readiness", () => {
+    expect(
+      planPhaseProgress(problem, state(0), progress("review"), scene).progress
+        .step,
+    ).toBe("discussion");
+    const complete = planPhaseProgress(
+      problem,
+      state(0),
+      progress("review"),
+      scene,
+      [0, 1, 2],
+    );
+    expect(complete.state.phaseIndex).toBe(1);
+    expect(complete.progress.step).toBe("review");
+    expect(
+      planPhaseProgress(
+        problem,
+        state(0),
+        progress("review"),
+        undefined,
+        [0, 1, 2],
+      ).progress.step,
+    ).toBe("invite-drawing");
   });
   it("requires explicit discussion permission and a sketch before leaving drawing", () => {
     for (const step of ["drawing", "explaining"] as const)

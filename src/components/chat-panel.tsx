@@ -1,4 +1,6 @@
 "use client";
+import { useState } from "react";
+import { ChatComposer } from "@/components/chat-composer";
 
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import type { InterviewStart } from "@/lib/interview-selection";
@@ -7,6 +9,15 @@ import { lastCandidateAction } from "@/lib/candidate-actions";
 import { ChatTranscript } from "@/components/chat-transcript";
 import { InterviewPacing } from "@/components/interview-pacing";
 import { useInterviewChat } from "@/components/use-interview-chat";
+import { useInterviewEnd } from "@/components/use-interview-end";
+import { InterviewScorecard } from "@/components/interview-scorecard";
+import { useInterviewAutoEnd } from "@/components/use-interview-auto-end";
+import { EndInterviewConfirmation } from "@/components/end-interview-confirmation";
+import { ExpiredDraft } from "@/components/expired-draft";
+import type {
+  SavedInterview,
+  InterviewSaveUpdate,
+} from "@/lib/saved-interview";
 
 type ChatPanelProps = {
   getScene: () => WhiteboardScene;
@@ -14,10 +25,19 @@ type ChatPanelProps = {
   interview?: InterviewStart;
   onBusyChange: (busy: boolean) => void;
   onPhaseChange: (phase: InterviewPhase) => void;
+  phase?: InterviewPhase;
+  hasEnded: boolean;
+  onEndChange: (ended: boolean) => void;
+  restored?: SavedInterview;
+  getResumeToken: () => string | undefined;
+  onSave: (update: InterviewSaveUpdate) => Promise<void>;
+  disabled: boolean;
+  timeExpired: boolean;
+  canSubmit: () => boolean;
 };
 
 export function ChatPanel(props: ChatPanelProps) {
-  const { interview, hasDrawing } = props;
+  const { interview, hasDrawing, hasEnded } = props;
   const {
     messages,
     input,
@@ -28,50 +48,159 @@ export function ChatPanel(props: ChatPanelProps) {
     logRef,
     canSend,
     send,
-  } = useInterviewChat(props);
+    getDraft,
+    setMessages,
+  } = useInterviewChat({
+    ...props,
+    disabled: hasEnded || props.timeExpired || props.disabled,
+  });
+  const ending = useInterviewEnd({
+    ...props,
+    messages,
+    isReplying: isStreaming,
+    onMessagesChange: setMessages,
+    onDraftIncluded: () => setInput(""),
+  });
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const mode =
+    lastCandidateAction(messages) ??
+    (props.phase?.position && props.phase.position > 1 ? "draw" : undefined);
+  useInterviewAutoEnd(
+    {
+      expired: props.timeExpired,
+      isReplying: isStreaming,
+      isEnding: ending.isEnding,
+      hasEnded,
+      hasScorecard: Boolean(ending.scorecard),
+      disabled: props.disabled || !interview || Boolean(input.trim()),
+    },
+    async () => {
+      if (!getDraft().trim()) await ending.end();
+    },
+  );
+  const transcript = (
+    <ChatTranscript
+      logRef={logRef}
+      messages={messages}
+      error={error}
+      imageWarning={imageWarning}
+      isStreaming={isStreaming}
+    />
+  );
   return (
     <section
       aria-label="Chat"
       className="flex min-h-0 w-full flex-col rounded-lg border border-black/10 dark:border-white/15"
     >
-      <ChatTranscript
-        logRef={logRef}
-        messages={messages}
-        error={error}
-        imageWarning={imageWarning}
-      />
-      <InterviewPacing
-        action={lastCandidateAction(messages)}
-        hasDrawing={hasDrawing}
-        disabled={!interview || isStreaming}
-        onChoose={(message, action) => void send(message, action)}
-      />
-
-      <form
-        className="flex gap-2 border-t border-black/10 p-3 dark:border-white/15"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void send();
+      <header className="flex items-center justify-between gap-3 border-b border-black/10 px-3 py-2 dark:border-white/15">
+        <h2 className="text-sm font-medium">
+          {hasEnded ? "Interview results" : "Chat"}
+          {!hasEnded && (
+            <span className="ml-2 text-xs font-normal text-black/60 dark:text-white/60">
+              {mode === "explain"
+                ? "Explaining"
+                : mode === "draw"
+                  ? "Drawing · questions paused"
+                  : mode === "review"
+                    ? "Discussing your design"
+                    : "Clarifying requirements"}
+            </span>
+          )}
+        </h2>
+        {interview && !ending.scorecard && (!props.timeExpired || hasEnded) && (
+          <button
+            type="button"
+            onClick={() => (hasEnded ? void ending.end() : setConfirmEnd(true))}
+            disabled={isStreaming || ending.isEnding || props.disabled}
+            className="rounded-md border border-black/15 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-white/20"
+          >
+            {ending.isEnding
+              ? "Generating scorecard…"
+              : hasEnded || props.timeExpired
+                ? "Retry scorecard"
+                : "End interview"}
+          </button>
+        )}
+      </header>
+      <EndInterviewConfirmation
+        open={confirmEnd && !props.timeExpired && !hasEnded}
+        draft={input}
+        onCancel={() => setConfirmEnd(false)}
+        onConfirm={(include) => {
+          setConfirmEnd(false);
+          void ending.end(include ? getDraft() : undefined);
         }}
-      >
-        <input
-          value={input}
-          disabled={!interview}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder={
-            interview ? "Type your message" : "Start an interview to chat"
-          }
-          aria-label="Message"
-          className="min-w-0 flex-1 rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
-        />
-        <button
-          type="submit"
-          disabled={!canSend}
-          className="bg-foreground text-background rounded-md px-4 py-2 text-sm disabled:opacity-40"
+      />
+      {ending.error && (
+        <p
+          role="alert"
+          className="px-3 py-2 text-sm text-red-600 dark:text-red-400"
         >
-          {isStreaming ? "…" : "Send"}
-        </button>
-      </form>
+          {ending.error}
+        </p>
+      )}
+      {ending.imageWarning && (
+        <p
+          role="status"
+          className="px-3 py-2 text-xs text-amber-700 dark:text-amber-300"
+        >
+          {ending.imageWarning}
+        </p>
+      )}
+      {ending.scorecard ? (
+        <InterviewScorecard scorecard={ending.scorecard} scene={ending.scene}>
+          {transcript}
+        </InterviewScorecard>
+      ) : (
+        transcript
+      )}
+      {ending.isEnding && (
+        <p
+          role="status"
+          className="border-t border-black/10 p-3 text-sm dark:border-white/15"
+        >
+          Your interview has ended. Reviewing your answers and final diagram…
+        </p>
+      )}
+      {props.timeExpired && !hasEnded && input.trim() && (
+        <ExpiredDraft
+          draft={input}
+          busy={props.disabled || isStreaming || ending.isEnding}
+          onInclude={() => void ending.end(getDraft())}
+          onSkip={() => void ending.end()}
+        />
+      )}
+      {hasEnded && input.trim() && (
+        <details className="shrink-0 border-t p-3 text-xs">
+          <summary className="cursor-pointer">
+            Saved unsent draft (not included in scoring)
+          </summary>
+          <pre className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap">
+            {input}
+          </pre>
+        </details>
+      )}
+      {!hasEnded && !props.timeExpired && (
+        <>
+          <InterviewPacing
+            action={mode}
+            hasDrawing={hasDrawing}
+            disabled={
+              !interview || isStreaming || ending.isEnding || props.disabled
+            }
+            onChoose={(message, action) => void send(message, action)}
+          />
+
+          <ChatComposer
+            input={input}
+            onInput={setInput}
+            onSend={() => void send()}
+            disabled={!interview || props.disabled}
+            canSend={canSend}
+            started={Boolean(interview)}
+          />
+        </>
+      )}
     </section>
   );
 }

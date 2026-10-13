@@ -1,12 +1,7 @@
 import "server-only";
 import type { ChatMessage } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
-import type { Scene } from "@/lib/scene";
-import {
-  inferCandidateAction,
-  lastCandidateAction,
-} from "@/lib/candidate-actions";
-import { hasSketch } from "@/lib/drawing-state";
+import { lastCandidateAction } from "@/lib/candidate-actions";
 
 export type InterviewProgress = {
   step: "discussion" | "invite-drawing" | "drawing" | "explaining" | "review";
@@ -18,8 +13,6 @@ export type InterviewProgress = {
 export function getInterviewProgress(
   problem: ProblemDefinition,
   messages: ChatMessage[],
-  scene?: Scene,
-  previousScene?: Scene,
 ): InterviewProgress {
   const candidateTurns = messages.filter(
     (message) => message.role === "user",
@@ -31,22 +24,10 @@ export function getInterviewProgress(
       message.content.trim().endsWith(problem.drawingPolicy.invitation),
   );
   const action = lastCandidateAction(messages);
-  const latestUser = messages.findLast((message) => message.role === "user");
-  const latestAction =
-    latestUser &&
-    (latestUser.action ?? inferCandidateAction(latestUser.content));
-  const editedDuringReview =
-    action === "review" &&
-    !latestAction &&
-    scene &&
-    previousScene &&
-    JSON.stringify(scene) !== JSON.stringify(previousScene);
   let step: InterviewProgress["step"] = "discussion";
-  if (action === "draw" || editedDuringReview) step = "drawing";
+  if (action === "draw") step = "drawing";
   else if (action === "explain") step = "explaining";
   else if (action === "review") step = "review";
-  else if (hasSketch(scene?.elements) || hasSketch(previousScene?.elements))
-    step = "drawing";
   else if (invited) step = "drawing";
   else if (candidateTurns >= discussionTurnLimit) step = "invite-drawing";
   return { step, candidateTurns, discussionTurnLimit };
