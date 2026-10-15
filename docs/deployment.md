@@ -55,6 +55,18 @@ platform client IP, so testers on the same network share quotas.
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST credential with read/write and scripting access |
 | `INTELIPREP_ENV` | Optional locally: set `beta` to exercise shared safeguards; Vercel automatically enables them |
 
+The native Upstash integration may install `KV_REST_API_URL` and
+`KV_REST_API_TOKEN`. The app accepts that pair directly; copying or renaming the
+secrets is unnecessary. An explicitly configured `UPSTASH_REDIS_REST_*` pair takes
+precedence. Both values must come from the same family/database; a partial explicit
+pair fails readiness instead of borrowing the other integration's token.
+
+For REST API deployments, explicitly use `target: "staging"` for the Preview
+environment. The first file upload in this project defaulted to Production when
+the target was omitted, and was canceled. The API rejects `target: "preview"`.
+CLI commands still use their documented Preview target; inspect the returned
+deployment target before sharing it.
+
 Keep the resume secret stable across builds and provider-key rotation. Rotate it
 deliberately if compromised; old unfinished checkpoints will stop reconnecting.
 Preview and Production use separate Redis key namespaces. Use separate Redis

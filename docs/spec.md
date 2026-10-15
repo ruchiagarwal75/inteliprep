@@ -684,6 +684,9 @@ Vercel deployments (or local `INTELIPREP_ENV=beta`) require model credentials,
 a dedicated resume secret of at least 32 characters, and an Upstash Redis REST
 endpoint/token. Missing settings or failed shared coordination return 503 before
 model work. Builds and ordinary local development need no Redis credentials.
+Redis configuration accepts either the Upstash REST URL/token pair or Vercel's
+native `KV_REST_API_URL`/`KV_REST_API_TOKEN` pair. Explicit Upstash settings take
+precedence as a pair; partial settings never borrow another database's token.
 The release uses a protected Preview branch URL; `main` Git autodeploys are disabled.
 Deployment protection must be enabled and verified in Vercel settings. This is
 private tester access, not candidate account authentication.

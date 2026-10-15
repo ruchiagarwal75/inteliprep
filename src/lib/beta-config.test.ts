@@ -8,6 +8,18 @@ import {
 
 afterEach(() => vi.unstubAllEnvs());
 describe("beta configuration", () => {
+  it("validates native Vercel Redis variables and reports their missing names", () => {
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("OPENAI_KEY", "test-key");
+    vi.stubEnv("INTERVIEW_RESUME_SECRET", "s".repeat(32));
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
+    vi.stubEnv("KV_REST_API_URL", "https://native.example");
+    vi.stubEnv("KV_REST_API_TOKEN", "native-test-token");
+    expect(missingBetaSettings()).toEqual([]);
+    vi.stubEnv("KV_REST_API_TOKEN", "");
+    expect(missingBetaSettings()).toEqual(["KV_REST_API_TOKEN"]);
+  });
   it("keeps the private beta unavailable on a production domain", () => {
     vi.stubEnv("VERCEL", "1");
     vi.stubEnv("VERCEL_ENV", "production");

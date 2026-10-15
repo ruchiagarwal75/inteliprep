@@ -1,15 +1,17 @@
 import "server-only";
 import { BetaUnavailableError } from "@/lib/beta-config";
+import { redisConnection } from "@/lib/redis-config";
 
 /** No retries on mutations: a timed-out request may already have committed. */
 export async function redisCommand(
   command: (string | number)[],
 ): Promise<unknown> {
   try {
-    const response = await fetch(process.env.UPSTASH_REDIS_REST_URL ?? "", {
+    const redis = redisConnection();
+    const response = await fetch(redis.url ?? "", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN ?? ""}`,
+        Authorization: `Bearer ${redis.token ?? ""}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(command),

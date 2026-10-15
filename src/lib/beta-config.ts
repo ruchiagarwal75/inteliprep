@@ -1,4 +1,5 @@
 import "server-only";
+import { redisConnection } from "@/lib/redis-config";
 
 export class BetaUnavailableError extends Error {
   constructor() {
@@ -20,15 +21,15 @@ export function missingBetaSettings(): string[] {
   if (!process.env.OPENAI_KEY) missing.push("OPENAI_KEY");
   if ((process.env.INTERVIEW_RESUME_SECRET?.length ?? 0) < 32)
     missing.push("INTERVIEW_RESUME_SECRET");
+  const redis = redisConnection();
   try {
-    const url = new URL(process.env.UPSTASH_REDIS_REST_URL ?? "");
+    const url = new URL(redis.url ?? "");
     if (url.protocol !== "https:" || url.username || url.password || url.search)
       throw new Error("Invalid Redis endpoint");
   } catch {
-    missing.push("UPSTASH_REDIS_REST_URL");
+    missing.push(redis.urlKey);
   }
-  if (!process.env.UPSTASH_REDIS_REST_TOKEN)
-    missing.push("UPSTASH_REDIS_REST_TOKEN");
+  if (!redis.token) missing.push(redis.tokenKey);
   return missing;
 }
 

@@ -49,8 +49,9 @@ and pull requests. The build uses webpack, matching the verified local build.
 
 Follow [the deployment guide](docs/deployment.md) for protected previews,
 Upstash Redis, environment settings, smoke tests and troubleshooting.
-Vercel requires `OPENAI_KEY`, `INTERVIEW_RESUME_SECRET`,
-`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; missing settings or a failed
+Vercel requires `OPENAI_KEY`, `INTERVIEW_RESUME_SECRET`, and
+Redis credentials (`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`, or the
+native Vercel `KV_REST_API_URL` and `KV_REST_API_TOKEN` pair); missing settings or a failed
 shared store return 503 before any model work. `/api/health` checks readiness
 without generating a model response.
 
