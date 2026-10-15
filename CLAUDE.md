@@ -27,7 +27,7 @@ private server rubric. The default is the simple scaling exercise at Mid-level.
 | Lint      | ESLint 9 flat config (`eslint-config-next`)  |
 | Format    | Prettier + `prettier-plugin-tailwindcss`     |
 | Tests     | Vitest (Node environment)                    |
-| Hosting   | Vercel (planned)                             |
+| Hosting   | Vercel protected Preview (beta preparation)  |
 
 Excalidraw, the OpenAI SDK, and Zod are installed. Add Postgres/Supabase and auth
 when their milestones need them (see spec).
@@ -168,8 +168,9 @@ Conventions:
   inactivity expiry), shared by local route bundles and hot reloads. A missing or
   expired session returns 404; mismatched selections or concurrent turns return 409.
   Browser checkpoints restore expired/lost process state using authenticated encryption.
-  This is anonymous prototype recovery; cloud storage, auth, and multi-instance locking
-  remain future work. Development logs include the public stage title.
+  This is anonymous recovery; candidate auth and durable cloud history remain future
+  work. Private beta mode uses encrypted Redis progress/cache records and owner-fenced
+  distributed locks in addition to the local cache. Development logs include the public stage title.
 - The drawing invitation is configured per problem. The two-message simple exercise
   and three-message URL-shortener limits remain for legacy stateless chat; session
   stage completion requires confirmed requirements regardless of turn count. The server derives a
@@ -228,7 +229,12 @@ Conventions:
   Back/Forward reopens browser saves. Saved interviews is a dialog with score, signal,
   creation-date ordering, bounded elapsed time, contained scrolling and overflow hints,
   elapsed time, active marker, and explicit delete confirmation. New interview starts
-  the current problem/level/duration in one click with a blank board. Change problem
+  the current problem and level with a fresh 45-minute duration and blank board.
+  New interview and Change problem confirm ending an active session, preserve the
+  draft-inclusion choice, and await the saved ended state before switching. A failed
+  scorecard keeps its retry evidence in history. Unopened history rows derive expiry
+  and capped elapsed time from the saved deadline; unknown legacy timing is labeled.
+  Change problem
   opens the picker while retaining the displayed selection. Saves are confirmed after transaction commit,
   and revision checks prevent stale tabs overwriting each other. Storage failures
   show a notice; wait for Saved in this browser before refreshing.

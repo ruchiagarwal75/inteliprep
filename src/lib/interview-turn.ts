@@ -19,6 +19,7 @@ import {
 } from "@/lib/configured-clarifications";
 import { diagramReviewQuestion } from "@/lib/diagram-review";
 import { hasCandidateAnswer } from "@/lib/grading-evidence";
+import { logServerEvent } from "@/lib/server-events";
 
 export async function prepareInterviewTurn(
   problem: ProblemDefinition,
@@ -80,8 +81,9 @@ export async function prepareInterviewTurn(
         ];
       } catch (cause) {
         if (signal.aborted) throw cause;
-        console.warn(
-          "[chat] Stage assessment unavailable; keeping the current stage.",
+        logServerEvent(
+          { event: "stage_assessment_failure", route: "/api/chat" },
+          cause,
         );
       }
     }

@@ -46,6 +46,10 @@ export function InterviewSessionWorkspace({
   const [phase, setPhase] = useState<InterviewPhase | undefined>(saved?.phase);
   const [isReplying, setIsReplying] = useState(false);
   const [hasEnded, setHasEnded] = useState(saved?.hasEnded ?? false);
+  const [hasConfirmedEnd, setHasConfirmedEnd] = useState(
+    saved?.hasEnded ?? false,
+  );
+  const [leaveAction, setLeaveAction] = useState<"new" | "problem">();
   const timer = useInterviewTimer(
     interview?.timing,
     saved?.clockOffsetMs,
@@ -99,8 +103,10 @@ export function InterviewSessionWorkspace({
         choice={starter.choice}
         onChoice={starter.setChoice}
         onStart={() => void starter.start()}
-        onNew={onNew}
-        onChangeProblem={onChangeProblem}
+        onNew={() => (hasConfirmedEnd ? onNew() : setLeaveAction("new"))}
+        onChangeProblem={() =>
+          hasConfirmedEnd ? onChangeProblem() : setLeaveAction("problem")
+        }
         isStarting={starter.isStarting}
         error={starter.error}
       />
@@ -142,6 +148,11 @@ export function InterviewSessionWorkspace({
         </div>
         <div className="flex min-h-[32rem] min-w-0 md:min-h-0">
           <ChatPanel
+            leaveAction={leaveAction}
+            onCancelLeave={() => setLeaveAction(undefined)}
+            onConfirmLeave={() =>
+              leaveAction === "new" ? onNew() : onChangeProblem()
+            }
             getScene={timedScene}
             timeExpired={timer.expired}
             canSubmit={canSubmit}
@@ -159,6 +170,7 @@ export function InterviewSessionWorkspace({
               setHasEnded(ended);
               void library.save({ hasEnded: ended });
             }}
+            onEndConfirmed={setHasConfirmedEnd}
           />
         </div>
       </div>

@@ -7,17 +7,31 @@ export function EndInterviewConfirmation({
   draft,
   onCancel,
   onConfirm,
+  switchTo,
 }: {
   open: boolean;
   draft: string;
   onCancel: () => void;
   onConfirm: (includeDraft: boolean) => void;
+  switchTo?: "new" | "problem";
 }) {
   return (
-    <InterviewDialog open={open} title="End this interview?" onClose={onCancel}>
+    <InterviewDialog
+      open={open}
+      title={
+        switchTo === "new"
+          ? "End this interview and start a 45-minute interview?"
+          : switchTo === "problem"
+            ? "End this interview before changing problems?"
+            : "End this interview?"
+      }
+      onClose={onCancel}
+    >
       <p className="text-sm">
         This freezes your drawing and chat and generates your scorecard. You can
         reopen the results from Saved interviews.
+        {switchTo &&
+          " Your current interview ends before switching. If its scorecard fails, the saved interview keeps a retry option."}
       </p>
       {draft.trim() && (
         <>
@@ -36,7 +50,7 @@ export function EndInterviewConfirmation({
           onClick={onCancel}
           className="rounded border px-3 py-2 text-sm"
         >
-          Keep interviewing
+          {switchTo ? "Stay in this interview" : "Keep interviewing"}
         </button>
         {draft.trim() && (
           <button
@@ -44,7 +58,9 @@ export function EndInterviewConfirmation({
             onClick={() => onConfirm(true)}
             className="bg-foreground text-background rounded px-3 py-2 text-sm"
           >
-            Include answer and end
+            {switchTo
+              ? "Include answer, end, and continue"
+              : "Include answer and end"}
           </button>
         )}
         <button
@@ -52,9 +68,13 @@ export function EndInterviewConfirmation({
           onClick={() => onConfirm(false)}
           className="rounded border border-red-400 px-3 py-2 text-sm text-red-700 dark:text-red-300"
         >
-          {draft.trim()
-            ? "End without this answer"
-            : "End and generate scorecard"}
+          {switchTo
+            ? draft.trim()
+              ? "End without this answer and continue"
+              : "End, save scorecard, and continue"
+            : draft.trim()
+              ? "End without this answer"
+              : "End and generate scorecard"}
         </button>
       </div>
     </InterviewDialog>

@@ -10,8 +10,17 @@ import { InterviewSessionError } from "@/lib/interview-sessions";
 import { INTERVIEW_PHASE_HEADER } from "@/lib/interview-phase";
 import { chatResponse } from "@/lib/chat-response";
 import { INTERVIEW_STREAM_TYPE } from "@/lib/interview-stream";
+import {
+  ApiRequestError,
+  readJsonBody,
+  withApiRequest,
+} from "@/lib/api-request";
+import { isPrivateBeta } from "@/lib/beta-config";
+import { openSharedSession } from "@/lib/shared-interview-session";
+import { logServerEvent } from "@/lib/server-events";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
 
 function error(message: string, status: number, code?: string): Response {
   return Response.json(
@@ -22,8 +31,11 @@ function error(message: string, status: number, code?: string): Response {
 
 /** Keeps provider detail (billing URLs, org ids) out of the client response
  * while leaving the code visible enough to debug against the logs. */
-function upstreamError(cause: unknown): Response {
-  console.error("chat upstream failed", cause);
+function upstreamError(cause: unknown, requestId: string): Response {
+  logServerEvent(
+    { event: "api_failure", route: "/api/chat", requestId },
+    cause,
+  );
   if (cause instanceof APIError) {
     const status = cause.status ?? 502;
     return error(
@@ -35,13 +47,8 @@ function upstreamError(cause: unknown): Response {
   return error("The language model could not be reached", 502);
 }
 
-export async function POST(request: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return error("Body must be valid JSON", 400);
-  }
+async function chat(request: Request, requestId: string): Promise<Response> {
+  const body = await readJsonBody(request, 4_000_000);
 
   const parsed = chatRequestSchema.safeParse(body);
   if (!parsed.success) {
@@ -54,6 +61,18 @@ export async function POST(request: Request): Promise<Response> {
   if (!hasApiKey()) {
     return error("Server is missing OPENAI_KEY", 500);
   }
+  if (isPrivateBeta() && !parsed.data.sessionId)
+    throw new ApiRequestError(
+      "Start an interview before sending a message",
+      409,
+    );
+  const shared = parsed.data.sessionId
+    ? await openSharedSession(
+        parsed.data.sessionId,
+        parsed.data,
+        parsed.data.resumeToken,
+      )
+    : undefined;
 
   const graph = sceneToGraph(parsed.data.scene);
   const diagramText = graphToText(graph);
@@ -70,13 +89,47 @@ export async function POST(request: Request): Promise<Response> {
     turn = await prepareInterviewTurn(problem, parsed.data, abort.signal);
   } catch (cause) {
     request.signal.removeEventListener("abort", cancel);
+    await shared?.release();
     return cause instanceof InterviewSessionError
       ? error(cause.message, cause.status, cause.code)
-      : upstreamError(cause);
+      : upstreamError(cause, requestId);
   }
+  let completion: Promise<void> | undefined;
+  let releasing: Promise<void> | undefined;
   const release = () => {
-    turn.release();
-    request.signal.removeEventListener("abort", cancel);
+    releasing ??= (async () => {
+      await completion?.catch(() => {});
+      turn.release();
+      request.signal.removeEventListener("abort", cancel);
+      await shared?.release();
+    })();
+    return releasing;
+  };
+  const complete = (reply: string) => {
+    completion = (async () => {
+      abort.signal.throwIfAborted();
+      turn.commit(reply);
+      try {
+        await shared?.persist();
+        abort.signal.throwIfAborted();
+      } catch (cause) {
+        try {
+          await shared?.rollback();
+        } catch (rollbackError) {
+          logServerEvent(
+            {
+              event: "api_failure",
+              requestId,
+              route: "/api/chat",
+              status: 503,
+            },
+            rollbackError,
+          );
+        }
+        throw cause;
+      }
+    })();
+    return completion;
   };
   if (process.env.NODE_ENV === "development") {
     console.log("[chat] Current whiteboard diagram:\n%s", diagramText);
@@ -103,8 +156,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     first = await deltas.next();
   } catch (cause) {
-    release();
-    return upstreamError(cause);
+    await release();
+    return upstreamError(cause, requestId);
   }
   const framed = request.headers.get("Accept") === INTERVIEW_STREAM_TYPE;
   return chatResponse(
@@ -127,7 +180,7 @@ export async function POST(request: Request): Promise<Response> {
           }
         : {}),
     },
-    turn.commit,
+    complete,
     release,
     cancel,
     framed
@@ -139,5 +192,8 @@ export async function POST(request: Request): Promise<Response> {
             : {}),
         })
       : undefined,
+    requestId,
   );
 }
+
+export const POST = withApiRequest("chat", "/api/chat", chat);

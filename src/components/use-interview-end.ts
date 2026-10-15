@@ -22,6 +22,7 @@ export function useInterviewEnd({
   isReplying,
   onBusyChange,
   onEndChange,
+  onEndConfirmed,
   restored,
   onSave,
   getResumeToken,
@@ -35,6 +36,7 @@ export function useInterviewEnd({
   isReplying: boolean;
   onBusyChange: (busy: boolean) => void;
   onEndChange: (ended: boolean) => void;
+  onEndConfirmed: (ended: boolean) => void;
   restored?: SavedInterview;
   onSave: (update: InterviewSaveUpdate) => Promise<void>;
   getResumeToken: () => string | undefined;
@@ -61,9 +63,9 @@ export function useInterviewEnd({
   );
   const endingRef = useRef(false);
 
-  async function end(finalAnswer?: string) {
-    if (!interview || isReplying || endingRef.current || scorecard || disabled)
-      return;
+  async function end(finalAnswer?: string): Promise<boolean> {
+    if (scorecard) return true;
+    if (!interview || isReplying || endingRef.current || disabled) return false;
     endingRef.current = true;
     setIsEnding(true);
     onBusyChange(true);
@@ -134,7 +136,8 @@ export function useInterviewEnd({
             ? detail.error
             : "The scorecard couldn't be generated. Please retry.",
         );
-        return;
+        onEndConfirmed(ended);
+        return ended;
       }
       const parsed = interviewEndResponseSchema.safeParse(body);
       if (!parsed.success)
@@ -148,6 +151,8 @@ export function useInterviewEnd({
         gradingError: undefined,
         endedAt: parsed.data.scorecard.endedAt,
       });
+      onEndConfirmed(true);
+      return true;
     } catch (cause) {
       // A disconnected response may already have ended the server session; retry the frozen snapshot.
       if (!submitted) onEndChange(false);
@@ -162,6 +167,7 @@ export function useInterviewEnd({
             ? cause.message
             : "Scorecard generation failed.",
       });
+      return false;
     } finally {
       endingRef.current = false;
       setIsEnding(false);

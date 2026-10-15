@@ -120,6 +120,8 @@ export type SavedInterviewSummary = Pick<
   signal?: Scorecard["signal"];
   averageScore?: number;
   elapsedSeconds: number;
+  timing?: InterviewStart["timing"];
+  clockOffsetMs?: number;
   gradingError?: string;
 };
 
@@ -170,6 +172,8 @@ export function savedInterviewSummary(
     createdAt: saved.createdAt,
     updatedAt: saved.updatedAt,
     hasEnded: saved.hasEnded,
+    timing: saved.interview.timing,
+    clockOffsetMs: saved.clockOffsetMs,
     problemId: saved.interview.problemId,
     level: saved.interview.level,
     hasScorecard: Boolean(saved.scorecard),

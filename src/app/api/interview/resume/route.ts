@@ -5,16 +5,13 @@ import {
 } from "@/lib/interview-sessions";
 import { getProblem } from "@/lib/problems";
 import { publicPhase } from "@/lib/phase-config";
+import { readJsonBody, withApiRequest } from "@/lib/api-request";
+import { openSharedSession } from "@/lib/shared-interview-session";
 
 export const runtime = "nodejs";
 
-export async function POST(request: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Body must be valid JSON" }, { status: 400 });
-  }
+async function resume(request: Request): Promise<Response> {
+  const body = await readJsonBody(request, 32_768);
   const parsed = interviewResumeRequestSchema.safeParse(body);
   if (!parsed.success)
     return Response.json({ error: "Invalid saved interview" }, { status: 400 });
@@ -24,6 +21,11 @@ export async function POST(request: Request): Promise<Response> {
       { error: "Unknown interview problem" },
       { status: 404 },
     );
+  const shared = await openSharedSession(
+    parsed.data.sessionId,
+    parsed.data,
+    parsed.data.resumeToken,
+  );
   try {
     const checkpoint = interviewSessionCheckpoint(
       parsed.data.sessionId,
@@ -35,6 +37,7 @@ export async function POST(request: Request): Promise<Response> {
         "The saved interview uses an older stage configuration.",
         409,
       );
+    await shared.persist();
     return Response.json(
       {
         phase: publicPhase(problem.phases, checkpoint.phaseIndex),
@@ -48,5 +51,9 @@ export async function POST(request: Request): Promise<Response> {
   } catch (cause) {
     if (!(cause instanceof InterviewSessionError)) throw cause;
     return Response.json({ error: cause.message }, { status: cause.status });
+  } finally {
+    await shared.release();
   }
 }
+
+export const POST = withApiRequest("resume", "/api/interview/resume", resume);

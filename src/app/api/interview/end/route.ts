@@ -4,17 +4,15 @@ import {
   InterviewSessionError,
   interviewSessionCheckpoint,
 } from "@/lib/interview-sessions";
+import { readJsonBody, withApiRequest } from "@/lib/api-request";
+import { openSharedSession } from "@/lib/shared-interview-session";
+import { BetaUnavailableError } from "@/lib/beta-config";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-export async function POST(request: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Body must be valid JSON" }, { status: 400 });
-  }
+async function end(request: Request): Promise<Response> {
+  const body = await readJsonBody(request, 4_000_000);
   const parsed = interviewEndRequestSchema.safeParse(body);
   if (!parsed.success)
     return Response.json(
@@ -23,8 +21,18 @@ export async function POST(request: Request): Promise<Response> {
       },
       { status: 400 },
     );
+  const shared = await openSharedSession(
+    parsed.data.sessionId,
+    parsed.data,
+    parsed.data.resumeToken,
+  );
   try {
-    const scorecard = await endInterview(parsed.data, request.signal);
+    const scorecard = await endInterview(
+      parsed.data,
+      request.signal,
+      shared.persist,
+    );
+    await shared.persist();
     return Response.json(
       {
         ended: true,
@@ -40,27 +48,42 @@ export async function POST(request: Request): Promise<Response> {
     );
   } catch (cause) {
     let resumeToken: string | undefined;
+    let ended = false;
     try {
-      resumeToken = interviewSessionCheckpoint(
+      const checkpoint = interviewSessionCheckpoint(
         parsed.data.sessionId,
         parsed.data,
-      ).resumeToken;
+      );
+      resumeToken = checkpoint.resumeToken;
+      ended = checkpoint.ended;
     } catch {
       /* Another request may still hold the session. */
     }
-    const status = cause instanceof InterviewSessionError ? cause.status : 502;
+    const status =
+      cause instanceof InterviewSessionError
+        ? cause.status
+        : cause instanceof BetaUnavailableError
+          ? 503
+          : 502;
     return Response.json(
       {
         resumeToken,
         error:
-          cause instanceof Error
+          cause instanceof InterviewGradingError ||
+          cause instanceof InterviewSessionError ||
+          cause instanceof BetaUnavailableError
             ? cause.message
             : "Could not end the interview",
         ended:
+          ended ||
           cause instanceof InterviewGradingError ||
           (cause instanceof InterviewSessionError && cause.ended),
       },
       { status },
     );
+  } finally {
+    await shared.release();
   }
 }
+
+export const POST = withApiRequest("end", "/api/interview/end", end);

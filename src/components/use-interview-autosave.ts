@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import { whiteboardContentKey } from "@/lib/whiteboard-snapshot";
+import { reportClientError } from "@/lib/report-client-error";
 import {
   InterviewStorageConflict,
   listInterviews,
@@ -59,6 +60,7 @@ export function useInterviewAutosave({
           onError(undefined);
         })
         .catch((cause: unknown) => {
+          void reportClientError("storage", cause);
           dirtyRef.current = true;
           if (cause instanceof InterviewStorageConflict) {
             conflictedRef.current = true;

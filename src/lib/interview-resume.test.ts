@@ -32,6 +32,7 @@ const request = (body: unknown) =>
   new Request("http://localhost/api/interview/resume", {
     method: "POST",
     body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
   });
 
 describe("browser-backed server session recovery", () => {
@@ -137,7 +138,11 @@ describe("browser-backed server session recovery", () => {
     expect(
       (
         await POST(
-          new Request("http://localhost", { method: "POST", body: "{" }),
+          new Request("http://localhost", {
+            method: "POST",
+            body: "{",
+            headers: { "Content-Type": "application/json" },
+          }),
         )
       ).status,
     ).toBe(400);

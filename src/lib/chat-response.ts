@@ -1,17 +1,21 @@
 import type { CompletedInterviewTurn } from "@/lib/interview-stream";
+import { logServerEvent } from "@/lib/server-events";
 
 /** Stage state commits only after a complete, nonempty reply has been produced. */
 export function chatResponse(
   deltas: AsyncGenerator<string>,
   first: IteratorResult<string>,
   headers: HeadersInit,
-  onComplete: (reply: string) => void,
-  onRelease: () => void,
+  onComplete: (reply: string) => void | Promise<void>,
+  onRelease: () => void | Promise<void>,
   onCancel: () => void,
   checkpoint?: () => CompletedInterviewTurn,
+  requestId?: string,
 ): Response {
   const encoder = new TextEncoder();
   let cancelled = false;
+  let released: Promise<void> | undefined;
+  const release = () => (released ??= Promise.resolve(onRelease()));
   const encodeDelta = (text: string) =>
     encoder.encode(
       checkpoint ? JSON.stringify({ type: "delta", text }) + "\n" : text,
@@ -33,28 +37,36 @@ export function chatResponse(
             "The interviewer returned an empty reply. Please try again.",
           );
         if (!cancelled) {
-          onComplete(reply);
-          if (checkpoint)
+          await onComplete(reply);
+          if (cancelled) return;
+          const completed = checkpoint?.();
+          // The next request must be able to acquire the lock as soon as EOF arrives.
+          await release();
+          if (cancelled) return;
+          if (completed)
             controller.enqueue(
               encoder.encode(
-                JSON.stringify({ type: "complete", ...checkpoint() }) + "\n",
+                JSON.stringify({ type: "complete", ...completed }) + "\n",
               ),
             );
           controller.close();
         }
       } catch (cause) {
         if (!cancelled) {
-          console.error("chat stream interrupted", cause);
+          logServerEvent(
+            { event: "chat_stream_failure", route: "/api/chat", requestId },
+            cause,
+          );
           controller.error(cause);
         }
       } finally {
-        onRelease();
+        await release();
       }
     },
     cancel() {
       cancelled = true;
       onCancel();
-      onRelease();
+      return release();
     },
   });
   return new Response(stream, { headers });

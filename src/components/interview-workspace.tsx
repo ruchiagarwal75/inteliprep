@@ -10,6 +10,7 @@ import {
 } from "@/components/use-interview-starter";
 import { useInterviewNavigation } from "@/components/use-interview-navigation";
 import { InterviewSessionWorkspace } from "@/components/interview-session-workspace";
+import { nextInterviewSelection } from "@/lib/interview-restart";
 
 const emptyBoard: WhiteboardScene = {
   elements: [],
@@ -79,7 +80,7 @@ export function InterviewWorkspace({
       starter={starter}
       onBusy={setBusy}
       onNew={() => {
-        void starter.start(selected, true);
+        void starter.start(nextInterviewSelection(selected), true);
       }}
       onChangeProblem={() => {
         starter.setChoice(selected);

@@ -19,6 +19,7 @@ export default defineConfig({
     // Logic tests run in Node. Component tests would need jsdom plus
     // @testing-library/react; add those when the first component needs one.
     environment: "node",
+    setupFiles: ["./tests/setup.ts"],
     include: ["src/**/*.test.ts", "tests/**/*.test.ts"],
   },
 });

@@ -16,5 +16,5 @@ export const interviewerModel = () => process.env.OPENAI_MODEL ?? "gpt-4o";
 export function createOpenAIClient(): OpenAI {
   const apiKey = process.env.OPENAI_KEY;
   if (!apiKey) throw new MissingApiKeyError();
-  return new OpenAI({ apiKey });
+  return new OpenAI({ apiKey, timeout: 45_000, maxRetries: 0 });
 }

@@ -131,6 +131,7 @@ describe("POST /api/interview/end", () => {
       new Request("http://localhost/api/interview/end", {
         method: "POST",
         body: "not JSON",
+        headers: { "Content-Type": "application/json" },
       }),
     );
     expect(response.status).toBe(400);

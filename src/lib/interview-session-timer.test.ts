@@ -28,6 +28,7 @@ const request = (body: unknown) =>
   new Request("http://localhost/api/interview/start", {
     method: "POST",
     body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
   });
 function forget(id: string) {
   (

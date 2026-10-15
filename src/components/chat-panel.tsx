@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { ChatComposer } from "@/components/chat-composer";
 
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
@@ -12,7 +11,7 @@ import { useInterviewChat } from "@/components/use-interview-chat";
 import { useInterviewEnd } from "@/components/use-interview-end";
 import { InterviewScorecard } from "@/components/interview-scorecard";
 import { useInterviewAutoEnd } from "@/components/use-interview-auto-end";
-import { EndInterviewConfirmation } from "@/components/end-interview-confirmation";
+import { InterviewEndControl } from "@/components/interview-end-control";
 import { ExpiredDraft } from "@/components/expired-draft";
 import type {
   SavedInterview,
@@ -28,12 +27,16 @@ type ChatPanelProps = {
   phase?: InterviewPhase;
   hasEnded: boolean;
   onEndChange: (ended: boolean) => void;
+  onEndConfirmed: (ended: boolean) => void;
   restored?: SavedInterview;
   getResumeToken: () => string | undefined;
   onSave: (update: InterviewSaveUpdate) => Promise<void>;
   disabled: boolean;
   timeExpired: boolean;
   canSubmit: () => boolean;
+  leaveAction?: "new" | "problem";
+  onCancelLeave: () => void;
+  onConfirmLeave: () => void;
 };
 
 export function ChatPanel(props: ChatPanelProps) {
@@ -61,7 +64,6 @@ export function ChatPanel(props: ChatPanelProps) {
     onMessagesChange: setMessages,
     onDraftIncluded: () => setInput(""),
   });
-  const [confirmEnd, setConfirmEnd] = useState(false);
   const mode =
     lastCandidateAction(messages) ??
     (props.phase?.position && props.phase.position > 1 ? "draw" : undefined);
@@ -72,7 +74,11 @@ export function ChatPanel(props: ChatPanelProps) {
       isEnding: ending.isEnding,
       hasEnded,
       hasScorecard: Boolean(ending.scorecard),
-      disabled: props.disabled || !interview || Boolean(input.trim()),
+      disabled:
+        props.disabled ||
+        !interview ||
+        Boolean(input.trim()) ||
+        Boolean(props.leaveAction),
     },
     async () => {
       if (!getDraft().trim()) await ending.end();
@@ -107,30 +113,14 @@ export function ChatPanel(props: ChatPanelProps) {
             </span>
           )}
         </h2>
-        {interview && !ending.scorecard && (!props.timeExpired || hasEnded) && (
-          <button
-            type="button"
-            onClick={() => (hasEnded ? void ending.end() : setConfirmEnd(true))}
-            disabled={isStreaming || ending.isEnding || props.disabled}
-            className="rounded-md border border-black/15 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-white/20"
-          >
-            {ending.isEnding
-              ? "Generating scorecard…"
-              : hasEnded || props.timeExpired
-                ? "Retry scorecard"
-                : "End interview"}
-          </button>
-        )}
+        <InterviewEndControl
+          {...props}
+          ending={ending}
+          isStreaming={isStreaming}
+          draft={input}
+          getDraft={getDraft}
+        />
       </header>
-      <EndInterviewConfirmation
-        open={confirmEnd && !props.timeExpired && !hasEnded}
-        draft={input}
-        onCancel={() => setConfirmEnd(false)}
-        onConfirm={(include) => {
-          setConfirmEnd(false);
-          void ending.end(include ? getDraft() : undefined);
-        }}
-      />
       {ending.error && (
         <p
           role="alert"

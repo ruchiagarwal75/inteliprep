@@ -8,6 +8,8 @@ import {
 } from "@/lib/interview-sessions";
 import { gradeInterview } from "@/lib/interview-grading";
 import { withSessionContext } from "@/lib/scorecard-calibration";
+import { BetaUnavailableError } from "@/lib/beta-config";
+import { logServerEvent } from "@/lib/server-events";
 
 export class InterviewGradingError extends Error {
   constructor(
@@ -20,6 +22,7 @@ export class InterviewGradingError extends Error {
 export async function endInterview(
   request: InterviewEndRequest,
   signal?: AbortSignal,
+  onFrozen?: () => Promise<void>,
 ) {
   const problem = getProblem(request.problemId);
   if (!problem)
@@ -36,6 +39,7 @@ export async function endInterview(
     request.resumeToken,
   );
   try {
+    await onFrozen?.();
     if (lease.scorecard) return lease.scorecard;
     if (!lease.snapshot) throw new Error("Missing ended interview evidence");
     const scorecard = withSessionContext(
@@ -53,18 +57,11 @@ export async function endInterview(
     return scorecard;
   } catch (cause) {
     // Log a diagnostic code, never provider headers, credentials, or evidence.
-    const reason =
-      cause instanceof APIError
-        ? { status: cause.status, code: cause.code, param: cause.param }
-        : cause instanceof Error && cause.name === "Error"
-          ? cause.message
-          : cause instanceof Error
-            ? cause.name
-            : "Unknown error";
-    console.warn(
-      "[interview] Scorecard unavailable; ended evidence retained for retry.",
-      reason,
+    logServerEvent(
+      { event: "grading_failure", route: "/api/interview/end" },
+      cause,
     );
+    if (cause instanceof BetaUnavailableError) throw cause;
     const detail =
       cause instanceof APIError &&
       (cause.status === 401 || cause.status === 403)

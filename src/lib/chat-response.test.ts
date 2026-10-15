@@ -3,6 +3,40 @@ import { chatResponse } from "@/lib/chat-response";
 
 afterEach(() => vi.restoreAllMocks());
 describe("completed reply stage commits", () => {
+  it("waits for durable progress and unlock before publishing completion/EOF", async () => {
+    let finish: (() => void) | undefined;
+    const order: string[] = [];
+    async function* deltas() {
+      yield "Hello";
+    }
+    const iterator = deltas();
+    const response = chatResponse(
+      iterator,
+      await iterator.next(),
+      {},
+      async () => {
+        await new Promise<void>((resolve) => {
+          finish = resolve;
+        });
+        order.push("persisted");
+      },
+      async () => {
+        order.push("unlocked");
+      },
+      vi.fn(),
+      () => ({ resumeToken: "checkpoint" }),
+    );
+    let done = false;
+    const read = response.text().then((text) => {
+      done = true;
+      return text;
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(done).toBe(false);
+    finish?.();
+    expect(await read).toContain('"type":"complete"');
+    expect(order).toEqual(["persisted", "unlocked"]);
+  });
   it("commits exactly once after streaming a complete nonempty reply", async () => {
     async function* deltas() {
       yield "First ";

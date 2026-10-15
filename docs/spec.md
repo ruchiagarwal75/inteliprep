@@ -234,9 +234,15 @@ The server returns a deterministic assistant opening with an expanded problem
 brief: scenario, objective, scope, and one requirements clarification question.
 Short paragraphs separate the context and task from the question. Each problem
 and difficulty has its own configured brief. The candidate need not send "hello",
-and starting does not consume an LLM call. The current selection is displayed as a read-only summary. New interview starts
-the same problem, difficulty, and duration in one click with fresh chat, baselines,
-and a blank board. Change problem opens the picker with the current selection retained. The prior interview remains in browser history. New interview is disabled while a reply streams.
+and starting does not consume an LLM call. The current selection is displayed as a read-only summary.
+New 45-minute interview retains the problem and difficulty and always uses the regular
+45-minute duration, with fresh chat, baselines, and a blank board. Leaving an active
+session with New interview or Change problem first offers end-and-score confirmation,
+including the existing choice about an unsent answer. Cancellation keeps the session.
+The old session's ended state and evidence save before switching; a failed scorecard
+retains its retry payload in history. An unconfirmed ending keeps the current view.
+Completed sessions can switch immediately. Change problem opens the picker with the
+current selection retained. New interview is disabled while a reply streams.
 
 Each `POST /api/chat` now requires the selected problem ID and level alongside
 the messages and diagram. The server validates them, resolves its own config,
@@ -301,8 +307,11 @@ explicit candidate pacing controls.
 Sessions are temporary process-local state, shared across local route bundles and
 hot reloads, bounded to 500 entries, and expire after two hours of inactivity.
 An expired or missing session can be restored from an opaque, authenticated browser
-checkpoint. Without a checkpoint it returns 404. Database-backed sessions, ownership
-checks, and distributed locking remain planned.
+checkpoint. Without a checkpoint it returns 404 locally. Vercel/private beta mode
+requires possession of a valid checkpoint and uses Redis for authoritative progress,
+owner-fenced distributed locks, frozen end hashes and encrypted cached scorecards.
+Full transcript/drawing history stays in IndexedDB. Candidate accounts and durable
+cloud history remain planned. See the deployment safeguards below.
 
 **Browser saves and resume (current)**
 
@@ -356,8 +365,15 @@ The dialog contains its scrolling, locks background page scrolling, and shows wh
 more entries are above or below the visible list. History elapsed time prefers the
 scorecard's server timing; older estimates are clock-aligned and capped at the configured
 duration (45 minutes for legacy untimed saves). Saved interviews provides
-Resume/View and explicit deletion with confirmation. New interview preserves history and starts the displayed selection in one click
-with a blank whiteboard. Change problem clears the active pointer and opens the picker,
+Resume/View and explicit deletion with confirmation. Unopened timed sessions derive
+live elapsed time and expiry from their saved deadline and clock calibration. An
+expired row says Time expired and offers Finish, with time capped at its limit; it
+does not claim a scorecard exists or generate one in the background. Legacy unfinished
+records without a saved deadline say Saved with timing checked on reopen. History
+refreshes its display clock while open without changing archived interview data.
+New interview preserves history and starts a 45-minute session of the displayed
+problem and difficulty. Active sessions require confirmation to end before either
+switch action. Change problem clears the active pointer and opens the picker,
 retaining the current selection. Reopening a stored scorecard
 makes no server or grading call. Failed grading retains the exact first end request in
 IndexedDB for retry; a restored ended token verifies its evidence hash. Successful
@@ -505,7 +521,8 @@ scene, and PNG, then stores the first end snapshot and marks the interview ended
 before grading. Chat and concurrent grading requests are rejected. The snapshot
 is fixed across retries; later client evidence cannot replace it. A successful
 scorecard is cached and its large grading payload is released. Sessions and cached
-feedback retain the prototype's two-hour inactivity expiry and process-local storage.
+feedback retain a two-hour inactivity expiry. Local development uses process state;
+private beta mode also persists encrypted progress and cached feedback in Redis.
 
 The separate grader receives the whole supplied transcript, final diagram text and
 PNG, selected difficulty, and problem-specific private rubric. It grades quality
@@ -660,3 +677,37 @@ signal based on that inflated assessment. Gap text must identify a useful issue,
 its consequence, and an improvement; an evidence label alone is rejected. Diagram
 references are displayed separately. Completed legacy scorecards are retained,
 while future grading/retries use the current rules.
+
+## Private beta deployment safeguards
+
+Vercel deployments (or local `INTELIPREP_ENV=beta`) require model credentials,
+a dedicated resume secret of at least 32 characters, and an Upstash Redis REST
+endpoint/token. Missing settings or failed shared coordination return 503 before
+model work. Builds and ordinary local development need no Redis credentials.
+The release uses a protected Preview branch URL; `main` Git autodeploys are disabled.
+Deployment protection must be enabled and verified in Vercel settings. This is
+private tester access, not candidate account authentication.
+
+Redis holds atomic endpoint quotas, an owner-fenced three-minute session lease,
+and encrypted progress/frozen end hashes/cached scorecards with a two-hour inactivity
+TTL. Shared state takes precedence over stale process/browser checkpoints. A valid
+opaque checkpoint proves session possession. Transcripts and PNGs remain browser
+evidence and are not written to Redis. Ending publishes the freeze before grading;
+completed chat publishes progress before its completion event and unlocks before EOF.
+
+Per-client minute/hour quotas are chat 30/600, start 10/60, end 10/30, resume 60/1000
+and error reports 30/300. Chat/end additionally share a 2000-request hourly ceiling.
+Vercel identities use only the platform-overwritten IP header, HMAC-hashed in keys;
+local mode ignores forwarded headers. Exhaustion returns 429 with Retry-After.
+Same-origin checks and actual streamed JSON byte limits precede model work: 4 MB
+for chat/end, 32 KiB for start/resume, 2 KiB for monitoring. Model calls have a
+45-second timeout without SDK retries; chat/end routes have a 120-second maximum.
+
+API request IDs and allowlisted structured runtime events cover requests, provider,
+streaming, coverage, grading and framework failures without raw errors or evidence.
+Browser errors report bounded/deduplicated SHA-256 fingerprints and allowlisted
+categories; autosave and render failures are included. No external alert service
+is provisioned. `GET /api/health` checks settings/Redis without a paid model call.
+GitHub Actions runs checks and a webpack production build on Node 24. Setup,
+deployment, protection verification, smoke tests and rollback are documented in
+`README.md`, `.env.example` and `docs/deployment.md`.

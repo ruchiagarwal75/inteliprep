@@ -33,6 +33,10 @@ const sessions = (processState.inteliprepSessions ??= new Map());
 const SESSION_TTL = 2 * 60 * 60 * 1_000;
 const MAX_SESSIONS = 500;
 
+export function getCachedSession(id: string): Session | undefined {
+  return sessions.get(id);
+}
+
 export class InterviewSessionError extends Error {
   constructor(
     message: string,
@@ -44,11 +48,11 @@ export class InterviewSessionError extends Error {
   }
 }
 
-function insert(session: Session) {
+export function insertSession(session: Session) {
   for (const [id, saved] of sessions)
     if (!saved.busy && Date.now() - saved.updatedAt > SESSION_TTL)
       sessions.delete(id);
-  if (sessions.size >= MAX_SESSIONS) {
+  if (!sessions.has(session.id) && sessions.size >= MAX_SESSIONS) {
     const oldest = [...sessions.values()]
       .filter((saved) => !saved.busy)
       .sort((a, b) => a.updatedAt - b.updatedAt)[0];
@@ -67,7 +71,7 @@ export function createInterviewSession(
   durationMinutes: InterviewDuration = 45,
 ): string {
   const id = randomUUID();
-  insert({
+  insertSession({
     ...selection,
     id,
     phaseIndex: 0,
@@ -104,7 +108,7 @@ export function lockSession(
         409,
       );
     }
-    insert(session);
+    insertSession(session);
   }
   if (!session)
     throw new InterviewSessionError(

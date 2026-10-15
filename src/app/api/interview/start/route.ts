@@ -1,14 +1,13 @@
 import { interviewStartRequestSchema } from "@/lib/interview-selection";
 import { createInterviewStart, getProblem } from "@/lib/problems";
 import { InterviewSessionError } from "@/lib/interview-sessions";
+import { readJsonBody, withApiRequest } from "@/lib/api-request";
+import { publishNewSession } from "@/lib/shared-interview-session";
 
-export async function POST(request: Request): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Body must be valid JSON" }, { status: 400 });
-  }
+export const runtime = "nodejs";
+
+async function start(request: Request): Promise<Response> {
+  const body = await readJsonBody(request, 32_768);
   const parsed = interviewStartRequestSchema.safeParse(body);
   if (!parsed.success)
     return Response.json(
@@ -24,19 +23,20 @@ export async function POST(request: Request): Promise<Response> {
       { status: 404 },
     );
   try {
-    return Response.json(
-      createInterviewStart(
-        problem,
-        parsed.data.level,
-        parsed.data.durationMinutes,
-      ),
-      {
-        headers: { "Cache-Control": "no-store" },
-      },
+    const interview = createInterviewStart(
+      problem,
+      parsed.data.level,
+      parsed.data.durationMinutes,
     );
+    await publishNewSession(interview.sessionId);
+    return Response.json(interview, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (cause) {
     if (cause instanceof InterviewSessionError)
       return Response.json({ error: cause.message }, { status: cause.status });
     throw cause;
   }
 }
+
+export const POST = withApiRequest("start", "/api/interview/start", start);

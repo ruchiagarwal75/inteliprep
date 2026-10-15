@@ -72,7 +72,7 @@ export function InterviewSetup({
               onClick={onNew}
               className="bg-foreground text-background rounded px-3 py-1.5 text-xs disabled:opacity-40"
             >
-              {isStarting ? "Starting…" : "New interview"}
+              {isStarting ? "Starting…" : "New 45-minute interview"}
             </button>
           </div>
         </div>
