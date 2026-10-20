@@ -4,6 +4,7 @@ import type { InterviewSelection } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import type { Scorecard } from "@/lib/scorecard";
 import { endSnapshotHash, unsealSession } from "@/lib/session-token";
+import { interviewSessionState } from "@/lib/interview-session-context";
 import {
   createInterviewTiming,
   remainingInterviewSeconds,
@@ -26,15 +27,11 @@ export type Session = InterviewSelection & {
   };
 };
 export type PhaseState = Pick<Session, "phaseIndex" | "coveredCriteria">;
-const processState = globalThis as typeof globalThis & {
-  inteliprepSessions?: Map<string, Session>;
-};
-const sessions = (processState.inteliprepSessions ??= new Map());
 const SESSION_TTL = 2 * 60 * 60 * 1_000;
 const MAX_SESSIONS = 500;
 
 export function getCachedSession(id: string): Session | undefined {
-  return sessions.get(id);
+  return interviewSessionState().get(id);
 }
 
 export class InterviewSessionError extends Error {
@@ -49,6 +46,7 @@ export class InterviewSessionError extends Error {
 }
 
 export function insertSession(session: Session) {
+  const sessions = interviewSessionState();
   for (const [id, saved] of sessions)
     if (!saved.busy && Date.now() - saved.updatedAt > SESSION_TTL)
       sessions.delete(id);
@@ -89,6 +87,7 @@ export function lockSession(
   allowEnded = false,
   token?: string,
 ) {
+  const sessions = interviewSessionState();
   let session = sessions.get(id);
   if (session && !session.busy && Date.now() - session.updatedAt > SESSION_TTL)
     session = undefined;

@@ -164,13 +164,14 @@ Conventions:
   stage state advance only after a completed, nonempty reply. Failed, empty,
   interrupted, or cancelled replies retain the prior stage. Legacy chat requests
   without a session ID keep their existing stateless drawing-aware behavior.
-- Temporary sessions live in a bounded process-wide map (500 sessions, two-hour
-  inactivity expiry), shared by local route bundles and hot reloads. A missing or
-  expired session returns 404; mismatched selections or concurrent turns return 409.
-  Browser checkpoints restore expired/lost process state using authenticated encryption.
-  This is anonymous recovery; candidate auth and durable cloud history remain future
-  work. Private beta mode uses encrypted Redis progress/cache records and owner-fenced
-  distributed locks in addition to the local cache. Development logs include the public stage title.
+- Local development without Redis uses a bounded process-wide fallback (500 sessions,
+  two-hour inactivity expiry), shared by route bundles and hot reloads. A missing or
+  expired local session returns 404; mismatched selections or concurrent turns return 409. Browser checkpoints restore lost state using authenticated encryption.
+  Private beta mode never uses the process cache: each request loads a working copy
+  from encrypted Redis progress/cache records under an owner-fenced distributed lock.
+  Request state survives streamed callbacks and is discarded after initial publication
+  or lease release. This is anonymous recovery; candidate auth and durable cloud
+  history remain future work. Development logs include the public stage title.
 - The drawing invitation is configured per problem. The two-message simple exercise
   and three-message URL-shortener limits remain for legacy stateless chat; session
   stage completion requires confirmed requirements regardless of turn count. The server derives a

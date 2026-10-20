@@ -304,12 +304,16 @@ server rejects concurrent turns and changed problem/difficulty selections with 4
 Legacy requests without a session ID retain the configured turn-count handoff and
 explicit candidate pacing controls.
 
-Sessions are temporary process-local state, shared across local route bundles and
-hot reloads, bounded to 500 entries, and expire after two hours of inactivity.
-An expired or missing session can be restored from an opaque, authenticated browser
-checkpoint. Without a checkpoint it returns 404 locally. Vercel/private beta mode
-requires possession of a valid checkpoint and uses Redis for authoritative progress,
-owner-fenced distributed locks, frozen end hashes and encrypted cached scorecards.
+Local development without Redis retains a process-local fallback shared across route
+bundles and hot reloads, bounded to 500 entries, with two-hour inactivity expiry.
+An expired or missing local session can be restored from an opaque, authenticated
+browser checkpoint. Without a checkpoint it returns 404 locally. Vercel/private
+beta mode uses an isolated working copy for each request and never reads or writes
+the development process cache. The scope lasts through asynchronous streaming;
+publication of a new session and release of a shared lease discard that request's
+working copy. Beta requests require a valid checkpoint and load authoritative
+progress, frozen end hashes and cached scorecards from Redis under an owner-fenced
+distributed lock.
 Full transcript/drawing history stays in IndexedDB. Candidate accounts and durable
 cloud history remain planned. See the deployment safeguards below.
 
@@ -522,7 +526,9 @@ before grading. Chat and concurrent grading requests are rejected. The snapshot
 is fixed across retries; later client evidence cannot replace it. A successful
 scorecard is cached and its large grading payload is released. Sessions and cached
 feedback retain a two-hour inactivity expiry. Local development uses process state;
-private beta mode also persists encrypted progress and cached feedback in Redis.
+private beta mode loads and saves encrypted progress/feedback in Redis, retaining
+only a request-owned working copy in RAM. Failed grading retries resend the frozen
+evidence from IndexedDB and verify it against the shared hash.
 
 The separate grader receives the whole supplied transcript, final diagram text and
 PNG, selected difficulty, and problem-specific private rubric. It grades quality
@@ -693,7 +699,10 @@ private tester access, not candidate account authentication.
 
 Redis holds atomic endpoint quotas, an owner-fenced three-minute session lease,
 and encrypted progress/frozen end hashes/cached scorecards with a two-hour inactivity
-TTL. Shared state takes precedence over stale process/browser checkpoints. A valid
+TTL. Each beta API request has an isolated RAM working copy, including stream
+callbacks after the handler returns. The copy is removed after initial publication
+or shared-lease release; it is never retained in a process-wide interview cache.
+Shared state takes precedence over stale browser checkpoints. A valid
 opaque checkpoint proves session possession. Transcripts and PNGs remain browser
 evidence and are not written to Redis. Ending publishes the freeze before grading;
 completed chat publishes progress before its completion event and unlocks before EOF.

@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it as test,
+  vi,
+} from "vitest";
 import {
   openSharedSession,
   publishNewSession,
@@ -13,6 +20,11 @@ import {
   scorecardFixture,
   gradingSelection,
 } from "@/lib/fixtures/scorecard-test";
+import {
+  interviewSessionState,
+  withInterviewSessionContext,
+} from "@/lib/interview-session-context";
+import { redisSessionCommand } from "@/lib/fixtures/redis-session-test";
 
 const redis = vi.hoisted(() => ({
   command: vi.fn(),
@@ -24,25 +36,7 @@ beforeEach(() => {
   vi.stubEnv("INTELIPREP_ENV", "beta");
   vi.stubEnv("INTERVIEW_RESUME_SECRET", "s".repeat(32));
   redis.values.clear();
-  redis.command.mockImplementation(async (args: (string | number)[]) => {
-    const [, key, value] = args;
-    if (args[0] === "GET") return redis.values.get(String(key)) ?? null;
-    if (args[0] === "SET") {
-      if (args.includes("NX") && redis.values.has(String(key))) return null;
-      redis.values.set(String(key), String(value));
-      return "OK";
-    }
-    if (args[0] === "EVAL") {
-      const lock = String(args[3]);
-      const save = args[2] === 2;
-      const owner = String(args[save ? 5 : 4]);
-      if (redis.values.get(lock) !== owner) return 0;
-      if (save) redis.values.set(String(args[4]), String(args[6]));
-      else redis.values.delete(lock);
-      return 1;
-    }
-    throw new Error("Unexpected command");
-  });
+  redis.command.mockImplementation(redisSessionCommand(redis.values));
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -56,24 +50,27 @@ function newSession() {
     token: interviewSessionCheckpoint(id, gradingSelection).resumeToken,
   };
 }
-function loseProcessState() {
-  const state = globalThis as typeof globalThis & {
-    inteliprepSessions?: Map<string, unknown>;
-  };
-  state.inteliprepSessions?.clear();
+function expectDiscardedState() {
+  expect(interviewSessionState().size).toBe(0);
 }
+const it = (name: string, work: () => Promise<void>) =>
+  test(name, () => withInterviewSessionContext(work));
 
 describe("shared interview coordination", () => {
   it("retains an authentic ended checkpoint if the first freeze publish failed", async () => {
-    const { id } = newSession();
+    const { id, token } = newSession();
     await publishNewSession(id);
-    const ending = acquireInterviewEnd(id, gradingSelection, { messages: [] });
+    const unpublished = await openSharedSession(id, gradingSelection, token);
+    const ending = acquireInterviewEnd(id, gradingSelection, {
+      messages: [],
+    });
     ending.release();
     const endedToken = interviewSessionCheckpoint(
       id,
       gradingSelection,
     ).resumeToken;
-    loseProcessState();
+    await unpublished.release();
+    expectDiscardedState();
     const shared = await openSharedSession(id, gradingSelection, endedToken);
     expect(interviewSessionCheckpoint(id, gradingSelection).ended).toBe(true);
     await shared.persist();
@@ -124,7 +121,7 @@ describe("shared interview coordination", () => {
     await shared.persist();
     turn.release();
     await shared.release();
-    loseProcessState();
+    expectDiscardedState();
     const resumed = await openSharedSession(id, gradingSelection, token);
     expect(interviewSessionCheckpoint(id, gradingSelection).phaseIndex).toBe(1);
     await resumed.release();
@@ -133,7 +130,9 @@ describe("shared interview coordination", () => {
     const { id, token } = newSession();
     await publishNewSession(id);
     const shared = await openSharedSession(id, gradingSelection, token);
-    const ending = acquireInterviewEnd(id, gradingSelection, { messages: [] });
+    const ending = acquireInterviewEnd(id, gradingSelection, {
+      messages: [],
+    });
     ending.complete(scorecardFixture());
     await shared.persist();
     ending.release();
@@ -141,7 +140,7 @@ describe("shared interview coordination", () => {
     const stored = [...redis.values.values()].join("");
     expect(stored).not.toContain("candidate");
     expect(stored).not.toContain("CPU");
-    loseProcessState();
+    expectDiscardedState();
     const resumed = await openSharedSession(id, gradingSelection, token);
     expect(interviewSessionCheckpoint(id, gradingSelection).ended).toBe(true);
     expect(() => acquireInterviewSession(id, gradingSelection)).toThrow(
@@ -156,11 +155,13 @@ describe("shared interview coordination", () => {
     const { id, token } = newSession();
     await publishNewSession(id);
     const shared = await openSharedSession(id, gradingSelection, token);
-    const ending = acquireInterviewEnd(id, gradingSelection, { messages: [] });
+    const ending = acquireInterviewEnd(id, gradingSelection, {
+      messages: [],
+    });
     await shared.persist();
     ending.release();
     await shared.release();
-    loseProcessState();
+    expectDiscardedState();
     const resumed = await openSharedSession(id, gradingSelection, token);
     expect(() =>
       acquireInterviewEnd(id, gradingSelection, {
@@ -179,7 +180,7 @@ describe("shared interview coordination", () => {
     await shared.rollback();
     turn.release();
     await shared.release();
-    loseProcessState();
+    expectDiscardedState();
     const resumed = await openSharedSession(id, gradingSelection, token);
     expect(interviewSessionCheckpoint(id, gradingSelection).phaseIndex).toBe(0);
     await resumed.release();
@@ -202,7 +203,7 @@ describe("shared interview coordination", () => {
     await expect(
       openSharedSession(id, gradingSelection, token),
     ).rejects.toThrow();
-    const turn = acquireInterviewSession(id, gradingSelection);
+    const turn = acquireInterviewSession(id, gradingSelection, token);
     turn.release();
   });
 });

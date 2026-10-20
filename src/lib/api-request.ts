@@ -4,6 +4,7 @@ import { assertBetaReady, BetaUnavailableError } from "@/lib/beta-config";
 import { checkRequestLimit, type RequestKind } from "@/lib/request-limits";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
 import { InterviewSessionError } from "@/lib/interview-session-store";
+import { withInterviewSessionContext } from "@/lib/interview-session-context";
 
 export class ApiRequestError extends Error {
   constructor(
@@ -78,7 +79,7 @@ export function withApiRequest(
             { status: 429, headers: { "Retry-After": String(retry) } },
           )
         : await withServerContext(requestId, route, () =>
-            handler(request, requestId),
+            withInterviewSessionContext(() => handler(request, requestId)),
           );
     } catch (cause) {
       failure = cause;

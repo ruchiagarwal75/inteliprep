@@ -103,6 +103,12 @@ and [OpenAI SDK timeouts](https://developers.openai.com/api/reference/typescript
 The server persists the frozen end hash before grading and caches successful
 feedback for two hours of inactivity. Shared records are encrypted and exclude
 transcripts and PNGs. The browser retains the evidence needed for grading retries.
+Beta requests load shared progress into an isolated RAM working copy; they never
+use a process-wide interview cache. Streamed callbacks keep their request scope
+until completion/cancellation, and session publication/lease release removes the
+working copy. A retry on another instance reloads Redis progress and validates the
+browser's frozen evidence. Ordinary local development keeps its bounded in-memory
+fallback so Redis remains optional there.
 An opaque signed checkpoint is required for chat/end/resume in beta; a session ID
 alone is insufficient. A shared-store failure fails closed rather than making an
 unguarded model call. Local mode retains process state and the same bounded quotas.

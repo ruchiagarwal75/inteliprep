@@ -10,6 +10,7 @@ import {
 import { unsealSession } from "@/lib/session-token";
 import { BetaUnavailableError } from "@/lib/beta-config";
 import { POST } from "@/app/api/interview/end/route";
+import { withInterviewSessionContext } from "@/lib/interview-session-context";
 
 const mocks = vi.hoisted(() => ({
   persist: vi.fn(),
@@ -37,11 +38,14 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 function post() {
-  const sessionId = createInterviewSession(gradingSelection);
-  const resumeToken = interviewSessionCheckpoint(
-    sessionId,
-    gradingSelection,
-  ).resumeToken;
+  const { sessionId, resumeToken } = withInterviewSessionContext(() => {
+    const sessionId = createInterviewSession(gradingSelection);
+    return {
+      sessionId,
+      resumeToken: interviewSessionCheckpoint(sessionId, gradingSelection)
+        .resumeToken,
+    };
+  });
   return POST(
     new Request("http://localhost/api/interview/end", {
       method: "POST",

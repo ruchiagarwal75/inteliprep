@@ -1,4 +1,5 @@
 import "server-only";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
 import type { InterviewSelection } from "@/lib/interview-selection";
 import {
@@ -14,7 +15,9 @@ import {
 import {
   getCachedSession,
   InterviewSessionError,
+  type Session,
 } from "@/lib/interview-session-store";
+import { interviewSessionState } from "@/lib/interview-session-context";
 import { unsealSession } from "@/lib/session-token";
 import {
   sealSharedRecord,
@@ -35,15 +38,20 @@ const recordKey = (id: string) => `${redisNamespace()}:session:${id}`;
 
 export async function publishNewSession(id: string): Promise<void> {
   if (!isPrivateBeta()) return;
-  const result = await redisCommand([
-    "SET",
-    recordKey(id),
-    sealSharedRecord(exportSessionRecord(id)),
-    "NX",
-    "EX",
-    TTL_SECONDS,
-  ]);
-  if (result !== "OK") throw new BetaUnavailableError();
+  const state = interviewSessionState();
+  try {
+    const result = await redisCommand([
+      "SET",
+      recordKey(id),
+      sealSharedRecord(exportSessionRecord(id)),
+      "NX",
+      "EX",
+      TTL_SECONDS,
+    ]);
+    if (result !== "OK") throw new BetaUnavailableError();
+  } finally {
+    state.delete(id);
+  }
 }
 
 /** The signed token proves possession; a UUID alone is insufficient in the beta. */
@@ -73,6 +81,8 @@ export async function openSharedSession(
       409,
     );
   }
+  const state = interviewSessionState();
+  let localOwner: Session | undefined;
   const owner = randomUUID();
   const lockKey = `${recordKey(id)}:lock`;
   const acquired = await redisCommand([
@@ -89,7 +99,7 @@ export async function openSharedSession(
       409,
     );
   let released = false;
-  const release = async () => {
+  const release = AsyncLocalStorage.bind(async () => {
     if (released) return;
     released = true;
     try {
@@ -99,8 +109,11 @@ export async function openSharedSession(
         { event: "api_failure", route: "session-lock", status: 503 },
         cause,
       );
+    } finally {
+      // A stream may finish after the handler returns. Drop only its own working copy.
+      if (localOwner && state.get(id) === localOwner) state.delete(id);
     }
-  };
+  });
   try {
     const saved = await redisCommand(["GET", recordKey(id)]);
     if (saved !== null && typeof saved !== "string")
@@ -119,8 +132,8 @@ export async function openSharedSession(
     if (!checkpoint.ending && incoming.ending)
       record = { resumeToken: token ?? "" };
     importSessionRecord(id, record);
+    localOwner = getCachedSession(id);
     const before = exportSessionRecord(id);
-    const localOwner = getCachedSession(id);
     const save = async (record: string) => {
       if (released) throw new BetaUnavailableError();
       const result = await redisCommand([
@@ -135,15 +148,17 @@ export async function openSharedSession(
       ]);
       if (result !== 1) throw new BetaUnavailableError();
     };
-    const persist = () => save(sealSharedRecord(exportSessionRecord(id)));
+    const persist = AsyncLocalStorage.bind(() =>
+      save(sealSharedRecord(exportSessionRecord(id))),
+    );
     return {
       persist,
-      async rollback() {
+      rollback: AsyncLocalStorage.bind(async () => {
         // Fence before mutating local state as well as Redis. An expired owner must
         // never corrupt a replacement request's in-process lease.
         await save(sealSharedRecord(before));
         importSessionRecord(id, before, localOwner);
-      },
+      }),
       release,
     };
   } catch (cause) {

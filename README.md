@@ -32,6 +32,8 @@ npm run dev
 Open [localhost:3000/interview](http://localhost:3000/interview).
 Local development uses bounded in-memory request limits and session state;
 Redis is only required for Vercel or `INTELIPREP_ENV=beta`.
+Beta requests use Redis for shared progress and keep a temporary RAM working copy
+only until publication or request cleanup, including streamed replies.
 
 ## Checks and production build
 
