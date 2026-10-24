@@ -168,7 +168,7 @@ Conventions:
   two-hour inactivity expiry), shared by route bundles and hot reloads. A missing or
   expired local session returns 404; mismatched selections or concurrent turns return 409. Browser checkpoints restore lost state using authenticated encryption.
   Private beta mode never uses the process cache: each request loads a working copy
-  from encrypted Redis progress/cache records under an owner-fenced distributed lock.
+  from validated JSON Redis progress/cache records under an owner-fenced distributed lock.
   Request state survives streamed callbacks and is discarded after initial publication
   or lease release. This is anonymous recovery; candidate auth and durable cloud
   history remain future work. Development logs include the public stage title.

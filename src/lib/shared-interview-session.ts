@@ -20,8 +20,8 @@ import {
 import { interviewSessionState } from "@/lib/interview-session-context";
 import { unsealSession } from "@/lib/session-token";
 import {
-  sealSharedRecord,
-  unsealSharedRecord,
+  serializeSharedRecord,
+  parseSharedRecord,
 } from "@/lib/shared-session-record";
 import { logServerEvent } from "@/lib/server-events";
 
@@ -43,7 +43,7 @@ export async function publishNewSession(id: string): Promise<void> {
     const result = await redisCommand([
       "SET",
       recordKey(id),
-      sealSharedRecord(exportSessionRecord(id)),
+      serializeSharedRecord(exportSessionRecord(id)),
       "NX",
       "EX",
       TTL_SECONDS,
@@ -120,9 +120,9 @@ export async function openSharedSession(
       throw new BetaUnavailableError();
     let record =
       typeof saved === "string"
-        ? unsealSharedRecord(saved)
-        : { resumeToken: token ?? "" };
-    const checkpoint = unsealSession(record.resumeToken);
+        ? parseSharedRecord(saved)
+        : { checkpoint: incoming };
+    const checkpoint = record.checkpoint;
     if (
       checkpoint.problemId !== selection.problemId ||
       checkpoint.level !== selection.level
@@ -130,7 +130,7 @@ export async function openSharedSession(
       throw new BetaUnavailableError();
     // An ended checkpoint issued during a failed publish cannot reopen an active record.
     if (!checkpoint.ending && incoming.ending)
-      record = { resumeToken: token ?? "" };
+      record = { checkpoint: incoming };
     importSessionRecord(id, record);
     localOwner = getCachedSession(id);
     const before = exportSessionRecord(id);
@@ -149,14 +149,14 @@ export async function openSharedSession(
       if (result !== 1) throw new BetaUnavailableError();
     };
     const persist = AsyncLocalStorage.bind(() =>
-      save(sealSharedRecord(exportSessionRecord(id))),
+      save(serializeSharedRecord(exportSessionRecord(id))),
     );
     return {
       persist,
       rollback: AsyncLocalStorage.bind(async () => {
         // Fence before mutating local state as well as Redis. An expired owner must
         // never corrupt a replacement request's in-process lease.
-        await save(sealSharedRecord(before));
+        await save(serializeSharedRecord(before));
         importSessionRecord(id, before, localOwner);
       }),
       release,

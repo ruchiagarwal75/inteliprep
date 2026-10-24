@@ -5,7 +5,6 @@ import {
   type Session,
 } from "@/lib/interview-session-store";
 import type { SharedSessionRecord } from "@/lib/shared-session-record";
-import { sealSession, unsealSession } from "@/lib/session-token";
 
 /** Snapshot progress without attempting a second local lock. */
 export function exportSessionRecord(id: string): SharedSessionRecord {
@@ -13,8 +12,8 @@ export function exportSessionRecord(id: string): SharedSessionRecord {
   if (!session) throw new Error("Missing interview session");
   const { problemId, level, phaseIndex, coveredCriteria, timing, ending } =
     session;
-  return {
-    resumeToken: sealSession({
+  return structuredClone({
+    checkpoint: {
       id,
       problemId,
       level,
@@ -24,9 +23,9 @@ export function exportSessionRecord(id: string): SharedSessionRecord {
       ending: ending
         ? { endedAt: ending.endedAt, snapshotHash: ending.snapshotHash }
         : undefined,
-    }),
+    },
     scorecard: ending?.scorecard,
-  };
+  });
 }
 
 /** Called only with a shared lease. It may replace a crashed instance's stale busy flag. */
@@ -35,7 +34,7 @@ export function importSessionRecord(
   record: SharedSessionRecord,
   rollbackOwner?: Session,
 ): void {
-  const checkpoint = unsealSession(record.resumeToken);
+  const { checkpoint, scorecard } = structuredClone(record);
   if (checkpoint.id !== id) throw new Error("Shared session mismatch");
   const existing = getCachedSession(id);
   if (rollbackOwner && existing !== rollbackOwner) return;
@@ -43,9 +42,7 @@ export function importSessionRecord(
     ...checkpoint,
     updatedAt: Date.now(),
     busy: rollbackOwner?.busy ?? false,
-    ending: checkpoint.ending
-      ? { ...checkpoint.ending, scorecard: record.scorecard }
-      : undefined,
+    ending: checkpoint.ending ? { ...checkpoint.ending, scorecard } : undefined,
   };
   if (rollbackOwner) Object.assign(rollbackOwner, restored);
   else insertSession(restored);

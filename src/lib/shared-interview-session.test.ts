@@ -25,6 +25,7 @@ import {
   withInterviewSessionContext,
 } from "@/lib/interview-session-context";
 import { redisSessionCommand } from "@/lib/fixtures/redis-session-test";
+import { parseSharedRecord } from "@/lib/shared-session-record";
 
 const redis = vi.hoisted(() => ({
   command: vi.fn(),
@@ -138,8 +139,11 @@ describe("shared interview coordination", () => {
     ending.release();
     await shared.release();
     const stored = [...redis.values.values()].join("");
-    expect(stored).not.toContain("candidate");
-    expect(stored).not.toContain("CPU");
+    expect(parseSharedRecord(stored)).toMatchObject({
+      checkpoint: { id, ending: expect.any(Object) },
+      scorecard: scorecardFixture(),
+    });
+    expect(stored).not.toContain("resumeToken");
     expectDiscardedState();
     const resumed = await openSharedSession(id, gradingSelection, token);
     expect(interviewSessionCheckpoint(id, gradingSelection).ended).toBe(true);

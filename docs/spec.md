@@ -526,7 +526,7 @@ before grading. Chat and concurrent grading requests are rejected. The snapshot
 is fixed across retries; later client evidence cannot replace it. A successful
 scorecard is cached and its large grading payload is released. Sessions and cached
 feedback retain a two-hour inactivity expiry. Local development uses process state;
-private beta mode loads and saves encrypted progress/feedback in Redis, retaining
+private beta mode loads and saves validated JSON progress/feedback in Redis, retaining
 only a request-owned working copy in RAM. Failed grading retries resend the frozen
 evidence from IndexedDB and verify it against the shared hash.
 
@@ -698,7 +698,7 @@ Deployment protection must be enabled and verified in Vercel settings. This is
 private tester access, not candidate account authentication.
 
 Redis holds atomic endpoint quotas, an owner-fenced three-minute session lease,
-and encrypted progress/frozen end hashes/cached scorecards with a two-hour inactivity
+and JSON progress/frozen end hashes/cached scorecards with a two-hour inactivity
 TTL. Each beta API request has an isolated RAM working copy, including stream
 callbacks after the handler returns. The copy is removed after initial publication
 or shared-lease release; it is never retained in a process-wide interview cache.
@@ -706,6 +706,14 @@ Shared state takes precedence over stale browser checkpoints. A valid
 opaque checkpoint proves session possession. Transcripts and PNGs remain browser
 evidence and are not written to Redis. Ending publishes the freeze before grading;
 completed chat publishes progress before its completion event and unlocks before EOF.
+
+Redis session records contain a validated plain checkpoint and optional scorecard,
+with no application encryption or nested browser resume token. Cached feedback and
+selected candidate quotes are readable in Redis. Older encrypted records remain
+readable and are rewritten as JSON on the next successful save. Browser-issued
+resume tokens retain authenticated encryption; `INTERVIEW_RESUME_SECRET` still
+protects those tokens and hashes request-limit identities. Redis credentials and
+HTTPS remain the access/transport boundary. Rollbacks must retain the JSON reader.
 
 Per-client minute/hour quotas are chat 30/600, start 10/60, end 10/30, resume 60/1000
 and error reports 30/300. Chat/end additionally share a 2000-request hourly ceiling.

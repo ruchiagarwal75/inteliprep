@@ -10,7 +10,7 @@ import { interviewSelectionSchema } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { interviewTimingSchema } from "@/lib/interview-timer";
 
-const checkpointSchema = interviewSelectionSchema.extend({
+export const sessionCheckpointSchema = interviewSelectionSchema.extend({
   id: z.uuid(),
   timing: interviewTimingSchema.optional(),
   phaseIndex: z.number().int().min(0).max(9),
@@ -22,7 +22,7 @@ const checkpointSchema = interviewSelectionSchema.extend({
     })
     .optional(),
 });
-export type SessionCheckpoint = z.infer<typeof checkpointSchema>;
+export type SessionCheckpoint = z.infer<typeof sessionCheckpointSchema>;
 const state = globalThis as typeof globalThis & {
   inteliprepResumeKey?: string;
 };
@@ -44,7 +44,10 @@ export function sealSession(checkpoint: SessionCheckpoint): string {
   const cipher = createCipheriv("aes-256-gcm", key(), iv);
   cipher.setAAD(Buffer.from(CONTEXT));
   const ciphertext = Buffer.concat([
-    cipher.update(JSON.stringify(checkpointSchema.parse(checkpoint)), "utf8"),
+    cipher.update(
+      JSON.stringify(sessionCheckpointSchema.parse(checkpoint)),
+      "utf8",
+    ),
     cipher.final(),
   ]);
   return [iv, cipher.getAuthTag(), ciphertext]
@@ -63,7 +66,7 @@ export function unsealSession(token: string): SessionCheckpoint {
   const cipher = createDecipheriv("aes-256-gcm", key(), iv);
   cipher.setAAD(Buffer.from(CONTEXT));
   cipher.setAuthTag(tag);
-  return checkpointSchema.parse(
+  return sessionCheckpointSchema.parse(
     JSON.parse(
       Buffer.concat([cipher.update(data), cipher.final()]).toString("utf8"),
     ),

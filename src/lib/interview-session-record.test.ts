@@ -12,6 +12,17 @@ import { getCachedSession } from "@/lib/interview-session-store";
 import { gradingSelection } from "@/lib/fixtures/scorecard-test";
 
 describe("local shared-record bridge", () => {
+  it("isolates JSON snapshots from mutable working state in both directions", () => {
+    const id = createInterviewSession(gradingSelection);
+    const record = exportSessionRecord(id);
+    expect(record.checkpoint).toMatchObject({ id, phaseIndex: 0 });
+    expect(record).not.toHaveProperty("resumeToken");
+    record.checkpoint.coveredCriteria.push(0);
+    expect(getCachedSession(id)?.coveredCriteria).toEqual([]);
+    importSessionRecord(id, record);
+    record.checkpoint.coveredCriteria.push(1);
+    expect(getCachedSession(id)?.coveredCriteria).toEqual([0]);
+  });
   it("preserves timing and progress while replacing a stale busy cache", () => {
     const id = createInterviewSession(gradingSelection);
     const before = interviewSessionCheckpoint(id, gradingSelection);

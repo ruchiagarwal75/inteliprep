@@ -37,11 +37,17 @@ platform client IP, so testers on the same network share quotas.
 2. Enable Preview deployment protection. Avoid creating a publicly usable
    Production deployment during import; keep model/Redis secrets scoped to Preview.
 3. Create an Upstash Redis database for this project. Choose a region near the
-   Vercel function region. Copy the **REST URL and REST token** into Preview
-   environment variables. The implementation uses atomic Lua commands over
+   Vercel function region and connect it to **Preview**. The native integration
+   supplies `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. For a manual
+   connection, configure the `UPSTASH_REDIS_REST_*` pair in the table below instead.
+   The implementation uses atomic Lua commands over
    [Upstash's REST API](https://upstash.com/docs/redis/features/restapi).
-4. Add the remaining Preview environment variables below. Enter secrets directly
-   in the provider dashboards; do not paste them into chat or commit them.
+4. In Settings → Environment Variables, add `OPENAI_KEY` and
+   `INTERVIEW_RESUME_SECRET` as **Secret** variables with **Preview only** selected.
+   Generate the resume secret once with `openssl rand -hex 32`; paste the resulting
+   64-character value directly into Vercel. Confirm the environment selection after
+   saving. Enter secrets directly in the provider dashboards; do not paste them
+   into chat or commit them. See [Vercel environment variables](https://vercel.com/docs/environment-variables).
 5. Push the reviewed version to `beta`, or create a Preview deployment explicitly.
    Keep the Production branch set to `main`. Redeploy after changing environment
    variables, then use the protected branch URL for all subsequent testing.
@@ -50,9 +56,11 @@ platform client IP, so testers on the same network share quotas.
 | --- | --- |
 | `OPENAI_KEY` | Server model-provider key for this project |
 | `OPENAI_MODEL` | Optional; existing default is `gpt-4o` |
-| `INTERVIEW_RESUME_SECRET` | Stable random secret, at least 32 characters; generate with `openssl rand -hex 32` |
+| `INTERVIEW_RESUME_SECRET` | Stable secret for browser resume tokens and rate-limit identities, at least 32 characters; generate with `openssl rand -hex 32` |
 | `UPSTASH_REDIS_REST_URL` | HTTPS Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST credential with read/write and scripting access |
+| `KV_REST_API_URL` | Native Vercel integration's Redis REST endpoint; alternative to `UPSTASH_REDIS_REST_URL` |
+| `KV_REST_API_TOKEN` | Native Vercel integration's read/write REST token; alternative to `UPSTASH_REDIS_REST_TOKEN` |
 | `INTELIPREP_ENV` | Optional locally: set `beta` to exercise shared safeguards; Vercel automatically enables them |
 
 The native Upstash integration may install `KV_REST_API_URL` and
@@ -60,6 +68,14 @@ The native Upstash integration may install `KV_REST_API_URL` and
 secrets is unnecessary. An explicitly configured `UPSTASH_REDIS_REST_*` pair takes
 precedence. Both values must come from the same family/database; a partial explicit
 pair fails readiness instead of borrowing the other integration's token.
+
+To review configuration, list variable names, types and environment targets without
+decrypting values. Check that both application secrets target Preview and that the
+Redis REST URL/token pair is available there from the same database. The example
+file contains empty secret values; `.env.local` and `.vercel` stay gitignored.
+After redeployment, an authorized `/api/health` request must return 200 with both
+checks true. That checks server configuration and Redis reachability; a model-backed
+chat reply separately verifies provider access.
 
 For REST API deployments, explicitly use `target: "staging"` for the Preview
 environment. The first file upload in this project defaulted to Production when
@@ -101,8 +117,12 @@ See [function durations](https://vercel.com/docs/functions/configuring-functions
 and [OpenAI SDK timeouts](https://developers.openai.com/api/reference/typescript#timeouts).
 
 The server persists the frozen end hash before grading and caches successful
-feedback for two hours of inactivity. Shared records are encrypted and exclude
-transcripts and PNGs. The browser retains the evidence needed for grading retries.
+feedback for two hours of inactivity. Shared records are validated JSON and exclude
+full transcripts and PNGs. Progress and cached feedback, including selected answer
+quotes, are readable in Redis. The browser retains the evidence needed for grading
+retries. Existing encrypted Redis records are read for compatibility and rewritten
+as JSON on the next successful save. Browser resume tokens remain encrypted and
+authenticated, so the stable resume secret is still required.
 Beta requests load shared progress into an isolated RAM working copy; they never
 use a process-wide interview cache. Streamed callbacks keep their request scope
 until completion/cancellation, and session publication/lease release removes the
@@ -169,5 +189,7 @@ must also verify the actual Upstash scripting permissions and Vercel protection.
 - **Grading failure:** frozen browser evidence is retained for Retry scorecard.
   Check provider credentials/capacity and the structured failure status first.
 - **Rollback:** redeploy the last known good commit to the same protected Preview
-  branch URL. Retain the resume secret and Redis namespace. Re-run health and one
+  branch URL, retaining the JSON session-record reader. Older code that only reads
+  encrypted records cannot read newly written JSON records. Retain the resume
+  secret and Redis namespace. Re-run health and one
   complete interview before inviting testers back.

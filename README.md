@@ -34,6 +34,8 @@ Local development uses bounded in-memory request limits and session state;
 Redis is only required for Vercel or `INTELIPREP_ENV=beta`.
 Beta requests use Redis for shared progress and keep a temporary RAM working copy
 only until publication or request cleanup, including streamed replies.
+Redis progress and cached scorecards are stored as validated JSON. Browser resume
+tokens remain protected by `INTERVIEW_RESUME_SECRET`.
 
 ## Checks and production build
 
@@ -51,6 +53,9 @@ and pull requests. The build uses webpack, matching the verified local build.
 
 Follow [the deployment guide](docs/deployment.md) for protected previews,
 Upstash Redis, environment settings, smoke tests and troubleshooting.
+In Vercel, save `OPENAI_KEY` and `INTERVIEW_RESUME_SECRET` as **Secret** variables
+for **Preview only**. The native Redis integration supplies the `KV_REST_API_*`
+pair when connected to Preview. Redeploy after changing environment variables.
 Vercel requires `OPENAI_KEY`, `INTERVIEW_RESUME_SECRET`, and
 Redis credentials (`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`, or the
 native Vercel `KV_REST_API_URL` and `KV_REST_API_TOKEN` pair); missing settings or a failed
