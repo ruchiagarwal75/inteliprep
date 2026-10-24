@@ -4,6 +4,8 @@ The Vercel project is `inteliprep` in `ruchiagarwal75s-projects`:
 [project dashboard](https://vercel.com/ruchiagarwal75s-projects/inteliprep).
 It uses Node 24 and Vercel Authentication for preview/deployment URLs. The local
 `.vercel/project.json` records its project/workspace IDs and stays gitignored.
+The existing beta URL is
+[the protected interview app](https://inteliprep-ruchiagarwal75s-projects.vercel.app/interview).
 
 ## Deployment shape
 
@@ -15,6 +17,21 @@ need the correct Preview target and protection settings.
 The beta's API readiness check also rejects the Vercel Production environment,
 even if secrets were accidentally configured there. A later production release
 must deliberately change this guard and verify protection for its chosen domain.
+
+### GitHub releases
+
+The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed
+changes to `beta`; `vercel.json` explicitly enables that branch while disabling
+automatic deployments from `main`. Keep `main` as the Production branch in Vercel.
+The GitHub `Check` workflow runs `npm ci`, `npm run check`, and `npm run build`
+using the pinned Node version. Vercel builds independently, so confirm both the
+workflow result and the Preview deployment's Ready status for the same commit.
+
+Before sharing a release, verify the existing beta URL points to that deployment,
+signed-out requests still require Vercel Authentication, and an authorized
+`/api/health` request returns `status: "ok"` with both checks true. Retain the same
+browser hostname so testers keep their IndexedDB interviews. A successful health
+check verifies configuration and Redis; it does not make a model request.
 
 Enable Vercel Authentication under Settings → Deployment Protection before
 sharing the URL. Standard Protection covers previews and deployment URLs but
