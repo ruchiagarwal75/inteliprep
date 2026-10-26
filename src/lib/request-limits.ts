@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
+import { currentCandidateId } from "@/lib/candidate-context";
 import {
   isPrivateBeta,
   redisNamespace,
@@ -24,6 +25,14 @@ const counters = (state.inteliprepRequestCounters ??= new Map());
 
 /** Vercel sets this header; forwarded headers from local clients are untrusted. */
 export function requestIdentity(request: Request): string {
+  const candidate = currentCandidateId();
+  if (candidate) {
+    const secret = process.env.INTERVIEW_RESUME_SECRET;
+    if (isPrivateBeta() && !secret) throw new BetaUnavailableError();
+    return createHmac("sha256", secret ?? "local-development")
+      .update(`candidate:${candidate}`)
+      .digest("hex");
+  }
   if (process.env.VERCEL !== "1") return "local";
   const ip = request.headers.get("x-vercel-forwarded-for")?.trim();
   if (!ip || !isIP(ip)) throw new BetaUnavailableError();

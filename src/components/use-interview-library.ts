@@ -3,12 +3,7 @@
 import { useCallback, useState } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import type { InterviewStart } from "@/lib/interview-selection";
-import {
-  deleteInterview,
-  listInterviews,
-  readInterview,
-  selectInterview,
-} from "@/lib/interview-storage";
+import { useCandidateAccount } from "@/components/candidate-account-context";
 import {
   newSavedInterview,
   type SavedInterview,
@@ -23,6 +18,9 @@ export function useInterviewLibrary(
   getScene: () => WhiteboardScene,
   restoreScene: (scene: WhiteboardScene) => void,
 ) {
+  const { storage, request } = useCandidateAccount();
+  const { deleteInterview, listInterviews, readInterview, selectInterview } =
+    storage;
   const [opened, setOpened] = useState<SavedInterview>();
   const [entries, setEntries] = useState<SavedInterviewSummary[]>([]);
   const [ready, setReady] = useState(false);
@@ -70,7 +68,7 @@ export function useInterviewLibrary(
         let restored = saved;
         let reconnectError: string | undefined;
         try {
-          restored = await reconnectInterview(saved);
+          restored = await reconnectInterview(saved, request);
         } catch (cause) {
           reconnectError =
             cause instanceof Error
@@ -110,6 +108,9 @@ export function useInterviewLibrary(
       conflictedRef,
       openingRef,
       restoreScene,
+      readInterview,
+      selectInterview,
+      request,
     ],
   );
 
@@ -174,6 +175,7 @@ export function useInterviewLibrary(
       conflictedRef,
       savedRef,
       restoreScene,
+      selectInterview,
     ],
   );
 

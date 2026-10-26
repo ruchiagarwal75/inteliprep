@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useCandidateAccount } from "@/components/candidate-account-context";
 import {
   interviewStartSchema,
   type InterviewStart,
@@ -16,6 +17,7 @@ export function useInterviewStarter(
   reset: () => Promise<boolean>,
   initial: InterviewChoice,
 ) {
+  const { request } = useCandidateAccount();
   const [choice, setChoice] = useState(initial);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string>();
@@ -28,7 +30,7 @@ export function useInterviewStarter(
     setChoice(next);
     try {
       if (replace && !(await reset())) return;
-      const response = await fetch("/api/interview/start", {
+      const response = await request("/api/interview/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(next),

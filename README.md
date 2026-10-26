@@ -6,7 +6,8 @@ draw and explain your design, then end the interview for evidence-backed feedbac
 
 The MVP includes streaming chat, diagram text and PNG input, interview stages,
 a fixed timer, draft protection, scorecards, browser autosave and saved history.
-Interview history lives in IndexedDB in the current browser. It does not sync
+Google sign-in gives each candidate an account. Interview history lives in
+account-specific IndexedDB storage in the current browser. It does not sync
 across devices or website origins, and clearing site data deletes it.
 
 ## Local setup
@@ -24,6 +25,11 @@ Set `OPENAI_KEY` in `.env.local` to a server API key. `OPENAI_MODEL` defaults to
 generate one locally with `openssl rand -hex 32`. Keep credentials out of source
 control and never use `NEXT_PUBLIC_` for these settings. Changing the resume
 secret invalidates old checkpoints, while already saved scorecards remain viewable.
+
+Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+from your Supabase project. The publishable key is public browser configuration;
+never use a service-role or secret key. See [Google sign-in setup](docs/authentication.md)
+for provider settings and callback URLs. Sign-in is required locally as well as in beta.
 
 ```bash
 npm run dev
@@ -58,7 +64,8 @@ for **Preview only**. The native Redis integration supplies the `KV_REST_API_*`
 pair when connected to Preview. Redeploy after changing environment variables.
 Vercel requires `OPENAI_KEY`, `INTERVIEW_RESUME_SECRET`, and
 Redis credentials (`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`, or the
-native Vercel `KV_REST_API_URL` and `KV_REST_API_TOKEN` pair); missing settings or a failed
+native Vercel `KV_REST_API_URL` and `KV_REST_API_TOKEN` pair), plus the two
+public Supabase settings; missing settings or a failed
 shared store return 503 before any model work. `/api/health` checks readiness
 without generating a model response.
 

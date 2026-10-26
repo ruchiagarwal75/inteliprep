@@ -5,9 +5,10 @@ import { serverClockOffset } from "@/lib/interview-timer";
 /** Reopening a finished scorecard needs no provider or server request. */
 export async function reconnectInterview(
   saved: SavedInterview,
+  request: typeof fetch = fetch,
 ): Promise<SavedInterview> {
   if (saved.scorecard) return saved;
-  const response = await fetch("/api/interview/resume", {
+  const response = await request("/api/interview/resume", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(saved.interview),

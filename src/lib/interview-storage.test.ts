@@ -1,14 +1,17 @@
 import { IDBFactory, IDBObjectStore } from "fake-indexeddb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  createInterviewStorage,
+  InterviewStorageConflict,
+} from "@/lib/interview-storage";
+const {
   activeInterviewId,
   deleteInterview,
-  InterviewStorageConflict,
   listInterviews,
   readInterview,
   saveInterview,
   selectInterview,
-} from "@/lib/interview-storage";
+} = createInterviewStorage("11111111-1111-4111-8111-111111111111");
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
 import { updateSavedInterview } from "@/lib/saved-interview";
 import { scorecardFixture } from "@/lib/fixtures/scorecard-test";
@@ -154,7 +157,10 @@ describe("IndexedDB interview library", () => {
     const saved = savedFixture();
     await saveInterview(saved);
     await new Promise<void>((resolve) => {
-      const request = indexedDB.open("inteliprep", 1);
+      const request = indexedDB.open(
+        "inteliprep:account:11111111-1111-4111-8111-111111111111",
+        1,
+      );
       request.onsuccess = () => {
         const db = request.result;
         const tx = db.transaction("interviews", "readwrite");

@@ -56,7 +56,7 @@ The browser never talks to the LLM directly. The API passes each turn to the int
 | LLM          | Claude or GPT via official SDK, streaming | Strong reasoning, image input, streaming replies |
 | Database     | Postgres (Supabase or Neon)               | Sessions, messages, snapshots, scores            |
 | File storage | S3 or Supabase Storage                    | Diagram PNGs                                     |
-| Auth         | Clerk or Supabase Auth                    | Email and Google sign-in                         |
+| Auth         | Supabase Auth                             | Google sign-in first; email remains future work   |
 | Hosting      | Vercel                                    | Easy deploys, streaming support                  |
 
 ## Frontend
@@ -314,13 +314,14 @@ publication of a new session and release of a shared lease discard that request'
 working copy. Beta requests require a valid checkpoint and load authoritative
 progress, frozen end hashes and cached scorecards from Redis under an owner-fenced
 distributed lock.
-Full transcript/drawing history stays in IndexedDB. Candidate accounts and durable
-cloud history remain planned. See the deployment safeguards below.
+Full transcript/drawing history stays in account-specific IndexedDB. Candidate
+identity uses Supabase Auth; durable cloud interview history remains planned. See the deployment safeguards below.
 
 **Browser saves and resume (current)**
 
-The `inteliprep` IndexedDB database stores versioned interview records and an active
-session pointer. Each record includes the selected opening/problem/difficulty,
+The `inteliprep:account:<userId>` IndexedDB database stores each account’s versioned
+interview records and active session pointer. The legacy anonymous `inteliprep`
+database is retained separately and is never automatically claimed by a signed-in user. Each record includes the selected opening/problem/difficulty,
 transcript, public stage, native Excalidraw elements/background/referenced files,
 semantic and image delivery baselines, pacing capture, unsent draft, native viewport,
 ended status/time, grading failure, and scorecard. Draft changes save immediately.
@@ -346,7 +347,7 @@ EOF. Existing API callers retain plain text streaming and the planned-stage head
 Ongoing drawing/explanation acknowledgements carry `replyKind: "listening"`; the
 browser commits their checkpoint without displaying or saving an assistant bubble.
 No private rubric or stage criteria are included in public responses. The AES-GCM
-checkpoint carries encrypted selection, session ID, committed stage/criterion indexes,
+checkpoint carries encrypted selection, session ID, authenticated owner ID, committed stage/criterion indexes,
 and, after ending, the timestamp and hash of the immutable grading evidence.
 
 The token key derives from `INTERVIEW_RESUME_SECRET` when configured, otherwise
@@ -355,8 +356,9 @@ invalidating resume checkpoints when the provider key rotates. With neither secr
 configured, starting still works using a process-local random key, but restarting that
 keyless server cannot restore active progress. Restarts with the same secret restore
 stages without a new model assessment. Live server state takes precedence over older
-tokens. This is anonymous prototype recovery, not account authentication or a
-distributed concurrency/revocation system.
+tokens. These progress tokens supplement Supabase login; they are not login credentials.
+The verified candidate must match the token and Redis record owner before recovery,
+including when the Redis record has expired. Anonymous legacy tokens are rejected.
 
 Refresh restores drafts and the native viewport as well as messages, mode, timer,
 and drawing. A valid `/interview?session=<UUID>` link opens that browser-local save
@@ -695,7 +697,7 @@ native `KV_REST_API_URL`/`KV_REST_API_TOKEN` pair. Explicit Upstash settings tak
 precedence as a pair; partial settings never borrow another database's token.
 The release uses a protected Preview branch URL; `main` Git autodeploys are disabled.
 Deployment protection must be enabled and verified in Vercel settings. This is
-private tester access, not candidate account authentication.
+private tester access, separate from Supabase candidate account authentication.
 
 Redis holds atomic endpoint quotas, an owner-fenced three-minute session lease,
 and JSON progress/frozen end hashes/cached scorecards with a two-hour inactivity
@@ -703,7 +705,7 @@ TTL. Each beta API request has an isolated RAM working copy, including stream
 callbacks after the handler returns. The copy is removed after initial publication
 or shared-lease release; it is never retained in a process-wide interview cache.
 Shared state takes precedence over stale browser checkpoints. A valid
-opaque checkpoint proves session possession. Transcripts and PNGs remain browser
+owner-bound checkpoint plus verified Google login proves session access. Transcripts and PNGs remain browser
 evidence and are not written to Redis. Ending publishes the freeze before grading;
 completed chat publishes progress before its completion event and unlocks before EOF.
 
@@ -715,10 +717,10 @@ resume tokens retain authenticated encryption; `INTERVIEW_RESUME_SECRET` still
 protects those tokens and hashes request-limit identities. Redis credentials and
 HTTPS remain the access/transport boundary. Rollbacks must retain the JSON reader.
 
-Per-client minute/hour quotas are chat 30/600, start 10/60, end 10/30, resume 60/1000
+Per-account minute/hour quotas are chat 30/600, start 10/60, end 10/30, resume 60/1000
 and error reports 30/300. Chat/end additionally share a 2000-request hourly ceiling.
-Vercel identities use only the platform-overwritten IP header, HMAC-hashed in keys;
-local mode ignores forwarded headers. Exhaustion returns 429 with Retry-After.
+Verified account IDs are HMAC-hashed for interview quotas; anonymous monitoring
+uses only Vercel’s platform-overwritten IP header and ignores local forwarded headers. Exhaustion returns 429 with Retry-After.
 Same-origin checks and actual streamed JSON byte limits precede model work: 4 MB
 for chat/end, 32 KiB for start/resume, 2 KiB for monitoring. Model calls have a
 45-second timeout without SDK retries; chat/end routes have a 120-second maximum.
@@ -731,3 +733,29 @@ is provisioned. `GET /api/health` checks settings/Redis without a paid model cal
 GitHub Actions runs checks and a webpack production build on Node 24. Setup,
 deployment, protection verification, smoke tests and rollback are documented in
 `README.md`, `.env.example` and `docs/deployment.md`.
+
+
+## Candidate sign-in and account isolation
+
+Supabase Auth manages accounts and cookie-based login; the initial UI uses Google.
+`src/proxy.ts` refreshes auth cookies and disables caching on interview/auth responses.
+Pages and interview handlers independently verify identity with `getClaims()`.
+They never authorize using unverified cookies, `getSession()`, or editable metadata.
+The PKCE callback exchanges the code and redirects only to a fixed same-origin page.
+Sign-out is a same-origin POST, revokes the local provider session when available,
+and clears the app’s cookies even during a provider outage.
+
+Start binds a session to the verified candidate. Chat/resume/end and cached grading
+check that identity against both browser progress tokens and Redis progress before
+restoring or returning data. Client owner fields cannot assign ownership. Browser
+requests also carry an expected account header, checked against the authenticated
+identity, to reject late requests if cookies change while a request is being prepared.
+
+Browser storage instances capture one user ID permanently. Account changes close
+that scope, cancel pending fetches/writes and hide the workspace; late callbacks
+cannot switch to another account’s database. Sign-out saves the latest draft before
+closing the scope. Auth events and a sign-out broadcast invalidate other open tabs.
+The Back/Forward cache hides the previous page and reloads before showing history.
+History is local to this browser profile and origin, and does not sync across devices.
+Anonymous history is preserved outside account history; migration is a separate,
+explicit policy rather than an automatic transfer to the first account to sign in.

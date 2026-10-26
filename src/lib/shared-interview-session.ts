@@ -1,6 +1,7 @@
 import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
+import { currentCandidateId } from "@/lib/candidate-context";
 import type { InterviewSelection } from "@/lib/interview-selection";
 import {
   isPrivateBeta,
@@ -38,6 +39,8 @@ const recordKey = (id: string) => `${redisNamespace()}:session:${id}`;
 
 export async function publishNewSession(id: string): Promise<void> {
   if (!isPrivateBeta()) return;
+  if (!currentCandidateId())
+    throw new InterviewSessionError("Please sign in to continue.", 401);
   const state = interviewSessionState();
   try {
     const result = await redisCommand([
@@ -66,6 +69,8 @@ export async function openSharedSession(
       rollback: async () => {},
       release: async () => {},
     };
+  if (!currentCandidateId())
+    throw new InterviewSessionError("Please sign in to continue.", 401);
   let incoming;
   try {
     incoming = unsealSession(token ?? "");
@@ -81,6 +86,11 @@ export async function openSharedSession(
       409,
     );
   }
+  if (incoming.ownerUserId !== currentCandidateId())
+    throw new InterviewSessionError(
+      "This interview is not available for this account.",
+      404,
+    );
   const state = interviewSessionState();
   let localOwner: Session | undefined;
   const owner = randomUUID();
@@ -123,6 +133,11 @@ export async function openSharedSession(
         ? parseSharedRecord(saved)
         : { checkpoint: incoming };
     const checkpoint = record.checkpoint;
+    if (checkpoint.ownerUserId !== currentCandidateId())
+      throw new InterviewSessionError(
+        "This interview is not available for this account.",
+        404,
+      );
     if (
       checkpoint.problemId !== selection.problemId ||
       checkpoint.level !== selection.level

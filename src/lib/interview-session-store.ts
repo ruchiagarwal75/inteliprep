@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { currentCandidateId } from "@/lib/candidate-context";
 import type { InterviewSelection } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import type { Scorecard } from "@/lib/scorecard";
@@ -14,6 +15,7 @@ import {
 
 export type Session = InterviewSelection & {
   id: string;
+  ownerUserId?: string;
   phaseIndex: number;
   coveredCriteria: number[];
   updatedAt: number;
@@ -71,6 +73,7 @@ export function createInterviewSession(
   const id = randomUUID();
   insertSession({
     ...selection,
+    ownerUserId: currentCandidateId(),
     id,
     phaseIndex: 0,
     coveredCriteria: [],
@@ -100,6 +103,8 @@ export function lockSession(
         checkpoint.level !== selection.level
       )
         throw new Error("Selection mismatch");
+      if (checkpoint.ownerUserId !== currentCandidateId())
+        throw new Error("Account mismatch");
       session = { ...checkpoint, updatedAt: Date.now(), busy: false };
     } catch {
       throw new InterviewSessionError(
@@ -112,6 +117,11 @@ export function lockSession(
   if (!session)
     throw new InterviewSessionError(
       "This interview has expired. Start a new interview.",
+      404,
+    );
+  if (session.ownerUserId !== currentCandidateId())
+    throw new InterviewSessionError(
+      "This interview is not available for this account.",
       404,
     );
   // Hot reload may retain an ending created before browser checkpoints existed.

@@ -129,9 +129,10 @@ describe("server-issued interview deadlines", () => {
     expect((await response.json()).timing).toEqual(checkpoint.timing);
     expect(() => acquireInterviewSession(id, selection)).toThrow("Time is up");
   });
-  it("gives older untimed browser saves a 45-minute deadline once, then persists it", () => {
+  it("gives authenticated untimed saves a 45-minute deadline once, then persists it", () => {
     const id = crypto.randomUUID();
     const oldToken = sealSession({
+      ownerUserId: "11111111-1111-4111-8111-111111111111",
       ...selection,
       id,
       phaseIndex: 1,

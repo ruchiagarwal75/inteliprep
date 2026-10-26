@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { CandidateSignOut } from "@/components/candidate-sign-out";
 import { ChatPanel } from "@/components/chat-panel";
 import { Whiteboard } from "@/components/whiteboard";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
@@ -111,6 +112,7 @@ export function InterviewSessionWorkspace({
         error={starter.error}
       />
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 px-1">
+        <CandidateSignOut save={() => library.save()} />
         <InterviewStage phase={phase} ended={hasEnded} />
         {interview?.timing && (
           <InterviewTimer

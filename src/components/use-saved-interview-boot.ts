@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { listInterviews } from "@/lib/interview-storage";
+import { useCandidateAccount } from "@/components/candidate-account-context";
 import { initialInterviewId } from "@/lib/interview-navigation";
 import type { SavedInterviewSummary } from "@/lib/saved-interview";
 
@@ -18,6 +18,8 @@ export function useSavedInterviewBoot({
   onError: (value: string) => void;
   onReady: (value: boolean) => void;
 }) {
+  const { storage } = useCandidateAccount();
+  const listInterviews = storage.listInterviews;
   useEffect(() => {
     let mounted = true;
     void (async () => {
@@ -44,5 +46,5 @@ export function useSavedInterviewBoot({
     return () => {
       mounted = false;
     };
-  }, [open, onHistory, onStatus, onError, onReady]);
+  }, [open, onHistory, onStatus, onError, onReady, listInterviews]);
 }

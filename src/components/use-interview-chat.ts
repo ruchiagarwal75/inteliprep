@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { ChatMessage } from "@/lib/chat";
 import type { Scene } from "@/lib/scene";
 import { prepareWhiteboardTurn } from "@/lib/whiteboard-turn";
@@ -24,6 +25,7 @@ export function useInterviewChat({
   getResumeToken,
   canSubmit,
 }: InterviewChatOptions) {
+  const { request } = useCandidateAccount();
   const [messages, setMessages] = useState<ChatMessage[]>(
     () => restored?.messages ?? (interview ? [interview.openingMessage] : []),
   );
@@ -110,7 +112,7 @@ export function useInterviewChat({
         throw new Error(
           "Time is up. Your interview will end after this turn finishes.",
         );
-      const response = await fetch("/api/chat", {
+      const response = await request("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

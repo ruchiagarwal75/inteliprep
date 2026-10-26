@@ -29,8 +29,8 @@ private server rubric. The default is the simple scaling exercise at Mid-level.
 | Tests     | Vitest (Node environment)                    |
 | Hosting   | Vercel protected Preview (beta preparation)  |
 
-Excalidraw, the OpenAI SDK, and Zod are installed. Add Postgres/Supabase and auth
-when their milestones need them (see spec).
+Excalidraw, the OpenAI SDK, Zod and pinned Supabase clients are installed.
+Supabase Auth handles Google sign-in; cloud interview history remains a later milestone.
 
 ## Commands
 
@@ -170,8 +170,8 @@ Conventions:
   Private beta mode never uses the process cache: each request loads a working copy
   from validated JSON Redis progress/cache records under an owner-fenced distributed lock.
   Request state survives streamed callbacks and is discarded after initial publication
-  or lease release. This is anonymous recovery; candidate auth and durable cloud
-  history remain future work. Development logs include the public stage title.
+  or lease release. Recovery requires a verified Supabase candidate matching the session/token owner.
+  Durable cloud interview history remains future work. Development logs include the public stage title.
 - The drawing invitation is configured per problem. The two-message simple exercise
   and three-message URL-shortener limits remain for legacy stateless chat; session
   stage completion requires confirmed requirements regardless of turn count. The server derives a
@@ -247,8 +247,8 @@ Conventions:
   `INTERVIEW_RESUME_SECRET` or `OPENAI_KEY`; keep a stable dedicated secret to
   survive provider-key rotation. No rubric or credentials enter browser tokens.
   Saved scorecards open without a grading request. Clearing site data removes
-  browser saves; they do not sync across devices or origins. Auth and
-  cloud history remain later increments.
+  browser saves; they do not sync across devices or origins. Supabase Google sign-in isolates candidate accounts;
+  cloud interview history remains a later increment.
   Vitest maps `server-only` to Next's empty server entrypoint;
   Next enforces the client import boundary during builds.
 

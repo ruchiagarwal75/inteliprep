@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { supabaseConfiguration } from "@/lib/supabase-config";
 import { isPrivateBeta, missingBetaSettings } from "@/lib/beta-config";
 import { hasApiKey } from "@/lib/openai-client";
 import { redisCommand } from "@/lib/redis-rest";
@@ -10,8 +11,8 @@ export const runtime = "nodejs";
 export async function GET(): Promise<Response> {
   const requestId = randomUUID();
   const configured = isPrivateBeta()
-    ? missingBetaSettings().length === 0
-    : hasApiKey();
+    ? missingBetaSettings().length === 0 && Boolean(supabaseConfiguration())
+    : hasApiKey() && Boolean(supabaseConfiguration());
   let sharedStore = !isPrivateBeta();
   if (configured && isPrivateBeta()) {
     try {

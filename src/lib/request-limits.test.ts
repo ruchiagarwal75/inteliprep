@@ -1,5 +1,8 @@
+// These cases exercise the anonymous monitoring/IP boundary.
+vi.unmock("@/lib/candidate-context");
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { checkRequestLimit, requestIdentity } from "@/lib/request-limits";
+import { withCandidateIdentity } from "@/lib/candidate-context";
 
 const redis = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/redis-rest", () => ({ redisCommand: redis }));
@@ -10,6 +13,22 @@ afterEach(() => {
   redis.mockReset();
 });
 describe("request limits", () => {
+  it("gives accounts separate quotas even on a shared IP, while keeping the model ceiling global", async () => {
+    const a = withCandidateIdentity("alice", () => requestIdentity(request));
+    const b = withCandidateIdentity("bob", () => requestIdentity(request));
+    expect(a).not.toBe(b);
+    expect(a).not.toContain("alice");
+    await withCandidateIdentity("alice", async () => {
+      for (let i = 0; i < 10; i++)
+        expect(await checkRequestLimit(request, "start")).toBe(0);
+      expect(await checkRequestLimit(request, "start")).toBeGreaterThan(0);
+    });
+    expect(
+      await withCandidateIdentity("bob", () =>
+        checkRequestLimit(request, "start"),
+      ),
+    ).toBe(0);
+  });
   it("bounds bursts and resets after the minute window", async () => {
     vi.useFakeTimers();
     for (let i = 0; i < 30; i++)

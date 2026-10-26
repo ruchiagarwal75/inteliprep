@@ -43,8 +43,11 @@ dashboard, not in `vercel.json`. See
 Use Vercel's deployment-sharing controls for invited testers; an access link is
 a credential and should stay private. See
 [sharing a preview](https://vercel.com/docs/deployments/sharing-deployments).
-The app itself does not yet provide candidate accounts. Limits identify a trusted
-platform client IP, so testers on the same network share quotas.
+The app also requires candidate Google sign-in through Supabase Auth. Keep Vercel
+Authentication enabled during this rollout; platform access and candidate identity
+are separate checks. Interview quotas identify the verified candidate, so testers
+on the same network have separate allowances. Anonymous error reports retain IP-based
+limits. See [authentication setup](authentication.md) for provider configuration.
 
 ## Project and environment setup
 
@@ -71,6 +74,8 @@ platform client IP, so testers on the same network share quotas.
 
 | Variable | Purpose |
 | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public Supabase project origin for candidate sign-in |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public `sb_publishable_...` client key; never a service-role/secret key |
 | `OPENAI_KEY` | Server model-provider key for this project |
 | `OPENAI_MODEL` | Optional; existing default is `gpt-4o` |
 | `INTERVIEW_RESUME_SECRET` | Stable secret for browser resume tokens and rate-limit identities, at least 32 characters; generate with `openssl rand -hex 32` |
@@ -119,8 +124,8 @@ history will not automatically appear on the beta hostname.
 | Resume | 60 | 1,000 | 32,768 bytes |
 | Browser error report | 30 | 300 | 2,048 bytes |
 
-The limits apply per trusted client IP and endpoint. An HMAC replaces raw IPs in
-Redis keys. Chat and end requests also share a ceiling of 2,000 requests per hour
+Interview limits apply per verified candidate and endpoint; anonymous monitoring
+uses the trusted client IP. An HMAC replaces identifiers in Redis keys. Chat and end requests also share a ceiling of 2,000 requests per hour
 for the deployment environment. These are request ceilings, not dollar budgets:
 a chat can make a coverage call and a reply call, and grading can retry invalid
 output once. Review provider usage and configure account spending controls before
@@ -146,8 +151,9 @@ until completion/cancellation, and session publication/lease release removes the
 working copy. A retry on another instance reloads Redis progress and validates the
 browser's frozen evidence. Ordinary local development keeps its bounded in-memory
 fallback so Redis remains optional there.
-An opaque signed checkpoint is required for chat/end/resume in beta; a session ID
-alone is insufficient. A shared-store failure fails closed rather than making an
+Google sign-in and an owner-bound opaque checkpoint are required for chat/end/resume
+in beta. A copied session ID or checkpoint cannot access another account’s progress
+or cached scorecard, even after Redis expiry. A shared-store failure fails closed rather than making an
 unguarded model call. Local mode retains process state and the same bounded quotas.
 
 ## Error monitoring

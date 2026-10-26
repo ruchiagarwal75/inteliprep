@@ -4,11 +4,8 @@ import { useCallback, useEffect, useRef } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import { whiteboardContentKey } from "@/lib/whiteboard-snapshot";
 import { reportClientError } from "@/lib/report-client-error";
-import {
-  InterviewStorageConflict,
-  listInterviews,
-  saveInterview,
-} from "@/lib/interview-storage";
+import { InterviewStorageConflict } from "@/lib/interview-storage";
+import { useCandidateAccount } from "@/components/candidate-account-context";
 import {
   updateSavedInterview,
   type InterviewSaveUpdate,
@@ -29,6 +26,8 @@ export function useInterviewAutosave({
   onBlocked: (value: boolean) => void;
   onHistory: (value: SavedInterviewSummary[]) => void;
 }) {
+  const { storage } = useCandidateAccount();
+  const { listInterviews, saveInterview } = storage;
   const savedRef = useRef<SavedInterview | undefined>(undefined);
   const revisionsRef = useRef(new Map<string, string>());
   const queueRef = useRef<Promise<void>>(Promise.resolve());
@@ -76,7 +75,15 @@ export function useInterviewAutosave({
       queueRef.current = work;
       return work;
     },
-    [getScene, onStatus, onError, onBlocked, onHistory],
+    [
+      getScene,
+      onStatus,
+      onError,
+      onBlocked,
+      onHistory,
+      listInterviews,
+      saveInterview,
+    ],
   );
 
   const changed = useCallback(() => {

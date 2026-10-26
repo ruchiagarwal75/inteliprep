@@ -10,11 +10,19 @@ import type { SharedSessionRecord } from "@/lib/shared-session-record";
 export function exportSessionRecord(id: string): SharedSessionRecord {
   const session = getCachedSession(id);
   if (!session) throw new Error("Missing interview session");
-  const { problemId, level, phaseIndex, coveredCriteria, timing, ending } =
-    session;
+  const {
+    ownerUserId,
+    problemId,
+    level,
+    phaseIndex,
+    coveredCriteria,
+    timing,
+    ending,
+  } = session;
   return structuredClone({
     checkpoint: {
       id,
+      ownerUserId,
       problemId,
       level,
       phaseIndex,

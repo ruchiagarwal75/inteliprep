@@ -31,6 +31,7 @@ export function interviewSessionCheckpoint(
       serverTime: new Date().toISOString(),
       resumeToken: sealSession({
         id,
+        ownerUserId: session.ownerUserId,
         ...selection,
         phaseIndex: session.phaseIndex,
         coveredCriteria: session.coveredCriteria,
@@ -76,6 +77,7 @@ export function acquireInterviewSession(
       lease.assertHeld();
       return sealSession({
         id,
+        ownerUserId: session.ownerUserId,
         ...selection,
         phaseIndex: session.phaseIndex,
         coveredCriteria: session.coveredCriteria,

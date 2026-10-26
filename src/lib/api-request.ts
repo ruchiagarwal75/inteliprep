@@ -1,5 +1,8 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { requireCandidateIdentity } from "@/lib/candidate-auth";
+import { withCandidateIdentity } from "@/lib/candidate-context";
+import { CandidateAuthError } from "@/lib/supabase-config";
 import { assertBetaReady, BetaUnavailableError } from "@/lib/beta-config";
 import { checkRequestLimit, type RequestKind } from "@/lib/request-limits";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
@@ -72,19 +75,33 @@ export function withApiRequest(
           403,
         );
       assertBetaReady();
-      const retry = await checkRequestLimit(request, kind);
-      response = retry
-        ? Response.json(
-            { error: "Too many requests. Please wait before trying again." },
-            { status: 429, headers: { "Retry-After": String(retry) } },
-          )
-        : await withServerContext(requestId, route, () =>
-            withInterviewSessionContext(() => handler(request, requestId)),
-          );
+      const candidateId =
+        kind === "clientError" ? undefined : await requireCandidateIdentity();
+      const expectedAccount = request.headers.get("X-Interview-Account");
+      if (expectedAccount && candidateId !== expectedAccount)
+        throw new ApiRequestError(
+          "Your signed-in account changed. Please reopen the interview.",
+          403,
+        );
+      const run = async () => {
+        const retry = await checkRequestLimit(request, kind);
+        return retry
+          ? Response.json(
+              { error: "Too many requests. Please wait before trying again." },
+              { status: 429, headers: { "Retry-After": String(retry) } },
+            )
+          : await withServerContext(requestId, route, () =>
+              withInterviewSessionContext(() => handler(request, requestId)),
+            );
+      };
+      response = candidateId
+        ? await withCandidateIdentity(candidateId, run)
+        : await run();
     } catch (cause) {
       failure = cause;
       const status =
         cause instanceof ApiRequestError ||
+        cause instanceof CandidateAuthError ||
         cause instanceof InterviewSessionError
           ? cause.status
           : cause instanceof BetaUnavailableError

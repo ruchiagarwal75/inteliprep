@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { InterviewStart } from "@/lib/interview-selection";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import type { ChatMessage } from "@/lib/chat";
@@ -44,6 +45,7 @@ export function useInterviewEnd({
   onMessagesChange: (messages: ChatMessage[]) => void;
   onDraftIncluded: () => void;
 }) {
+  const { request } = useCandidateAccount();
   const [isEnding, setIsEnding] = useState(false);
   const [scorecard, setScorecard] = useState<Scorecard | undefined>(
     restored?.scorecard,
@@ -98,7 +100,7 @@ export function useInterviewEnd({
         if (finalAnswer?.trim()) onDraftIncluded();
       }
       submitted = true;
-      const response = await fetch("/api/interview/end", {
+      const response = await request("/api/interview/end", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

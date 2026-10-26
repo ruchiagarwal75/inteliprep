@@ -12,6 +12,7 @@ import { interviewTimingSchema } from "@/lib/interview-timer";
 
 export const sessionCheckpointSchema = interviewSelectionSchema.extend({
   id: z.uuid(),
+  ownerUserId: z.uuid().optional(),
   timing: interviewTimingSchema.optional(),
   phaseIndex: z.number().int().min(0).max(9),
   coveredCriteria: z.array(z.number().int().min(0).max(30)).max(30),
