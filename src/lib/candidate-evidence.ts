@@ -12,12 +12,15 @@ export function isPacingOnlyText(content: string): boolean {
   );
 }
 
+/** Keep exact excerpts separate so removing controls cannot fabricate a contiguous quote. */
+export function candidateEvidenceExcerpts(message: ChatMessage): string[] {
+  if (message.role !== "user" || message.source === "control") return [];
+  return Array.from(
+    message.content.matchAll(/[\s\S]+?(?:[.!?](?=\s|$)|$)/gu),
+    (match) => match[0].trim(),
+  ).filter((sentence) => sentence && !isPacingOnlyText(sentence));
+}
+
 export function isCandidateEvidence(message: ChatMessage): boolean {
-  return (
-    message.role === "user" &&
-    message.source !== "control" &&
-    message.content
-      .split(/(?<=[.!?])\s+/u)
-      .some((sentence) => sentence.trim() && !isPacingOnlyText(sentence))
-  );
+  return candidateEvidenceExcerpts(message).length > 0;
 }

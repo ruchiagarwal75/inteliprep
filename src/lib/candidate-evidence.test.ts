@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  candidateEvidenceExcerpts,
   isCandidateEvidence,
   isPacingOnlyText,
 } from "@/lib/candidate-evidence";
@@ -30,5 +31,40 @@ describe("technical candidate evidence versus interview controls", () => {
     expect(
       isCandidateEvidence({ role: "user", content, source: "control" }),
     ).toBe(false);
+    expect(candidateEvidenceExcerpts({ role: "assistant", content })).toEqual(
+      [],
+    );
+    expect(
+      candidateEvidenceExcerpts({ role: "user", content, source: "control" }),
+    ).toEqual([]);
+  });
+  it.each(["draw", "explain", "review"] as const)(
+    "keeps exact technical excerpts alongside the %s action",
+    (action) => {
+      const content =
+        "Hi! Please let me finish. Target 0.5 seconds at example.com.\nBoth apps\nuse the database. I've finished explaining.";
+      const message = { role: "user" as const, content, action };
+      const excerpts = candidateEvidenceExcerpts(message);
+      expect(excerpts).toEqual([
+        "Target 0.5 seconds at example.com.",
+        "Both apps\nuse the database.",
+      ]);
+      expect(excerpts.every((excerpt) => content.includes(excerpt))).toBe(true);
+      expect(isCandidateEvidence(message)).toBe(true);
+    },
+  );
+  it.each(["", "  \n ", "Hello. Okay, thanks! I've finished explaining."])(
+    "finds no evidence in blank or control-only messages: %s",
+    (content) => {
+      const message = { role: "user" as const, content };
+      expect(candidateEvidenceExcerpts(message)).toEqual([]);
+      expect(isCandidateEvidence(message)).toBe(false);
+    },
+  );
+  it("keeps a specific requirements confirmation eligible", () => {
+    const content = "I confirm those traffic and response-time targets.";
+    expect(candidateEvidenceExcerpts({ role: "user", content })).toEqual([
+      content,
+    ]);
   });
 });

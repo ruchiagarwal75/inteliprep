@@ -286,6 +286,15 @@ Drawing/explanation hold questions, even when a requirement remains open. Candid
 statements can cover remaining requirements during an explanation. A strict structured
 assessment verifies exact candidate quotes for those remaining and later criteria;
 invented/assistant quotes and malformed output cannot advance candidate coverage.
+Stage assessment and grading share candidate-excerpt filtering: greetings, bare
+acknowledgements, generated controls, and recognized pacing-only sentences cannot
+count as evidence. Real explanations accompanying a typed pacing request remain
+eligible, including messages with drawing/explanation actions. Stage checks use
+the last 12 eligible messages, bounded to the first 2,000 characters per original
+message, and skip the model when none remain. Quotes must match within one eligible
+excerpt at its original message index; excluded text and joins across excerpts
+are rejected. Initial-stage conversation context can clarify references but is
+not itself eligible candidate evidence.
 Coverage accumulates across completed turns; stages advance at most once per reply.
 The drawing stage requires a live sketch and explicit discussion permission. Failed
 assessment keeps the stage, and the final stage closes without another design question.

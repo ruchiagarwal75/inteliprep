@@ -75,7 +75,7 @@ describe("evidence-backed stage assessment", () => {
     }));
     const evidence = evidenceMessages(history);
     expect(evidence).toHaveLength(12);
-    expect(evidence[0]).toEqual({ index: 8, content: "x".repeat(2_000) });
+    expect(evidence[0]).toEqual({ index: 8, excerpts: ["x".repeat(2_000)] });
   });
   it("uses strict structured output and validates evidence before returning coverage", async () => {
     vi.stubEnv("OPENAI_KEY", "test-key");
@@ -103,7 +103,7 @@ describe("evidence-backed stage assessment", () => {
   it("includes technical explanations that also carry a pacing action", () => {
     const explanation: ChatMessage[] = [{ ...messages[1], action: "explain" }];
     expect(evidenceMessages(explanation)).toEqual([
-      { index: 0, content: messages[1].content },
+      { index: 0, excerpts: criteria.map((criterion) => criterion.quote) },
     ]);
     expect(
       coveredPhaseCriteria(phase, explanation, {
@@ -165,6 +165,10 @@ describe("evidence-backed stage assessment", () => {
       role: "assistant",
       content: "x".repeat(8_000),
     }));
+    longHistory[39] = {
+      role: "user",
+      content: "I confirm the configured service requirements.",
+    };
     mocks.create.mockResolvedValue({
       status: "completed",
       output_text: JSON.stringify({
