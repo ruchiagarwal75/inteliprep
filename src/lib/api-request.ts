@@ -8,6 +8,11 @@ import { checkRequestLimit, type RequestKind } from "@/lib/request-limits";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
 import { InterviewSessionError } from "@/lib/interview-session-store";
 import { withInterviewSessionContext } from "@/lib/interview-session-context";
+import {
+  CANDIDATE_AUTH_ERROR_HEADER,
+  CANDIDATE_AUTH_REQUIRED,
+  CANDIDATE_ACCOUNT_CHANGED,
+} from "@/lib/candidate-api-error";
 
 export class ApiRequestError extends Error {
   constructor(
@@ -67,6 +72,7 @@ export function withApiRequest(
     const startedAt = Date.now();
     let response: Response;
     let failure: unknown;
+    let accountChanged = false;
     try {
       const origin = request.headers.get("origin");
       if (origin && origin !== new URL(request.url).origin)
@@ -78,11 +84,13 @@ export function withApiRequest(
       const candidateId =
         kind === "clientError" ? undefined : await requireCandidateIdentity();
       const expectedAccount = request.headers.get("X-Interview-Account");
-      if (expectedAccount && candidateId !== expectedAccount)
+      if (expectedAccount && candidateId !== expectedAccount) {
+        accountChanged = Boolean(candidateId);
         throw new ApiRequestError(
           "Your signed-in account changed. Please reopen the interview.",
           403,
         );
+      }
       const run = async () => {
         const retry = await checkRequestLimit(request, kind);
         return retry
@@ -99,6 +107,12 @@ export function withApiRequest(
         : await run();
     } catch (cause) {
       failure = cause;
+      const authError =
+        cause instanceof CandidateAuthError && cause.status === 401
+          ? CANDIDATE_AUTH_REQUIRED
+          : accountChanged
+            ? CANDIDATE_ACCOUNT_CHANGED
+            : undefined;
       const status =
         cause instanceof ApiRequestError ||
         cause instanceof CandidateAuthError ||
@@ -109,12 +123,20 @@ export function withApiRequest(
             : 500;
       response = Response.json(
         {
+          code:
+            authError ??
+            (cause instanceof InterviewSessionError ? cause.code : undefined),
           error:
             status === 500 || !(cause instanceof Error)
               ? "The server couldn't complete this request. Please try again."
               : cause.message,
         },
-        { status },
+        {
+          status,
+          headers: authError
+            ? { [CANDIDATE_AUTH_ERROR_HEADER]: authError }
+            : undefined,
+        },
       );
     }
     response.headers.set("X-Request-Id", requestId);

@@ -6,7 +6,7 @@ import type { ChatMessage } from "@/lib/chat";
 type ChatTranscriptProps = {
   logRef: RefObject<HTMLDivElement | null>;
   messages: ChatMessage[];
-  error: string | null;
+  pendingMessageIndex?: number;
   imageWarning: string | null;
   isStreaming?: boolean;
 };
@@ -14,7 +14,7 @@ type ChatTranscriptProps = {
 export function ChatTranscript({
   logRef,
   messages,
-  error,
+  pendingMessageIndex,
   imageWarning,
   isStreaming = false,
 }: ChatTranscriptProps) {
@@ -44,6 +44,7 @@ export function ChatTranscript({
               : message.action === "explain"
                 ? "Started explaining"
                 : "Opened design discussion"}
+            {index === pendingMessageIndex ? " · reply pending" : ""}
           </p>
         ) : (
           <div
@@ -55,6 +56,11 @@ export function ChatTranscript({
             >
               {message.content || "…"}
             </span>
+            {index === pendingMessageIndex && (
+              <p className="mt-1 text-xs text-black/60 dark:text-white/60">
+                Awaiting reply
+              </p>
+            )}
           </div>
         ),
       )}
@@ -67,11 +73,6 @@ export function ChatTranscript({
           {messages.at(-1)?.role === "assistant" && messages.at(-1)?.content
             ? "Interviewer is replying…"
             : "Interviewer is thinking…"}
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
         </p>
       )}
       {imageWarning && (

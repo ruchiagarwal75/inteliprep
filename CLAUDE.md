@@ -13,8 +13,8 @@ whiteboard, diagram change detection, PNG image input, and server-owned stage
 tracking, explicit interview ending, evidence-backed scorecards, and IndexedDB
 browser saves with autosave/resume/history, and a 45-minute timer with automatic
 ending. Cloud persistence comes later.
-Candidates can start single-server scaling or the URL
-shortener at mid, senior, or staff difficulty with a configured opening and
+Candidates can start single-server scaling, a URL shortener, a rate limiter,
+one-to-one chat, or a chronological news feed at mid, senior, or staff difficulty with a configured opening and
 private server rubric. The default is the simple scaling exercise at Mid-level.
 
 ## Stack
@@ -31,6 +31,11 @@ private server rubric. The default is the simple scaling exercise at Mid-level.
 
 Excalidraw, the OpenAI SDK, Zod and pinned Supabase clients are installed.
 Supabase Auth handles Google sign-in; cloud interview history remains a later milestone.
+
+Provider authentication is distinct from candidate login: only matching app-issued
+`X-Interview-Auth-Error` markers may invalidate a browser account. Model 401/403
+errors return service unavailability. Pending replies persist independently of
+drafts, and Retry reply reuses the original candidate turn without duplication.
 
 ## Commands
 
@@ -94,8 +99,11 @@ Conventions:
   and unlocks chat. New interview resets chat, both diagram baselines, and the
   whiteboard, while retaining the previous session in browser history. Setup changes
   are disabled during an active interview.
-- Configurations live in `src/lib/problems/single-server-scaling.json` and
-  `src/lib/problems/url-shortener.json`. The simple scaling exercise starts with
+- The five configurations live in `src/lib/problems/`: `single-server-scaling.json`,
+  `url-shortener.json`, `rate-limiter.json`, `chat-service.json`, and `news-feed.json`.
+  Each has its own goals, clarifications, stages, and private scoring rubric.
+  See `docs/problem-catalog.md` for product boundaries and review status.
+  The simple scaling exercise starts with
   one machine running a website and its data, and uses short, approachable
   follow-ups about measurement, request flow, and validating improvements.
   `problems.ts` and `interview-instructions.ts` use Next's `server-only` guard.

@@ -1,0 +1,173 @@
+{
+  "id": "news-feed",
+  "diagramReview": { "checkApplicationDataPaths": false },
+  "title": "Design a news feed",
+  "summary": "Show recent posts from followed accounts with predictable ordering, bounded freshness, and popular-creator traffic.",
+  "prompt": "Design a chronological home feed. Signed-in users publish short text posts and view recent posts from accounts they follow. Explain publishing, feed generation, pagination, and how the design handles popular creators, delayed updates, and failures.",
+  "requirements": [
+    "The core workflows are publishing short text posts and reading a paginated home feed of posts from followed accounts, newest first. User identity and the following graph already exist.",
+    "All posts in this exercise are public and at most 500 characters. Private accounts, recommendations, ranking, advertisements, reactions, comments, media, and notifications are optional extensions.",
+    "A successful publish means the post is durably stored and available to its author by ID. During normal operation, new posts should appear in followers' feeds within 5 seconds; target p95 feed reads below 500 milliseconds.",
+    "Use 90 days as the default post retention; accept a candidate-proposed alternative such as one year when justified. Remove deleted posts from new feed responses within 60 seconds by default; a candidate may choose a stricter bound such as a few seconds. Keep agreed values rather than silently resetting them. Previously displayed content cannot be recalled.",
+    "Pagination must have a stable continuation when new posts arrive and must not repeatedly show the same post just because the feed changed. Explain the chosen ordering and cursor semantics.",
+    "Typical users follow about 100 accounts, while a few creators have many followers. Keep the core in one region; discuss regional recovery or wider distribution only after the core design and at the appropriate level."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch how a post is published and how a follower reads a page of their feed. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design a chronological news feed. Signed-in users publish short public text posts and see recent posts from accounts they follow, newest first. User identity and the following graph already exist.\n\nYour task is to explain how publishing and reading the home feed work, including how someone loads the next page while new posts arrive. Keep the core exercise to text posts in one region. Recommendations, ranking, advertisements, comments, and media are outside the core scope. We'll clarify traffic, feed freshness, response times, and retention first, then give you time to draw and explain your approach.\n\nA successful publish must be durably stored and available to its author by ID. Use 90-day retention and removal of deleted posts from new feed responses within 60 seconds as defaults; you may propose justified alternatives.\n\nWhat requirements would you clarify before starting your design?",
+      "expectations": "Expect clear publish and feed APIs, a simple post and following-data model, a justified way to produce a chronological feed, and sensible pagination. Explore what happens for a popular creator, a delayed update, or a deleted post after the candidate explains. Accept read-time, write-time, or mixed feed construction when justified; do not prescribe fanout or caching components.",
+      "scaleHints": [
+        "Assume 100,000 daily active users, 100,000 new posts per day, and 1 million feed reads per day, with peaks ten times the daily average.",
+        "A typical user follows 100 accounts; a popular creator can have 50,000 followers. Target p95 feed reads below 500 milliseconds and new-post visibility within 5 seconds during normal operation."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design a chronological home feed. Signed-in users publish short public text posts and read recent posts from accounts they follow, newest first. Identity and the following graph already exist.\n\nYour task is to explain the publish and feed-read paths, a stable way to paginate changing results, and how the system handles creators with many followers. Include freshness and deletion behavior in your reasoning. Keep the core product to text posts in one region; ranking, recommendations, media, and advertisements are optional extensions. We'll agree on workload and service goals before you draw and explain your architecture.\n\nA successful publish must be durably stored and available to its author by ID. Use 90-day retention and removal of deleted posts from new feed responses within 60 seconds as defaults; you may propose justified alternatives.\n\nWhich scope, workload, and freshness requirements would you establish first?",
+      "expectations": "Expect estimates that distinguish publishing from reading and fanout work, a defensible feed construction and partitioning choice, stable cursor semantics, popular-creator handling, and bounded freshness and deletion propagation. Explore backlog, duplicate processing, and partial failure using the candidate's own design. Do not require a particular push, pull, or hybrid architecture.",
+      "scaleHints": [
+        "Assume 10 million daily active users, 10 million new posts per day, and 100 million feed reads per day, with peaks ten times the daily average.",
+        "A typical user follows 100 accounts; a popular creator can have 5 million followers. Keep the same feed latency and freshness goals."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design a large chronological home feed. Signed-in users publish short public text posts and read recent posts from followed accounts, newest first. Identity and the following graph already exist.\n\nYour task is to explain how publishing, feed generation, and pagination work under uneven follower counts and high read traffic. Discuss the consequences of your choices for freshness, deletion, recovery, and cost. The core product remains text posts in one region; ranking, recommendations, media, and advertisements are optional. We'll establish workload and reliability expectations before you draw and explain the design.\n\nA successful publish must be durably stored and available to its author by ID. Use 90-day retention and removal of deleted posts from new feed responses within 60 seconds as defaults; you may propose justified alternatives.\n\nWhich product guarantees and workload characteristics would you clarify first?",
+      "expectations": "Expect quantified amplification and storage costs, explicit ownership and hot-partition reasoning, recovery or rebuilding of derived feed state, bounded deletion propagation, overload priorities, and measurable freshness objectives. Explore rollout and regional disaster recovery as consequences of the candidate's design without mandating a global active-active deployment. Reward justified alternatives and explicit tradeoffs, not a specific architecture.",
+      "scaleHints": [
+        "Assume 100 million daily active users, 100 million new posts per day, and 1 billion feed reads per day, with peaks ten times the daily average.",
+        "A typical user follows 100 accounts; a popular creator can have 50 million followers. Consider the amplification and recovery cost while keeping the same core freshness and latency goals."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and workload",
+      "strong": "Defines the chronological product scope, separates publishing, feed reads, and amplification, and establishes workload, freshness, latency, and retention assumptions.",
+      "assessmentPattern": "\\b(requirement\\w*|scope|traffic|users? per|posts? per|reads? per|throughput|latency|freshness|retention|estimate\\w*|capacity)\\b"
+    },
+    {
+      "area": "Post API and data model",
+      "strong": "Defines publishing and feed APIs, durable post identity and author data, integration with the existing following graph, and a clear distinction between source posts and derived feed state.",
+      "assessmentPattern": "\\b(api|endpoint\\w*|publish\\w*|post.id\\w*|author\\w*|follow\\w*.graph|database|stor\\w*|durab\\w*|source.of.truth|derived)\\b"
+    },
+    {
+      "area": "Feed generation and pagination",
+      "strong": "Explains how eligible posts are selected, merged and ordered for a reader, and supplies stable continuation semantics under concurrent publishing without relying on shifting offsets alone.",
+      "assessmentPattern": "\\b(feed|timeline|paginat\\w*|cursor\\w*|offset\\w*|chronolog\\w*|order\\w*|merge\\w*|sort\\w*|continuation|tie.break\\w*)\\b"
+    },
+    {
+      "area": "Fanout, scale, and freshness",
+      "strong": "Justifies read-time, write-time, or mixed construction using the workload, explains popular-creator and hot-reader costs, and measures or bounds propagation delay and backlog.",
+      "assessmentPattern": "\\b(fan.?out|push|pull|hybrid|amplif\\w*|popular|celebrit\\w*|hot.\\w*|scal\\w*|partition\\w*|shard\\w*|fresh\\w*|propagat\\w*|lag|backlog|queue\\w*|\\d[\\d,]*(?:\\.\\d+)?\\s*(?:[km]|thousand|million|billion)?(?:[-\\s]+followers?))\\b"
+    },
+    {
+      "area": "Failures, visibility, and operations",
+      "strong": "Explains recovery of accepted posts and derived feeds, duplicate or partial processing, bounded deletion visibility, and observable cost or reliability tradeoffs with a concrete validation plan.",
+      "assessmentPattern": "\\b(fail\\w*|outage\\w*|recover\\w*|rebuild\\w*|replay\\w*|duplicate\\w*|idempot\\w*|delet\\w*|tombstone\\w*|monitor\\w*|metric\\w*|test\\w*|cost\\w*|trade.off\\w*)\\b"
+    }
+  ],
+  "followUps": [
+    "How does a newly published post become visible in a follower's next feed request?",
+    "What changes when one creator has far more followers than the others?",
+    "How does the next-page cursor behave when new posts arrive between reads?",
+    "What happens if processing stops after the post is stored but before all relevant feeds are updated?",
+    "How does deleting a post affect already prepared feed entries?",
+    "Which measurements would reveal that feeds are falling behind their freshness goal?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish chronological publishing and feed scope, workload and freshness goals, and retention and visibility constraints.",
+      "completionCriteria": [
+        "Candidate clarifies or confirms publishing public text posts and reading a chronological paginated feed from followed accounts.",
+        "Candidate establishes or confirms publish/read traffic, follower skew, feed-read latency, and new-post freshness goals.",
+        "Candidate clarifies or confirms durable publishing, post retention, and deletion visibility expectations."
+      ],
+      "clarificationQuestions": [
+        "Could you confirm the publishing and feed workflows and which optional features are outside scope?",
+        "What publishing and reading workload, follower distribution, latency, and freshness goals are you using?",
+        "What should a successful publish, retained history, and deletion guarantee?"
+      ],
+      "interviewerGuidance": "Clarify product, workload, goals, and visibility constraints only. Configured opening facts already establish scope. The message budget is guidance, never proof of completion. Do not ask for fanout strategy or storage choices before drawing and explanation are invited. Durable publishing, retention, and deletion defaults are already supplied in the opening; never quiz the candidate for those facts again. Accept and retain reasonable explicit working assumptions.",
+      "transition": "initial"
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate sketch publishing and feed reads and explain the architecture.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after explaining."
+      ],
+      "interviewerGuidance": "Give the candidate the floor across multiple messages. Do not critique a partial sketch or start review until explicitly invited.",
+      "transition": "drawing"
+    },
+    {
+      "id": "feed-design",
+      "title": "Explore feed design",
+      "goal": "Understand the publish path, stored data, feed construction, and pagination.",
+      "completionCriteria": [
+        "Candidate explains how a post is durably published and how followed-account posts are selected and ordered for a feed read.",
+        "Candidate explains stable feed pagination under new posts and a consequence or tradeoff of their construction approach."
+      ],
+      "interviewerGuidance": "Ask one focused question about an uncovered publish, read, or cursor choice in the candidate's design. Accept justified push, pull, or mixed construction; do not supply a preferred architecture.",
+      "transition": "coverage"
+    },
+    {
+      "id": "freshness-and-recovery",
+      "title": "Freshness and recovery",
+      "goal": "Explore popular-creator cost, visibility guarantees, and recovery of delayed or partial work.",
+      "completionCriteria": [
+        "Candidate explains popular-creator or hot-partition behavior and how they would measure new-post propagation or feed latency.",
+        "Candidate explains recovery from a partial update or failure and how deleted posts stop appearing within the agreed bound."
+      ],
+      "interviewerGuidance": "Explore workload skew, recovery, and visibility one case at a time using the actual drawing. Do not require global deployment or ranking. Respect drawing and explanation pauses.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Recap the candidate's feed strategy and stated freshness, reliability, and cost tradeoffs.",
+      "completionCriteria": [
+        "The candidate's approach and stated limitations are summarized."
+      ],
+      "interviewerGuidance": "Close with a concise recap of the candidate's own choices. Do not invent missing features, give scores, restart the interview, or ask another design question.",
+      "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0, 2],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|rps|qps|scale|capacity|latency|response.time|users? per|posts? per|reads? per|followers?|popular|celebrity|fresh\\w*|stale|staleness|delay\\w*|few seconds)\\b",
+      "answers": {
+        "mid": "Assume 100,000 daily active users, 100,000 posts per day, and 1 million feed reads per day, with peaks ten times the daily average. Typical users follow 100 accounts; a popular creator can have 50,000 followers. Target p95 feed reads below 500 milliseconds. New posts may take up to 5 seconds to appear in followers' feeds during normal operation.",
+        "senior": "Assume 10 million daily active users, 10 million posts per day, and 100 million feed reads per day, with peaks ten times the daily average. Typical users follow 100 accounts; a popular creator can have 5 million followers. Target p95 feed reads below 500 milliseconds. New posts may take up to 5 seconds to appear in followers' feeds during normal operation.",
+        "staff": "Assume 100 million daily active users, 100 million posts per day, and 1 billion feed reads per day, with peaks ten times the daily average. Typical users follow 100 accounts; a popular creator can have 50 million followers. Target p95 feed reads below 500 milliseconds. New posts may take up to 5 seconds to appear in followers' feeds during normal operation."
+      },
+      "coversCriteria": [1],
+      "sharedAnswerPattern": "daily active users[\\s\\S]*feed reads below 500 milliseconds[\\s\\S]*posts may take up to 5 seconds"
+    },
+    {
+      "pattern": "\\b(scope|rank\\w*|recommend\\w*|public|private|media|video|image\\w*|comment\\w*|advert\\w*|notification\\w*|authentication|follow.graph)\\b",
+      "answers": {
+        "mid": "The core is public text posts up to 500 characters and a newest-first paginated home feed from followed accounts. Identity and the following graph already exist. Ranking, recommendations, private accounts, ads, reactions, comments, media, and notifications are optional extensions.",
+        "senior": "The core is public text posts up to 500 characters and a newest-first paginated home feed from followed accounts. Identity and the following graph already exist. Ranking, recommendations, private accounts, ads, reactions, comments, media, and notifications are optional extensions.",
+        "staff": "The core is public text posts up to 500 characters and a newest-first paginated home feed from followed accounts. Identity and the following graph already exist. Ranking, recommendations, private accounts, ads, reactions, comments, media, and notifications are optional extensions."
+      },
+      "coversCriteria": [0]
+    },
+    {
+      "pattern": "\\b(durab\\w*|acknowledg\\w*|guarantee\\w*|retention|retain\\w*|delet\\w*|consistency|publish.success|successful.publish)\\b",
+      "answers": {
+        "mid": "A successful publish means the post is durably stored and immediately available to its author by ID. Default to 90-day retention; a justified alternative such as one year is acceptable. Deleted posts must stop appearing in new feed responses within 60 seconds by default, or a stricter candidate-proposed bound; content already displayed cannot be recalled. Followers may see new posts up to 5 seconds late during normal operation.",
+        "senior": "A successful publish means the post is durably stored and immediately available to its author by ID. Default to 90-day retention; a justified alternative such as one year is acceptable. Deleted posts must stop appearing in new feed responses within 60 seconds by default, or a stricter candidate-proposed bound; content already displayed cannot be recalled. Followers may see new posts up to 5 seconds late during normal operation.",
+        "staff": "A successful publish means the post is durably stored and immediately available to its author by ID. Default to 90-day retention; a justified alternative such as one year is acceptable. Deleted posts must stop appearing in new feed responses within 60 seconds by default, or a stricter candidate-proposed bound; content already displayed cannot be recalled. Followers may see new posts up to 5 seconds late during normal operation."
+      },
+      "coversCriteria": [2]
+    }
+  ]
+}

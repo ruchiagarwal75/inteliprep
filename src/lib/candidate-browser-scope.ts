@@ -1,4 +1,5 @@
 import { createInterviewStorage } from "@/lib/interview-storage";
+import { isCandidateAuthFailure } from "@/lib/candidate-api-error";
 
 /** Captured identity and cancellation prevent old callbacks adopting a new account. */
 export function createCandidateBrowserScope(
@@ -24,7 +25,7 @@ export function createCandidateBrowserScope(
         : abort.signal,
     });
     abort.signal.throwIfAborted();
-    if (response.status === 401 || response.status === 403) {
+    if (isCandidateAuthFailure(response)) {
       deactivate();
       onUnauthorized?.();
     }

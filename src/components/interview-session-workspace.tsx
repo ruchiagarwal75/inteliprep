@@ -163,6 +163,7 @@ export function InterviewSessionWorkspace({
             restored={saved}
             getResumeToken={library.getResumeToken}
             onSave={library.save}
+            onCloseWithoutScoring={library.closeWithoutScoring}
             disabled={library.isOpening || library.blocked}
             onBusyChange={onBusyChange}
             onPhaseChange={setPhase}

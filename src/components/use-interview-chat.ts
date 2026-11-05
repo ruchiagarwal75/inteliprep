@@ -5,15 +5,18 @@ import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { ChatMessage } from "@/lib/chat";
 import type { Scene } from "@/lib/scene";
 import { prepareWhiteboardTurn } from "@/lib/whiteboard-turn";
+import { postChatTurn } from "@/lib/post-chat-turn";
 import {
-  INTERVIEW_STREAM_TYPE,
-  receiveInterviewStream,
-} from "@/lib/interview-stream";
+  restoredPendingReply,
+  retryChatMessages,
+  type PendingChatReply,
+} from "@/lib/pending-chat-reply";
 import { actionForTurn, type CandidateAction } from "@/lib/candidate-actions";
 import type { PacingCapture } from "@/lib/pacing-capture";
-
 import type { InterviewChatOptions } from "@/components/interview-chat-options";
 import { useChatDraft } from "@/components/use-chat-draft";
+import { InterviewRecoveryError } from "@/lib/interview-recovery";
+
 export function useInterviewChat({
   getScene,
   interview,
@@ -24,6 +27,8 @@ export function useInterviewChat({
   onSave,
   getResumeToken,
   canSubmit,
+  recoveryFailure,
+  onRecoveryFailure,
 }: InterviewChatOptions) {
   const { request } = useCandidateAccount();
   const [messages, setMessages] = useState<ChatMessage[]>(
@@ -33,32 +38,37 @@ export function useInterviewChat({
     restored?.draftText ?? "",
     onSave,
   );
+  const [pendingReply, setPendingReply] = useState<
+    PendingChatReply | undefined
+  >(() => restoredPendingReply(restored));
+  const [error, setError] = useState<string | null>(
+    () => restoredPendingReply(restored)?.error ?? null,
+  );
   const [isStreaming, setIsStreaming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [imageWarning, setImageWarning] = useState<string | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const previousSceneRef = useRef<Scene | undefined>(restored?.previousScene);
-  const previousImageFingerprintRef = useRef<string | undefined>(
+  const previousImageFingerprintRef = useRef(
     restored?.previousImageFingerprint,
   );
   const previousPacingCaptureRef = useRef<PacingCapture | undefined>(
     restored?.pacingCapture,
   );
   const sendingRef = useRef(false);
-
-  // Spec: keep turns in order by blocking sends while the reply streams.
   const canSend =
-    Boolean(interview) && !disabled && input.trim().length > 0 && !isStreaming;
+    Boolean(interview) &&
+    !disabled &&
+    !recoveryFailure &&
+    input.trim().length > 0 &&
+    !isStreaming &&
+    !pendingReply;
 
-  async function send(
-    content = input.trim(),
-    requestedAction?: CandidateAction,
-  ) {
+  async function submit(next: ChatMessage[], clearDraft?: string) {
     if (
       !interview ||
       disabled ||
+      recoveryFailure ||
       !canSubmit() ||
-      !content.trim() ||
       isStreaming ||
       sendingRef.current
     )
@@ -68,58 +78,31 @@ export function useInterviewChat({
     setError(null);
     setImageWarning(null);
     setIsStreaming(true);
-    setMessages([
-      ...messages,
-      {
-        role: "user",
-        content: content.trim(),
-        ...(requestedAction
-          ? { action: requestedAction, source: "control" as const }
-          : {}),
-      },
-    ]);
-
+    const waiting: PendingChatReply = { messageIndex: next.length - 1 };
+    setPendingReply(waiting);
+    setMessages(next);
+    if (clearDraft && getDraft().trim() === clearDraft) setInput("");
+    let completed = false;
     try {
-      const turn = await prepareWhiteboardTurn(
-        getScene(),
-        previousImageFingerprintRef.current,
-      );
+      const [turn] = await Promise.all([
+        prepareWhiteboardTurn(getScene(), previousImageFingerprintRef.current),
+        onSave({ messages: next, pendingReply: waiting }),
+      ]);
       const sentScene = turn.scene;
-      const action = actionForTurn(content, requestedAction);
-      const next: ChatMessage[] = [
-        ...messages,
-        {
-          role: "user",
-          content: content.trim(),
-          ...(action ? { action } : {}),
-          ...(requestedAction ? { source: "control" as const } : {}),
-        },
-      ];
-      if (!requestedAction) setInput("");
-      // Pacing tracks submitted edits even on failed replies; image/text delivery
-      // baselines still advance only after a complete response.
+      // Failed replies keep the prior delivery baselines, while pacing retains submitted edits.
       previousPacingCaptureRef.current = {
         scene: sentScene,
         fingerprint: turn.fingerprint,
       };
-      setMessages(next);
       setImageWarning(turn.imageWarning ?? null);
-      await onSave({
-        messages: next,
-        pacingCapture: previousPacingCaptureRef.current,
-      });
+      await onSave({ pacingCapture: previousPacingCaptureRef.current });
       if (!canSubmit())
         throw new Error(
           "Time is up. Your interview will end after this turn finishes.",
         );
-      const response = await request("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: INTERVIEW_STREAM_TYPE,
-        },
-        // Capture the drawing at send time so later edits don't change this turn.
-        body: JSON.stringify({
+      const reply = await postChatTurn(
+        request,
+        {
           problemId: interview.problemId,
           level: interview.level,
           sessionId: interview.sessionId,
@@ -128,66 +111,86 @@ export function useInterviewChat({
           scene: sentScene,
           previousScene: previousSceneRef.current,
           diagramImage: turn.diagramImage,
-        }),
-      });
-
-      if (!response.ok || !response.body) {
-        const detail = await response
-          .json()
-          .then((data) => (data as { error?: string }).error)
-          .catch(() => null);
-        throw new Error(detail ?? `Request failed (${response.status})`);
-      }
-
-      const listening =
-        response.headers.get("X-Interview-Reply-Kind") === "listening";
-      if (!listening)
-        setMessages((current) => [
-          ...current,
-          { role: "assistant", content: "" },
-        ]);
-      const completed = await receiveInterviewStream(response.body, (chunk) => {
-        if (listening) return;
-        setMessages((current) => {
-          const last = current.at(-1);
-          if (!last || last.role !== "assistant") return current;
-          return [
-            ...current.slice(0, -1),
-            { ...last, content: last.content + chunk },
-          ];
-        });
-        logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-      });
-      const phase = completed.checkpoint.phase;
-      if (!phase || !completed.checkpoint.resumeToken)
-        throw new Error("The interview checkpoint is missing. Please retry.");
+        },
+        (listening) => {
+          if (!listening)
+            setMessages([...next, { role: "assistant", content: "" }]);
+        },
+        (chunk) =>
+          setMessages((current) => {
+            const last = current.at(-1);
+            if (!last || last.role !== "assistant") return current;
+            return [
+              ...current.slice(0, -1),
+              { ...last, content: last.content + chunk },
+            ];
+          }),
+      );
+      completed = true;
       previousSceneRef.current = sentScene;
-      onPhaseChange(phase);
+      onPhaseChange(reply.phase);
       if (turn.canCommitImage)
         previousImageFingerprintRef.current = turn.fingerprint;
-      const finished: ChatMessage[] =
-        completed.checkpoint.replyKind === "listening"
-          ? next
-          : [...next, { role: "assistant", content: completed.reply }];
+      const finished: ChatMessage[] = reply.listening
+        ? next
+        : [...next, { role: "assistant", content: reply.reply }];
       setMessages(finished);
+      setPendingReply(undefined);
       await onSave({
         messages: finished,
-        phase,
-        resumeToken: completed.checkpoint.resumeToken,
+        pendingReply: undefined,
+        phase: reply.phase,
+        resumeToken: reply.resumeToken,
         previousScene: sentScene,
         previousImageFingerprint: previousImageFingerprintRef.current,
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Something went wrong");
-      // Interrupted replies must not enter a later saved transcript as completed turns.
-      setMessages((current) =>
-        current.at(-1)?.role === "assistant" ? current.slice(0, -1) : current,
-      );
+      const failure =
+        cause instanceof InterviewRecoveryError ? cause.failure : undefined;
+      if (failure) onRecoveryFailure?.(failure);
+      const detail =
+        cause instanceof Error
+          ? cause.message.slice(0, 1_000)
+          : "Interviewer unavailable. Please try again.";
+      setError(detail);
+      if (!completed) {
+        const failed = { ...waiting, error: detail };
+        setPendingReply(failed);
+        setMessages(next);
+        await onSave({
+          messages: next,
+          pendingReply: failed,
+          ...(failure ? { recoveryFailure: failure } : {}),
+        }).catch(() => {});
+      }
     } finally {
       sendingRef.current = false;
       onBusyChange(false);
       setIsStreaming(false);
     }
+  }
+
+  async function send(
+    content = input.trim(),
+    requestedAction?: CandidateAction,
+  ) {
+    if (pendingReply || !content.trim()) return;
+    const action = actionForTurn(content, requestedAction);
+    await submit(
+      [
+        ...messages,
+        {
+          role: "user",
+          content: content.trim(),
+          ...(action ? { action } : {}),
+          ...(requestedAction ? { source: "control" as const } : {}),
+        },
+      ],
+      requestedAction ? undefined : content.trim(),
+    );
+  }
+  async function retry() {
+    if (pendingReply) await submit(retryChatMessages(messages, pendingReply));
   }
 
   return {
@@ -196,6 +199,8 @@ export function useInterviewChat({
     setInput,
     isStreaming,
     error,
+    pendingReply,
+    retry,
     imageWarning,
     logRef,
     canSend,

@@ -74,6 +74,28 @@ access (including expired records and cached scores), request quotas, browser
 storage isolation, late work cancellation, callback redirects and sign-out CSRF.
 Real Google sign-in still requires a browser test with actual candidate accounts.
 
+## Distinguish sign-in from model outages
+
+Only the verified account boundary sets `X-Interview-Auth-Error` to
+`sign_in_required` (401) or `account_changed` (403). The browser invalidates its
+account scope only for those matching status/marker pairs. Unmarked 401/403
+responses, cross-origin rejections, quota failures, and dependency outages do not
+erase the account scope or redirect to sign-in. Supabase unavailability is 503
+without that marker, preserving the current page for recovery.
+
+An expired model key, including `expired_secret_key`, produces a generic
+interviewer-unavailable response with HTTP 503 rather than a candidate-login 401.
+The failed candidate turn is retained as awaiting a reply, with a persistent
+error and Retry reply. Pending state and a separate newly typed draft survive
+browser saves and reloads; retry submits the original turn once. Completed
+quiet listening checkpoints and completed replies do not need a retry. Grading
+failures keep the existing ended state and original scorecard retry evidence.
+
+Verify an expired provider key while signed in: stay on `/interview`, retain the
+drawing and message, and show the retry notice. Restore provider access and retry
+the reply without a duplicate candidate message. Separately expire the candidate
+session: its marked 401 must still invalidate the workspace and require sign-in.
+
 The anonymous `inteliprep` browser database is left intact and hidden from account
 history. Ownerless legacy server checkpoints cannot be claimed by a new account.
 Do not delete or automatically import those saves during rollout.

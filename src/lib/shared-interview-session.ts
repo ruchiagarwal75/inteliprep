@@ -84,6 +84,8 @@ export async function openSharedSession(
     throw new InterviewSessionError(
       "A valid saved interview checkpoint is required. Reopen your saved interview or start a new one.",
       409,
+      false,
+      "INTERVIEW_CHECKPOINT_INVALID",
     );
   }
   if (incoming.ownerUserId !== currentCandidateId())

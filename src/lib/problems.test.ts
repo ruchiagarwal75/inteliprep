@@ -16,6 +16,9 @@ describe("problem registry", () => {
     expect(catalog.map((problem) => problem.problemId)).toEqual([
       "single-server-scaling",
       "url-shortener",
+      "rate-limiter",
+      "chat-service",
+      "news-feed",
     ]);
     for (const summary of catalog)
       expect(Object.keys(summary).sort()).toEqual([

@@ -8,32 +8,45 @@ export function EndInterviewConfirmation({
   onCancel,
   onConfirm,
   switchTo,
+  withoutScoring = false,
 }: {
   open: boolean;
   draft: string;
   onCancel: () => void;
   onConfirm: (includeDraft: boolean) => void;
   switchTo?: "new" | "problem";
+  withoutScoring?: boolean;
 }) {
   return (
     <InterviewDialog
       open={open}
       title={
-        switchTo === "new"
-          ? "End this interview and start a 45-minute interview?"
-          : switchTo === "problem"
-            ? "End this interview before changing problems?"
-            : "End this interview?"
+        withoutScoring
+          ? "Close this interview without scoring?"
+          : switchTo === "new"
+            ? "End this interview and start a 45-minute interview?"
+            : switchTo === "problem"
+              ? "End this interview before changing problems?"
+              : "End this interview?"
       }
       onClose={onCancel}
     >
-      <p className="text-sm">
-        This freezes your drawing and chat and generates your scorecard. You can
-        reopen the results from Saved interviews.
-        {switchTo &&
-          " Your current interview ends before switching. If its scorecard fails, the saved interview keeps a retry option."}
-      </p>
-      {draft.trim() && (
+      {withoutScoring ? (
+        <p className="text-sm">
+          This interview cannot reconnect. Its drawing, chat, and unsent draft
+          will stay in Saved interviews in this browser. No scorecard will be
+          generated.
+          {switchTo && " You can then continue to your next interview."}
+        </p>
+      ) : (
+        <p className="text-sm">
+          This freezes your drawing and chat and generates your scorecard. You
+          can reopen the results from Saved interviews.
+          {switchTo &&
+            " Your current interview ends before switching. If its scorecard fails, the saved interview keeps a retry option."}
+        </p>
+      )}
+      {draft.trim() && !withoutScoring && (
         <>
           <p className="mt-3 text-sm font-medium">
             You have an unsent answer. Choose whether to include it in your
@@ -52,7 +65,7 @@ export function EndInterviewConfirmation({
         >
           {switchTo ? "Stay in this interview" : "Keep interviewing"}
         </button>
-        {draft.trim() && (
+        {draft.trim() && !withoutScoring && (
           <button
             type="button"
             onClick={() => onConfirm(true)}
@@ -68,13 +81,17 @@ export function EndInterviewConfirmation({
           onClick={() => onConfirm(false)}
           className="rounded border border-red-400 px-3 py-2 text-sm text-red-700 dark:text-red-300"
         >
-          {switchTo
-            ? draft.trim()
-              ? "End without this answer and continue"
-              : "End, save scorecard, and continue"
-            : draft.trim()
-              ? "End without this answer"
-              : "End and generate scorecard"}
+          {withoutScoring
+            ? switchTo
+              ? "Close without scoring and continue"
+              : "Close without scoring"
+            : switchTo
+              ? draft.trim()
+                ? "End without this answer and continue"
+                : "End, save scorecard, and continue"
+              : draft.trim()
+                ? "End without this answer"
+                : "End and generate scorecard"}
         </button>
       </div>
     </InterviewDialog>

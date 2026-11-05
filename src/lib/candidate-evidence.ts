@@ -1,5 +1,6 @@
 import type { ChatMessage } from "@/lib/chat";
 import { isBareAcknowledgement } from "@/lib/requirements-reply";
+import { exactSentences } from "@/lib/exact-sentences";
 
 /** Recognize legacy controls too, without stripping real explanations sent in the same message. */
 export function isPacingOnlyText(content: string): boolean {
@@ -15,10 +16,9 @@ export function isPacingOnlyText(content: string): boolean {
 /** Keep exact excerpts separate so removing controls cannot fabricate a contiguous quote. */
 export function candidateEvidenceExcerpts(message: ChatMessage): string[] {
   if (message.role !== "user" || message.source === "control") return [];
-  return Array.from(
-    message.content.matchAll(/[\s\S]+?(?:[.!?](?=\s|$)|$)/gu),
-    (match) => match[0].trim(),
-  ).filter((sentence) => sentence && !isPacingOnlyText(sentence));
+  return exactSentences(message.content).filter(
+    (sentence) => !isPacingOnlyText(sentence),
+  );
 }
 
 export function isCandidateEvidence(message: ChatMessage): boolean {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { diagramReviewQuestion } from "@/lib/diagram-review";
 import { sceneSchema, type Scene } from "@/lib/scene";
 import basicScene from "@/lib/fixtures/basic-system.json";
+import { getProblem } from "@/lib/problems";
 
 function drawing(): Scene {
   return sceneSchema.parse({
@@ -29,6 +30,41 @@ function drawing(): Scene {
   });
 }
 describe("focused diagram review", () => {
+  it.each(["rate-limiter", "chat-service", "news-feed"])(
+    "does not impose a database path on every API component for %s",
+    (id) => {
+      const problem = getProblem(id);
+      if (!problem) throw new Error("Missing problem");
+      expect(
+        diagramReviewQuestion(
+          drawing(),
+          [],
+          problem.diagramReview.checkApplicationDataPaths,
+        ),
+      ).toBeUndefined();
+      expect(
+        diagramReviewQuestion(
+          drawing(),
+          [{ role: "user", content: "I use a cache." }],
+          problem.diagramReview.checkApplicationDataPaths,
+        ),
+      ).toContain("cache");
+    },
+  );
+  it.each(["single-server-scaling", "url-shortener"])(
+    "preserves the original data-path review policy for %s",
+    (id) => {
+      const problem = getProblem(id);
+      if (!problem) throw new Error("Missing problem");
+      expect(
+        diagramReviewQuestion(
+          drawing(),
+          [],
+          problem.diagramReview.checkApplicationDataPaths,
+        ),
+      ).toContain('"App 2"');
+    },
+  );
   it("spots a second app without a database path and doesn't repeat the same probe", () => {
     const question = diagramReviewQuestion(drawing(), []);
     expect(question).toContain('"App 2"');

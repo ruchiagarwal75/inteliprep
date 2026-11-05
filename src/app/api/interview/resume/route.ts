@@ -36,6 +36,8 @@ async function resume(request: Request): Promise<Response> {
       throw new InterviewSessionError(
         "The saved interview uses an older stage configuration.",
         409,
+        false,
+        "INTERVIEW_CONFIGURATION_CHANGED",
       );
     await shared.persist();
     return Response.json(
@@ -50,7 +52,10 @@ async function resume(request: Request): Promise<Response> {
     );
   } catch (cause) {
     if (!(cause instanceof InterviewSessionError)) throw cause;
-    return Response.json({ error: cause.message }, { status: cause.status });
+    return Response.json(
+      { error: cause.message, code: cause.code },
+      { status: cause.status },
+    );
   } finally {
     await shared.release();
   }

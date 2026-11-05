@@ -1,4 +1,5 @@
 import type { ChatMessage } from "@/lib/chat";
+import { isRequirementProposal } from "@/lib/candidate-proposal";
 import {
   buildInterviewerInput,
   INTERVIEWER_INSTRUCTIONS,
@@ -38,6 +39,9 @@ export async function* streamInterviewerReply(
     (message) => message.role === "user",
   );
   const step = interview?.progress?.step;
+  const requirementProposal = Boolean(
+    latestCandidate && isRequirementProposal(latestCandidate.content),
+  );
   const clarification =
     interview &&
     latestCandidate &&
@@ -68,6 +72,7 @@ export async function* streamInterviewerReply(
   if (
     (step === "explaining" || step === "drawing") &&
     latestCandidate &&
+    !requirementProposal &&
     !isFactualQuestion(latestCandidate.content)
   ) {
     signal?.throwIfAborted();
@@ -96,7 +101,7 @@ export async function* streamInterviewerReply(
     {
       model: interviewerModel(),
       instructions: interview
-        ? buildInterviewInstructions(interview)
+        ? buildInterviewInstructions({ ...interview, requirementProposal })
         : INTERVIEWER_INSTRUCTIONS,
       input: buildInterviewerInput(
         messages,

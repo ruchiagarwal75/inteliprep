@@ -1,0 +1,45 @@
+{
+  "problemId": "news-feed",
+  "goalsQuestion": "What publishing and reading traffic, follower distribution, latency and freshness should I use?",
+  "constraintsQuestion": "What should successful publishing, retention and deletion guarantee?",
+  "requirementsAnswer": "I will estimate publishing and feed reads separately using the discussed daily volumes, ten-times peak factor and follower counts, with p95 feed reads below 500 milliseconds and normal new-post visibility within 5 seconds.",
+  "coreExplanation": [
+    "The publish API durably stores an immutable post ID, author ID and timestamp before acknowledging, and records fanout work; a worker looks up followers and writes post IDs to each reader's feed.",
+    "Feed reads merge ordered post IDs, filter by current follow state and visibility, and use a timestamp plus post-ID cursor so incoming posts do not shift already paginated results."
+  ],
+  "validationExplanation": [
+    "For popular creators I read recent posts on demand and merge them with prepared entries, while monitoring fanout backlog, propagation delay and p95 feed latency against the 5-second and 500-millisecond goals.",
+    "If a worker fails I replay durable events idempotently; deletion writes a visibility marker checked during reads and invalidates cached entries within 60 seconds so a replay cannot resurrect the deleted post."
+  ],
+  "rubricEvidence": [
+    "I will estimate publishing",
+    "The publish API durably stores",
+    "Feed reads merge",
+    "For popular creators",
+    "If a worker fails"
+  ],
+  "nodes": [
+    "Writer",
+    "Publish API",
+    "Post database",
+    "Fanout worker",
+    "Feed store",
+    "Feed API",
+    "Reader"
+  ],
+  "edges": [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [6, 5],
+    [5, 4],
+    [5, 2]
+  ],
+  "weakAnswer": "Every post is copied synchronously to every user, whether they follow its author or not. Pagination uses a shifting offset, and a deleted post remains visible indefinitely in prepared feeds.",
+  "reviewFocus": [
+    "A following-based feed must not include every creator for every user.",
+    "A shifting offset alone does not provide stable continuation under new posts.",
+    "Unbounded deleted-post visibility contradicts the 60-second requirement."
+  ]
+}

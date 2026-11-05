@@ -1,0 +1,181 @@
+{
+  "id": "rate-limiter",
+  "diagramReview": { "checkApplicationDataPaths": false },
+  "title": "Design a rate limiter",
+  "summary": "Protect an API from excessive requests while enforcing fair limits across multiple servers.",
+  "prompt": "Design a rate limiter for an existing API. Each request has a trusted API key. Decide whether to allow or reject it according to that key's usage limit, even when requests reach different API servers.",
+  "requirements": [
+    "The core workflow is a per-request allow or reject decision for a trusted API key. Authentication and API-key issuance already exist.",
+    "The default policy is at most 100 admitted requests per API key in any rolling 60-second interval. Rejected requests do not consume quota. A fixed calendar-minute limit is not equivalent; any relaxed policy must be explicitly agreed.",
+    "All API servers in one region enforce the same per-key policy. Multiple regions, billing plans, and dynamically editable rules are optional extensions.",
+    "Target a p95 enforcement overhead below 10 milliseconds during normal operation. Throughput assumptions depend on the selected level.",
+    "An exceeded quota produces HTTP 429 and a useful retry delay. If enforcement is unavailable, protect the downstream API by returning temporary unavailability rather than silently bypassing the limit.",
+    "Concurrent decisions must not admit more requests than the agreed policy permits. Usage state should expire when it can no longer affect a decision."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch how requests reach your rate limiter and how an allow or reject decision is made. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design a rate limiter for an existing API. Every request includes a trusted API key, and requests for the same key can reach different API servers.\n\nYour task is to decide which requests may proceed and which should be rejected when that key has used its allowance. Explain how your design keeps the decisions consistent and what callers see when a limit is reached. Authentication and issuing API keys are already handled. Keep the core exercise in one region; we'll clarify the policy, traffic, response-time target, and failure behavior before you draw and explain your design.\n\nWhat requirements would you clarify before choosing an approach?",
+      "expectations": "Keep the exercise in one region. Expect a clear request path, a concrete explanation of the rolling-window policy, bounded usage state, and correct behavior when two API servers check the same key. Explore one concurrent-request or failure example after the candidate explains the design. Accept any approach that satisfies the agreed policy; do not require algorithm names or prescribe storage components.",
+      "scaleHints": [
+        "Assume 1,000 checks per second at peak across 10,000 active API keys.",
+        "The default per-key policy is 100 admitted requests in any rolling 60 seconds, with p95 enforcement overhead below 10 milliseconds."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design a rate limiter shared by an API's servers. Every request has a trusted API key, and requests for one key may arrive concurrently at different servers.\n\nYour task is to enforce each key's allowance with a fast allow or reject decision. Explain the policy precisely, how state changes under concurrency, and how your design behaves during partial failures. Authentication and API-key issuance already exist. Keep the core service in one region. We'll agree on workload, latency, and failure behavior first, then give you time to draw and explain the request and state paths.\n\nWhich requirements and operating assumptions would you establish first?",
+      "expectations": "Expect a precise rolling-window policy, atomic enforcement across servers, quantified state and throughput estimates, hot-key reasoning, and explicit timeout and failure behavior. Discuss the consistency and latency consequences of the candidate's chosen design and useful overload metrics. Keep the core in one region; alternate algorithms are valid when their semantics meet the agreed policy.",
+      "scaleHints": [
+        "Assume 10,000 checks per second at peak across 100,000 active API keys.",
+        "Traffic may concentrate on a few keys; the per-key rolling-window policy and p95 overhead target stay unchanged."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design a rate limiter for a high-traffic API. Each request has a trusted API key, and many API servers may receive concurrent requests for the same key.\n\nYour task is to enforce a clearly defined per-key allowance while keeping the decision path fast and protecting the downstream API during failures. Explain how you prioritize correctness, availability, and operating cost as traffic becomes uneven. Authentication and key issuance already exist, and the core deployment is in one region. We'll establish policy, workload, latency, and failure expectations before you draw and explain your design.\n\nWhich policy and reliability requirements would you clarify first?",
+      "expectations": "Expect explicit correctness invariants, a defensible partitioning and ownership model, hot-key and retry behavior, state bounds, overload protection, recovery after lost or delayed decisions, and staged policy evolution. Examine the consequences of coordination, clock assumptions, and failure choices without mandating a particular algorithm or vendor. Multi-region deployment is an optional extension, not a prerequisite for a strong single-region design.",
+      "scaleHints": [
+        "Assume 100,000 checks per second at peak across 1 million active API keys.",
+        "A small number of keys can generate a large share of rejected traffic. Consider both state growth and enforcement overload."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and capacity",
+      "strong": "Defines the key, exact quota and window semantics, admitted versus rejected requests, workload, and decision-latency goal; estimates relevant throughput and state.",
+      "assessmentPattern": "\\b(requirement\\w*|policy|quota|rolling|window|traffic|throughput|capacity|latency|keys? per|checks? per|requests? per)\\b"
+    },
+    {
+      "area": "Policy and decision correctness",
+      "strong": "Explains a concrete admission algorithm that implements the agreed rolling-window semantics, handles expiry and boundary cases, and computes useful rejection behavior without counting denied requests.",
+      "assessmentPattern": "\\b(algorithm|rolling|window|bucket|timestamp\\w*|counter\\w*|quota|admi\\w*|reject\\w*|429|retry.after|expir\\w*|boundar\\w*)\\b"
+    },
+    {
+      "area": "Request path and state model",
+      "strong": "Connects API-server decisions to a clear per-key state model, explains how updates and expiry work, and justifies the latency and storage consequences of that path.",
+      "assessmentPattern": "\\b(api.server\\w*|request.path|decision.path|state|storage|redis|database|lookup\\w*|look.up\\w*|ttl|expir\\w*|partition\\w*|shard\\w*)\\b"
+    },
+    {
+      "area": "Concurrency and failure behavior",
+      "strong": "Shows why concurrent checks cannot over-admit, explains retry and timeout ambiguity, and preserves the agreed protective failure behavior during unavailable or overloaded enforcement.",
+      "assessmentPattern": "\\b(concurren\\w*|atomic\\w*|race\\w*|simultaneous|consisten\\w*|timeout\\w*|fail\\w*|unavailab\\w*|over.admi\\w*|retry|retries|overload\\w*)\\b"
+    },
+    {
+      "area": "Validation and operational tradeoffs",
+      "strong": "Describes boundary and concurrent-load tests, measures enforcement latency and incorrect decisions, and explains cost, hot-key, clock, and state-growth tradeoffs at the selected level.",
+      "assessmentPattern": "\\b(test\\w*|validat\\w*|measur\\w*|monitor\\w*|metric\\w*|observab\\w*|hot.key|clock\\w*|memory|cost\\w*|trade.off\\w*|state.growth)\\b"
+    }
+  ],
+  "followUps": [
+    "What happens when two servers check the last remaining allowance at the same time?",
+    "How does your decision change for requests arriving just before and after a window boundary?",
+    "What does the caller receive if the usage state cannot be read or updated?",
+    "What happens if a decision succeeds but its response is lost?",
+    "How does your design behave when one key sends far more requests than the others?",
+    "Which measurements would tell you that enforcement is both fast and correct?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish the per-key decision workflow, exact policy and workload goals, and rejection and failure requirements.",
+      "completionCriteria": [
+        "Candidate clarifies or confirms per-request allow or reject decisions for a trusted API key across multiple API servers.",
+        "Candidate establishes or confirms the rolling-window quota, expected check traffic, and enforcement-latency goal.",
+        "Candidate clarifies or confirms what callers see when their quota is exceeded or enforcement is unavailable."
+      ],
+      "clarificationQuestions": [
+        "Could you confirm what identifies a caller and which decision the service must make?",
+        "What quota, time window, traffic, and decision-latency goals are you using?",
+        "What should callers see when the quota is exceeded or the limiter is unavailable?"
+      ],
+      "interviewerGuidance": "Clarify workflow, exact policy, workload, and failure expectations only. Configured facts are shared requirements, not technical reasoning. The message budget is guidance, never proof of completion. Respect early drawing and explanation; do not ask for algorithm or storage choices before the candidate is ready.",
+      "transition": "initial"
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate sketch the API request path and explain their admission decision and usage state.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after explaining."
+      ],
+      "interviewerGuidance": "Let the candidate draw and explain across multiple messages. A partial sketch is not readiness. Hold review questions until explicitly invited.",
+      "transition": "drawing"
+    },
+    {
+      "id": "enforcement-design",
+      "title": "Explore enforcement",
+      "goal": "Understand the candidate's decision algorithm, state model, and concurrent enforcement.",
+      "completionCriteria": [
+        "Candidate explains how a request is admitted or rejected using their chosen rolling-window algorithm and stored usage state.",
+        "Candidate explains concurrent decisions for the same key and a correctness or latency tradeoff of their approach."
+      ],
+      "interviewerGuidance": "Ask one focused question about an uncovered decision or concurrency case in the candidate's own design. Accept any algorithm that meets the agreed semantics. Do not supply an algorithm or missing component.",
+      "transition": "coverage"
+    },
+    {
+      "id": "failure-and-validation",
+      "title": "Failures and validation",
+      "goal": "Explore unavailable or overloaded enforcement and how the candidate would check correctness and latency.",
+      "completionCriteria": [
+        "Candidate explains an enforcement timeout, unavailable state, or overload case and the resulting caller behavior.",
+        "Candidate describes a concrete concurrent-load or window-boundary test and a measurement of enforcement latency or incorrect decisions."
+      ],
+      "interviewerGuidance": "Explore one failure or validation gap at a time. Follow the drawn design and selected level; do not expand into global deployment unless agreed. Preserve drawing and explanation pauses.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Recap the candidate's policy, enforcement choices, and stated limitations.",
+      "completionCriteria": [
+        "The candidate's approach and stated tradeoffs are summarized."
+      ],
+      "interviewerGuidance": "Give a concise recap of only the candidate's choices and limitations. Do not assign scores, introduce a new design question, or invent shortcomings.",
+      "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|rps|qps|scale|capacity|latency|response.time|quota|policy|window|burst\\w*|requests? per)\\b",
+      "answers": {
+        "mid": "Assume 1,000 checks per second at peak across 10,000 active API keys. Each key may admit at most 100 requests in any rolling 60 seconds; rejected requests do not consume quota. Target p95 enforcement overhead below 10 milliseconds in one region.",
+        "senior": "Assume 10,000 checks per second at peak across 100,000 active API keys, with traffic concentrated on some keys. Each key may admit at most 100 requests in any rolling 60 seconds; rejected requests do not consume quota. Target p95 enforcement overhead below 10 milliseconds in one region.",
+        "staff": "Assume 100,000 checks per second at peak across 1 million active API keys, with a few keys generating much of the rejected traffic. Each key may admit at most 100 requests in any rolling 60 seconds; rejected requests do not consume quota. Target p95 enforcement overhead below 10 milliseconds in one region."
+      },
+      "coversCriteria": [1]
+    },
+    {
+      "pattern": "\\b(scope|identity|api.key\\w*|authentication|ip.address\\w*|region\\w*)\\b",
+      "answers": {
+        "mid": "Requests already carry a trusted API key; authentication and key issuance exist. The core decision is allow or reject across multiple API servers in one region. Multi-region rules, billing plans, and dynamic policy editing are optional.",
+        "senior": "Requests already carry a trusted API key; authentication and key issuance exist. The core decision is allow or reject across multiple API servers in one region. Multi-region rules, billing plans, and dynamic policy editing are optional.",
+        "staff": "Requests already carry a trusted API key; authentication and key issuance exist. The core decision is allow or reject across multiple API servers in one region. Multi-region rules, billing plans, and dynamic policy editing are optional."
+      },
+      "coversCriteria": [0]
+    },
+    {
+      "pattern": "\\b(exceed\\w*|denied|reject\\w*|429|retry.after|fail\\w*|unavailab\\w*|outage\\w*)\\b",
+      "answers": {
+        "mid": "An exceeded quota returns HTTP 429 with a useful retry delay. If enforcement is unavailable, return temporary unavailability and protect the downstream API instead of silently allowing unchecked requests.",
+        "senior": "An exceeded quota returns HTTP 429 with a useful retry delay. If enforcement is unavailable, return temporary unavailability and protect the downstream API instead of silently allowing unchecked requests.",
+        "staff": "An exceeded quota returns HTTP 429 with a useful retry delay. If enforcement is unavailable, return temporary unavailability and protect the downstream API instead of silently allowing unchecked requests."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(stale|staleness|consistency|concurren\\w*|simultaneous)\\b",
+      "answers": {
+        "mid": "No, stale or concurrent decisions may not admit requests beyond the agreed rolling-window quota. The policy is shared across servers for each key. Retain usage state only while it can affect that window; a relaxed approximate policy needs explicit agreement.",
+        "senior": "No, stale or concurrent decisions may not admit requests beyond the agreed rolling-window quota. The policy is shared across servers for each key. Retain usage state only while it can affect that window; a relaxed approximate policy needs explicit agreement.",
+        "staff": "No, stale or concurrent decisions may not admit requests beyond the agreed rolling-window quota. The policy is shared across servers for each key. Retain usage state only while it can affect that window; a relaxed approximate policy needs explicit agreement."
+      },
+      "coversCriteria": []
+    }
+  ]
+}

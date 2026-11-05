@@ -8,6 +8,11 @@ import { CandidateAuthError } from "@/lib/supabase-config";
 import { redisSessionCommand } from "@/lib/fixtures/redis-session-test";
 import { sealSession, unsealSession } from "@/lib/session-token";
 import { interviewStartSchema } from "@/lib/interview-selection";
+import {
+  CANDIDATE_AUTH_ERROR_HEADER,
+  CANDIDATE_AUTH_REQUIRED,
+  CANDIDATE_ACCOUNT_CHANGED,
+} from "@/lib/candidate-api-error";
 
 const redis = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/redis-rest", () => ({ redisCommand: redis }));
@@ -48,13 +53,22 @@ describe("authenticated interview boundary", () => {
     vi.mocked(requireCandidateIdentity).mockRejectedValue(
       new CandidateAuthError(),
     );
-    for (const handler of [start, resume, chat, end])
-      expect((await handler(request({}))).status).toBe(401);
+    for (const handler of [start, resume, chat, end]) {
+      const response = await handler(request({}));
+      expect(response.status).toBe(401);
+      expect(response.headers.get(CANDIDATE_AUTH_ERROR_HEADER)).toBe(
+        CANDIDATE_AUTH_REQUIRED,
+      );
+    }
     expect(redis).not.toHaveBeenCalled();
   });
   it("never accepts an expected account header as the authenticated identity", async () => {
     vi.mocked(requireCandidateIdentity).mockResolvedValue(bob);
-    expect((await start(request(selection, alice))).status).toBe(403);
+    const response = await start(request(selection, alice));
+    expect(response.status).toBe(403);
+    expect(response.headers.get(CANDIDATE_AUTH_ERROR_HEADER)).toBe(
+      CANDIDATE_ACCOUNT_CHANGED,
+    );
     expect(redis).not.toHaveBeenCalled();
   });
   it("binds Redis progress and tokens to the owner and rejects another account's copied token", async () => {

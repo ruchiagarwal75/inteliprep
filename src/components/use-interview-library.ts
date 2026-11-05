@@ -39,6 +39,7 @@ export function useInterviewLibrary(
     changed,
     initialized,
     getResumeToken,
+    closeWithoutScoring,
   } = useInterviewAutosave({
     getScene,
     onStatus: setStatus,
@@ -207,5 +208,6 @@ export function useInterviewLibrary(
     reset,
     remove,
     getResumeToken,
+    closeWithoutScoring,
   };
 }

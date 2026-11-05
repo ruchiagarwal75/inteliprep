@@ -3,6 +3,9 @@ import { z } from "zod";
 import type { InterviewDuration } from "@/lib/interview-timer";
 import urlShortener from "@/lib/problems/url-shortener.json";
 import singleServerScaling from "@/lib/problems/single-server-scaling.json";
+import rateLimiter from "@/lib/problems/rate-limiter.json";
+import chatService from "@/lib/problems/chat-service.json";
+import newsFeed from "@/lib/problems/news-feed.json";
 import {
   interviewLevelSchema,
   problemIdSchema,
@@ -63,11 +66,17 @@ const problemSchema = z.object({
     )
     .min(1),
   followUps: z.array(z.string().min(1)).min(1),
+  diagramReview: z
+    .object({ checkApplicationDataPaths: z.boolean() })
+    .default({ checkApplicationDataPaths: true }),
 });
 export type ProblemDefinition = z.infer<typeof problemSchema>;
 const problems: ProblemDefinition[] = [
   problemSchema.parse(singleServerScaling),
   problemSchema.parse(urlShortener),
+  problemSchema.parse(rateLimiter),
+  problemSchema.parse(chatService),
+  problemSchema.parse(newsFeed),
 ];
 
 export function getProblem(problemId: string): ProblemDefinition | undefined {

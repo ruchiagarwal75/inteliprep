@@ -2,6 +2,8 @@ import "server-only";
 import type { ChatMessage } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
 import type { InterviewLevel } from "@/lib/interview-selection";
+import { exactSentences } from "@/lib/exact-sentences";
+import { isCandidateProposal } from "@/lib/candidate-proposal";
 
 export function isFactualQuestion(content: string): boolean {
   return (
@@ -18,7 +20,8 @@ export function configuredClarification(
   level: InterviewLevel,
   content: string,
 ) {
-  if (!isFactualQuestion(content)) return undefined;
+  if (!isFactualQuestion(content) || isCandidateProposal(content))
+    return undefined;
   // A question about how to solve the design is not a request for exercise facts.
   if (
     /^(?:how (?:would|should|can|do|will) (?:i|we|you)\b|should (?:i|we) (?:add|use|implement|choose|scale)\b)/iu.test(
@@ -30,8 +33,21 @@ export function configuredClarification(
     new RegExp(entry.pattern, "iu").test(content),
   );
   if (!matches.length) return undefined;
+  const seen = new Set<string>();
+  const paragraphs = matches
+    .map((entry) =>
+      exactSentences(entry.answers[level])
+        .filter((sentence) => {
+          const key = sentence.toLowerCase().replace(/\s+/gu, " ");
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .join(" "),
+    )
+    .filter(Boolean);
   return {
-    text: matches.map((entry) => entry.answers[level]).join("\n\n"),
+    text: paragraphs.join("\n\n"),
     coveredCriteria: [
       ...new Set(matches.flatMap((entry) => entry.coversCriteria)),
     ],

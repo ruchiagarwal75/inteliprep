@@ -6,6 +6,8 @@ import { whiteboardContentKey } from "@/lib/whiteboard-snapshot";
 import { reportClientError } from "@/lib/report-client-error";
 import { InterviewStorageConflict } from "@/lib/interview-storage";
 import { useCandidateAccount } from "@/components/candidate-account-context";
+import type { ChatMessage } from "@/lib/chat";
+import { closedInterviewUpdate } from "@/lib/close-interview";
 import {
   updateSavedInterview,
   type InterviewSaveUpdate,
@@ -147,6 +149,17 @@ export function useInterviewAutosave({
     () => savedRef.current?.interview.resumeToken,
     [],
   );
+  async function closeWithoutScoring(messages: ChatMessage[], draft: string) {
+    if (
+      !savedRef.current ||
+      savedRef.current.scorecard ||
+      conflictedRef.current
+    )
+      return false;
+    await save(closedInterviewUpdate(messages, draft));
+    await queueRef.current;
+    return !dirtyRef.current && !conflictedRef.current;
+  }
   return {
     savedRef,
     revisionsRef,
@@ -158,5 +171,6 @@ export function useInterviewAutosave({
     changed,
     initialized,
     getResumeToken,
+    closeWithoutScoring,
   };
 }

@@ -29,6 +29,32 @@ const snapshot: InterviewEndSnapshot = {
 };
 
 describe("rubric assessment opportunities", () => {
+  it.each([
+    "50k-follower",
+    "50,000-follower",
+    "50,000 followers",
+    "5 million followers",
+  ])("recognizes candidate reasoning about %s creators", (count) => {
+    const feed = getProblem("news-feed");
+    if (!feed) throw new Error("Missing news feed");
+    expect(
+      areaWasExplored(feed, 3, {
+        messages: [
+          { role: "assistant", content: feed.levels.mid.openingMessage },
+        ],
+      }),
+    ).toBe(false);
+    expect(
+      areaWasExplored(feed, 3, {
+        messages: [
+          {
+            role: "user",
+            content: `For the ${count} case, I would read their recent posts separately to avoid writing one entry per recipient.`,
+          },
+        ],
+      }),
+    ).toBe(true);
+  });
   it("does not turn a core redirect explanation into evidence of unasked scaling or operations", () => {
     expect(areaWasExplored(problem, 1, snapshot)).toBe(true);
     expect(areaWasExplored(problem, 2, snapshot)).toBe(true);

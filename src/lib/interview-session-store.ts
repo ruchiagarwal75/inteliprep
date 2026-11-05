@@ -110,6 +110,8 @@ export function lockSession(
       throw new InterviewSessionError(
         "This saved interview can't be resumed with the current server configuration. Your browser copy is still available.",
         409,
+        false,
+        "INTERVIEW_CHECKPOINT_INVALID",
       );
     }
     insertSession(session);
@@ -118,6 +120,8 @@ export function lockSession(
     throw new InterviewSessionError(
       "This interview has expired. Start a new interview.",
       404,
+      false,
+      "INTERVIEW_SESSION_EXPIRED",
     );
   if (session.ownerUserId !== currentCandidateId())
     throw new InterviewSessionError(

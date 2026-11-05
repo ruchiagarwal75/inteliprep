@@ -1,9 +1,8 @@
 "use client";
+import { useState } from "react";
 import { ChatComposer } from "@/components/chat-composer";
 
-import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
-import type { InterviewStart } from "@/lib/interview-selection";
-import type { InterviewPhase } from "@/lib/interview-phase";
+import type { ChatPanelProps } from "@/components/interview-chat-options";
 import { lastCandidateAction } from "@/lib/candidate-actions";
 import { ChatTranscript } from "@/components/chat-transcript";
 import { InterviewPacing } from "@/components/interview-pacing";
@@ -11,42 +10,28 @@ import { useInterviewChat } from "@/components/use-interview-chat";
 import { useInterviewEnd } from "@/components/use-interview-end";
 import { InterviewScorecard } from "@/components/interview-scorecard";
 import { useInterviewAutoEnd } from "@/components/use-interview-auto-end";
-import { InterviewEndControl } from "@/components/interview-end-control";
+import {
+  InterviewEndControl,
+  InterviewEndNotices,
+} from "@/components/interview-end-control";
 import { ExpiredDraft } from "@/components/expired-draft";
-import type {
-  SavedInterview,
-  InterviewSaveUpdate,
-} from "@/lib/saved-interview";
-
-type ChatPanelProps = {
-  getScene: () => WhiteboardScene;
-  hasDrawing: boolean;
-  interview?: InterviewStart;
-  onBusyChange: (busy: boolean) => void;
-  onPhaseChange: (phase: InterviewPhase) => void;
-  phase?: InterviewPhase;
-  hasEnded: boolean;
-  onEndChange: (ended: boolean) => void;
-  onEndConfirmed: (ended: boolean) => void;
-  restored?: SavedInterview;
-  getResumeToken: () => string | undefined;
-  onSave: (update: InterviewSaveUpdate) => Promise<void>;
-  disabled: boolean;
-  timeExpired: boolean;
-  canSubmit: () => boolean;
-  leaveAction?: "new" | "problem";
-  onCancelLeave: () => void;
-  onConfirmLeave: () => void;
-};
+import { ChatReplyStatus } from "@/components/chat-reply-status";
+import { useInterviewClosure } from "@/components/use-interview-closure";
+import { InterviewRecoveryNotice } from "@/components/interview-recovery-notice";
 
 export function ChatPanel(props: ChatPanelProps) {
   const { interview, hasDrawing, hasEnded } = props;
+  const [recoveryFailure, onRecoveryFailure] = useState(
+    props.restored?.recoveryFailure,
+  );
   const {
     messages,
     input,
     setInput,
     isStreaming,
     error,
+    pendingReply,
+    retry,
     imageWarning,
     logRef,
     canSend,
@@ -55,10 +40,15 @@ export function ChatPanel(props: ChatPanelProps) {
     setMessages,
   } = useInterviewChat({
     ...props,
+    recoveryFailure,
+    onRecoveryFailure,
     disabled: hasEnded || props.timeExpired || props.disabled,
   });
+  const closure = useInterviewClosure(props, messages, getDraft);
   const ending = useInterviewEnd({
     ...props,
+    recoveryFailure,
+    onRecoveryFailure,
     messages,
     isReplying: isStreaming,
     onMessagesChange: setMessages,
@@ -76,6 +66,8 @@ export function ChatPanel(props: ChatPanelProps) {
       hasScorecard: Boolean(ending.scorecard),
       disabled:
         props.disabled ||
+        Boolean(recoveryFailure) ||
+        closure.closed ||
         !interview ||
         Boolean(input.trim()) ||
         Boolean(props.leaveAction),
@@ -88,7 +80,7 @@ export function ChatPanel(props: ChatPanelProps) {
     <ChatTranscript
       logRef={logRef}
       messages={messages}
-      error={error}
+      pendingMessageIndex={hasEnded ? undefined : pendingReply?.messageIndex}
       imageWarning={imageWarning}
       isStreaming={isStreaming}
     />
@@ -119,24 +111,21 @@ export function ChatPanel(props: ChatPanelProps) {
           isStreaming={isStreaming}
           draft={input}
           getDraft={getDraft}
+          recoveryFailure={Boolean(recoveryFailure)}
+          closure={closure}
         />
       </header>
-      {ending.error && (
-        <p
-          role="alert"
-          className="px-3 py-2 text-sm text-red-600 dark:text-red-400"
-        >
-          {ending.error}
-        </p>
-      )}
-      {ending.imageWarning && (
-        <p
-          role="status"
-          className="px-3 py-2 text-xs text-amber-700 dark:text-amber-300"
-        >
-          {ending.imageWarning}
-        </p>
-      )}
+      <InterviewRecoveryNotice
+        failure={recoveryFailure}
+        closed={closure.closed}
+      />
+      <InterviewEndNotices
+        error={
+          closure.error ??
+          (recoveryFailure || closure.closed ? undefined : ending.error)
+        }
+        imageWarning={ending.imageWarning}
+      />
       {ending.scorecard ? (
         <InterviewScorecard scorecard={ending.scorecard} scene={ending.scene}>
           {transcript}
@@ -152,7 +141,15 @@ export function ChatPanel(props: ChatPanelProps) {
           Your interview has ended. Reviewing your answers and final diagram…
         </p>
       )}
-      {props.timeExpired && !hasEnded && input.trim() && (
+      {error && !hasEnded && !recoveryFailure && (
+        <ChatReplyStatus
+          error={error}
+          pending={Boolean(pendingReply)}
+          onRetry={props.timeExpired ? undefined : () => void retry()}
+          disabled={props.disabled || isStreaming || ending.isEnding}
+        />
+      )}
+      {props.timeExpired && !hasEnded && !recoveryFailure && input.trim() && (
         <ExpiredDraft
           draft={input}
           busy={props.disabled || isStreaming || ending.isEnding}
@@ -176,7 +173,12 @@ export function ChatPanel(props: ChatPanelProps) {
             action={mode}
             hasDrawing={hasDrawing}
             disabled={
-              !interview || isStreaming || ending.isEnding || props.disabled
+              !interview ||
+              isStreaming ||
+              ending.isEnding ||
+              props.disabled ||
+              Boolean(recoveryFailure) ||
+              Boolean(pendingReply)
             }
             onChoose={(message, action) => void send(message, action)}
           />
@@ -185,7 +187,7 @@ export function ChatPanel(props: ChatPanelProps) {
             input={input}
             onInput={setInput}
             onSend={() => void send()}
-            disabled={!interview || props.disabled}
+            disabled={!interview || props.disabled || Boolean(recoveryFailure)}
             canSend={canSend}
             started={Boolean(interview)}
           />

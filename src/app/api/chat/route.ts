@@ -37,14 +37,19 @@ function upstreamError(cause: unknown, requestId: string): Response {
     cause,
   );
   if (cause instanceof APIError) {
-    const status = cause.status ?? 502;
+    const status =
+      cause.status === 401 || cause.status === 403
+        ? 503
+        : cause.status === 429
+          ? 429
+          : 502;
     return error(
-      "The language model rejected the request",
+      "Interviewer unavailable. Please try again.",
       status,
       cause.code ?? undefined,
     );
   }
-  return error("The language model could not be reached", 502);
+  return error("Interviewer unavailable. Please try again.", 502);
 }
 
 async function chat(request: Request, requestId: string): Promise<Response> {

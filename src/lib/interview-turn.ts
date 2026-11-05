@@ -20,6 +20,7 @@ import {
 import { diagramReviewQuestion } from "@/lib/diagram-review";
 import { hasCandidateAnswer } from "@/lib/grading-evidence";
 import { logServerEvent } from "@/lib/server-events";
+import { isRequirementProposal } from "@/lib/candidate-proposal";
 
 export async function prepareInterviewTurn(
   problem: ProblemDefinition,
@@ -56,6 +57,8 @@ export async function prepareInterviewTurn(
       throw new InterviewSessionError(
         "The saved interview uses an older stage configuration.",
         409,
+        false,
+        "INTERVIEW_CONFIGURATION_CHANGED",
       );
     let covered: number[] =
       current.transition === "initial"
@@ -110,8 +113,13 @@ export async function prepareInterviewTurn(
         reviewQuestion:
           plan.progress.step === "review" &&
           problem.phases[plan.state.phaseIndex]?.transition !== "wrap-up" &&
+          !isRequirementProposal(latest?.content ?? "") &&
           !isFactualQuestion(latest?.content ?? "")
-            ? diagramReviewQuestion(request.scene, request.messages)
+            ? diagramReviewQuestion(
+                request.scene,
+                request.messages,
+                problem.diagramReview.checkApplicationDataPaths,
+              )
             : undefined,
       },
       phase: publicPhase(problem.phases, plan.state.phaseIndex),

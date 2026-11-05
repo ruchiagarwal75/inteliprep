@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { candidateQuotes } from "@/lib/scorecard-quotes";
 
 describe("candidate quote references", () => {
+  it("keeps examples and abbreviations inside complete evidence sentences", () => {
+    const content =
+      "What's the limit policy (e.g. 100 requests per minute per key)? I would keep the counter in shared storage, i.e. Redis. Dr. Lee's client can retry after 0.5 seconds.";
+    const quotes = candidateQuotes([{ role: "user", content }]);
+    expect(quotes.map((item) => item.quote)).toEqual([
+      "What's the limit policy (e.g. 100 requests per minute per key)?",
+      "I would keep the counter in shared storage, i.e. Redis.",
+      "Dr. Lee's client can retry after 0.5 seconds.",
+    ]);
+    expect(quotes.every((item) => content.includes(item.quote))).toBe(true);
+  });
   it("excludes button messages and legacy pacing text while preserving real explanations", () => {
     const quotes = candidateQuotes([
       { role: "user", content: "Hello" },

@@ -107,15 +107,17 @@ export function InterviewHistory({
                 <p className="mt-1 text-sm">
                   {entry.signal
                     ? SIGNAL_LABELS[entry.signal]
-                    : entry.hasEnded
-                      ? entry.gradingError
-                        ? "Scorecard failed — retry available"
-                        : "Awaiting scorecard"
-                      : state.status === "expired"
-                        ? "Time expired · Open to finish and generate a scorecard"
-                        : state.status === "saved"
-                          ? "Saved · Open to check session status"
-                          : "In progress"}
+                    : entry.closedWithoutScoring
+                      ? "Closed without scoring"
+                      : entry.hasEnded
+                        ? entry.gradingError
+                          ? "Scorecard failed — retry available"
+                          : "Awaiting scorecard"
+                        : state.status === "expired"
+                          ? "Time expired · Open to finish and generate a scorecard"
+                          : state.status === "saved"
+                            ? "Saved · Open to check session status"
+                            : "In progress"}
                   {entry.averageScore !== undefined &&
                     ` · ${entry.averageScore.toFixed(1)}/4 assessed average`}
                 </p>

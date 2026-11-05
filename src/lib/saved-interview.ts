@@ -9,6 +9,8 @@ import { sceneSchema } from "@/lib/scene";
 import { scorecardSchema, type Scorecard } from "@/lib/scorecard";
 import { interviewEndRequestSchema } from "@/lib/interview-end";
 import { serverClockOffset } from "@/lib/interview-timer";
+import { pendingChatReplySchema } from "@/lib/pending-chat-reply";
+import { interviewRecoveryFailureSchema } from "@/lib/interview-recovery";
 import {
   captureWhiteboard,
   type WhiteboardScene,
@@ -74,6 +76,9 @@ export const savedInterviewSchema = z
     interview: interviewStartSchema,
     phase: interviewPhaseSchema,
     messages: z.array(chatMessageSchema).min(1).max(102),
+    pendingReply: pendingChatReplySchema.optional(),
+    recoveryFailure: interviewRecoveryFailureSchema.optional(),
+    closedWithoutScoring: z.boolean().optional(),
     whiteboard: nativeSceneSchema,
     previousScene: sceneSchema.optional(),
     previousImageFingerprint: z.string().optional(),
@@ -90,7 +95,11 @@ export const savedInterviewSchema = z
   .refine(
     (saved) =>
       saved.id === saved.interview.sessionId &&
-      (!saved.scorecard || saved.hasEnded),
+      (!saved.scorecard || saved.hasEnded) &&
+      (!saved.closedWithoutScoring ||
+        (saved.hasEnded && !saved.scorecard && !saved.endRequest)) &&
+      (!saved.pendingReply ||
+        saved.messages[saved.pendingReply.messageIndex]?.role === "user"),
     { message: "Invalid saved interview state" },
   );
 export type SavedInterview = z.infer<typeof savedInterviewSchema>;
@@ -99,6 +108,9 @@ export type InterviewSaveUpdate = Partial<
     SavedInterview,
     | "phase"
     | "messages"
+    | "pendingReply"
+    | "recoveryFailure"
+    | "closedWithoutScoring"
     | "previousScene"
     | "previousImageFingerprint"
     | "pacingCapture"
@@ -112,7 +124,7 @@ export type InterviewSaveUpdate = Partial<
 > & { resumeToken?: string };
 export type SavedInterviewSummary = Pick<
   SavedInterview,
-  "id" | "createdAt" | "updatedAt" | "hasEnded"
+  "id" | "createdAt" | "updatedAt" | "hasEnded" | "closedWithoutScoring"
 > & {
   problemId: string;
   level: InterviewStart["level"];
@@ -172,6 +184,7 @@ export function savedInterviewSummary(
     createdAt: saved.createdAt,
     updatedAt: saved.updatedAt,
     hasEnded: saved.hasEnded,
+    closedWithoutScoring: saved.closedWithoutScoring,
     timing: saved.interview.timing,
     clockOffsetMs: saved.clockOffsetMs,
     problemId: saved.interview.problemId,

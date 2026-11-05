@@ -11,6 +11,10 @@ import { prepareWhiteboardTurn } from "@/lib/whiteboard-turn";
 import { interviewEndResponseSchema, type Scorecard } from "@/lib/scorecard";
 import { captureScene } from "@/lib/scene-snapshot";
 import { finalInterviewMessages } from "@/lib/final-interview-messages";
+import {
+  interviewRecoveryFailure,
+  type InterviewRecoveryFailure,
+} from "@/lib/interview-recovery";
 import type {
   SavedInterview,
   InterviewSaveUpdate,
@@ -30,6 +34,8 @@ export function useInterviewEnd({
   disabled = false,
   onMessagesChange,
   onDraftIncluded,
+  recoveryFailure,
+  onRecoveryFailure,
 }: {
   getScene: () => WhiteboardScene;
   interview?: InterviewStart;
@@ -44,6 +50,8 @@ export function useInterviewEnd({
   disabled?: boolean;
   onMessagesChange: (messages: ChatMessage[]) => void;
   onDraftIncluded: () => void;
+  recoveryFailure?: InterviewRecoveryFailure;
+  onRecoveryFailure: (failure: InterviewRecoveryFailure) => void;
 }) {
   const { request } = useCandidateAccount();
   const [isEnding, setIsEnding] = useState(false);
@@ -67,7 +75,15 @@ export function useInterviewEnd({
 
   async function end(finalAnswer?: string): Promise<boolean> {
     if (scorecard) return true;
-    if (!interview || isReplying || endingRef.current || disabled) return false;
+    if (
+      !interview ||
+      isReplying ||
+      endingRef.current ||
+      disabled ||
+      recoveryFailure ||
+      restored?.closedWithoutScoring
+    )
+      return false;
     endingRef.current = true;
     setIsEnding(true);
     onBusyChange(true);
@@ -117,6 +133,8 @@ export function useInterviewEnd({
           ? body.resumeToken
           : undefined;
       if (!response.ok) {
+        const failure = interviewRecoveryFailure(response.status, body);
+        if (failure) onRecoveryFailure(failure);
         const detail = body && typeof body === "object" ? body : {};
         const ended = "ended" in detail && detail.ended === true;
         onEndChange(ended);
@@ -132,6 +150,7 @@ export function useInterviewEnd({
             "error" in detail && typeof detail.error === "string"
               ? detail.error
               : "Scorecard generation failed.",
+          ...(failure ? { recoveryFailure: failure } : {}),
         });
         setError(
           "error" in detail && typeof detail.error === "string"
@@ -148,6 +167,7 @@ export function useInterviewEnd({
       await onSave({
         hasEnded: true,
         scorecard: parsed.data.scorecard,
+        pendingReply: undefined,
         endRequest: undefined,
         resumeToken,
         gradingError: undefined,

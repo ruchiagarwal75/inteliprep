@@ -1,0 +1,181 @@
+{
+  "id": "chat-service",
+  "diagramReview": { "checkApplicationDataPaths": false },
+  "title": "Design a chat service",
+  "summary": "Build one-to-one text messaging with online delivery, saved history, and recovery after disconnects.",
+  "prompt": "Design a one-to-one text chat service. Signed-in users send messages, receive them while online, and read saved conversation history after reconnecting. Explain message acceptance, delivery, ordering, and recovery when clients or servers disconnect.",
+  "requirements": [
+    "Support one-to-one text messages, online delivery, and paginated conversation history. Existing identity and authentication services provide trusted user IDs.",
+    "Only the two conversation participants may send or read its messages. Group chat, attachments, voice/video, typing indicators, read receipts, and end-to-end encryption are optional extensions, not core requirements.",
+    "A successful send acknowledgement means the message is durably accepted, not that the recipient has received or read it. Under normal operation target p95 send acceptance below 200 milliseconds and online delivery below 1 second.",
+    "An offline recipient can retrieve retained messages after reconnecting. Retain messages for 90 days; delivery to a disconnected device has no 1-second guarantee.",
+    "All clients must converge on one stable order within a conversation. No global order across conversations is required. Retrying the same logical send must not create another stored message; transport redelivery is allowed if clients suppress duplicate display.",
+    "Keep the core design in one region. Discuss multiple devices, recovery, and regional disaster recovery at the depth appropriate to the selected level without expanding the product scope."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch how two users send and receive messages, including saved history and reconnecting. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design a one-to-one text chat service. Signed-in users can send messages to each other, receive messages while online, and read their conversation history when they return after being offline.\n\nYour task is to explain how a message is accepted, stored, and delivered, and what happens when someone disconnects. User identity and authentication already exist; only conversation participants may access their messages. Start with text messages in one region. Group chat, attachments, and voice or video are outside the core exercise. We'll clarify traffic, timing, message guarantees, and retention before you draw and explain your design.\n\nWhat requirements would you clarify before starting?",
+      "expectations": "Expect a coherent send and history API, a simple durable message model, online delivery and offline catch-up, participant access checks, and a clear acknowledgement meaning. Explore retry duplicates and one disconnect example in plain language. Accept any justified delivery mechanism; do not require protocol names or prescribe components.",
+      "scaleHints": [
+        "Assume 10,000 daily active users and 1 million messages per day, with peaks ten times the daily average.",
+        "Target p95 send acceptance below 200 milliseconds and online delivery below 1 second during normal operation; retain messages for 90 days."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design a one-to-one text chat service. Signed-in users send messages, receive them while online, and retrieve saved conversation history after reconnecting. Only the participants may access a conversation, and identity and authentication already exist.\n\nYour task is to define the send, storage, and delivery paths and explain their guarantees when connections or servers fail. Cover a stable conversation order and how retries affect stored messages and what users see. Keep the core product to text chat in one region; group chat, media, and read receipts are optional extensions. We'll agree on traffic, timing, and retention first, then give you time to draw and explain.\n\nWhich message guarantees and workload assumptions would you establish first?",
+      "expectations": "Expect quantified traffic and connection estimates, a defensible conversation partition and ordering model, idempotent sends, reconnect cursors, multiple-device behavior, backpressure, and explicit acknowledgement and delivery states. Explore failures and authorization using the candidate's own design. Separate durable acceptance from delivery and reading; do not demand exactly-once network delivery.",
+      "scaleHints": [
+        "Assume 1 million daily active users and 100 million messages per day, with peaks ten times the daily average.",
+        "Users may have multiple devices. Retain the same acceptance, online-delivery, and 90-day history requirements."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design a high-traffic one-to-one text chat service. Signed-in users send messages, receive them while online, and recover saved history after reconnecting. Identity and authentication already exist, and conversations are private to their participants.\n\nYour task is to define durable message acceptance, online delivery, ordering, and recovery under uneven traffic and partial failures. Explain the ownership and operational tradeoffs behind your approach. The core deployment is in one region and the core product is text chat; group messaging, media, and read receipts are optional. We'll establish workload, timing, and retention before you draw and explain the design.\n\nWhich consistency, delivery, and reliability requirements would you clarify first?",
+      "expectations": "Expect explicit per-conversation invariants, ownership and failover reasoning, deduplication boundaries, reconnect storms, slow-client isolation, privacy and retention consequences, and measurable recovery objectives. Discuss regional disaster recovery and migration as consequences of the candidate's choices, without making a global active-active product mandatory. Accept alternate designs that preserve the agreed user-visible guarantees.",
+      "scaleHints": [
+        "Assume 10 million daily active users and 1 billion messages per day, with peaks ten times the daily average.",
+        "Consider uneven conversation traffic, several devices per user, and mass reconnection after an outage while retaining the same core product guarantees."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and workload",
+      "strong": "Separates send acceptance, online delivery, and offline history; defines timing, retention, privacy, and scale assumptions with estimates appropriate to the selected level.",
+      "assessmentPattern": "\\b(requirement\\w*|scope|traffic|users? per|messages? per|connections?|throughput|latency|retention|90 days|200 milliseconds|1 second)\\b"
+    },
+    {
+      "area": "Messaging API and durable model",
+      "strong": "Defines a coherent send and paginated history API with conversation, message, sender, and retry identities; explains when the message is durable and how the acknowledgement relates to storage.",
+      "assessmentPattern": "\\b(api|endpoint\\w*|send|history|paginat\\w*|cursor\\w*|message.id\\w*|conversation.id\\w*|database|stor\\w*|durab\\w*|acknowledg\\w*)\\b"
+    },
+    {
+      "area": "Online delivery and offline recovery",
+      "strong": "Explains how online messages reach the recipient, how retained messages are found on reconnect, and how cursors, redelivery, and slow clients affect delivery without confusing acceptance with reading.",
+      "assessmentPattern": "\\b(deliver\\w*|online|offline|reconnect\\w*|disconnect\\w*|websocket\\w*|poll\\w*|push|cursor\\w*|catch.up|backpressure|slow.client\\w*)\\b"
+    },
+    {
+      "area": "Ordering, retries, and access",
+      "strong": "Explains a stable conversation order, suppression of duplicate logical sends and duplicate display, and participant authorization for live delivery and history, including concurrent sends and retries.",
+      "assessmentPattern": "\\b(order\\w*|sequence\\w*|concurren\\w*|retry|retries|duplicate\\w*|dedup\\w*|idempot\\w*|participant\\w*|authoriz\\w*|permission\\w*|access.control|privacy)\\b"
+    },
+    {
+      "area": "Scaling, failures, and operations",
+      "strong": "Justifies scaling and ownership choices, explains recovery after a partial failure, and measures acceptance latency, delivery lag, errors, and backlog or retention behavior with clear cost and availability tradeoffs.",
+      "assessmentPattern": "\\b(scal\\w*|partition\\w*|shard\\w*|ownership|fail\\w*|outage\\w*|recover\\w*|replic\\w*|monitor\\w*|metric\\w*|backlog|cost\\w*|trade.off\\w*|retention)\\b"
+    }
+  ],
+  "followUps": [
+    "What exactly does the sender's successful acknowledgement guarantee?",
+    "What happens if a connection drops after the message is stored but before the sender receives its acknowledgement?",
+    "How does an offline recipient find the messages it missed after reconnecting?",
+    "When two sends arrive together, how do the participants agree on their order?",
+    "How do you prevent another signed-in user from reading this conversation?",
+    "Which measurements distinguish slow delivery from messages that were never durably accepted?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish the one-to-one workflows, traffic and timing goals, and message correctness and retention constraints.",
+      "completionCriteria": [
+        "Candidate clarifies or confirms one-to-one text sending, online delivery, retained history, and participant-only access.",
+        "Candidate establishes or confirms message traffic, send-acceptance latency, and online-delivery goals.",
+        "Candidate clarifies or confirms durable acceptance, conversation ordering, retry and redelivery semantics, and history retention."
+      ],
+      "clarificationQuestions": [
+        "Could you confirm the messaging workflows and who can access a conversation?",
+        "What message traffic, send-acceptance time, and online-delivery goals are you using?",
+        "What acceptance, ordering, retry, and retention guarantees should the service provide?"
+      ],
+      "interviewerGuidance": "Clarify product scope, workload, timing, and message guarantees before architecture choices. Facts supplied in the opening are shared context. The message budget is guidance, never proof of completion. Do not quiz protocols or storage while the candidate is drawing or explaining.",
+      "transition": "initial"
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Give the candidate time to sketch and explain sending, online delivery, and saved history.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after explaining."
+      ],
+      "interviewerGuidance": "Let the candidate explain across multiple messages. Do not interpret a partial diagram or one explanation message as permission to ask review questions.",
+      "transition": "drawing"
+    },
+    {
+      "id": "messaging-and-history",
+      "title": "Messaging and history",
+      "goal": "Understand message acceptance, persistence, history, and the candidate's ordering and retry model.",
+      "completionCriteria": [
+        "Candidate explains the send and history request paths, stored message model, and what a successful send acknowledgement means.",
+        "Candidate explains conversation ordering, retry duplicate handling, and participant access in their design."
+      ],
+      "interviewerGuidance": "Ask one short question about an uncovered path or guarantee in the candidate's design. Do not prescribe a transport, store, or missing component. Assess what they actually said or drew.",
+      "transition": "coverage"
+    },
+    {
+      "id": "delivery-and-recovery",
+      "title": "Delivery and recovery",
+      "goal": "Explore online delivery, offline catch-up, and behavior under failure or load.",
+      "completionCriteria": [
+        "Candidate explains online delivery and how a disconnected recipient retrieves missed messages without duplicate display.",
+        "Candidate explains a server or connection failure, a scaling consequence, and a concrete measurement of delivery health."
+      ],
+      "interviewerGuidance": "Follow the candidate's topology and selected level. Separate acceptance, delivery, and reading. Discuss one reconnect or failure case at a time and preserve explanation pauses.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Close with the candidate's delivery guarantees and stated tradeoffs.",
+      "completionCriteria": [
+        "The candidate's design and stated limitations are summarized."
+      ],
+      "interviewerGuidance": "Summarize the candidate's actual choices without inventing guarantees, assigning scores, or asking another design question.",
+      "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|rps|qps|scale|capacity|latency|response.time|users? per|messages? per|delivery.time|how (?:fast|quickly))\\b",
+      "answers": {
+        "mid": "Assume 10,000 daily active users and 1 million messages per day, with peaks ten times the daily average. Target p95 durable send acceptance below 200 milliseconds and online delivery below 1 second during normal operation. Offline devices receive retained history after reconnecting, not within that 1-second target.",
+        "senior": "Assume 1 million daily active users and 100 million messages per day, with peaks ten times the daily average and multiple devices per user. Target p95 durable send acceptance below 200 milliseconds and online delivery below 1 second during normal operation. Offline devices catch up after reconnecting.",
+        "staff": "Assume 10 million daily active users and 1 billion messages per day, with peaks ten times the daily average, multiple devices per user, and uneven conversation traffic. Target p95 durable send acceptance below 200 milliseconds and online delivery below 1 second during normal operation. Offline devices catch up after reconnecting."
+      },
+      "coversCriteria": [1]
+    },
+    {
+      "pattern": "\\b(scope|group\\w*|attachment\\w*|video|voice|typing|read.receipt\\w*|authentication|participant\\w*|privacy|permission\\w*)\\b",
+      "answers": {
+        "mid": "The core is one-to-one text sending, online delivery, and paginated conversation history, private to the two participants. Identity and authentication already exist. Group chat, attachments, voice/video, typing, read receipts, and end-to-end encryption are optional extensions.",
+        "senior": "The core is one-to-one text sending, online delivery, and paginated conversation history, private to the two participants. Identity and authentication already exist. Group chat, attachments, voice/video, typing, read receipts, and end-to-end encryption are optional extensions.",
+        "staff": "The core is one-to-one text sending, online delivery, and paginated conversation history, private to the two participants. Identity and authentication already exist. Group chat, attachments, voice/video, typing, read receipts, and end-to-end encryption are optional extensions."
+      },
+      "coversCriteria": [0]
+    },
+    {
+      "pattern": "\\b(guarantee\\w*|acknowledg\\w*|durab\\w*|order\\w*|retry|retries|duplicate\\w*|retention|retain\\w*|history|offline|consistency|stale|staleness)\\b",
+      "answers": {
+        "mid": "A successful send acknowledgement means durable acceptance, not delivery or reading. Clients converge on one stable order per conversation, with no global order required. Retrying the same logical send must not create another stored message; transport redelivery is allowed with duplicate display suppressed. Retain history for 90 days, including for offline recipients.",
+        "senior": "A successful send acknowledgement means durable acceptance, not delivery or reading. Clients converge on one stable order per conversation, with no global order required. Retrying the same logical send must not create another stored message; transport redelivery is allowed with duplicate display suppressed. Retain history for 90 days, including for offline recipients.",
+        "staff": "A successful send acknowledgement means durable acceptance, not delivery or reading. Clients converge on one stable order per conversation, with no global order required. Retrying the same logical send must not create another stored message; transport redelivery is allowed with duplicate display suppressed. Retain history for 90 days, including for offline recipients."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(delay\\w*|few seconds|show up|appear|visible)\\b",
+      "answers": {
+        "mid": "No, a few seconds should not be the normal online-delivery target: aim for p95 below 1 second during normal operation. Delivery can follow durable acceptance, and offline recipients catch up when they reconnect. Acknowledgement, delivery, and reading are different states.",
+        "senior": "No, a few seconds should not be the normal online-delivery target: aim for p95 below 1 second during normal operation. Delivery can follow durable acceptance, and offline recipients catch up when they reconnect. Acknowledgement, delivery, and reading are different states.",
+        "staff": "No, a few seconds should not be the normal online-delivery target: aim for p95 below 1 second during normal operation. Delivery can follow durable acceptance, and offline recipients catch up when they reconnect. Acknowledgement, delivery, and reading are different states."
+      },
+      "coversCriteria": []
+    }
+  ]
+}

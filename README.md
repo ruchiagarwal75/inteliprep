@@ -10,6 +10,19 @@ Google sign-in gives each candidate an account. Interview history lives in
 account-specific IndexedDB storage in the current browser. It does not sync
 across devices or website origins, and clearing site data deletes it.
 
+## Interview questions
+
+The catalog includes five problems, each at Mid-level, Senior, and Staff:
+
+- Scale a single server.
+- Design a URL shortener.
+- Design a rate limiter.
+- Design a chat service.
+- Design a news feed.
+
+See [problem scope and review cases](docs/problem-catalog.md) for the configured
+goals, guarantees, and checks still required before beta onboarding.
+
 ## Local setup
 
 Use Node.js 24 (also specified in `.nvmrc`) and npm.

@@ -1,0 +1,40 @@
+{
+  "problemId": "rate-limiter",
+  "goalsQuestion": "What traffic, quota, time window and latency should I use?",
+  "constraintsQuestion": "What should happen when requests are rejected or enforcement is unavailable?",
+  "requirementsAnswer": "I will size enforcement for the discussed peak check rate and active-key count, with 100 admissions per key in any rolling 60 seconds and a p95 decision budget below 10 milliseconds.",
+  "coreExplanation": [
+    "API servers ask the limiter to discard timestamps older than 60 seconds, count the remaining admitted requests for the key, and record this request only if the count is below 100.",
+    "I perform that check and insert atomically per key so two servers cannot use the same remaining allowance; this coordination adds latency and a hot key can concentrate work."
+  ],
+  "validationExplanation": [
+    "If the usage store times out, I return temporary unavailability instead of allowing unchecked traffic, and clients retry with backoff.",
+    "I would test concurrent requests at the quota boundary and around 60-second expiry, measure p95 decision latency and incorrect admissions, and expire unused per-key state."
+  ],
+  "rubricEvidence": [
+    "I will size enforcement",
+    "API servers ask the limiter",
+    "API servers ask the limiter",
+    "I perform that check",
+    "I would test concurrent requests"
+  ],
+  "nodes": [
+    "Caller",
+    "API servers",
+    "Rate limiter",
+    "Usage state",
+    "Protected handler"
+  ],
+  "edges": [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [1, 4]
+  ],
+  "weakAnswer": "I use one counter for all clients and reset it every calendar minute. If the limiter is down, I allow every request.",
+  "reviewFocus": [
+    "A fixed calendar-minute counter does not establish the agreed rolling-window guarantee.",
+    "A shared unkeyed counter is not per-caller enforcement.",
+    "Silently allowing requests during failure contradicts the configured protective behavior."
+  ]
+}

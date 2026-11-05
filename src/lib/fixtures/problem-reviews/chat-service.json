@@ -1,0 +1,41 @@
+{
+  "problemId": "chat-service",
+  "goalsQuestion": "What message traffic, latency and delivery time should I use?",
+  "constraintsQuestion": "What acknowledgement, ordering, retry and retention guarantees should I support?",
+  "requirementsAnswer": "I will estimate message throughput from the discussed daily volume and ten-times peak factor, target p95 acceptance below 200 milliseconds and online delivery below 1 second, and retain private conversation history for 90 days.",
+  "coreExplanation": [
+    "The messaging API checks that the sender is a participant, stores the conversation ID, sender, client-generated send ID and body durably, and acknowledges only after that write; history uses a cursor over stored messages.",
+    "Each conversation has a sequencer that assigns increasing message IDs, and a unique constraint on sender and client send ID makes retries return the original message rather than storing it twice."
+  ],
+  "validationExplanation": [
+    "Connected devices receive new messages; after a disconnect they request history after their last confirmed message ID, and each device deduplicates displayed IDs.",
+    "If a delivery worker fails, another can replay durable undelivered work; I would measure delivery lag, failed sends and backlog, load-test reconnect bursts, and purge messages after 90 days."
+  ],
+  "rubricEvidence": [
+    "I will estimate message throughput",
+    "The messaging API checks",
+    "Connected devices receive",
+    "Each conversation has",
+    "If a delivery worker fails"
+  ],
+  "nodes": [
+    "Sender",
+    "Messaging API",
+    "Message database",
+    "Delivery worker",
+    "Recipient"
+  ],
+  "edges": [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 1]
+  ],
+  "weakAnswer": "I acknowledge messages before saving them and keep them only in the sender's live connection. Every retry creates a new message, and any signed-in user can request any conversation.",
+  "reviewFocus": [
+    "Live connections alone cannot provide durable acceptance or offline history.",
+    "A retry creating another logical message contradicts send idempotency.",
+    "Signing in does not authorize access to every conversation."
+  ]
+}

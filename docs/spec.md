@@ -212,13 +212,23 @@ drawing and explanation pacing and are driven by coverage and candidate permissi
 
 Each problem is a JSON file with: the prompt, scale hints to share if asked, rubric areas with what "strong" looks like, and a list of good deep-dive questions. Example rubric areas for a URL shortener: ID generation, read path and caching, storage choice, scaling and sharding, analytics.
 
-Current prototype: the configured problems are "Scale a single server" and
-"Design a URL shortener", each with mid, senior, and staff levels. Their JSON
+Current prototype: the configured problems are "Scale a single server",
+"Design a URL shortener", "Design a rate limiter", "Design a chat service", and
+"Design a news feed", each with mid, senior, and staff levels. Their JSON
 configurations hold the exercise,
 product requirements, level-specific openings and expectations, scale hints,
 private rubric, and follow-up bank. The browser receives only public problem
 summaries, public stage labels, session ID, and selected opening; Next's `server-only` guard protects the
 configuration modules from client imports.
+
+The added exercises cover per-key admission correctness, private one-to-one
+messaging and reconnect history, and chronological following-based feeds. Each
+has its own service goals, bounded consistency/freshness answers, private rubric,
+and five-stage sequence. All three keep a single-region core; higher difficulty
+deepens concurrency, recovery, load skew, and operational reasoning. The catalog
+and synthetic review fixtures are documented in `docs/problem-catalog.md`.
+Real-model evaluation and a complete human-reviewed interview remain release
+checks; mocked integration tests alone do not certify interviewer quality.
 
 The default selection is "Scale a single server" at Mid-level, a simple exercise
 for testing the interview and whiteboard flow. A website's application and data
@@ -235,6 +245,10 @@ brief: scenario, objective, scope, and one requirements clarification question.
 Short paragraphs separate the context and task from the question. Each problem
 and difficulty has its own configured brief. The candidate need not send "hello",
 and starting does not consume an LLM call. The current selection is displayed as a read-only summary.
+In local development, the workspace prepares the start route with a background
+OPTIONS request, which Next handles without creating a session or consuming start
+quota. This moves first-use route compilation before the start click; production
+does not send this preparation request.
 New 45-minute interview retains the problem and difficulty and always uses the regular
 45-minute duration, with fresh chat, baselines, and a blank board. Leaving an active
 session with New interview or Change problem first offers end-and-score confirmation,
@@ -295,6 +309,12 @@ message, and skip the model when none remain. Quotes must match within one eligi
 excerpt at its original message index; excluded text and joins across excerpts
 are rejected. Initial-stage conversation context can clarify references but is
 not itself eligible candidate evidence.
+Explicit requirement proposals, including retention changes stated without a
+question mark, require a visible reply. They bypass quiet-listening acknowledgements
+and automatic diagram probes. The interviewer accepts a reasonable allowed value,
+explains a fixed-constraint conflict, or requests justification when discussion permits
+questions. During drawing/explanation it acknowledges an allowed assumption with
+its value and leaves questions paused. Ordinary design narration remains quiet.
 Coverage accumulates across completed turns; stages advance at most once per reply.
 The drawing stage requires a live sketch and explicit discussion permission. Failed
 assessment keeps the stage, and the final stage closes without another design question.
@@ -341,6 +361,16 @@ Drawing edits autosave after a 400 ms pause and every 10 seconds during continuo
 editing. Submitted candidate turns save before the chat request; completed assistant
 replies save together with the server checkpoint and delivery baselines. Partial
 assistant replies are displayed in memory but never saved as complete replies.
+Each submitted turn also saves an optional pending-reply reference before model
+work. Failed or interrupted turns keep the original candidate message, native
+drawing, separate composer draft, and last completed stage/checkpoint. An error
+notice outside the scrolling transcript offers Retry reply; it reuses the same
+candidate turn without appending it again. New sends and pacing controls wait
+until that reply completes. Pending status survives reload, including recovery
+of older unanswered discussion turns; completed quiet drawing/explanation
+checkpoints are not mistaken for failed replies. Successful completion clears
+pending state and advances the scene/image baselines. Ending can still assess
+the retained candidate answer, with the existing frozen-evidence retry behavior.
 Drawing autosaves retain the latest native canvas without replacing the older
 send-time diagram baselines. A save is confirmed only after its IndexedDB transaction
 commits. A revision check rejects stale writes from another tab rather than overwriting
@@ -764,6 +794,14 @@ Browser storage instances capture one user ID permanently. Account changes close
 that scope, cancel pending fetches/writes and hide the workspace; late callbacks
 cannot switch to another account’s database. Sign-out saves the latest draft before
 closing the scope. Auth events and a sign-out broadcast invalidate other open tabs.
+API-driven account invalidation requires the app's explicit
+`X-Interview-Auth-Error` marker: `sign_in_required` with 401, or `account_changed`
+with 403. Status alone never invalidates a browser account. Model-provider
+401/403 errors are dependency failures returned as 503 with a generic interviewer
+unavailable message; provider diagnostics remain separate from login markers.
+Other provider failures return 502, except rate/quota failures which retain 429.
+Sign-in-service outages also remain recoverable 503 responses without an account
+invalidation marker. No dependency failure redirects the candidate to sign-in.
 The Back/Forward cache hides the previous page and reloads before showing history.
 History is local to this browser profile and origin, and does not sync across devices.
 Anonymous history is preserved outside account history; migration is a separate,

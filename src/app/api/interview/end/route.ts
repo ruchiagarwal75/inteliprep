@@ -68,6 +68,7 @@ async function end(request: Request): Promise<Response> {
     return Response.json(
       {
         resumeToken,
+        code: cause instanceof InterviewSessionError ? cause.code : undefined,
         error:
           cause instanceof InterviewGradingError ||
           cause instanceof InterviewSessionError ||

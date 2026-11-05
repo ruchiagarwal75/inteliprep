@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildInterviewInstructions } from "@/lib/interview-instructions";
-import { getProblem } from "@/lib/problems";
+import { getProblem, listProblems } from "@/lib/problems";
 import { interviewLevelSchema } from "@/lib/interview-selection";
 import { INTERVIEWER_INSTRUCTIONS } from "@/lib/interviewer-input";
 import { getInterviewProgress } from "@/lib/interview-progress";
 
 describe("buildInterviewInstructions", () => {
-  it.each(["single-server-scaling", "url-shortener"])(
+  it.each(listProblems().map((problem) => problem.problemId))(
     "defers %s design guidance until the requirements checkpoint is complete",
     (id) => {
       const problem = getProblem(id);

@@ -1,13 +1,14 @@
 import type { SavedInterview } from "@/lib/saved-interview";
 import { interviewResumeResponseSchema } from "@/lib/interview-resume";
 import { serverClockOffset } from "@/lib/interview-timer";
+import { interviewRecoveryFailure } from "@/lib/interview-recovery";
 
 /** Reopening a finished scorecard needs no provider or server request. */
 export async function reconnectInterview(
   saved: SavedInterview,
   request: typeof fetch = fetch,
 ): Promise<SavedInterview> {
-  if (saved.scorecard) return saved;
+  if (saved.scorecard || saved.closedWithoutScoring) return saved;
   const response = await request("/api/interview/resume", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -15,6 +16,8 @@ export async function reconnectInterview(
     signal: AbortSignal.timeout(8_000),
   });
   const body: unknown = await response.json();
+  const recovery = interviewRecoveryFailure(response.status, body);
+  if (!response.ok && recovery) return { ...saved, recoveryFailure: recovery };
   if (!response.ok)
     throw new Error(
       body &&
@@ -27,6 +30,7 @@ export async function reconnectInterview(
   const checkpoint = interviewResumeResponseSchema.parse(body);
   return {
     ...saved,
+    recoveryFailure: undefined,
     phase: checkpoint.phase,
     hasEnded: saved.hasEnded || checkpoint.ended,
     clockOffsetMs: checkpoint.serverTime

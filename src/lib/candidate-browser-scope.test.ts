@@ -2,6 +2,11 @@ import { IDBFactory } from "fake-indexeddb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCandidateBrowserScope } from "@/lib/candidate-browser-scope";
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
+import {
+  CANDIDATE_AUTH_ERROR_HEADER,
+  CANDIDATE_AUTH_REQUIRED,
+  CANDIDATE_ACCOUNT_CHANGED,
+} from "@/lib/candidate-api-error";
 
 const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
@@ -100,17 +105,54 @@ describe("browser account isolation", () => {
     await Promise.resolve();
     await expect(scope.request("/api/chat")).rejects.toThrow();
   });
-  it("invalidates the workspace when an API reports an expired or switched account", async () => {
-    const changed = vi.fn();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(new Response("", { status: 401 })),
-    );
-    const scope = createCandidateBrowserScope(alice, changed);
-    await scope.request("/api/chat");
-    expect(changed).toHaveBeenCalledOnce();
-    await expect(scope.storage.listInterviews()).rejects.toThrow(
-      "account changed",
-    );
-  });
+  it.each([
+    [401, CANDIDATE_AUTH_REQUIRED],
+    [403, CANDIDATE_ACCOUNT_CHANGED],
+  ] as const)(
+    "invalidates the workspace only for app account failures (%s)",
+    async (status, code) => {
+      const changed = vi.fn();
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response("", {
+            status,
+            headers: { [CANDIDATE_AUTH_ERROR_HEADER]: code },
+          }),
+        ),
+      );
+      const scope = createCandidateBrowserScope(alice, changed);
+      await scope.request("/api/chat");
+      expect(changed).toHaveBeenCalledOnce();
+      await expect(scope.storage.listInterviews()).rejects.toThrow(
+        "account changed",
+      );
+    },
+  );
+  it.each([401, 403, 429, 500, 502, 503])(
+    "keeps account storage and drafts available for an unmarked service error (%s)",
+    async (status) => {
+      const changed = vi.fn();
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(
+            Response.json(
+              { error: "Interviewer unavailable", code: "expired_secret_key" },
+              { status },
+            ),
+          ),
+      );
+      const scope = createCandidateBrowserScope(alice, changed);
+      const saved = { ...savedFixture(), draftText: "My next explanation." };
+      await scope.storage.saveInterview(saved);
+      expect((await scope.request("/api/chat")).status).toBe(status);
+      expect(changed).not.toHaveBeenCalled();
+      expect(await scope.storage.readInterview(saved.id)).toEqual(saved);
+      expect((await scope.request("/api/interview/resume")).status).toBe(
+        status,
+      );
+    },
+  );
 });

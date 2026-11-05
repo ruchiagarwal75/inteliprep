@@ -7,7 +7,13 @@ it("serves the public problem catalog without hidden interviewer configuration",
   const body = await response.json();
   expect(
     body.problems.map((problem: { problemId: string }) => problem.problemId),
-  ).toEqual(["single-server-scaling", "url-shortener"]);
+  ).toEqual([
+    "single-server-scaling",
+    "url-shortener",
+    "rate-limiter",
+    "chat-service",
+    "news-feed",
+  ]);
   expect(body.problems[0].levels).toEqual(["mid", "senior", "staff"]);
   for (const problem of body.problems)
     expect(Object.keys(problem).sort()).toEqual([

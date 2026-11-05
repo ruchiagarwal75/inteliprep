@@ -70,6 +70,18 @@ describe("history-based interview pacing", () => {
       ]).step,
     ).toBe("drawing");
   });
+  it("delivers an answer to a requirement proposal even without a question mark", () => {
+    const history: ChatMessage[] = [
+      { role: "user", content: "I'm explaining now", action: "explain" },
+      {
+        role: "user",
+        content: "I suggest keeping posts 1 year instead of 90 days.",
+      },
+    ];
+    expect(
+      isListeningContinuation(problem("news-feed"), history, "explaining"),
+    ).toBe(false);
+  });
   it("counts candidate messages and uses each configured legacy handoff limit", () => {
     expect(getInterviewProgress(problem(), turns(1))).toEqual({
       step: "discussion",

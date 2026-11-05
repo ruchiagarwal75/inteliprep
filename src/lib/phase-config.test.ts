@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { phasesSchema, publicPhase } from "@/lib/phase-config";
-import { getProblem } from "@/lib/problems";
+import { getProblem, listProblems } from "@/lib/problems";
 
 const phases = getProblem("single-server-scaling")?.phases ?? [];
 describe("configured interview stages", () => {
@@ -25,7 +25,7 @@ describe("configured interview stages", () => {
     expect(url?.phases[2].goal).toContain("identifiers");
     expect(url?.phases[3].title).toBe("Scaling and reliability");
   });
-  it.each(["single-server-scaling", "url-shortener"])(
+  it.each(listProblems().map((problem) => problem.problemId))(
     "requires scope, scale/goals, and constraints for %s",
     (id) => {
       const initial = getProblem(id)?.phases[0];

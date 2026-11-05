@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import {
   interviewStartSchema,
@@ -18,6 +18,12 @@ export function useInterviewStarter(
   initial: InterviewChoice,
 ) {
   const { request } = useCandidateAccount();
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    // Compile the local POST route while the workspace loads, without creating a session.
+    // Next supplies OPTIONS automatically; this neither starts a timer nor uses a start quota.
+    void request("/api/interview/start", { method: "OPTIONS" }).catch(() => {});
+  }, [request]);
   const [choice, setChoice] = useState(initial);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string>();

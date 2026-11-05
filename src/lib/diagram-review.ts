@@ -6,6 +6,7 @@ import { sceneToGraph } from "@/lib/scene-graph";
 export function diagramReviewQuestion(
   scene: Scene | undefined,
   messages: ChatMessage[],
+  checkApplicationDataPaths = true,
 ): string | undefined {
   const graph = sceneToGraph(scene);
   if (graph.status !== "drawn") return undefined;
@@ -18,7 +19,7 @@ export function diagramReviewQuestion(
   const uncertain =
     graph.unsupported.length > 0 ||
     graph.connections.some((edge) => !edge.start || !edge.end || edge.inferred);
-  if (!uncertain) {
+  if (!uncertain && checkApplicationDataPaths) {
     const apps = graph.components.filter((node) =>
       /\b(?:app(?:lication)?\s*\d*|web(?: server)?\s*\d*|api(?: server)?\s*\d*)\b/iu.test(
         node.label,
