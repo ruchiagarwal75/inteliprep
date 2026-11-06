@@ -19,11 +19,20 @@ export function isRequirementProposal(content: string): boolean {
         sentence,
       );
     const policyValue =
-      /\b(?:keep|keeping|retain|retaining|store|storing)\s+(?:the\s+)?(?:posts?|messages?|history|data)\s+(?:for\s+)?(?:\d+|one|two|three|a)\b|\b(?:target|set|allow|limit)\b[^.!?]{0,60}\d/iu.test(
+      /\b(?:keep|keeping|retain|retaining|store|storing)\s+(?:the\s+)?(?:posts?|messages?|history|data)\s+(?:for\s+)?(?:\d+|one|two|three|a)\b|\b(?:target|set|allow|limit)\b[^.!?]{0,60}\d|^(?:\d+|one|a)\s+year(?:s|[- ]long)?\b.*\bretention\b/iu.test(
         sentence,
       );
     return (
-      isCandidateProposal(sentence) &&
+      (isCandidateProposal(sentence) ||
+        /\b(propos\w*|suggest\w*|recommend\w*|instead of|rather than|we need|we can|we should)\b/iu.test(
+          sentence,
+        ) ||
+        /^(?:keep|retain|store)\s+(?:the\s+)?(?:posts?|messages?|history|data)\b/iu.test(
+          sentence,
+        ) ||
+        /^(?:\d+|one|a)\s+year(?:s|[- ]long)?\b.*\bretention\b/iu.test(
+          sentence,
+        )) &&
       requirement &&
       (negotiating || policyValue)
     );

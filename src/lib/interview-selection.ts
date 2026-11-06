@@ -38,6 +38,7 @@ export type ProblemSummary = {
   title: string;
   summary: string;
   levels: InterviewLevel[];
+  brief?: Record<InterviewLevel, string>;
 };
 export const INTERVIEW_LEVEL_LABELS: Record<InterviewLevel, string> = {
   mid: "Mid-level",

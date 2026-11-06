@@ -14,6 +14,9 @@ export const sessionCheckpointSchema = interviewSelectionSchema.extend({
   id: z.uuid(),
   ownerUserId: z.uuid().optional(),
   timing: interviewTimingSchema.optional(),
+  phaseEnteredAt: z.iso.datetime().optional(),
+  openQuestion: z.string().max(1200).optional(),
+  answeredStages: z.array(z.number().int().min(0).max(9)).max(10).optional(),
   phaseIndex: z.number().int().min(0).max(9),
   coveredCriteria: z.array(z.number().int().min(0).max(30)).max(30),
   ending: z

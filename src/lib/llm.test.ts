@@ -101,6 +101,7 @@ describe("streamInterviewerReply", () => {
     expect(request.input[0].role).toBe("user");
     expect(JSON.parse(request.input[0].content)).toEqual({
       candidate_message: "Here's my design",
+      whiteboard_label: "Candidate’s current whiteboard",
       current_whiteboard_snapshot: diagram,
       whiteboard_changes: "No diagram changes.",
     });
@@ -124,7 +125,7 @@ describe("streamInterviewerReply", () => {
     "surfaces %s events so the client does not commit a failed turn",
     async (type) => {
       mocks.create.mockImplementation(async function* () {
-        yield { type: "response.output_text.delta", delta: "Partial reply" };
+        yield { type: "response.output_text.delta", delta: "Partial reply. " };
         yield { type };
       });
       const stream = streamInterviewerReply(
@@ -133,7 +134,7 @@ describe("streamInterviewerReply", () => {
         "Initial diagram",
       );
       await expect(stream.next()).resolves.toMatchObject({
-        value: "Partial reply",
+        value: "Partial reply.",
       });
       await expect(stream.next()).rejects.toThrow("did not complete");
     },

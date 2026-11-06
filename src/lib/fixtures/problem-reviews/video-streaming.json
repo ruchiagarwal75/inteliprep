@@ -1,0 +1,48 @@
+{
+  "problemId": "video-streaming",
+  "goalsQuestion": "What upload volume, concurrent viewers, source sizes, bitrate and playback/readiness timing should I use?",
+  "constraintsQuestion": "What do upload completion, processing retries, publication, retention and deletion guarantee?",
+  "requirementsAnswer": "I will size source storage from the agreed upload volume, 250 MB average source and 10-minute duration, and size playback bandwidth from peak concurrent viewers and 3 Mbps; I target p95 playback start below 2 seconds and 99 percent readiness within 10 minutes of completed upload.",
+  "coreExplanation": [
+    "The video API checks creator access, assigns a stable video and upload ID, verifies durable source bytes before acknowledging completion, and records recoverable processing work with uploading, processing, ready or failed status; upload success alone never claims playback readiness.",
+    "A processing worker owns an expiring lease, produces versioned 720p and 1080p outputs where supported, and publishes the playback manifest and ready metadata only after all required output objects are complete; repeated processing uses the same logical job and cannot publish another video."
+  ],
+  "validationExplanation": [
+    "For playback a viewer loads a versioned manifest and short seekable segments through the CDN, selects a lower bitrate when bandwidth falls, and reads only segments around a requested seek position; I would load-test a hot video and measure p95 startup, rebuffer time and origin traffic.",
+    "If processing fails halfway through I recover from the durable source and retry incomplete work with a bounded job policy while keeping partial outputs hidden; I would monitor processing backlog, the 10-minute readiness target and egress cost, and test deletion that blocks new playback at origin and CDN within 60 seconds without claiming to recall buffered bytes."
+  ],
+  "rubricEvidence": [
+    "I will size source storage",
+    "The video API checks",
+    "A processing worker owns",
+    "For playback a viewer",
+    "If processing fails halfway"
+  ],
+  "nodes": [
+    "Creator",
+    "Video API",
+    "Source storage",
+    "Processing worker",
+    "Playback storage",
+    "CDN",
+    "Viewer",
+    "Metadata database"
+  ],
+  "edges": [
+    [0, 1],
+    [0, 2],
+    [1, 7],
+    [2, 3],
+    [3, 4],
+    [3, 7],
+    [6, 1],
+    [6, 5],
+    [5, 4]
+  ],
+  "weakAnswer": "I call every upload ready before processing, let retry jobs publish conflicting partial outputs, make viewers download the whole video before seeking, and keep deleted playback URLs usable forever.",
+  "reviewFocus": [
+    "Durable source acceptance and playable readiness are different states.",
+    "Retries need coherent publication rather than duplicate or incomplete playback outputs.",
+    "Whole-video download before seeking and perpetual deleted URLs contradict the playback and deletion requirements."
+  ]
+}

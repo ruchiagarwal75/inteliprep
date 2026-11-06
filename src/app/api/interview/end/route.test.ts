@@ -9,6 +9,7 @@ import {
   scorecardFixture,
 } from "@/lib/fixtures/scorecard-test";
 import { interviewEndResponseSchema } from "@/lib/scorecard";
+import { endRouteFixture } from "@/lib/fixtures/chat-route-test";
 
 const mocks = vi.hoisted(() => ({ grade: vi.fn() }));
 vi.mock("@/lib/interview-grading", () => ({ gradeInterview: mocks.grade }));
@@ -18,12 +19,14 @@ function post(sessionId: string, overrides = {}) {
     new Request("http://localhost/api/interview/end", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...gradingSelection,
-        ...gradingSnapshot,
-        sessionId,
-        ...overrides,
-      }),
+      body: JSON.stringify(
+        endRouteFixture({
+          ...gradingSelection,
+          ...gradingSnapshot,
+          sessionId,
+          ...overrides,
+        }),
+      ),
     }),
   );
 }

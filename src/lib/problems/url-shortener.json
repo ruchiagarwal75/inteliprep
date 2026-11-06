@@ -3,9 +3,10 @@
   "title": "Design a URL shortener",
   "drawingPolicy": {
     "discussionTurns": 3,
-    "invitation": "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions.",
+    "invitation": "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Choose Ready to explain when you're ready to walk through it.",
     "legacyInvitations": [
-      "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Send me a message when you're ready to explain how a request flows through it."
+      "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Send me a message when you're ready to explain how a request flows through it.",
+      "Let's move to the whiteboard. Sketch your high-level architecture for the URL shortener. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
     ]
   },
   "summary": "Design a service that creates short links and redirects visitors to their original URLs.",

@@ -1,6 +1,6 @@
 # Interview problem catalog
 
-All five exercises support Mid-level, Senior, and Staff. The picker reads the
+All eight exercises support Mid-level, Senior, and Staff. The picker reads the
 server registry automatically. Each problem owns its opening, requirements,
 clarifications, five stages, private rubric, and follow-up bank. Starting an
 interview does not call a model. The default remains Scale a single server.
@@ -12,6 +12,9 @@ interview does not call a model. The default remains Scale a single server.
 | Design a rate limiter | Enforce a per-key rolling-window quota | Concurrent decisions, bounded state, protective failure behavior |
 | Design a chat service | Private one-to-one text messaging and history | Durable acceptance, ordering, retries, delivery and reconnects |
 | Design a news feed | Chronological posts from followed accounts | Feed construction, stable pagination, skew, freshness and deletion |
+| Design a notification system | Transactional email and mobile push | Durable acceptance, preferences, provider uncertainty, bounded retries |
+| Design a file storage service | Private file transfer and read grants | Resumable uploads, complete publication, versions, access and cleanup |
+| Design a video streaming service | On-demand upload and playback | Processing state, complete publication, seekable delivery and cost |
 
 ## New exercise boundaries
 
@@ -51,6 +54,55 @@ feed reader need not connect to the same database as every other API component.
 The model still receives the complete diagram and rubric. Mentioned-but-unlabeled
 cache/CDN probes and candidate drawing/explanation pauses still apply.
 
+## Additional practice set
+
+Notifications, file storage (Dropbox-style), and on-demand video (YouTube-style)
+are represented in [Hello Interview's common practice catalog](https://www.hellointerview.com/practice/system-design).
+This is a practical selection, not a measured frequency ranking. The configurations,
+exercise numbers, prompts, and review examples here are original product choices.
+
+Notifications: one recipient, email/push or both, per-channel status, and current
+preferences. Submission success means durable acceptance, not external delivery.
+Target p95 submission below 200 ms and first dispatch within 30 seconds with
+healthy providers. Defaults are a 24-hour retry window and 30-day status retention.
+Logical requests per day are 1 million / 100 million / 1 billion at Mid / Senior /
+Staff, with ten-times peak load and up to two initial channel attempts. Provider
+timeouts may leave uncertain outcomes; an exactly-once external guarantee is not
+required. Bulk marketing, scheduling, and SMS are optional extensions.
+
+File storage: private upload/list/download/replace/delete with explicit read grants.
+Support resumable files up to 1 GB, averaging 10 MB. Only complete durable bytes
+and matching metadata become visible; a stale replacement must not silently erase
+another version. Defaults are 7-day old-version retention, 24-hour abandoned-upload
+cleanup, and revocation blocking new downloads within 60 seconds. Target p95
+metadata below 200 ms and first byte below 1 second, rather than a whole-file
+transfer deadline. Daily uploads/downloads are 100,000 / 1 million at Mid,
+10 million / 100 million at Senior, and 100 million / 1 billion at Staff. Automatic
+folder sync and collaborative editing remain extensions.
+
+Video: on-demand public playback and seeking, with creator upload/status. Sources
+are at most 2 GB / 30 minutes; estimates use 250 MB and 10-minute averages, 5-minute
+watch time, and 3 Mbps delivered bitrate. Upload success is durable source acceptance,
+while readiness requires complete usable playback outputs. Target p95 playback
+start below 2 seconds for healthy regional clients, and 99% readiness within
+10 minutes of completed upload in normal operation. Daily uploads / peak concurrent
+viewers are 1,000 / 10,000 at Mid, 100,000 / 1 million at Senior, and 1 million /
+10 million at Staff. Default deletion blocks new playback within 60 seconds;
+buffered bytes cannot be recalled. Live streaming, ranking, subscriptions, and DRM
+remain extensions.
+
+All three supply scope and correctness defaults in the opening. Only missing
+workload/goals hold up the drawing handoff. Numeric targets are fixed exercise
+goals unless marked as defaults; allowed alternatives require an explicit response.
+These new exercises have synthetic full-flow coverage at all three levels. Bounded
+Mid-level live checks also returned an interviewer follow-up and a schema-valid,
+evidence-backed scorecard for each exercise. Complete browser interviews and the
+Ticket 05 evaluation/calibration suite remain required before beta onboarding.
+The live checks reproduced known grading wording problems: notification feedback
+claimed a concrete test plan was missing despite a provider-outage load test, and
+video feedback claimed variable bandwidth was unaddressed despite lower-bitrate
+selection. Successful responses establish wiring, not calibrated feedback quality.
+
 ## Review inputs and verification
 
 `src/lib/fixtures/problem-reviews/` contains one synthetic transcript script and
@@ -59,7 +111,7 @@ requirements confirmation, core and failure explanations, rubric evidence
 anchors, and a deliberately weak answer with specific review concerns. These
 are example inputs, not a required architecture or an exhaustive answer key.
 
-`tests/problem-catalog-interviews.test.ts` runs all three new questions at all
+`tests/problem-catalog-interviews.test.ts` runs all six added questions at all
 three levels through start, clarification, drawing/explanation pauses, explicit
 discussion, stage completion, end, and cached scorecards. It also verifies that
 an unexplained drawing cannot earn invented scores. Provider responses are
@@ -116,3 +168,36 @@ Requirement proposals now bypass that quiet path and receive an explicit respons
 ordinary narration keeps the candidate's floor. The local startup trace also showed
 first-use route compilation dominating handler time. A development-only background
 OPTIONS request prepares that route without starting or saving an interview.
+
+The notification, file-storage, and video-streaming browser review completed all
+three interviews with first-attempt scorecards and no console errors. It uncovered
+multi-question Markdown replies, repeated guarantees, missed clarification parts,
+and requirements/concurrency evidence being overlooked. Follow-up fixes use
+topic-specific notification answers (including an explicit channel mix), concurrent
+file replacement facts distinct from live collaboration, and an explicit unspecified
+rebuffering target. Grading receives trusted scope and recognizes clarification
+questions and compare-and-set evidence. Justified one-year retention proposals
+receive a visible acknowledgement and remain eligible requirements evidence.
+
+Discussion probes now seed coverage from earlier explanations and check a proposed
+question against exact candidate quotes before showing it. Replacement questions
+are checked too. A focused live file-storage check moved from already-explained
+partial-upload visibility to an unresolved sharing/revocation case. Live scorecards
+credited notification timing questions, version-conflict handling, and the accepted
+retention alternative. Wider score calibration remains Ticket 05 work.
+
+The observed eight-second browser startup was not reproduced in handler timings.
+New-session replacement now avoids an intermediate workspace and full-history scans
+after saves. Tests verify a single fresh workspace, preservation on request failure,
+and blocking when old saves fail; development timing logs isolate preparation,
+request, and save time for the next browser measurement.
+
+A subsequent browser retest verified all eight fixes, including startup at about
+0.3 seconds, with first-attempt scorecards and no console errors. New findings were
+a repeated generic fallback after rejected probes, a topic jump after a revocation
+answer, repeated news-feed goals, and an unexplained disabled explanation button.
+The local fixes select specific unasked probes, prioritize named topics and the
+current answer thread, and acknowledge technical answers. News-feed setup recognizes
+numeric shorthand and equivalent time units. The empty-board button now has a
+visible hint. Route-to-stream regression tests cover fallback exhaustion, topic
+selection, and the requirements handoff; these changes await a fresh browser retest.

@@ -11,12 +11,14 @@ export function useSavedInterviewBoot({
   onStatus,
   onError,
   onReady,
+  sessionId,
 }: {
   open: (id: string, navigation: "replace") => Promise<boolean>;
   onHistory: (entries: SavedInterviewSummary[]) => void;
   onStatus: (value: string) => void;
   onError: (value: string) => void;
   onReady: (value: boolean) => void;
+  sessionId?: string;
 }) {
   const { storage } = useCandidateAccount();
   const listInterviews = storage.listInterviews;
@@ -25,7 +27,8 @@ export function useSavedInterviewBoot({
     void (async () => {
       try {
         const history = await listInterviews();
-        const id = initialInterviewId(window.location.search, history);
+        const id =
+          sessionId ?? initialInterviewId(window.location.search, history);
         if (!mounted) return;
         onHistory(history);
         if (id) await open(id, "replace");
@@ -46,5 +49,5 @@ export function useSavedInterviewBoot({
     return () => {
       mounted = false;
     };
-  }, [open, onHistory, onStatus, onError, onReady, listInterviews]);
+  }, [open, onHistory, onStatus, onError, onReady, listInterviews, sessionId]);
 }

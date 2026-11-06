@@ -39,3 +39,27 @@ it("disables retry while busy and omits it when no pending reply can be retried"
     ),
   ).not.toContain("Retry reply");
 });
+it("shows the Retry-After wait and disables retry until it expires", () => {
+  const waiting = renderToStaticMarkup(
+    createElement(ChatReplyStatus, {
+      error: "Too many requests",
+      pending: true,
+      disabled: false,
+      onRetry: () => {},
+      retryAt: Date.now() + 12_000,
+    }),
+  );
+  expect(waiting).toContain("Try again in 12 seconds");
+  expect(waiting).toContain('disabled=""');
+  const ready = renderToStaticMarkup(
+    createElement(ChatReplyStatus, {
+      error: "Too many requests",
+      pending: true,
+      disabled: false,
+      onRetry: () => {},
+      retryAt: Date.now() - 1_000,
+    }),
+  );
+  expect(ready).toContain("You can retry now");
+  expect(ready).not.toContain('disabled=""');
+});

@@ -21,7 +21,21 @@ export async function prepareWhiteboardTurn(
     fingerprint = await fingerprintWhiteboard(snapshot);
     if (fingerprint === previousImageFingerprint)
       return { scene, fingerprint, canCommitImage: true };
-    const diagramImage = await exportImage(snapshot);
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let diagramImage: string;
+    try {
+      diagramImage = await Promise.race([
+        exportImage(snapshot),
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error("Image export timed out")),
+            3000,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeout);
+    }
     return { scene, fingerprint, diagramImage, canCommitImage: true };
   } catch {
     // Text still works. Keep the old image baseline so the next turn retries.

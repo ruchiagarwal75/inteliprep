@@ -1,0 +1,47 @@
+{
+  "problemId": "notification-system",
+  "goalsQuestion": "What notification request volume, channel amplification, latency and dispatch time should I use?",
+  "constraintsQuestion": "What do durable acceptance, retries, uncertain provider outcomes and status retention guarantee?",
+  "requirementsAnswer": "I will estimate logical request traffic from the agreed daily volume and ten-times peak factor, allow up to two initial channel attempts per request, target p95 submission below 200 milliseconds and first dispatch within 30 seconds, and keep the 24-hour retry and 30-day status defaults.",
+  "coreExplanation": [
+    "The notification API authorizes the internal caller, assigns a stable notification ID and stores a job plus independent channel states durably before acknowledging; a unique caller and idempotency-key constraint makes resubmission return the same job and status.",
+    "A dispatcher checks current recipient preferences and contact details before each channel attempt, marks disabled channels skipped, and records email and push outcomes independently so provider acceptance is never shown as device delivery or reading."
+  ],
+  "validationExplanation": [
+    "For retries I separate transient timeouts and throttles from permanent address errors, use backoff with jitter until the 24-hour deadline, and reuse a provider idempotency key when supported; an ambiguous accepted-but-timed-out attempt remains uncertain because otherwise repeating it can send a duplicate.",
+    "If a dispatcher fails after claiming work, an expiring lease lets another recover the durable job; I would enforce per-caller fairness and provider quotas, monitor dispatch delay, retry load, backlog and cost, and load-test an unavailable email provider while push remains healthy."
+  ],
+  "rubricEvidence": [
+    "I will estimate logical request traffic",
+    "The notification API authorizes",
+    "A dispatcher checks",
+    "For retries I separate",
+    "If a dispatcher fails"
+  ],
+  "nodes": [
+    "Internal app",
+    "Notification API",
+    "Job database",
+    "Dispatcher",
+    "Preference database",
+    "Email provider",
+    "Push provider",
+    "Recipient"
+  ],
+  "edges": [
+    [0, 1],
+    [1, 2],
+    [3, 2],
+    [3, 4],
+    [3, 5],
+    [3, 6],
+    [5, 7],
+    [6, 7]
+  ],
+  "weakAnswer": "I return success while the job exists only in one process, retry every failure forever, promise exactly-once delivery despite provider timeouts, and ignore preferences for jobs accepted earlier.",
+  "reviewFocus": [
+    "Success before durable acceptance can lose acknowledged notifications on process failure.",
+    "Unbounded retries and an unsupported exactly-once promise hide cost and uncertain external outcomes.",
+    "Preferences must be checked at dispatch rather than only when a request was accepted."
+  ]
+}

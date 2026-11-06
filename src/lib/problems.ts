@@ -6,6 +6,9 @@ import singleServerScaling from "@/lib/problems/single-server-scaling.json";
 import rateLimiter from "@/lib/problems/rate-limiter.json";
 import chatService from "@/lib/problems/chat-service.json";
 import newsFeed from "@/lib/problems/news-feed.json";
+import notificationSystem from "@/lib/problems/notification-system.json";
+import fileStorage from "@/lib/problems/file-storage.json";
+import videoStreaming from "@/lib/problems/video-streaming.json";
 import {
   interviewLevelSchema,
   problemIdSchema,
@@ -14,6 +17,7 @@ import {
   type ProblemSummary,
 } from "@/lib/interview-selection";
 import { phasesSchema, publicPhase } from "@/lib/phase-config";
+import { initializeTranscript } from "@/lib/interview-transcript";
 import {
   createInterviewSession,
   interviewSessionCheckpoint,
@@ -36,6 +40,13 @@ const problemSchema = z.object({
       z.object({
         pattern: z.string().min(1).max(300),
         sharedAnswerPattern: z.string().min(1).max(400).optional(),
+        sharedAnswerPatterns: z
+          .object({
+            mid: z.string().min(1).max(600),
+            senior: z.string().min(1).max(600),
+            staff: z.string().min(1).max(600),
+          })
+          .optional(),
         answers: z.object({
           mid: z.string().min(1),
           senior: z.string().min(1),
@@ -51,6 +62,7 @@ const problemSchema = z.object({
     legacyInvitations: z.array(z.string()).default([]),
   }),
   requirements: z.array(z.string().min(1)).min(1),
+  gradingGuidance: z.array(z.string().min(1)).default([]),
   levels: z.object({
     mid: levelConfig,
     senior: levelConfig,
@@ -66,6 +78,16 @@ const problemSchema = z.object({
     )
     .min(1),
   followUps: z.array(z.string().min(1)).min(1),
+  reviewProbes: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        areaIndex: z.number().int().min(0),
+        topicPattern: z.string().min(1),
+        question: z.string().min(1),
+      }),
+    )
+    .default([]),
   diagramReview: z
     .object({ checkApplicationDataPaths: z.boolean() })
     .default({ checkApplicationDataPaths: true }),
@@ -77,6 +99,9 @@ const problems: ProblemDefinition[] = [
   problemSchema.parse(rateLimiter),
   problemSchema.parse(chatService),
   problemSchema.parse(newsFeed),
+  problemSchema.parse(notificationSystem),
+  problemSchema.parse(fileStorage),
+  problemSchema.parse(videoStreaming),
 ];
 
 export function getProblem(problemId: string): ProblemDefinition | undefined {
@@ -101,6 +126,10 @@ export function createInterviewStart(
 ): InterviewStart {
   const selection = { problemId: problem.id, level };
   const sessionId = createInterviewSession(selection, durationMinutes);
+  initializeTranscript(sessionId, {
+    role: "assistant",
+    content: problem.levels[level].openingMessage,
+  });
   const checkpoint = interviewSessionCheckpoint(sessionId, selection);
   return {
     problemId: problem.id,

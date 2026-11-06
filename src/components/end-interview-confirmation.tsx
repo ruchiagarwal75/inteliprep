@@ -27,25 +27,10 @@ export function EndInterviewConfirmation({
             ? "End this interview and start a 45-minute interview?"
             : switchTo === "problem"
               ? "End this interview before changing problems?"
-              : "End this interview?"
+              : "End this interview and see your scorecard?"
       }
       onClose={onCancel}
     >
-      {withoutScoring ? (
-        <p className="text-sm">
-          This interview cannot reconnect. Its drawing, chat, and unsent draft
-          will stay in Saved interviews in this browser. No scorecard will be
-          generated.
-          {switchTo && " You can then continue to your next interview."}
-        </p>
-      ) : (
-        <p className="text-sm">
-          This freezes your drawing and chat and generates your scorecard. You
-          can reopen the results from Saved interviews.
-          {switchTo &&
-            " Your current interview ends before switching. If its scorecard fails, the saved interview keeps a retry option."}
-        </p>
-      )}
       {draft.trim() && !withoutScoring && (
         <>
           <p className="mt-3 text-sm font-medium">
@@ -63,7 +48,7 @@ export function EndInterviewConfirmation({
           onClick={onCancel}
           className="rounded border px-3 py-2 text-sm"
         >
-          {switchTo ? "Stay in this interview" : "Keep interviewing"}
+          Keep going
         </button>
         {draft.trim() && !withoutScoring && (
           <button
@@ -91,7 +76,7 @@ export function EndInterviewConfirmation({
                 : "End, save scorecard, and continue"
               : draft.trim()
                 ? "End without this answer"
-                : "End and generate scorecard"}
+                : "End interview"}
         </button>
       </div>
     </InterviewDialog>

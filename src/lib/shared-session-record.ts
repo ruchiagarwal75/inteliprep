@@ -3,15 +3,17 @@ import { createDecipheriv, createHash } from "node:crypto";
 import { z } from "zod";
 import { scorecardSchema } from "@/lib/scorecard";
 import { sessionCheckpointSchema, unsealSession } from "@/lib/session-token";
+import { transcriptSchema } from "@/lib/interview-transcript";
 
 const recordSchema = z.object({
   checkpoint: sessionCheckpointSchema,
   scorecard: scorecardSchema.optional(),
+  transcript: transcriptSchema.optional(),
 });
 export type SharedSessionRecord = z.infer<typeof recordSchema>;
-const MAX_RECORD_LENGTH = 200_000;
+const MAX_RECORD_LENGTH = 400_000;
 
-/** Store validated progress/feedback directly as JSON, without transcripts or PNGs. */
+/** Store validated progress, verified chat and feedback as JSON; never store PNGs. */
 export function serializeSharedRecord(record: SharedSessionRecord): string {
   const value = JSON.stringify(recordSchema.parse(record));
   if (value.length > MAX_RECORD_LENGTH)

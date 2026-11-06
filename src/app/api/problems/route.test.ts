@@ -13,6 +13,9 @@ it("serves the public problem catalog without hidden interviewer configuration",
     "rate-limiter",
     "chat-service",
     "news-feed",
+    "notification-system",
+    "file-storage",
+    "video-streaming",
   ]);
   expect(body.problems[0].levels).toEqual(["mid", "senior", "staff"]);
   for (const problem of body.problems)

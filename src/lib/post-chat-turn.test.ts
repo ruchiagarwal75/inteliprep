@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { postChatTurn, INTERVIEWER_UNAVAILABLE } from "@/lib/post-chat-turn";
 import type { ChatRequest } from "@/lib/chat";
+import { InterviewRateLimitError } from "@/lib/retry-after";
+import { InterviewSyncError } from "@/lib/interview-sync";
 import {
   CANDIDATE_AUTH_ERROR_HEADER,
   CANDIDATE_AUTH_REQUIRED,
@@ -22,6 +24,41 @@ const delta = frame({ type: "delta", text: "Reply" });
 const complete = frame({ type: "complete", phase, resumeToken: "checkpoint" });
 
 describe("chat transport recovery", () => {
+  it("preserves the Retry-After wait for the browser countdown", async () => {
+    const request = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        Response.json(
+          { error: "Please wait" },
+          { status: 429, headers: { "Retry-After": "15" } },
+        ),
+      );
+    const failure = await postChatTurn(
+      request,
+      payload,
+      vi.fn(),
+      vi.fn(),
+    ).catch((cause: unknown) => cause);
+    expect(failure).toBeInstanceOf(InterviewRateLimitError);
+    expect(failure).toMatchObject({
+      message: "Too many requests. Try again in 15 seconds.",
+      retryAt: expect.any(Number),
+    });
+    expect(request).toHaveBeenCalledOnce();
+  });
+  it("distinguishes a stale transcript from a busy interview", async () => {
+    const request = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        Response.json(
+          { code: "INTERVIEW_TRANSCRIPT_CHANGED", error: "Reopen" },
+          { status: 409 },
+        ),
+      );
+    await expect(
+      postChatTurn(request, payload, vi.fn(), vi.fn()),
+    ).rejects.toBeInstanceOf(InterviewSyncError);
+  });
   it.each([401, 403, 503])(
     "keeps an upstream failure visible as interviewer unavailability (%s)",
     async (status) => {
@@ -95,7 +132,15 @@ describe("chat transport recovery", () => {
       listening: false,
     });
     expect(chunk).toHaveBeenCalledWith("Reply");
-    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toEqual(payload);
+    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toMatchObject({
+      problemId: payload.problemId,
+      level: payload.level,
+      message: payload.messages[0],
+      afterMessageCount: 0,
+    });
+    expect(
+      JSON.parse(String(request.mock.calls[0][1]?.body)),
+    ).not.toHaveProperty("messages");
   });
   it("keeps completed quiet listening out of the transcript", async () => {
     const request = vi.fn<typeof fetch>().mockResolvedValue(

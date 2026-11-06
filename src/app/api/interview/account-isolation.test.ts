@@ -8,6 +8,8 @@ import { CandidateAuthError } from "@/lib/supabase-config";
 import { redisSessionCommand } from "@/lib/fixtures/redis-session-test";
 import { sealSession, unsealSession } from "@/lib/session-token";
 import { interviewStartSchema } from "@/lib/interview-selection";
+import { chatTurnPayload } from "@/lib/chat-turn";
+import { chatRequestSchema } from "@/lib/chat";
 import {
   CANDIDATE_AUTH_ERROR_HEADER,
   CANDIDATE_AUTH_REQUIRED,
@@ -87,19 +89,41 @@ describe("authenticated interview boundary", () => {
       messages: [interview.openingMessage],
     };
     for (const handler of [resume, chat, end])
-      expect((await handler(request(body))).status).toBe(404);
+      expect(
+        (
+          await handler(
+            request(
+              handler === chat
+                ? chatTurnPayload(
+                    chatRequestSchema.parse({
+                      ...body,
+                      messages: [
+                        interview.openingMessage,
+                        { role: "user", content: "Continue" },
+                      ],
+                    }),
+                  )
+                : body,
+            ),
+          )
+        ).status,
+      ).toBe(404);
     vi.mocked(requireCandidateIdentity).mockResolvedValue(alice);
     expect((await resume(request(body))).status).toBe(200);
   });
-  it("keeps ownership when restoring from a token after Redis expires", async () => {
+  it("keeps ownership but fails closed for active chat when the Redis transcript expires", async () => {
     const interview = await started();
     values.clear();
     vi.mocked(requireCandidateIdentity).mockResolvedValue(bob);
     expect((await resume(request(interview))).status).toBe(404);
     expect(values.size).toBe(0);
     vi.mocked(requireCandidateIdentity).mockResolvedValue(alice);
-    expect((await resume(request(interview))).status).toBe(200);
-    expect([...values.values()][0]).toContain(alice);
+    const response = await resume(request(interview));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "INTERVIEW_CONFIGURATION_CHANGED",
+    });
+    expect(values.size).toBe(0);
   });
   it("does not automatically claim valid but anonymous legacy checkpoints", async () => {
     const interview = await started();

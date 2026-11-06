@@ -3,6 +3,7 @@ import type { ChatMessage } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
 import { lastCandidateAction } from "@/lib/candidate-actions";
 import { isRequirementProposal } from "@/lib/candidate-proposal";
+import { isOffTopicRequest } from "@/lib/off-topic";
 
 export type InterviewProgress = {
   step: "discussion" | "invite-drawing" | "drawing" | "explaining" | "review";
@@ -48,6 +49,7 @@ export function isListeningContinuation(
   const latest = messages[index];
   if (
     !latest ||
+    isOffTopicRequest(latest.content) ||
     isRequirementProposal(latest.content) ||
     /[?？]/u.test(latest.content) ||
     /^(?:what|how|when|where|why|which|is|are|does|do|can|could|would|should)\b/iu.test(

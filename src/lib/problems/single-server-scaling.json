@@ -3,9 +3,10 @@
   "title": "Scale a single server",
   "drawingPolicy": {
     "discussionTurns": 2,
-    "invitation": "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions.",
+    "invitation": "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Choose Ready to explain when you're ready to walk through it.",
     "legacyInvitations": [
-      "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Send me a message when you're ready to walk through it."
+      "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Send me a message when you're ready to walk through it.",
+      "Let's move to the whiteboard. Sketch the current single-server setup and the first change you'd try. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
     ]
   },
   "summary": "A small website runs on one server and gets slower as traffic grows. Improve it one step at a time.",

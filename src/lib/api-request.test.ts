@@ -93,12 +93,12 @@ describe("API boundary", () => {
       .fn()
       .mockImplementation(async () => Response.json({ ok: true }));
     const post = withApiRequest("start", "/api/interview/start", handler);
-    for (let i = 0; i < 10; i++)
+    for (let i = 0; i < 3; i++)
       expect((await post(request("{}"))).status).toBe(200);
     const limited = await post(request("{}"));
     expect(limited.status).toBe(429);
     expect(limited.headers.get("Retry-After")).toBeTruthy();
-    expect(handler).toHaveBeenCalledTimes(10);
+    expect(handler).toHaveBeenCalledTimes(3);
   });
   it("fails closed without beta configuration and hides unexpected exceptions", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});

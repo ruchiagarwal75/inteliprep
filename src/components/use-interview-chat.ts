@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { ChatMessage } from "@/lib/chat";
 import type { Scene } from "@/lib/scene";
@@ -16,6 +16,8 @@ import type { PacingCapture } from "@/lib/pacing-capture";
 import type { InterviewChatOptions } from "@/components/interview-chat-options";
 import { useChatDraft } from "@/components/use-chat-draft";
 import { InterviewRecoveryError } from "@/lib/interview-recovery";
+import { InterviewSyncError } from "@/lib/interview-sync";
+import { InterviewRateLimitError } from "@/lib/retry-after";
 
 export function useInterviewChat({
   getScene,
@@ -29,6 +31,8 @@ export function useInterviewChat({
   canSubmit,
   recoveryFailure,
   onRecoveryFailure,
+  onSyncRequired,
+  onAssistantMessage,
 }: InterviewChatOptions) {
   const { request } = useCandidateAccount();
   const [messages, setMessages] = useState<ChatMessage[]>(
@@ -37,6 +41,7 @@ export function useInterviewChat({
   const { input, setInput, getDraft } = useChatDraft(
     restored?.draftText ?? "",
     onSave,
+    interview?.sessionId,
   );
   const [pendingReply, setPendingReply] = useState<
     PendingChatReply | undefined
@@ -55,6 +60,8 @@ export function useInterviewChat({
     restored?.pacingCapture,
   );
   const sendingRef = useRef(false);
+  const abortRef = useRef<AbortController | undefined>(undefined);
+  const restartRef = useRef(false);
   const canSend =
     Boolean(interview) &&
     !disabled &&
@@ -74,11 +81,17 @@ export function useInterviewChat({
     )
       return;
     sendingRef.current = true;
+    const abort = new AbortController();
+    abortRef.current = abort;
+    const startedAt = performance.now();
     onBusyChange(true);
     setError(null);
     setImageWarning(null);
     setIsStreaming(true);
-    const waiting: PendingChatReply = { messageIndex: next.length - 1 };
+    const waiting: PendingChatReply = {
+      messageIndex: next.length - 1,
+      turnId: pendingReply?.turnId ?? crypto.randomUUID(),
+    };
     setPendingReply(waiting);
     setMessages(next);
     if (clearDraft && getDraft().trim() === clearDraft) setInput("");
@@ -88,6 +101,12 @@ export function useInterviewChat({
         prepareWhiteboardTurn(getScene(), previousImageFingerprintRef.current),
         onSave({ messages: next, pendingReply: waiting }),
       ]);
+      const preparedAt = performance.now();
+      if (process.env.NODE_ENV === "development")
+        console.info("[interview] Turn preparation", {
+          durationMs: Math.round(preparedAt - startedAt),
+        });
+      abort.signal.throwIfAborted();
       const sentScene = turn.scene;
       // Failed replies keep the prior delivery baselines, while pacing retains submitted edits.
       previousPacingCaptureRef.current = {
@@ -125,26 +144,31 @@ export function useInterviewChat({
               { ...last, content: last.content + chunk },
             ];
           }),
+        waiting.turnId,
+        abort.signal,
       );
       completed = true;
-      previousSceneRef.current = sentScene;
+      if (!reply.replayed) previousSceneRef.current = sentScene;
       onPhaseChange(reply.phase);
-      if (turn.canCommitImage)
+      if (turn.canCommitImage && !reply.replayed)
         previousImageFingerprintRef.current = turn.fingerprint;
       const finished: ChatMessage[] = reply.listening
         ? next
         : [...next, { role: "assistant", content: reply.reply }];
       setMessages(finished);
+      if (!reply.listening) onAssistantMessage?.();
       setPendingReply(undefined);
       await onSave({
         messages: finished,
         pendingReply: undefined,
         phase: reply.phase,
         resumeToken: reply.resumeToken,
-        previousScene: sentScene,
+        previousScene: previousSceneRef.current,
         previousImageFingerprint: previousImageFingerprintRef.current,
       });
     } catch (cause) {
+      const transcriptConflict = cause instanceof InterviewSyncError;
+      if (transcriptConflict) onSyncRequired?.();
       const failure =
         cause instanceof InterviewRecoveryError ? cause.failure : undefined;
       if (failure) onRecoveryFailure?.(failure);
@@ -154,16 +178,29 @@ export function useInterviewChat({
           : "Interviewer unavailable. Please try again.";
       setError(detail);
       if (!completed) {
-        const failed = { ...waiting, error: detail };
+        const failed = {
+          ...waiting,
+          error: detail,
+          ...(cause instanceof InterviewRateLimitError
+            ? { retryAt: cause.retryAt }
+            : {}),
+        };
         setPendingReply(failed);
         setMessages(next);
         await onSave({
           messages: next,
           pendingReply: failed,
           ...(failure ? { recoveryFailure: failure } : {}),
+          ...(transcriptConflict ? { transcriptConflict: true } : {}),
         }).catch(() => {});
       }
     } finally {
+      if (process.env.NODE_ENV === "development")
+        console.info("[interview] Reply timing", {
+          durationMs: Math.round(performance.now() - startedAt),
+          completed,
+        });
+      abortRef.current = undefined;
       sendingRef.current = false;
       onBusyChange(false);
       setIsStreaming(false);
@@ -174,7 +211,11 @@ export function useInterviewChat({
     content = input.trim(),
     requestedAction?: CandidateAction,
   ) {
-    if (pendingReply || !content.trim()) return;
+    if (!content.trim()) {
+      if (!requestedAction) setInput("");
+      return;
+    }
+    if (pendingReply) return;
     const action = actionForTurn(content, requestedAction);
     await submit(
       [
@@ -190,10 +231,22 @@ export function useInterviewChat({
     );
   }
   async function retry() {
+    if (pendingReply?.retryAt && pendingReply.retryAt > Date.now()) return;
     if (pendingReply) await submit(retryChatMessages(messages, pendingReply));
   }
 
+  useEffect(() => {
+    if (!isStreaming && restartRef.current && pendingReply) {
+      restartRef.current = false;
+      void retry();
+    }
+  });
+  function retrySlowReply() {
+    restartRef.current = true;
+    abortRef.current?.abort();
+  }
   return {
+    retrySlowReply,
     messages,
     input,
     setInput,

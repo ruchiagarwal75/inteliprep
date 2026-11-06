@@ -14,7 +14,8 @@ tracking, explicit interview ending, evidence-backed scorecards, and IndexedDB
 browser saves with autosave/resume/history, and a 45-minute timer with automatic
 ending. Cloud persistence comes later.
 Candidates can start single-server scaling, a URL shortener, a rate limiter,
-one-to-one chat, or a chronological news feed at mid, senior, or staff difficulty with a configured opening and
+one-to-one chat, a chronological news feed, notifications, file storage, or
+video streaming at mid, senior, or staff difficulty with a configured opening and
 private server rubric. The default is the simple scaling exercise at Mid-level.
 
 ## Stack
@@ -99,8 +100,9 @@ Conventions:
   and unlocks chat. New interview resets chat, both diagram baselines, and the
   whiteboard, while retaining the previous session in browser history. Setup changes
   are disabled during an active interview.
-- The five configurations live in `src/lib/problems/`: `single-server-scaling.json`,
-  `url-shortener.json`, `rate-limiter.json`, `chat-service.json`, and `news-feed.json`.
+- The eight configurations live in `src/lib/problems/`: `single-server-scaling.json`,
+  `url-shortener.json`, `rate-limiter.json`, `chat-service.json`, `news-feed.json`,
+  `notification-system.json`, `file-storage.json`, and `video-streaming.json`.
   Each has its own goals, clarifications, stages, and private scoring rubric.
   See `docs/problem-catalog.md` for product boundaries and review status.
   The simple scaling exercise starts with
@@ -170,13 +172,15 @@ Conventions:
   failure retains the current stage. Wrap-up closes without another design question.
 - Planned stage labels travel in `X-Interview-Phase`; the stage indicator and server
   stage state advance only after a completed, nonempty reply. Failed, empty,
-  interrupted, or cancelled replies retain the prior stage. Legacy chat requests
-  without a session ID keep their existing stateless drawing-aware behavior.
+  interrupted, or cancelled replies retain the prior stage. The chat API requires
+  a started session and valid checkpoint, and accepts one candidate message with
+  a stable turn ID and expected message count. It rejects browser-authored histories.
 - Local development without Redis uses a bounded process-wide fallback (500 sessions,
   two-hour inactivity expiry), shared by route bundles and hot reloads. A missing or
-  expired local session returns 404; mismatched selections or concurrent turns return 409. Browser checkpoints restore lost state using authenticated encryption.
+  expired local session returns 404; mismatched selections or concurrent turns return 409. Browser checkpoints restore progress metadata using authenticated encryption,
+  but cannot replace a missing verified transcript.
   Private beta mode never uses the process cache: each request loads a working copy
-  from validated JSON Redis progress/cache records under an owner-fenced distributed lock.
+  from validated JSON Redis progress/transcript/cache records under an owner-fenced distributed lock.
   Request state survives streamed callbacks and is discarded after initial publication
   or lease release. Recovery requires a verified Supabase candidate matching the session/token owner.
   Durable cloud interview history remains future work. Development logs include the public stage title.
@@ -272,6 +276,10 @@ Conventions:
 
 ## Interview usability and grading calibration
 
+For current routes, layout, timed stage gates, and scoring thresholds, the
+November 2026 interview usability contract at the end of docs/spec.md supersedes
+earlier implementation notes in this file.
+
 The workspace reserves most laptop height for the board and chat. Chat scrolls to
 the latest message after restoration, sending, and reply updates, and shows a
 thinking/replying status. The board restores its saved viewport; older viewportless
@@ -280,9 +288,9 @@ and unused files, while pan/zoom saves quietly. End interview opens a confirmati
 dialog and offers inclusion of an unsent answer. Low-time warnings appear at five
 minutes (15 seconds in test mode) and in the final minute.
 
-Scorecards show server-derived elapsed and allowed time. Attempts under ten minutes
-(of 45), and 1-minute test sessions, have provisional area feedback and no overall
-signal. This does not reduce area scores. Grading requires concrete reasoning for
+Scorecards show server-derived elapsed and allowed time. Attempts under fifteen minutes
+(of 45), or fewer than two stages with technical answers, hide numeric area scores
+and have no overall signal. Quoted evidence and qualitative feedback remain. Grading requires concrete reasoning for
 3/4 or 4/4, and server validation caps single-server bottleneck scores at 2 when cited
 evidence lacks a diagnostic resource/measurement explanation. Supplied traffic
 numbers cannot prove a bottleneck. Gap captions must describe a useful issue rather

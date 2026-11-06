@@ -1,3 +1,4 @@
+import { chatRouteFixture } from "@/lib/fixtures/chat-route-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createInterviewStart, getProblem } from "@/lib/problems";
 import { acquireInterviewSession } from "@/lib/interview-sessions";
@@ -40,20 +41,22 @@ const history: ChatMessage[] = [
   },
 ];
 function start() {
-  return createInterviewStart(problem, "mid");
+  return createInterviewStart(problem, "mid", 1);
 }
 function post(sessionId: string, messages = history, extra = {}) {
   return POST(
     new Request("http://localhost/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...selection,
-        sessionId,
-        messages,
-        scene: { elements: [] },
-        ...extra,
-      }),
+      body: JSON.stringify(
+        chatRouteFixture({
+          ...selection,
+          sessionId,
+          messages,
+          scene: { elements: [] },
+          ...extra,
+        }),
+      ),
     }),
   );
 }
@@ -93,7 +96,8 @@ describe("server-owned interview stages", () => {
     });
     await discussion.text();
     expect(state(interview.sessionId).phaseIndex).toBe(2);
-    expect(mocks.assessPhaseCoverage).not.toHaveBeenCalled();
+    expect(mocks.assessPhaseCoverage).toHaveBeenCalledOnce();
+    mocks.assessPhaseCoverage.mockClear();
     for (const action of ["draw", "explain"] as const) {
       const paused = await post(
         interview.sessionId,
@@ -134,7 +138,7 @@ describe("server-owned interview stages", () => {
   it("rejects missing sessions, changed selections, and concurrent turns", async () => {
     const interview = start();
     expect((await post("8e0e77aa-c872-4f82-a1b5-0a6b38ca27cb")).status).toBe(
-      404,
+      409,
     );
     expect(
       (await post(interview.sessionId, history, { level: "staff" })).status,

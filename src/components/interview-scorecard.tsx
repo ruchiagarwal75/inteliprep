@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { SCORE_LABELS, SIGNAL_LABELS, type Scorecard } from "@/lib/scorecard";
 import { INTERVIEW_LEVEL_LABELS } from "@/lib/interview-selection";
@@ -12,8 +13,13 @@ export function InterviewScorecard({
 }: {
   scorecard: Scorecard;
   scene?: Scene;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
+  if (
+    scorecard.summary ===
+    "You ended before giving a technical answer. Retry to get feedback."
+  )
+    return <p className="p-4">{scorecard.summary}</p>;
   return (
     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 break-words">
       <div>
@@ -50,12 +56,17 @@ export function InterviewScorecard({
               <h4 className="text-sm font-medium">{area.area}</h4>
               <span className="shrink-0 rounded-md bg-black/5 px-2 py-1 text-xs dark:bg-white/10">
                 {area.score === null
-                  ? "Not assessed"
+                  ? scorecard.session?.limited
+                    ? "Not enough evidence"
+                    : "Not assessed"
                   : `${area.score}/4 · ${SCORE_LABELS[area.score as keyof typeof SCORE_LABELS]}`}
               </span>
             </div>
             <p className="mt-2 text-sm">{area.rationale}</p>
             <ScorecardEvidence evidence={area.evidence} scene={scene} />
+            {area.diagramNote && (
+              <p className="mt-2 text-xs">{area.diagramNote}</p>
+            )}
           </article>
         ))}
       </section>
@@ -83,7 +94,7 @@ export function InterviewScorecard({
             <p className="mt-2 text-sm text-black/60 dark:text-white/60">
               {kind === "strengths"
                 ? "No strengths established from the available evidence yet."
-                : "No demonstrated gaps identified in the available evidence."}
+                : "There is not enough evidence to identify demonstrated gaps."}
             </p>
           )}
         </section>
@@ -92,17 +103,22 @@ export function InterviewScorecard({
         aria-label="Next practice"
         className="rounded-lg bg-black/5 p-3 dark:bg-white/10"
       >
-        <h3 className="text-sm font-semibold">
+        <Link
+          className="inline-block rounded border px-3 py-2 text-sm font-semibold"
+          href={`/interview/new?problem=${encodeURIComponent(scorecard.nextPractice.problemId)}`}
+        >
           Next practice: {scorecard.nextPractice.title}
-        </h3>
+        </Link>
         <p className="mt-2 text-sm">{scorecard.nextPractice.focus}</p>
       </section>
-      <details className="text-sm">
-        <summary className="cursor-pointer font-medium">
-          View interview transcript
-        </summary>
-        <div className="mt-2 flex h-72 flex-col">{children}</div>
-      </details>
+      {children && (
+        <details className="text-sm">
+          <summary className="cursor-pointer font-medium">
+            View interview transcript
+          </summary>
+          <div className="mt-2 flex h-72 flex-col">{children}</div>
+        </details>
+      )}
     </div>
   );
 }

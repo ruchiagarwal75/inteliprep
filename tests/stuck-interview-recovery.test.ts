@@ -7,6 +7,7 @@ import { savedFixture } from "@/lib/fixtures/saved-interview-test";
 import { createCandidateBrowserScope } from "@/lib/candidate-browser-scope";
 import { reconnectInterview } from "@/lib/reconnect-interview";
 import { postChatTurn } from "@/lib/post-chat-turn";
+import { chatTurnPayload } from "@/lib/chat-turn";
 import {
   InterviewRecoveryError,
   interviewRecoveryFailure,
@@ -55,7 +56,9 @@ describe("unreadable saved checkpoint recovery", () => {
       ["/api/chat", chat],
       ["/api/interview/end", end],
     ] as const) {
-      const response = await handler(request(url, payload));
+      const response = await handler(
+        request(url, handler === chat ? chatTurnPayload(payload) : payload),
+      );
       expect(response.status).toBe(409);
       expect(response.headers.has("X-Interview-Auth-Error")).toBe(false);
       expect(
@@ -64,7 +67,8 @@ describe("unreadable saved checkpoint recovery", () => {
     }
     await expect(
       postChatTurn(
-        async () => chat(request("/api/chat", payload)),
+        async (_input, init) =>
+          chat(new Request("http://localhost/api/chat", init)),
         payload,
         vi.fn(),
         vi.fn(),

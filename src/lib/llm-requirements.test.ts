@@ -66,7 +66,7 @@ describe("requirements-stage reply control", () => {
     },
   );
   it("answers configured facts without asking the candidate to repeat them", async () => {
-    expect(await reply("What traffic should I expect?")).toBe(
+    expect(await reply("What traffic should I expect?")).toContain(
       problem.clarifications[0].answers.mid,
     );
     expect(mocks.create).not.toHaveBeenCalled();

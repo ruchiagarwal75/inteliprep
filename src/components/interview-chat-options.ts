@@ -20,9 +20,14 @@ export type InterviewChatOptions = {
   canSubmit: () => boolean;
   recoveryFailure?: InterviewRecoveryFailure;
   onRecoveryFailure?: (failure: InterviewRecoveryFailure) => void;
+  onSyncRequired?: () => void;
+  onAssistantMessage?: () => void;
 };
 
 export type ChatPanelProps = InterviewChatOptions & {
+  endControlTarget?: HTMLElement | null;
+  brief?: string;
+  onAssistantMessage?: () => void;
   hasDrawing: boolean;
   phase?: InterviewPhase;
   hasEnded: boolean;
@@ -37,4 +42,6 @@ export type ChatPanelProps = InterviewChatOptions & {
     messages: ChatMessage[],
     draft: string,
   ) => Promise<boolean>;
+  storageConflict?: boolean;
+  onLoadLatest?: (messages: ChatMessage[], draft: string) => Promise<boolean>;
 };

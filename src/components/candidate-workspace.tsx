@@ -10,9 +10,13 @@ import { InterviewWorkspace } from "@/components/interview-workspace";
 export function CandidateWorkspace({
   userId,
   problems,
+  view = "interview",
+  sessionId,
 }: {
   userId: string;
   problems: ProblemSummary[];
+  view?: "home" | "brief" | "interview" | "results";
+  sessionId?: string;
 }) {
   const [visible, setVisible] = useState(true);
   const [signOutFailed, setSignOutFailed] = useState(false);
@@ -107,7 +111,12 @@ export function CandidateWorkspace({
     );
   return (
     <CandidateAccountContext.Provider value={account}>
-      <InterviewWorkspace key={userId} problems={problems} />
+      <InterviewWorkspace
+        key={userId}
+        problems={problems}
+        view={view}
+        sessionId={sessionId}
+      />
     </CandidateAccountContext.Provider>
   );
 }

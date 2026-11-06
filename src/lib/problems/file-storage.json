@@ -1,0 +1,248 @@
+{
+  "id": "file-storage",
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
+  "title": "Design a file storage service",
+  "summary": "Store and share large files with resumable uploads, version checks, and controlled access.",
+  "prompt": "Design a cloud file storage service. Signed-in users upload, list, download, replace, and delete files, and grant another user read access. Explain resumable transfer, publication of complete files, concurrent replacement, authorization, and recovery.",
+  "requirements": [
+    "Support signed-in owners uploading, listing metadata, downloading, replacing, deleting, and granting one other user read access. Identity exists; authorization is still the service's responsibility.",
+    "Files can be up to 1 GB, with a 10 MB average for estimates. Support retrying interrupted transfers without starting every byte again. Public anonymous links, automatic folder sync, and collaborative editing are optional extensions.",
+    "A completed upload publishes durable bytes and matching metadata to the user. An incomplete upload is not a downloadable file. Repeating one upload ID must not publish duplicate files.",
+    "Track file identity, ownership, current version, and upload state. A stale replacement must report a conflict or preserve an explicit alternate version rather than silently overwriting newer work.",
+    "Keep current files until owner deletion. Default to 7-day retention of older completed versions and cleanup of abandoned uploads after 24 hours; accept justified alternatives and retain agreed values.",
+    "Check ownership or a valid read grant for downloads. Revocation must block new downloads within 60 seconds. Active transfers may finish and already received bytes cannot be recalled.",
+    "Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. Bulk completion time depends on network and file size. Keep a single-region core; discuss cost, failure recovery, and popular files at the selected level."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch uploading a complete file and downloading it with a read grant. Choose Ready to explain when you're ready to walk through it.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch uploading a complete file and downloading it with a read grant. Choose Explain my design to walk through it, then Done explaining when you're ready for questions."
+    ]
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design a cloud file storage service. Signed-in users upload, list, download, replace, and delete files, and grant another user read access. Identity already exists. Support files up to 1 GB and resumable uploads. Automatic folder synchronization, collaborative editing, and public anonymous links are outside scope.\n\nExplain how complete file bytes and metadata become visible together, then how another user downloads a shared file. We'll clarify workload and timing before drawing.\n\nSuccess requires durable bytes and matching metadata; incomplete uploads stay hidden. Reusing an upload ID must not publish another file. Stale replacements must not silently overwrite newer versions. Keep current files until deletion; default to 7-day old-version retention and 24-hour incomplete-upload cleanup. Revoked sharing must block new downloads within 60 seconds; received bytes cannot be recalled.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect clear file and upload APIs, durable byte storage plus file metadata, resumable transfer, and owner/read-grant checks. Explore incomplete uploads and a stale replacement without mandating a storage vendor or chunking scheme.",
+      "scaleHints": [
+        "Assume 100,000 daily active users, 100,000 uploads per day, and 1 million downloads per day, with peaks ten times the daily average. Average file size is 10 MB; maximum is 1 GB.",
+        "Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. There is no fixed whole-file transfer deadline independent of the user's connection and file size."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design a cloud file storage service. Signed-in users upload, list, download, replace, and delete files, and grant another user read access. Identity already exists. Support files up to 1 GB and resumable uploads. Automatic folder synchronization, collaborative editing, and public anonymous links are outside scope.\n\nExplain large-file transfer, sharing, and conflicting replacements from different devices. We'll establish workload and latency goals before you draw and explain.\n\nSuccess requires durable bytes and matching metadata; incomplete uploads stay hidden. Reusing an upload ID must not publish another file. Stale replacements must not silently overwrite newer versions. Keep current files until deletion; default to 7-day old-version retention and 24-hour incomplete-upload cleanup. Revoked sharing must block new downloads within 60 seconds; received bytes cannot be recalled.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect reasoned transfer and metadata estimates, resumable part identity and integrity checks, coordinated publication, explicit version conflicts, and revocation bounds. Probe a popular shared file or partial failure using the candidate's design.",
+      "scaleHints": [
+        "Assume 10 million daily active users, 10 million uploads per day, and 100 million downloads per day, with peaks ten times the daily average and uneven file popularity. Average file size is 10 MB; maximum is 1 GB.",
+        "Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. There is no fixed whole-file transfer deadline independent of the user's connection and file size."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design a cloud file storage service. Signed-in users upload, list, download, replace, and delete files, and grant another user read access. Identity already exists. Support files up to 1 GB and resumable uploads. Automatic folder synchronization, collaborative editing, and public anonymous links are outside scope.\n\nExplain transfer cost, metadata ownership, and recovery under uneven file sizes and popular shared files. Keep the primary service in one region before optional regional recovery.\n\nSuccess requires durable bytes and matching metadata; incomplete uploads stay hidden. Reusing an upload ID must not publish another file. Stale replacements must not silently overwrite newer versions. Keep current files until deletion; default to 7-day old-version retention and 24-hour incomplete-upload cleanup. Revoked sharing must block new downloads within 60 seconds; received bytes cannot be recalled.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect quantified byte-transfer and storage costs, metadata ownership and contention, fair large-upload handling, garbage collection safety, revocation semantics, and recoverable publication. Explore regional recovery only after a correct single-region core.",
+      "scaleHints": [
+        "Assume 100 million daily active users, 100 million uploads per day, and 1 billion downloads per day, with peaks ten times the daily average and skewed file sizes and popularity. Average file size is 10 MB; maximum is 1 GB.",
+        "Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. There is no fixed whole-file transfer deadline independent of the user's connection and file size."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and transfer workload",
+      "strong": "Establishes private file workflows, sharing roles, size and traffic estimates, latency versus transfer time, and retention/revocation assumptions.",
+      "assessmentPattern": "\\b(requirement\\w*|scope|volume|traffic|uploads? per|downloads? per|file.size|latency|retention|estimate\\w*|capacity)\\b"
+    },
+    {
+      "area": "Upload completion and integrity",
+      "strong": "Explains resumable transfer, stable upload identity, integrity checks, and publication after durable complete bytes rather than exposing incomplete content.",
+      "assessmentPattern": "\\b(upload\\w*|resum\\w*|part\\w*|chunk\\w*|checksum\\w*|integrity|complet\\w*|durab\\w*|publish\\w*)\\b"
+    },
+    {
+      "area": "Metadata and concurrent versions",
+      "strong": "Models file ownership and versions, separates transfer state from published metadata, and handles stale replacements and retries without silent data loss.",
+      "assessmentPattern": "\\b(metadata|version\\w*|owner\\w*|conflict\\w*|concurren\\w*|stale|replace\\w*|compare.and.set|compare.and.swap|cas|optimistic|base.version|upload.id|idempot\\w*)\\b"
+    },
+    {
+      "area": "Downloads, sharing, and access",
+      "strong": "Explains a byte-read path with owner/read-grant authorization and bounded revocation, including the limits of expiring access and already received bytes.",
+      "assessmentPattern": "\\b(download\\w*|sharing|shared|read.grant|permission\\w*|authoriz\\w*|revok\\w*|revocation|ticket\\w*|access)\\b"
+    },
+    {
+      "area": "Scaling, cleanup, and recovery",
+      "strong": "Justifies transfer and metadata scaling, recovers partial publication, safely collects abandoned data, and measures throughput, errors, storage/egress cost, and large-file behavior.",
+      "assessmentPattern": "\\b(scal\\w*|cleanup|garbage|orphan\\w*|abandon\\w*|recover\\w*|fail\\w*|throughput|egress|cost\\w*|monitor\\w*|metric\\w*|load.test)\\b"
+    }
+  ],
+  "followUps": [
+    "What can another device see if the connection drops halfway through an upload?",
+    "What does repeating the upload-complete request do in your design?",
+    "How do two devices replacing the same version avoid silently losing one change?",
+    "How does a recipient prove that it may download this file?",
+    "When an owner revokes a grant, how long can a previously issued download still start?",
+    "How do you reclaim abandoned bytes without deleting an upload that is still making progress?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish the core workflows, workload and timing goals, and service guarantees.",
+      "completionCriteria": [
+        "Candidate clarifies or confirms private file operations, resumable upload, and read-only sharing.",
+        "Candidate establishes or confirms upload/download traffic, file sizes, metadata latency, and download-start goals.",
+        "Candidate clarifies or confirms durable complete publication, retry identity, stale-version conflicts, retention/cleanup defaults, and sharing revocation."
+      ],
+      "interviewerGuidance": "Clarify only missing scope and workload goals before drawing. The opening already supplies scope and correctness defaults; never quiz the candidate for those facts again. The message budget is guidance, never proof of completion. Answer explicit clarifications and acknowledge reasonable allowed alternatives without prescribing architecture.",
+      "transition": "initial",
+      "clarificationQuestions": [
+        "Which file operations, sharing roles, and optional sync features are in scope?",
+        "What upload/download volume, file sizes, metadata latency, and download-start goals are you using?",
+        "What should upload completion, concurrent versions, cleanup, and revoked access guarantee?"
+      ]
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate sketch file transfer, metadata publication, and shared downloads.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after explaining."
+      ],
+      "interviewerGuidance": "Give the candidate the floor across multiple messages. Wait for explicit discussion permission before critiquing or asking design questions. Answer explicit requirement proposals while preserving explanation pauses.",
+      "transition": "drawing"
+    },
+    {
+      "id": "transfer-and-versions",
+      "title": "Transfer and versions",
+      "goal": "Understand resumable transfers, complete publication, and file-version ownership.",
+      "completionCriteria": [
+        "Candidate explains upload/download APIs, resumable transfer, integrity checks, and publication only after durable bytes and matching metadata are available.",
+        "Candidate explains file metadata and version identity, idempotent upload completion, and how a stale device replacement is handled."
+      ],
+      "interviewerGuidance": "Probe one uncovered transfer or metadata boundary. Accept different byte stores and resume schemes when justified. Do not conflate a started upload with a complete file.",
+      "transition": "coverage"
+    },
+    {
+      "id": "access-and-recovery",
+      "title": "Access and recovery",
+      "goal": "Explore sharing, revocation, abandoned work, and large-file operation.",
+      "completionCriteria": [
+        "Candidate explains owner/read-grant checks, bounded revocation, and cleanup of incomplete or unreferenced uploads without deleting live files.",
+        "Candidate explains a large or popular file, a failure/recovery path, and a measurement or test for transfer health or cost."
+      ],
+      "interviewerGuidance": "Use the candidate's paths to ask one focused access, partial-failure, or load question. Do not require a specific object-store vendor. Respect explanation pauses.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Recap the candidate's own design and stated tradeoffs.",
+      "completionCriteria": [
+        "The candidate's choices and stated limitations are summarized."
+      ],
+      "interviewerGuidance": "Close with a short recap grounded in the candidate's answers and drawing. Do not invent guarantees, assign scores, restart requirements, or ask another design question.",
+      "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0, 2],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|rps|qps|load|volume|scale|capacity|latency|response.time|file.sizes?|uploads? per|downloads? per|how (?:many|large|fast|quickly))\\b",
+      "answers": {
+        "mid": "Assume 100,000 daily active users, 100,000 uploads per day, and 1 million downloads per day, with peaks ten times the daily average. Average file size is 10 MB; maximum is 1 GB. Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. There is no fixed whole-file transfer deadline independent of the user's connection and file size.",
+        "senior": "Assume 10 million daily active users, 10 million uploads per day, and 100 million downloads per day, with peaks ten times the daily average and uneven file popularity. Average file size is 10 MB; maximum is 1 GB. Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. There is no fixed whole-file transfer deadline independent of the user's connection and file size.",
+        "staff": "Assume 100 million daily active users, 100 million uploads per day, and 1 billion downloads per day, with peaks ten times the daily average and skewed file sizes and popularity. Average file size is 10 MB; maximum is 1 GB. Target p95 metadata operations below 200 milliseconds and download time to first byte below 1 second during normal operation. There is no fixed whole-file transfer deadline independent of the user's connection and file size."
+      },
+      "coversCriteria": [1]
+    },
+    {
+      "pattern": "\\b(scope|channels?|features?|sharing|public|private|permission\\w*|preferences?|opt.out|live.streaming|recommend\\w*|folder.sync)\\b",
+      "answers": {
+        "mid": "The core is private file upload, metadata listing, download, replacement, deletion, and an explicit read grant to another signed-in user. Files may reach 1 GB and uploads must resume after interruption. Automatic folder sync, collaborative editing, public anonymous links, and a folder hierarchy are optional extensions.",
+        "senior": "The core is private file upload, metadata listing, download, replacement, deletion, and an explicit read grant to another signed-in user. Files may reach 1 GB and uploads must resume after interruption. Automatic folder sync, collaborative editing, public anonymous links, and a folder hierarchy are optional extensions.",
+        "staff": "The core is private file upload, metadata listing, download, replacement, deletion, and an explicit read grant to another signed-in user. Files may reach 1 GB and uploads must resume after interruption. Automatic folder sync, collaborative editing, public anonymous links, and a folder hierarchy are optional extensions."
+      },
+      "coversCriteria": [0]
+    },
+    {
+      "pattern": "\\b(guarantee\\w*|durab\\w*|complet\\w*|retry|retries|duplicate\\w*|idempot\\w*|version\\w*|conflict\\w*|retention|retain\\w*|cleanup|revok\\w*|revocation)\\b",
+      "answers": {
+        "mid": "Success requires durable bytes and matching metadata; incomplete uploads stay hidden. Reusing an upload ID must not publish another file. Stale replacements must not silently overwrite newer versions. Keep current files until deletion; default to 7-day old-version retention and 24-hour incomplete-upload cleanup. Revoked sharing must block new downloads within 60 seconds; received bytes cannot be recalled.",
+        "senior": "Success requires durable bytes and matching metadata; incomplete uploads stay hidden. Reusing an upload ID must not publish another file. Stale replacements must not silently overwrite newer versions. Keep current files until deletion; default to 7-day old-version retention and 24-hour incomplete-upload cleanup. Revoked sharing must block new downloads within 60 seconds; received bytes cannot be recalled.",
+        "staff": "Success requires durable bytes and matching metadata; incomplete uploads stay hidden. Reusing an upload ID must not publish another file. Stale replacements must not silently overwrite newer versions. Keep current files until deletion; default to 7-day old-version retention and 24-hour incomplete-upload cleanup. Revoked sharing must block new downloads within 60 seconds; received bytes cannot be recalled."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(two.devices|simultaneous|at.once|concurren\\w*|compare.and.set|cas|optimistic|conflict\\w*)\\b",
+      "answers": {
+        "mid": "Two devices may replace the same file at once; a stale base version must cause an explicit conflict or preserve an alternate version, not silently overwrite newer work. Real-time collaborative document editing and character merging are outside the core scope.",
+        "senior": "Two devices may replace the same file at once; a stale base version must cause an explicit conflict or preserve an alternate version, not silently overwrite newer work. Real-time collaborative document editing and character merging are outside the core scope.",
+        "staff": "Two devices may replace the same file at once; a stale base version must cause an explicit conflict or preserve an alternate version, not silently overwrite newer work. Real-time collaborative document editing and character merging are outside the core scope."
+      },
+      "coversCriteria": [2]
+    }
+  ],
+  "gradingGuidance": [
+    "Collaborative live document editing is explicitly outside the core scope; never penalize missing OT, CRDTs, character merging, or collaborative editing.",
+    "Two devices replacing one file version is in scope. An explained compare-and-set, conditional base-version check, or optimistic conflict rejection is evidence of concurrent replacement handling. Credit that explanation; distinguish a missing retry/conflict user flow from an absent concurrency mechanism.",
+    "A pending/visible state that publishes metadata only after complete verified durable bytes addresses hiding partial uploads. Do not claim that topic was unexplored when stated."
+  ],
+  "reviewProbes": [
+    {
+      "id": "storage-outage",
+      "areaIndex": 4,
+      "topicPattern": "outage|provider|unavailable|storage.failure",
+      "question": "If byte storage is unavailable, what response will an upload-completion request return?"
+    },
+    {
+      "id": "storage-recovery",
+      "areaIndex": 4,
+      "topicPattern": "outage|provider|unavailable|storage.failure",
+      "question": "After storage recovers, how will clients resume interrupted transfers without publishing duplicate files?"
+    },
+    {
+      "id": "publication-crash",
+      "areaIndex": 1,
+      "topicPattern": "publish\\w*|metadata|complete|partial|incomplete|pending",
+      "question": "If the process stops after byte storage succeeds but before metadata publication, what happens when the client retries completion?"
+    },
+    {
+      "id": "revocation-clock",
+      "areaIndex": 3,
+      "topicPattern": "revok\\w*|revocation|grant|presigned|signed.url|60.second",
+      "question": "With your expiring download links, how will you test the revocation bound when clocks differ?"
+    },
+    {
+      "id": "revocation-retry",
+      "areaIndex": 3,
+      "topicPattern": "revok\\w*|revocation|grant|presigned|signed.url|60.second",
+      "question": "What happens if a download client retries with the same link after its access expires?"
+    },
+    {
+      "id": "conflict-client",
+      "areaIndex": 2,
+      "topicPattern": "version|conflict|compare.and.set|stale|concurrent",
+      "question": "After a stale-version conflict, how can the client preserve its user's changes without overwriting the newer file?"
+    },
+    {
+      "id": "abandoned-upload",
+      "areaIndex": 4,
+      "topicPattern": "cleanup|abandon\\w*|slow.upload|progress",
+      "question": "How do you distinguish an abandoned upload from a slow upload that is still making progress?"
+    },
+    {
+      "id": "part-integrity",
+      "areaIndex": 1,
+      "topicPattern": "checksum|integrity|resum\\w*|upload.part",
+      "question": "If only one resumed upload part fails its integrity check, what does the client need to send again?"
+    },
+    {
+      "id": "popular-file",
+      "areaIndex": 4,
+      "topicPattern": "popular|large.file|bandwidth|throughput|egress",
+      "question": "How will you measure whether repeated downloads of a popular file overload your byte-transfer path?"
+    }
+  ]
+}

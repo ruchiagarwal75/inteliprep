@@ -1,6 +1,8 @@
 {
   "id": "news-feed",
-  "diagramReview": { "checkApplicationDataPaths": false },
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
   "title": "Design a news feed",
   "summary": "Show recent posts from followed accounts with predictable ordering, bounded freshness, and popular-creator traffic.",
   "prompt": "Design a chronological home feed. Signed-in users publish short text posts and view recent posts from accounts they follow. Explain publishing, feed generation, pagination, and how the design handles popular creators, delayed updates, and failures.",
@@ -14,7 +16,10 @@
   ],
   "drawingPolicy": {
     "discussionTurns": 3,
-    "invitation": "Let's move to the whiteboard. Sketch how a post is published and how a follower reads a page of their feed. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+    "invitation": "Let's move to the whiteboard. Sketch how a post is published and how a follower reads a page of their feed. Choose Ready to explain when you're ready to walk through it.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch how a post is published and how a follower reads a page of their feed. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+    ]
   },
   "levels": {
     "mid": {
@@ -46,7 +51,7 @@
     {
       "area": "Requirements and workload",
       "strong": "Defines the chronological product scope, separates publishing, feed reads, and amplification, and establishes workload, freshness, latency, and retention assumptions.",
-      "assessmentPattern": "\\b(requirement\\w*|scope|traffic|users? per|posts? per|reads? per|throughput|latency|freshness|retention|estimate\\w*|capacity)\\b"
+      "assessmentPattern": "\\b(requirement\\w*|scope|traffic|users? per|posts? per|reads? per|throughput|latency|freshness|retention|retain\\w*|keep(?:ing)?\\s+posts?|one.year|estimate\\w*|capacity)\\b"
     },
     {
       "area": "Post API and data model",
@@ -142,14 +147,19 @@
   "openingCriteria": [0, 2],
   "clarifications": [
     {
-      "pattern": "\\b(traffic|rps|qps|scale|capacity|latency|response.time|users? per|posts? per|reads? per|followers?|popular|celebrity|fresh\\w*|stale|staleness|delay\\w*|few seconds)\\b",
+      "pattern": "\\b(traffic|workload|rps|qps|scale|capacity|latency|response.time|daily.active|how.many|users? per|posts? per|reads? per|followers?|popular|celebrity|fresh\\w*|stale|staleness|delay\\w*|few seconds)\\b",
       "answers": {
         "mid": "Assume 100,000 daily active users, 100,000 posts per day, and 1 million feed reads per day, with peaks ten times the daily average. Typical users follow 100 accounts; a popular creator can have 50,000 followers. Target p95 feed reads below 500 milliseconds. New posts may take up to 5 seconds to appear in followers' feeds during normal operation.",
         "senior": "Assume 10 million daily active users, 10 million posts per day, and 100 million feed reads per day, with peaks ten times the daily average. Typical users follow 100 accounts; a popular creator can have 5 million followers. Target p95 feed reads below 500 milliseconds. New posts may take up to 5 seconds to appear in followers' feeds during normal operation.",
         "staff": "Assume 100 million daily active users, 100 million posts per day, and 1 billion feed reads per day, with peaks ten times the daily average. Typical users follow 100 accounts; a popular creator can have 50 million followers. Target p95 feed reads below 500 milliseconds. New posts may take up to 5 seconds to appear in followers' feeds during normal operation."
       },
       "coversCriteria": [1],
-      "sharedAnswerPattern": "daily active users[\\s\\S]*feed reads below 500 milliseconds[\\s\\S]*posts may take up to 5 seconds"
+      "sharedAnswerPattern": "daily active users[\\s\\S]*feed reads below 500 milliseconds[\\s\\S]*posts may take up to 5 seconds",
+      "sharedAnswerPatterns": {
+        "mid": "(?=[\\s\\S]*(?:\\b(?:100000|1000000)\\b[^.!?\\n]{0,65}\\b(?:users?|dau|posts?|reads?)\\b|\\b(?:users?|dau|posts?|reads?)\\b[^.!?\\n]{0,65}\\b(?:100000|1000000)\\b))(?=[\\s\\S]*\\b500ms\\b)(?=[\\s\\S]*\\b5000ms\\b)",
+        "senior": "(?=[\\s\\S]*(?:\\b(?:10000000|100000000)\\b[^.!?\\n]{0,65}\\b(?:users?|dau|posts?|reads?)\\b|\\b(?:users?|dau|posts?|reads?)\\b[^.!?\\n]{0,65}\\b(?:10000000|100000000)\\b))(?=[\\s\\S]*\\b500ms\\b)(?=[\\s\\S]*\\b5000ms\\b)",
+        "staff": "(?=[\\s\\S]*(?:\\b(?:100000000|1000000000)\\b[^.!?\\n]{0,65}\\b(?:users?|dau|posts?|reads?)\\b|\\b(?:users?|dau|posts?|reads?)\\b[^.!?\\n]{0,65}\\b(?:100000000|1000000000)\\b))(?=[\\s\\S]*\\b500ms\\b)(?=[\\s\\S]*\\b5000ms\\b)"
+      }
     },
     {
       "pattern": "\\b(scope|rank\\w*|recommend\\w*|public|private|media|video|image\\w*|comment\\w*|advert\\w*|notification\\w*|authentication|follow.graph)\\b",
@@ -169,5 +179,8 @@
       },
       "coversCriteria": [2]
     }
+  ],
+  "gradingGuidance": [
+    "A justified one-year retention assumption is allowed in place of the 90-day default. Read candidate proposals and interviewer acceptance from clarification or explanation. Do not claim retention was unexplored when they established an alternative; assess any missing cost/recovery reasoning specifically."
   ]
 }

@@ -1,7 +1,11 @@
 // These cases exercise the anonymous monitoring/IP boundary.
 vi.unmock("@/lib/candidate-context");
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { checkRequestLimit, requestIdentity } from "@/lib/request-limits";
+import {
+  checkRequestLimit,
+  requestIdentity,
+  REQUEST_LIMITS,
+} from "@/lib/request-limits";
 import { withCandidateIdentity } from "@/lib/candidate-context";
 
 const redis = vi.hoisted(() => vi.fn());
@@ -19,7 +23,7 @@ describe("request limits", () => {
     expect(a).not.toBe(b);
     expect(a).not.toContain("alice");
     await withCandidateIdentity("alice", async () => {
-      for (let i = 0; i < 10; i++)
+      for (let i = 0; i < REQUEST_LIMITS.start[0]; i++)
         expect(await checkRequestLimit(request, "start")).toBe(0);
       expect(await checkRequestLimit(request, "start")).toBeGreaterThan(0);
     });
@@ -31,7 +35,7 @@ describe("request limits", () => {
   });
   it("bounds bursts and resets after the minute window", async () => {
     vi.useFakeTimers();
-    for (let i = 0; i < 30; i++)
+    for (let i = 0; i < REQUEST_LIMITS.chat[0]; i++)
       expect(await checkRequestLimit(request, "chat")).toBe(0);
     expect(await checkRequestLimit(request, "chat")).toBe(60);
     vi.advanceTimersByTime(60_000);
@@ -39,12 +43,22 @@ describe("request limits", () => {
   });
   it("applies the hourly cap even across separate minute windows", async () => {
     vi.useFakeTimers();
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 12; i++) {
       for (let j = 0; j < 10; j++)
-        expect(await checkRequestLimit(request, "start")).toBe(0);
+        expect(await checkRequestLimit(request, "chat")).toBe(0);
       vi.advanceTimersByTime(60_000);
     }
-    expect(await checkRequestLimit(request, "start")).toBe(3_240);
+    expect(await checkRequestLimit(request, "chat")).toBe(2_880);
+  });
+  it("enforces daily interview quotas across hourly resets", async () => {
+    vi.useFakeTimers();
+    for (let i = 0; i < REQUEST_LIMITS.start[2]; i++) {
+      expect(await checkRequestLimit(request, "start")).toBe(0);
+      vi.advanceTimersByTime(3_600_000);
+    }
+    expect(await checkRequestLimit(request, "start")).toBe(50_400);
+    vi.advanceTimersByTime(50_400_000);
+    expect(await checkRequestLimit(request, "start")).toBe(0);
   });
   it("ignores spoofed forwarded headers outside Vercel", () => {
     expect(
@@ -83,7 +97,8 @@ describe("request limits", () => {
     expect(await checkRequestLimit(request, "chat")).toBe(2);
     const args = redis.mock.calls[0][0];
     expect(args[0]).toBe("EVAL");
-    expect(args[2]).toBe(3);
+    expect(args[2]).toBe(5);
+    expect(args).toContain("inteliprep:v1:beta:limit:model:day");
     expect(args).toContain("inteliprep:v1:beta:limit:model:hour");
   });
   it("fails closed if the shared store fails or returns malformed data", async () => {

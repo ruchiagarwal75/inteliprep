@@ -4,6 +4,8 @@ import type { ProblemDefinition } from "@/lib/problems";
 import type { InterviewLevel } from "@/lib/interview-selection";
 import { exactSentences } from "@/lib/exact-sentences";
 import { isCandidateProposal } from "@/lib/candidate-proposal";
+import { clarificationParts } from "@/lib/clarification-parts";
+import { normalizeSharedFacts } from "@/lib/shared-facts";
 
 export function isFactualQuestion(content: string): boolean {
   return (
@@ -48,6 +50,11 @@ export function configuredClarification(
     .filter(Boolean);
   return {
     text: paragraphs.join("\n\n"),
+    complete: clarificationParts(content).every((part) =>
+      problem.clarifications.some((entry) =>
+        new RegExp(entry.pattern, "iu").test(part),
+      ),
+    ),
     coveredCriteria: [
       ...new Set(matches.flatMap((entry) => entry.coversCriteria)),
     ],
@@ -61,8 +68,16 @@ export function sharedRequirementCriteria(
   messages: ChatMessage[],
 ) {
   const criteria = new Set(problem.openingCriteria);
+  const sharedText = normalizeSharedFacts(
+    messages
+      .filter((message) => message.role === "assistant")
+      .map((message) => message.content)
+      .join("\n"),
+  );
   for (const entry of problem.clarifications) {
     if (
+      (entry.sharedAnswerPatterns &&
+        new RegExp(entry.sharedAnswerPatterns[level], "iu").test(sharedText)) ||
       messages.some(
         (message) =>
           message.role === "assistant" &&

@@ -94,7 +94,7 @@ describe("server-issued interview deadlines", () => {
     expect(ended.snapshot?.messages[0].content).toBe("Completed reply");
     ended.release();
   });
-  it("preserves the original deadline after a server restart and returns fresh clock calibration", async () => {
+  it("preserves the deadline metadata but refuses recovery without a trusted transcript", async () => {
     const id = createInterviewSession(selection, 1);
     const checkpoint = interviewSessionCheckpoint(id, selection);
     vi.advanceTimersByTime(20_000);
@@ -108,9 +108,11 @@ describe("server-issued interview deadlines", () => {
       }),
     );
     const body = await response.json();
-    expect(body.timing).toEqual(checkpoint.timing);
-    expect(body.serverTime).toBe(new Date(now + 20_000).toISOString());
-    expect(body.ended).toBe(false);
+    expect(response.status).toBe(409);
+    expect(body.code).toBe("INTERVIEW_CONFIGURATION_CHANGED");
+    expect(interviewSessionCheckpoint(id, selection).timing).toEqual(
+      checkpoint.timing,
+    );
     vi.advanceTimersByTime(40_000);
     expect(() => acquireInterviewSession(id, selection)).toThrow("Time is up");
   });
@@ -126,7 +128,13 @@ describe("server-issued interview deadlines", () => {
         resumeToken: checkpoint.resumeToken,
       }),
     );
-    expect((await response.json()).timing).toEqual(checkpoint.timing);
+    expect(response.status).toBe(409);
+    expect((await response.json()).code).toBe(
+      "INTERVIEW_CONFIGURATION_CHANGED",
+    );
+    expect(interviewSessionCheckpoint(id, selection).timing).toEqual(
+      checkpoint.timing,
+    );
     expect(() => acquireInterviewSession(id, selection)).toThrow("Time is up");
   });
   it("gives authenticated untimed saves a 45-minute deadline once, then persists it", () => {

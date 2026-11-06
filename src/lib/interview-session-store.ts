@@ -4,6 +4,7 @@ import { currentCandidateId } from "@/lib/candidate-context";
 import type { InterviewSelection } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import type { Scorecard } from "@/lib/scorecard";
+import type { InterviewTranscript } from "@/lib/interview-transcript";
 import { endSnapshotHash, unsealSession } from "@/lib/session-token";
 import { interviewSessionState } from "@/lib/interview-session-context";
 import {
@@ -20,7 +21,11 @@ export type Session = InterviewSelection & {
   coveredCriteria: number[];
   updatedAt: number;
   busy: boolean;
+  transcript?: InterviewTranscript;
   timing?: InterviewTiming;
+  phaseEnteredAt?: string;
+  openQuestion?: string;
+  answeredStages?: number[];
   ending?: {
     endedAt: string;
     snapshotHash: string;
@@ -77,9 +82,11 @@ export function createInterviewSession(
     id,
     phaseIndex: 0,
     coveredCriteria: [],
+    answeredStages: [],
     updatedAt: Date.now(),
     busy: false,
     timing: createInterviewTiming(durationMinutes),
+    phaseEnteredAt: new Date().toISOString(),
   });
   return id;
 }
@@ -92,6 +99,26 @@ export function lockSession(
 ) {
   const sessions = interviewSessionState();
   let session = sessions.get(id);
+  // Validate every supplied checkpoint, including when a local session is cached.
+  if (token) {
+    try {
+      const checkpoint = unsealSession(token);
+      if (
+        checkpoint.id !== id ||
+        checkpoint.problemId !== selection.problemId ||
+        checkpoint.level !== selection.level ||
+        checkpoint.ownerUserId !== currentCandidateId()
+      )
+        throw new Error("Checkpoint mismatch");
+    } catch {
+      throw new InterviewSessionError(
+        "A valid saved interview checkpoint is required. Reopen your saved interview or start a new one.",
+        409,
+        false,
+        "INTERVIEW_CHECKPOINT_INVALID",
+      );
+    }
+  }
   if (session && !session.busy && Date.now() - session.updatedAt > SESSION_TTL)
     session = undefined;
   if (!session && token) {

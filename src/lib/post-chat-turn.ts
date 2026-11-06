@@ -1,4 +1,7 @@
 import type { ChatRequest } from "@/lib/chat";
+import { chatTurnPayload } from "@/lib/chat-turn";
+import { isTranscriptConflict, InterviewSyncError } from "@/lib/interview-sync";
+import { responseRateLimit } from "@/lib/retry-after";
 import { isCandidateAuthFailure } from "@/lib/candidate-api-error";
 import {
   interviewRecoveryFailure,
@@ -18,22 +21,29 @@ export async function postChatTurn(
   payload: ChatRequest,
   onStart: (listening: boolean) => void,
   onDelta: (text: string) => void,
+  turnId?: string,
+  signal?: AbortSignal,
 ) {
   let response: Response;
   try {
     response = await request("/api/chat", {
       method: "POST",
+      signal,
       headers: {
         "Content-Type": "application/json",
         Accept: INTERVIEW_STREAM_TYPE,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(chatTurnPayload(payload, turnId)),
     });
   } catch {
     throw new Error(INTERVIEWER_UNAVAILABLE);
   }
   if (!response.ok || !response.body) {
     const body: unknown = await response.json().catch(() => null);
+    if (isTranscriptConflict(response.status, body))
+      throw new InterviewSyncError();
+    const limited = responseRateLimit(response);
+    if (limited) throw limited;
     const recovery = interviewRecoveryFailure(response.status, body);
     if (recovery) throw new InterviewRecoveryError(recovery);
     const error =
@@ -65,6 +75,7 @@ export async function postChatTurn(
       phase,
       resumeToken,
       listening: completed.checkpoint.replyKind === "listening",
+      ...(completed.checkpoint.replayed ? { replayed: true } : {}),
     };
   } catch {
     throw new Error("The interviewer's reply was interrupted. Please retry.");

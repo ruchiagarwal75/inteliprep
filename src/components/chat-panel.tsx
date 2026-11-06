@@ -1,4 +1,8 @@
 "use client";
+import { SlowReply } from "@/components/slow-reply";
+import { createPortal } from "react-dom";
+import { hasExplanation } from "@/lib/open-question";
+import { InterviewResults } from "@/components/interview-results";
 import { useState } from "react";
 import { ChatComposer } from "@/components/chat-composer";
 
@@ -8,7 +12,7 @@ import { ChatTranscript } from "@/components/chat-transcript";
 import { InterviewPacing } from "@/components/interview-pacing";
 import { useInterviewChat } from "@/components/use-interview-chat";
 import { useInterviewEnd } from "@/components/use-interview-end";
-import { InterviewScorecard } from "@/components/interview-scorecard";
+
 import { useInterviewAutoEnd } from "@/components/use-interview-auto-end";
 import {
   InterviewEndControl,
@@ -18,12 +22,21 @@ import { ExpiredDraft } from "@/components/expired-draft";
 import { ChatReplyStatus } from "@/components/chat-reply-status";
 import { useInterviewClosure } from "@/components/use-interview-closure";
 import { InterviewRecoveryNotice } from "@/components/interview-recovery-notice";
+import {
+  TranscriptSyncNotice,
+  RecoveredInterviewMessages,
+} from "@/components/transcript-sync-notice";
 
 export function ChatPanel(props: ChatPanelProps) {
   const { interview, hasDrawing, hasEnded } = props;
   const [recoveryFailure, onRecoveryFailure] = useState(
     props.restored?.recoveryFailure,
   );
+  const [transcriptConflict, setTranscriptConflict] = useState(
+    props.restored?.transcriptConflict ?? false,
+  );
+  const onSyncRequired = () => setTranscriptConflict(true);
+  const syncRequired = transcriptConflict || Boolean(props.storageConflict);
   const {
     messages,
     input,
@@ -32,6 +45,7 @@ export function ChatPanel(props: ChatPanelProps) {
     error,
     pendingReply,
     retry,
+    retrySlowReply,
     imageWarning,
     logRef,
     canSend,
@@ -42,13 +56,17 @@ export function ChatPanel(props: ChatPanelProps) {
     ...props,
     recoveryFailure,
     onRecoveryFailure,
-    disabled: hasEnded || props.timeExpired || props.disabled,
+    onSyncRequired,
+    onAssistantMessage: props.onAssistantMessage,
+    disabled: hasEnded || props.timeExpired || props.disabled || syncRequired,
   });
   const closure = useInterviewClosure(props, messages, getDraft);
   const ending = useInterviewEnd({
     ...props,
     recoveryFailure,
     onRecoveryFailure,
+    onSyncRequired,
+    disabled: props.disabled || syncRequired,
     messages,
     isReplying: isStreaming,
     onMessagesChange: setMessages,
@@ -66,6 +84,7 @@ export function ChatPanel(props: ChatPanelProps) {
       hasScorecard: Boolean(ending.scorecard),
       disabled:
         props.disabled ||
+        syncRequired ||
         Boolean(recoveryFailure) ||
         closure.closed ||
         !interview ||
@@ -90,31 +109,41 @@ export function ChatPanel(props: ChatPanelProps) {
       aria-label="Chat"
       className="flex min-h-0 w-full flex-col rounded-lg border border-black/10 dark:border-white/15"
     >
-      <header className="flex items-center justify-between gap-3 border-b border-black/10 px-3 py-2 dark:border-white/15">
-        <h2 className="text-sm font-medium">
-          {hasEnded ? "Interview results" : "Chat"}
-          {!hasEnded && (
-            <span className="ml-2 text-xs font-normal text-black/60 dark:text-white/60">
-              {mode === "explain"
-                ? "Explaining"
-                : mode === "draw"
-                  ? "Drawing · questions paused"
-                  : mode === "review"
-                    ? "Discussing your design"
-                    : "Clarifying requirements"}
-            </span>
-          )}
-        </h2>
-        <InterviewEndControl
-          {...props}
-          ending={ending}
-          isStreaming={isStreaming}
-          draft={input}
-          getDraft={getDraft}
-          recoveryFailure={Boolean(recoveryFailure)}
-          closure={closure}
+      {props.endControlTarget &&
+        createPortal(
+          <InterviewEndControl
+            {...props}
+            disabled={props.disabled || syncRequired}
+            ending={ending}
+            isStreaming={isStreaming}
+            draft={input}
+            getDraft={getDraft}
+            recoveryFailure={Boolean(recoveryFailure)}
+            closure={closure}
+          />,
+          props.endControlTarget,
+        )}
+      {!hasEnded && props.brief && (
+        <details className="shrink-0 border-b px-3 py-2 text-sm">
+          <summary className="cursor-pointer font-medium">
+            Problem brief
+          </summary>
+          <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap">
+            {props.brief}
+          </p>
+        </details>
+      )}
+      {syncRequired && !recoveryFailure && props.onLoadLatest && (
+        <TranscriptSyncNotice
+          disabled={isStreaming || ending.isEnding}
+          onLoad={() =>
+            props.onLoadLatest?.(messages, getDraft()) ?? Promise.resolve(false)
+          }
         />
-      </header>
+      )}
+      <RecoveredInterviewMessages
+        messages={props.restored?.recoveredMessages}
+      />
       <InterviewRecoveryNotice
         failure={recoveryFailure}
         closed={closure.closed}
@@ -122,14 +151,24 @@ export function ChatPanel(props: ChatPanelProps) {
       <InterviewEndNotices
         error={
           closure.error ??
-          (recoveryFailure || closure.closed ? undefined : ending.error)
+          (recoveryFailure || closure.closed || syncRequired
+            ? undefined
+            : ending.error)
         }
         imageWarning={ending.imageWarning}
       />
-      {ending.scorecard ? (
-        <InterviewScorecard scorecard={ending.scorecard} scene={ending.scene}>
-          {transcript}
-        </InterviewScorecard>
+      {hasEnded ? (
+        <InterviewResults
+          scorecard={ending.scorecard}
+          interview={interview}
+          scene={ending.scene}
+          whiteboard={props.getScene()}
+          messages={messages}
+          retry={() => void ending.end()}
+          busy={ending.isEnding}
+          closed={closure.closed}
+          error={ending.error}
+        />
       ) : (
         transcript
       )}
@@ -141,22 +180,28 @@ export function ChatPanel(props: ChatPanelProps) {
           Your interview has ended. Reviewing your answers and final diagram…
         </p>
       )}
-      {error && !hasEnded && !recoveryFailure && (
+      {isStreaming && <SlowReply onRetry={retrySlowReply} />}
+      {error && !hasEnded && !recoveryFailure && !syncRequired && (
         <ChatReplyStatus
           error={error}
           pending={Boolean(pendingReply)}
           onRetry={props.timeExpired ? undefined : () => void retry()}
           disabled={props.disabled || isStreaming || ending.isEnding}
+          retryAt={pendingReply?.retryAt}
         />
       )}
-      {props.timeExpired && !hasEnded && !recoveryFailure && input.trim() && (
-        <ExpiredDraft
-          draft={input}
-          busy={props.disabled || isStreaming || ending.isEnding}
-          onInclude={() => void ending.end(getDraft())}
-          onSkip={() => void ending.end()}
-        />
-      )}
+      {props.timeExpired &&
+        !hasEnded &&
+        !recoveryFailure &&
+        !syncRequired &&
+        input.trim() && (
+          <ExpiredDraft
+            draft={input}
+            busy={props.disabled || isStreaming || ending.isEnding}
+            onInclude={() => void ending.end(getDraft())}
+            onSkip={() => void ending.end()}
+          />
+        )}
       {hasEnded && input.trim() && (
         <details className="shrink-0 border-t p-3 text-xs">
           <summary className="cursor-pointer">
@@ -172,13 +217,15 @@ export function ChatPanel(props: ChatPanelProps) {
           <InterviewPacing
             action={mode}
             hasDrawing={hasDrawing}
+            hasExplanation={hasExplanation(messages)}
             disabled={
               !interview ||
               isStreaming ||
               ending.isEnding ||
               props.disabled ||
               Boolean(recoveryFailure) ||
-              Boolean(pendingReply)
+              Boolean(pendingReply) ||
+              syncRequired
             }
             onChoose={(message, action) => void send(message, action)}
           />
@@ -190,6 +237,7 @@ export function ChatPanel(props: ChatPanelProps) {
             disabled={!interview || props.disabled || Boolean(recoveryFailure)}
             canSend={canSend}
             started={Boolean(interview)}
+            secondary={mode === "draw" || mode === "explain"}
           />
         </>
       )}

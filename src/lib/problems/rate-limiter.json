@@ -1,6 +1,8 @@
 {
   "id": "rate-limiter",
-  "diagramReview": { "checkApplicationDataPaths": false },
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
   "title": "Design a rate limiter",
   "summary": "Protect an API from excessive requests while enforcing fair limits across multiple servers.",
   "prompt": "Design a rate limiter for an existing API. Each request has a trusted API key. Decide whether to allow or reject it according to that key's usage limit, even when requests reach different API servers.",
@@ -14,7 +16,10 @@
   ],
   "drawingPolicy": {
     "discussionTurns": 3,
-    "invitation": "Let's move to the whiteboard. Sketch how requests reach your rate limiter and how an allow or reject decision is made. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+    "invitation": "Let's move to the whiteboard. Sketch how requests reach your rate limiter and how an allow or reject decision is made. Choose Ready to explain when you're ready to walk through it.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch how requests reach your rate limiter and how an allow or reject decision is made. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+    ]
   },
   "levels": {
     "mid": {

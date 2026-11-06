@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
-import {
-  interviewStartSchema,
-  type InterviewStart,
-} from "@/lib/interview-selection";
+import type { InterviewStart } from "@/lib/interview-selection";
+import { startInterview } from "@/lib/start-interview";
 import type { InterviewDuration } from "@/lib/interview-timer";
 import type { InterviewSelection } from "@/lib/interview-selection";
 
@@ -13,8 +11,8 @@ export type InterviewChoice = InterviewSelection & {
   durationMinutes: InterviewDuration;
 };
 export function useInterviewStarter(
-  startSaved: (interview: InterviewStart) => Promise<void>,
-  reset: () => Promise<boolean>,
+  startSaved: (interview: InterviewStart, replace: boolean) => Promise<void>,
+  prepareReplacement: () => Promise<boolean>,
   initial: InterviewChoice,
 ) {
   const { request } = useCandidateAccount();
@@ -34,24 +32,19 @@ export function useInterviewStarter(
     setIsStarting(true);
     setError(undefined);
     setChoice(next);
+    let started = false;
     try {
-      if (replace && !(await reset())) return;
-      const response = await request("/api/interview/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next),
+      started = await startInterview({
+        choice: next,
+        replace,
+        request,
+        prepareReplacement,
+        commit: startSaved,
+        onTiming:
+          process.env.NODE_ENV === "development"
+            ? (timing) => console.info("[interview] Start timing", timing)
+            : undefined,
       });
-      const body: unknown = await response.json();
-      if (!response.ok)
-        throw new Error(
-          body &&
-            typeof body === "object" &&
-            "error" in body &&
-            typeof body.error === "string"
-            ? body.error
-            : "Couldn't start the interview. Please retry.",
-        );
-      await startSaved(interviewStartSchema.parse(body));
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -59,8 +52,11 @@ export function useInterviewStarter(
           : "Couldn't start the interview.",
       );
     } finally {
-      startingRef.current = false;
-      setIsStarting(false);
+      // A successful start navigates to the saved interview; keep the brief locked until it unmounts.
+      if (!started) {
+        startingRef.current = false;
+        setIsStarting(false);
+      }
     }
   }
   return { choice, setChoice, isStarting, error, start };

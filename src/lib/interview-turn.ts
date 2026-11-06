@@ -17,10 +17,18 @@ import {
   configuredClarification,
   isFactualQuestion,
 } from "@/lib/configured-clarifications";
+import {
+  addedComponentQuestion,
+  diagramConsistencyQuestion,
+  whiteboardVisibilityReply,
+} from "@/lib/diagram-consistency";
+import { questionAtEnd, hasExplanation } from "@/lib/open-question";
 import { diagramReviewQuestion } from "@/lib/diagram-review";
 import { hasCandidateAnswer } from "@/lib/grading-evidence";
 import { logServerEvent } from "@/lib/server-events";
 import { isRequirementProposal } from "@/lib/candidate-proposal";
+import { requestedReviewTopic } from "@/lib/review-probes";
+import { isOffTopicRequest } from "@/lib/off-topic";
 
 export async function prepareInterviewTurn(
   problem: ProblemDefinition,
@@ -69,13 +77,16 @@ export async function prepareInterviewTurn(
     );
     const clarification =
       latest && configuredClarification(problem, request.level, latest.content);
+    const offTopic =
+      latest?.source !== "control" && isOffTopicRequest(latest?.content ?? "");
     const waiting = latest && !hasCandidateAnswer({ messages: [latest] });
     if (
-      (current.transition === "initial" &&
+      !offTopic &&
+      ((current.transition === "initial" &&
         !clarification &&
         !waiting &&
         covered.length < current.completionCriteria.length) ||
-      (current.transition === "coverage" && progress.step === "review")
+        (current.transition === "coverage" && progress.step === "review"))
     ) {
       try {
         covered = [
@@ -90,18 +101,53 @@ export async function prepareInterviewTurn(
         );
       }
     }
-    const plan = planPhaseProgress(
-      problem,
-      lease.state,
-      progress,
-      request.scene,
-      covered,
-    );
+    let plan = offTopic
+      ? { state: lease.state, progress }
+      : planPhaseProgress(
+          problem,
+          lease.state,
+          progress,
+          request.scene,
+          covered,
+          lease.clock,
+        );
+    const nextPhase = problem.phases[plan.state.phaseIndex];
+    // Seed a newly entered stage from explanations already given; advance at most once.
+    if (
+      plan.state.phaseIndex > lease.state.phaseIndex &&
+      nextPhase.transition === "coverage"
+    ) {
+      try {
+        plan = {
+          ...plan,
+          state: {
+            ...plan.state,
+            coveredCriteria: await assessPhaseCoverage(
+              nextPhase,
+              request.messages,
+              signal,
+            ),
+          },
+        };
+      } catch (cause) {
+        if (signal.aborted) throw cause;
+        logServerEvent(
+          { event: "stage_assessment_failure", route: "/api/chat" },
+          cause,
+        );
+      }
+    }
+    const resumedQuestion =
+      latest?.action === "review" ? lease.openQuestion : undefined;
+    const paused =
+      plan.progress.step === "drawing" || plan.progress.step === "explaining";
     let completedPlan = plan;
     return {
       context: {
         problem,
         level: request.level,
+        mayInviteDrawing:
+          plan.state.phaseIndex > 0 || lease.clock.timing.durationMinutes === 1,
         progress: plan.progress,
         phase: problem.phases[plan.state.phaseIndex],
         coveredCriteria: plan.state.coveredCriteria,
@@ -111,16 +157,35 @@ export async function prepareInterviewTurn(
           plan.progress.step,
         ),
         reviewQuestion:
-          plan.progress.step === "review" &&
+          whiteboardVisibilityReply(request.scene, latest?.content ?? "") ??
+          (!paused
+            ? diagramConsistencyQuestion(request.scene, request.messages)
+            : undefined) ??
+          (resumedQuestion
+            ? `Returning to the question we paused: ${resumedQuestion}`
+            : undefined) ??
+          (plan.progress.step === "review" &&
           problem.phases[plan.state.phaseIndex]?.transition !== "wrap-up" &&
           !isRequirementProposal(latest?.content ?? "") &&
-          !isFactualQuestion(latest?.content ?? "")
+          !isFactualQuestion(latest?.content ?? "") &&
+          !requestedReviewTopic(request.messages) &&
+          !offTopic &&
+          (latest?.source === "control" || latest?.action === "review")
             ? diagramReviewQuestion(
                 request.scene,
                 request.messages,
                 problem.diagramReview.checkApplicationDataPaths,
               )
-            : undefined,
+            : undefined) ??
+          (plan.progress.step === "review"
+            ? addedComponentQuestion(
+                request.scene,
+                request.previousScene,
+                request.messages,
+              )
+            : undefined),
+        explanationMissing:
+          latest?.action === "review" && !hasExplanation(request.messages),
       },
       phase: publicPhase(problem.phases, plan.state.phaseIndex),
       completedPhase: () =>
@@ -128,7 +193,7 @@ export async function prepareInterviewTurn(
       commit(reply: string) {
         if (signal.aborted) return;
         // Facts supplied in this very reply cannot become a repeated setup question.
-        if (current.transition === "initial")
+        if (!offTopic && current.transition === "initial")
           completedPlan = planPhaseProgress(
             problem,
             lease.state,
@@ -141,7 +206,14 @@ export async function prepareInterviewTurn(
                 { role: "assistant", content: reply },
               ]),
             ],
+            lease.clock,
           );
+        lease.recordReply(
+          reply,
+          !waiting && !offTopic && latest?.source !== "control",
+          paused,
+          questionAtEnd(reply),
+        );
         lease.commit(completedPlan.state);
       },
       checkpoint: lease.checkpoint,

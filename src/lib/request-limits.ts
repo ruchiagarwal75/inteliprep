@@ -10,11 +10,11 @@ import {
 import { redisCommand } from "@/lib/redis-rest";
 
 export const REQUEST_LIMITS = {
-  chat: [30, 600],
-  start: [10, 60],
-  end: [10, 30],
-  resume: [60, 1_000],
-  clientError: [30, 300],
+  chat: [10, 120, 200],
+  start: [3, 10, 10],
+  end: [5, 20, 40],
+  resume: [60, 1_000, 3_000],
+  clientError: [30, 300, 1_000],
 } as const;
 export type RequestKind = keyof typeof REQUEST_LIMITS;
 type Counter = { count: number; expiresAt: number };
@@ -65,13 +65,20 @@ export async function checkRequestLimit(
   const windows: { key: string; limit: number; ms: number }[] = [
     { key: `${prefix}:minute`, limit: REQUEST_LIMITS[kind][0], ms: 60_000 },
     { key: `${prefix}:hour`, limit: REQUEST_LIMITS[kind][1], ms: 3_600_000 },
+    { key: `${prefix}:day`, limit: REQUEST_LIMITS[kind][2], ms: 86_400_000 },
   ];
   // Shared cost ceiling is deliberately independent of client IP or interview IDs.
   if (kind === "chat" || kind === "end")
     windows.push({
       key: `${redisNamespace()}:limit:model:hour`,
-      limit: 2_000,
+      limit: 500,
       ms: 3_600_000,
+    });
+  if (kind === "chat" || kind === "end")
+    windows.push({
+      key: `${redisNamespace()}:limit:model:day`,
+      limit: 2_000,
+      ms: 86_400_000,
     });
   if (isPrivateBeta()) {
     const result = await redisCommand([

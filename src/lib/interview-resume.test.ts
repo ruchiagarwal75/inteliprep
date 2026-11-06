@@ -73,14 +73,14 @@ describe("browser-backed server session recovery", () => {
         interview,
         interview.resumeToken,
       ),
-    ).toThrow("can't be resumed");
+    ).toThrow("valid saved interview checkpoint");
     expect(() =>
       acquireInterviewSession(
         interview.sessionId,
         { ...interview, level: "senior" },
         interview.resumeToken,
       ),
-    ).toThrow("can't be resumed");
+    ).toThrow("valid saved interview checkpoint");
     const parsed = interviewResumeRequestSchema.parse({
       ...interview,
       phaseIndex: 4,
@@ -119,7 +119,6 @@ describe("browser-backed server session recovery", () => {
   });
   it("returns public labels and an opaque checkpoint through the resume endpoint", async () => {
     const interview = start();
-    forget(interview.sessionId);
     const response = await POST(request(interview));
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("no-store");
@@ -128,11 +127,21 @@ describe("browser-backed server session recovery", () => {
     expect(body.ended).toBe(false);
     expect(Object.keys(body).sort()).toEqual([
       "ended",
+      "messages",
       "phase",
       "resumeToken",
       "serverTime",
       "timing",
     ]);
+  });
+  it("cannot restore trusted chat from a progress-only checkpoint after transcript loss", async () => {
+    const interview = start();
+    forget(interview.sessionId);
+    const response = await POST(request(interview));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "INTERVIEW_CONFIGURATION_CHANGED",
+    });
   });
   it("validates invalid JSON, missing selection, unknown problems, and unavailable checkpoints", async () => {
     expect(

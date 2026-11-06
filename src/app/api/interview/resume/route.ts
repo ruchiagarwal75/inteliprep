@@ -7,6 +7,8 @@ import { getProblem } from "@/lib/problems";
 import { publicPhase } from "@/lib/phase-config";
 import { readJsonBody, withApiRequest } from "@/lib/api-request";
 import { openSharedSession } from "@/lib/shared-interview-session";
+import { assertTranscriptAvailable } from "@/lib/interview-transcript";
+import { getCachedSession } from "@/lib/interview-session-store";
 
 export const runtime = "nodejs";
 
@@ -39,6 +41,14 @@ async function resume(request: Request): Promise<Response> {
         false,
         "INTERVIEW_CONFIGURATION_CHANGED",
       );
+    assertTranscriptAvailable(parsed.data.sessionId);
+    const session = getCachedSession(parsed.data.sessionId);
+    const messages = session?.transcript
+      ? structuredClone(session.transcript.messages)
+      : undefined;
+    const scorecard = session?.ending?.scorecard
+      ? structuredClone(session.ending.scorecard)
+      : undefined;
     await shared.persist();
     return Response.json(
       {
@@ -47,6 +57,8 @@ async function resume(request: Request): Promise<Response> {
         ended: checkpoint.ended,
         timing: checkpoint.timing,
         serverTime: checkpoint.serverTime,
+        messages,
+        scorecard,
       },
       { headers: { "Cache-Control": "no-store" } },
     );

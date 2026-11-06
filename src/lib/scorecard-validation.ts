@@ -118,7 +118,7 @@ export function emptyInterviewScorecard(
   return validateScorecard(problem, level, { messages: [] }, endedAt, {
     summary: hasDrawing
       ? "Your drawing was saved, but there is no technical explanation to assess its intent or reasoning. There isn't enough evidence to assess your design yet."
-      : "The interview ended before you provided a technical answer. There isn't enough evidence to assess your design yet.",
+      : "You ended before giving a technical answer. Retry to get feedback.",
     signal: "insufficient_evidence",
     areas: problem.rubric.map((_, areaIndex) => ({
       areaIndex,

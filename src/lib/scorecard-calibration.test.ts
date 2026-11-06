@@ -41,7 +41,7 @@ describe("score calibration", () => {
       expect(calibrateBottleneckScore(card).areas[1].score).toBe(2);
     }
   });
-  it("flags a four-minute attempt without lowering its individual scores", () => {
+  it("hides scores for a four-minute attempt while keeping quoted feedback", () => {
     const card = scorecardFixture();
     const timing = createInterviewTiming(
       45,
@@ -54,7 +54,8 @@ describe("score calibration", () => {
       allowedSeconds: 2700,
       limited: true,
     });
-    expect(result.areas).toEqual(card.areas);
+    expect(result.areas.every((area) => area.score === null)).toBe(true);
+    expect(result.areas[0].evidence).toEqual(card.areas[0].evidence);
   });
   it("keeps full attempts and legacy cards, while treating test mode as provisional", () => {
     const card = scorecardFixture();
@@ -69,6 +70,7 @@ describe("score calibration", () => {
       withSessionContext(
         card,
         createInterviewTiming(1, Date.parse(endedAtFixture) - 120_000),
+        1,
       ).session,
     ).toMatchObject({ elapsedSeconds: 60, limited: true });
     expect(

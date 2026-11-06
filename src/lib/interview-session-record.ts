@@ -28,11 +28,15 @@ export function exportSessionRecord(id: string): SharedSessionRecord {
       phaseIndex,
       coveredCriteria,
       timing,
+      phaseEnteredAt: session.phaseEnteredAt,
+      openQuestion: session.openQuestion,
+      answeredStages: session.answeredStages,
       ending: ending
         ? { endedAt: ending.endedAt, snapshotHash: ending.snapshotHash }
         : undefined,
     },
     scorecard: ending?.scorecard,
+    transcript: session.transcript,
   });
 }
 
@@ -42,7 +46,7 @@ export function importSessionRecord(
   record: SharedSessionRecord,
   rollbackOwner?: Session,
 ): void {
-  const { checkpoint, scorecard } = structuredClone(record);
+  const { checkpoint, scorecard, transcript } = structuredClone(record);
   if (checkpoint.id !== id) throw new Error("Shared session mismatch");
   const existing = getCachedSession(id);
   if (rollbackOwner && existing !== rollbackOwner) return;
@@ -50,6 +54,7 @@ export function importSessionRecord(
     ...checkpoint,
     updatedAt: Date.now(),
     busy: rollbackOwner?.busy ?? false,
+    transcript,
     ending: checkpoint.ending ? { ...checkpoint.ending, scorecard } : undefined,
   };
   if (rollbackOwner) Object.assign(rollbackOwner, restored);

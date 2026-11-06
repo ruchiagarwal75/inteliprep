@@ -40,6 +40,7 @@ export function Whiteboard({
   return (
     <section
       aria-label="Whiteboard"
+      data-read-only={readOnly}
       data-styles-open={stylesOpen && !readOnly}
       className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
     >
@@ -47,33 +48,56 @@ export function Whiteboard({
         <h2 className="text-sm font-medium">
           {readOnly ? "Final whiteboard" : "Whiteboard"}
         </h2>
-        {!readOnly && (
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            aria-expanded={stylesOpen}
-            onClick={() => {
-              const open = !stylesOpen;
-              setStylesOpen(open);
-              api.current?.updateScene({
-                appState: { openMenu: open ? "shape" : null },
-              });
-            }}
-            className="rounded border border-black/20 px-2 py-1 text-xs dark:border-white/25"
+            className="rounded border px-2 py-1 text-xs"
+            onClick={() =>
+              api.current?.scrollToContent(api.current.getSceneElements(), {
+                fitToViewport: true,
+                viewportZoomFactor: 0.85,
+                maxZoom: 2,
+              })
+            }
           >
-            {stylesOpen ? "Hide styles" : "Styles"}
+            Fit to screen
           </button>
-        )}
+          {!readOnly && (
+            <button
+              type="button"
+              aria-expanded={stylesOpen}
+              onClick={() => {
+                const open = !stylesOpen;
+                setStylesOpen(open);
+                api.current?.updateScene({
+                  appState: { openMenu: open ? "shape" : null },
+                });
+              }}
+              className="rounded border border-black/20 px-2 py-1 text-xs dark:border-white/25"
+            >
+              {stylesOpen ? "Hide styles" : "Styles"}
+            </button>
+          )}
+        </div>
       </header>
       <div className="min-h-0 flex-1">
         <Excalidraw
           excalidrawAPI={(instance) => {
             api.current = instance;
+            if (readOnly)
+              requestAnimationFrame(() =>
+                instance.scrollToContent(instance.getSceneElements(), {
+                  fitToViewport: true,
+                  viewportZoomFactor: 0.85,
+                  maxZoom: 2,
+                }),
+              );
           }}
           initialData={
             initialScene
               ? {
                   ...initialScene,
-                  scrollToContent: !initialScene.appState.zoom,
+                  scrollToContent: readOnly || !initialScene.appState.zoom,
                 }
               : undefined
           }

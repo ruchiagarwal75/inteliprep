@@ -1,3 +1,4 @@
+import { chatRouteFixture } from "@/lib/fixtures/chat-route-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createInterviewStart, getProblem } from "@/lib/problems";
 import { acquireInterviewSession } from "@/lib/interview-sessions";
@@ -35,13 +36,15 @@ function post(sessionId: string, messages: ChatMessage[], extra = {}) {
         "Content-Type": "application/json",
         Accept: INTERVIEW_STREAM_TYPE,
       },
-      body: JSON.stringify({
-        ...selection,
-        sessionId,
-        messages,
-        scene: { elements: [] },
-        ...extra,
-      }),
+      body: JSON.stringify(
+        chatRouteFixture({
+          ...selection,
+          sessionId,
+          messages,
+          scene: { elements: [] },
+          ...extra,
+        }),
+      ),
     }),
   );
 }
@@ -64,7 +67,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("requirements checkpoint before drawing-stage progression", () => {
   it("commits facts supplied by the completed reply and returns the updated stage and checkpoint together", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     mocks.streamInterviewerReply.mockImplementation(async function* () {
       yield "Traffic grows from 10 to 1,000 requests per second; pages should respond within 500 milliseconds.";
     });
@@ -83,7 +86,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
     expect(state(interview.sessionId).phaseIndex).toBe(1);
   });
   it("marks continuing explanations for quiet listening, but answers factual questions normally", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     const history: ChatMessage[] = [
       {
         role: "user",
@@ -114,7 +117,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
   it.each(["draw", "explain"] as const)(
     "preserves %s and keeps the first stage while requirements are incomplete",
     async (action) => {
-      const interview = createInterviewStart(problem, "mid");
+      const interview = createInterviewStart(problem, "mid", 1);
       mocks.assessPhaseCoverage.mockResolvedValueOnce([0]);
       const response = await post(
         interview.sessionId,
@@ -143,7 +146,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
     },
   );
   it("does not let the message limit or client coverage claims complete requirements", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     const messages: ChatMessage[] = Array.from({ length: 8 }, () => ({
       role: "user",
       content: "Still thinking",
@@ -162,7 +165,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
     );
   });
   it("uses premature review permission to clarify missing performance goals instead of probing the diagram", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     mocks.assessPhaseCoverage.mockResolvedValueOnce([0]);
     const response = await post(
       interview.sessionId,
@@ -183,7 +186,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
     expect(context.coveredCriteria).toEqual([0, 2]);
   });
   it("accumulates confirmations, then delivers the drawing handoff", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     mocks.assessPhaseCoverage
       .mockResolvedValueOnce([0])
       .mockResolvedValueOnce([1, 2]);
@@ -216,7 +219,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
     ).toBe("invite-drawing");
   });
   it("credits requirements confirmed during an explanation without unpausing questions", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     mocks.assessPhaseCoverage.mockResolvedValueOnce([0, 1, 2]);
     const messages: ChatMessage[] = [
       {
@@ -243,10 +246,10 @@ describe("requirements checkpoint before drawing-stage progression", () => {
       await post(interview.sessionId, messages, { scene: basicScene })
     ).text();
     expect(state(interview.sessionId).phaseIndex).toBe(2);
-    expect(mocks.assessPhaseCoverage).toHaveBeenCalledOnce();
+    expect(mocks.assessPhaseCoverage).toHaveBeenCalledTimes(2);
   });
   it("keeps requirements open on assessment failure and retries without skipping stages", async () => {
-    const interview = createInterviewStart(problem, "mid");
+    const interview = createInterviewStart(problem, "mid", 1);
     mocks.assessPhaseCoverage
       .mockRejectedValueOnce(new Error("Unavailable"))
       .mockResolvedValueOnce([0, 1, 2]);

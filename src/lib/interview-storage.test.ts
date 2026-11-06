@@ -118,7 +118,7 @@ describe("IndexedDB interview library", () => {
     ]);
     await selectInterview(first.id);
     expect(await activeInterviewId()).toBe(first.id);
-    expect(initialInterviewId("", await listInterviews())).toBe(second.id);
+    expect(initialInterviewId("", await listInterviews())).toBeUndefined();
     expect(
       initialInterviewId(`?session=${first.id}`, await listInterviews()),
     ).toBe(first.id);

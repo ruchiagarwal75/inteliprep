@@ -2,6 +2,7 @@
 
 import { useEffect, type RefObject } from "react";
 import type { ChatMessage } from "@/lib/chat";
+import { plainInterviewerText } from "@/lib/interviewer-reply-filter";
 
 type ChatTranscriptProps = {
   logRef: RefObject<HTMLDivElement | null>;
@@ -54,7 +55,9 @@ export function ChatTranscript({
             <span
               className={`inline-block max-w-[85%] rounded-lg px-3 py-2 text-left text-sm whitespace-pre-wrap ${message.role === "user" ? "bg-foreground text-background" : "bg-black/5 dark:bg-white/10"}`}
             >
-              {message.content || "…"}
+              {(message.role === "assistant"
+                ? plainInterviewerText(message.content)
+                : message.content) || "…"}
             </span>
             {index === pendingMessageIndex && (
               <p className="mt-1 text-xs text-black/60 dark:text-white/60">

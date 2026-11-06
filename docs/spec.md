@@ -213,8 +213,9 @@ drawing and explanation pacing and are driven by coverage and candidate permissi
 Each problem is a JSON file with: the prompt, scale hints to share if asked, rubric areas with what "strong" looks like, and a list of good deep-dive questions. Example rubric areas for a URL shortener: ID generation, read path and caching, storage choice, scaling and sharding, analytics.
 
 Current prototype: the configured problems are "Scale a single server",
-"Design a URL shortener", "Design a rate limiter", "Design a chat service", and
-"Design a news feed", each with mid, senior, and staff levels. Their JSON
+"Design a URL shortener", "Design a rate limiter", "Design a chat service",
+"Design a news feed", "Design a notification system", "Design a file storage service",
+and "Design a video streaming service", each with mid, senior, and staff levels. Their JSON
 configurations hold the exercise,
 product requirements, level-specific openings and expectations, scale hints,
 private rubric, and follow-up bank. The browser receives only public problem
@@ -222,9 +223,11 @@ summaries, public stage labels, session ID, and selected opening; Next's `server
 configuration modules from client imports.
 
 The added exercises cover per-key admission correctness, private one-to-one
-messaging and reconnect history, and chronological following-based feeds. Each
+messaging and reconnect history, chronological following-based feeds, transactional
+notification dispatch, resumable file storage and sharing, and on-demand video
+processing and playback. Each
 has its own service goals, bounded consistency/freshness answers, private rubric,
-and five-stage sequence. All three keep a single-region core; higher difficulty
+and five-stage sequence. These exercises keep a single-region core; higher difficulty
 deepens concurrency, recovery, load skew, and operational reasoning. The catalog
 and synthetic review fixtures are documented in `docs/problem-catalog.md`.
 Real-model evaluation and a complete human-reviewed interview remain release
@@ -249,6 +252,13 @@ In local development, the workspace prepares the start route with a background
 OPTIONS request, which Next handles without creating a session or consuming start
 quota. This moves first-use route compilation before the start click; production
 does not send this preparation request.
+Replacing an ended interview flushes outstanding saves but keeps its workspace
+until the new start response is validated. The browser then installs the opening
+and one fresh board together, without an intermediate empty workspace. A failed
+start leaves the old interview visible. Each committed autosave updates its cached
+history summary rather than rereading every transcript and native drawing.
+Development console event `[interview] Start timing` reports preparation, request,
+save, and total milliseconds without candidate content.
 New 45-minute interview retains the problem and difficulty and always uses the regular
 45-minute duration, with fresh chat, baselines, and a blank board. Leaving an active
 session with New interview or Change problem first offers end-and-score confirmation,
@@ -258,8 +268,10 @@ retains its retry payload in history. An unconfirmed ending keeps the current vi
 Completed sessions can switch immediately. Change problem opens the picker with the
 current selection retained. New interview is disabled while a reply streams.
 
-Each `POST /api/chat` now requires the selected problem ID and level alongside
-the messages and diagram. The server validates them, resolves its own config,
+Each `POST /api/chat` requires the selected problem ID and level, a session ID and
+valid owner-bound resume token, one new candidate `message`, a stable UUID `turnId`,
+and `afterMessageCount`, alongside the diagram. Browser-supplied `messages` histories
+and assistant/system submissions are rejected. The server validates them, resolves its own config,
 and includes the selected level, requirements, and scale facts in trusted
 instructions on every model request. During the initial requirements checkpoint,
 design expectations, rubric, and follow-up bank are deferred until later stages.
@@ -296,6 +308,12 @@ The completion event includes the resulting stage and checkpoint together.
 The server answers configured clarification topics directly, including a clear
 bounded yes/no freshness answer. Other clarifications use the model with the same
 configuration. Only a still-missing requirement can become a setup question.
+Configured answers are topic-specific. Each separately asked clarification part
+must match before a canned reply can be used; a partially matched multi-part
+request goes to the model with its requested parts listed explicitly as untrusted
+input. Missing targets are identified as unspecified. Notification channel-mix,
+simultaneous file replacement, and video rebuffering clarifications have explicit
+exercise facts; rebuffering has no fixed numeric target.
 Drawing/explanation hold questions, even when a requirement remains open. Candidate
 statements can cover remaining requirements during an explanation. A strict structured
 assessment verifies exact candidate quotes for those remaining and later criteria;
@@ -318,6 +336,21 @@ its value and leaves questions paused. Ordinary design narration remains quiet.
 Coverage accumulates across completed turns; stages advance at most once per reply.
 The drawing stage requires a live sketch and explicit discussion permission. Failed
 assessment keeps the stage, and the final stage closes without another design question.
+On entering a coverage stage, the server seeds its criteria from earlier eligible
+candidate explanations without advancing a second stage. Review replies use plain
+text and one question. Before display, a separate structured check compares a
+draft question with exact candidate quotes, the previous interviewer question, and
+the latest candidate reply; a rewrite is checked again, with a maximum of three
+checks. Verified repeats and unrelated topic jumps are replaced before display.
+If rewrites still repeat, the interviewer selects a specific unasked question from
+the problem's private probe bank, preferring the candidate's named topic or current
+answer thread, then an unexplored rubric area. Previously asked probes are excluded
+using assistant history, including after refresh. Choosing a topic never triggers
+another generic invitation to choose a topic. Technical replies receive a short
+acknowledgement grounded in the latest candidate answer; pacing controls do not.
+This check adds provider latency to design-discussion replies.
+Stage assessments have a 10-second timeout and each question check a 12-second
+timeout to bound the route's total work.
 
 Stage and pacing are independent. Early drawing/explanation keeps questions paused
 while the requirements stage remains active. Requirements confirmed during that
@@ -330,20 +363,25 @@ ignored. The response carries planned public labels in `X-Interview-Phase`. The 
 indicator and server stage state advance only after a complete, nonempty reply.
 Failed, empty, interrupted, or cancelled replies do not advance stage state. The
 server rejects concurrent turns and changed problem/difficulty selections with 409.
-Legacy requests without a session ID retain the configured turn-count handoff and
-explicit candidate pacing controls.
+The internal stateless progress helper retains its configured turn-count policy;
+the public chat endpoint requires a started session and verified transcript.
 
 Local development without Redis retains a process-local fallback shared across route
 bundles and hot reloads, bounded to 500 entries, with two-hour inactivity expiry.
-An expired or missing local session can be restored from an opaque, authenticated
-browser checkpoint. Without a checkpoint it returns 404 locally. Vercel/private
+An expired or missing local session's progress can be restored from an opaque,
+authenticated browser checkpoint, but that token cannot recreate a trusted transcript.
+Without a checkpoint it returns 404 locally. Vercel/private
 beta mode uses an isolated working copy for each request and never reads or writes
 the development process cache. The scope lasts through asynchronous streaming;
 publication of a new session and release of a shared lease discard that request's
 working copy. Beta requests require a valid checkpoint and load authoritative
-progress, frozen end hashes and cached scorecards from Redis under an owner-fenced
+progress, verified transcripts, frozen end hashes and cached scorecards from Redis under an owner-fenced
 distributed lock.
-Full transcript/drawing history stays in account-specific IndexedDB. Candidate
+The full native drawing and browser history stay in account-specific IndexedDB.
+The active verified transcript is also stored server-side, without PNGs, with a
+two-hour inactivity TTL. Chat and resume fail closed with a permanent recovery code
+when this transcript is missing, including older active sessions; the candidate can
+close without scoring and start again. Candidate
 identity uses Supabase Auth; durable cloud interview history remains planned. See the deployment safeguards below.
 
 **Browser saves and resume (current)**
@@ -365,12 +403,18 @@ Each submitted turn also saves an optional pending-reply reference before model
 work. Failed or interrupted turns keep the original candidate message, native
 drawing, separate composer draft, and last completed stage/checkpoint. An error
 notice outside the scrolling transcript offers Retry reply; it reuses the same
-candidate turn without appending it again. New sends and pacing controls wait
+candidate turn and stable turn ID without appending it again. The server checks the
+expected message count and candidate-message hash; an already committed matching turn returns
+the saved reply without new stage or provider work. Replays preserve earlier whiteboard
+delivery baselines so intervening edits are delivered on the next new turn. New sends and pacing controls wait
 until that reply completes. Pending status survives reload, including recovery
 of older unanswered discussion turns; completed quiet drawing/explanation
 checkpoints are not mistaken for failed replies. Successful completion clears
 pending state and advances the scene/image baselines. Ending can still assess
 the retained candidate answer, with the existing frozen-evidence retry behavior.
+Draft input, restored drafts, and save updates are bounded to 8,000 characters before
+browser persistence. The composer displays a length hint at the limit and storage
+validation failures show readable messages instead of raw validation JSON.
 Drawing autosaves retain the latest native canvas without replacing the older
 send-time diagram baselines. A save is confirmed only after its IndexedDB transaction
 commits. A revision check rejects stale writes from another tab rather than overwriting
@@ -383,6 +427,19 @@ Delta events contain text, followed by a completion event with the public stage 
 opaque resume token. The server issues that token only after committing a successful
 reply. The client accepts the token only after a valid completion event and successful
 EOF. Existing API callers retain plain text streaming and the planned-stage header.
+Resume responses include verified messages and an available cached scorecard.
+Opening an active save reconciles chat from that response. A 409 with
+`INTERVIEW_TRANSCRIPT_CHANGED` offers Load latest version for chat and ending;
+an IndexedDB revision conflict offers the same recovery. The client rereads the
+stored revision before saving, preserves this tab's native drawing and draft,
+and keeps unmatched candidate text separately as recovered unsent messages.
+The recovered section opens by default and offers Copy per message, with status
+feedback and a selection fallback if the clipboard is unavailable. Copying does not
+overwrite the message-box draft.
+These recovered messages are not grading evidence until sent or explicitly included
+as a final answer. Successful reconciliation clears pending retries and stale
+delivery baselines, and remounts chat with the new persisted revision. A locally
+marked ending is cleared when verified server messages show the interview is active.
 Ongoing drawing/explanation acknowledgements carry `replyKind: "listening"`; the
 browser commits their checkpoint without displaying or saving an assistant bubble.
 No private rubric or stage criteria are included in public responses. The AES-GCM
@@ -394,7 +451,8 @@ The token key derives from `INTERVIEW_RESUME_SECRET` when configured, otherwise
 invalidating resume checkpoints when the provider key rotates. With neither secret
 configured, starting still works using a process-local random key, but restarting that
 keyless server cannot restore active progress. Restarts with the same secret restore
-stages without a new model assessment. Live server state takes precedence over older
+stage metadata without a new model assessment; an active interview additionally
+requires its verified server transcript. Live server state takes precedence over older
 tokens. These progress tokens supplement Supabase login; they are not login credentials.
 The verified candidate must match the token and Redis record owner before recovery,
 including when the Redis record has expired. Anonymous legacy tokens are rejected.
@@ -477,7 +535,10 @@ Each problem config contains a drawing invitation and a legacy turn-count policy
 two candidate messages for the simple server exercise and three for the URL shortener.
 The opening does not count. Legacy stateless chat retains that limit; started sessions
 require the evidence-backed requirements checkpoint and hand off as soon as it is
-covered, without unnecessary extra setup questions. The server derives pacing from the
+covered, without unnecessary extra setup questions. Configured shared-fact patterns
+recognize equivalent numeric shorthand and latency units in news-feed replies,
+including facts supplied in the current reply; they never earn candidate technical
+scores. The server derives pacing from the
 validated history and bounded candidate pacing actions, rather than
 accepting an arbitrary client-supplied phase or instructions.
 At handoff, the model answers a pending clarification or briefly acknowledges
@@ -496,7 +557,9 @@ server-owned stage. A partial canvas never starts review automatically.
 The candidate controls **Draw → Explain → Discuss** using chat buttons or explicit
 messages. A single contextual design button starts as **Explain my design**, changes
 to **Done explaining** to invite questions, and becomes **Explain an update** during
-discussion. **Draw / pause questions** remains separate. The candidate can explain
+discussion. **Draw / pause questions** remains separate. An empty board keeps the
+design button disabled and displays a linked hint to draw at least one component;
+typed messages still appear in chat while questions are paused. The candidate can explain
 across multiple messages before opening discussion. Candidate messages may carry
 only one of three validated actions:
 `draw`, `explain`, or `review`; assistant messages cannot carry these actions.
@@ -571,8 +634,17 @@ private beta mode loads and saves validated JSON progress/feedback in Redis, ret
 only a request-owned working copy in RAM. Failed grading retries resend the frozen
 evidence from IndexedDB and verify it against the shared hash.
 
-The separate grader receives the whole supplied transcript, final diagram text and
-PNG, selected difficulty, and problem-specific private rubric. It grades quality
+The separate grader receives the verified server transcript (plus an unanswered candidate
+send and at most one confirmed unsent answer), final diagram text and
+PNG, selected difficulty, and problem-specific private rubric. It also receives
+trusted product requirements and per-problem grading guidance: excluded collaborative
+document editing is distinct from in-scope conflicting file replacements.
+Clarification-stage questions about workload and timing are requirements-discovery
+evidence, without proving a technical solution in other areas. Compare-and-set
+and base-version checks count as concurrency evidence; accepted justified retention
+alternatives remain valid assumptions. Topic checks include peak rate, dispatch
+time, and plain-language retention proposals. A missing detail is distinct from
+an entirely unexplored topic. It grades quality
 across the available evidence without using stage order, stage coverage, or drawing
 before clarification as scoring inputs. Level expectations set the technical depth.
 Strict JSON output is validated with Zod, including exactly one entry per configured
@@ -603,7 +675,8 @@ scorecard remains in browser-local history and can be reopened after refresh.
 
 The grading endpoint accepts up to 102 messages (the last assistant reply after
 a full 100-message chat request, plus one confirmed final draft), 8,000 characters per message, and
-96,000 transcript characters in total. Oversized input is rejected rather than
+96,000 transcript characters in total at schema validation, with a stricter 96,000-byte
+UTF-8 JSON bound on verified server evidence. Oversized input is rejected rather than
 silently truncated. Diagram limits are the same as chat. This first increment
 supports manual End interview and automatic ending at the saved interview deadline.
 
@@ -641,7 +714,9 @@ The prototype also exposes `GET /api/problems` for public problem summaries and
 `POST /api/interview/start` for a configured opening, and `POST /api/interview/end`
 for ending and scorecards, plus `POST /api/interview/resume` to verify/restore an
 opaque browser checkpoint and return public stage/ended status. Chat and end requests
-accept an optional `resumeToken` for recovery after server process loss. These establish the setup
+require verified session ownership; chat requires `resumeToken` on every request,
+including when local state is cached. A token never substitutes for missing trusted
+chat history. These establish the setup
 flow before the persisted `/api/sessions` lifecycle below is implemented.
 
 | Method and path                   | Purpose                 | Body or response                                                     |
@@ -739,16 +814,20 @@ Deployment protection must be enabled and verified in Vercel settings. This is
 private tester access, separate from Supabase candidate account authentication.
 
 Redis holds atomic endpoint quotas, an owner-fenced three-minute session lease,
-and JSON progress/frozen end hashes/cached scorecards with a two-hour inactivity
+and JSON progress/verified transcripts/frozen end hashes/cached scorecards with a two-hour inactivity
 TTL. Each beta API request has an isolated RAM working copy, including stream
 callbacks after the handler returns. The copy is removed after initial publication
 or shared-lease release; it is never retained in a process-wide interview cache.
 Shared state takes precedence over stale browser checkpoints. A valid
-owner-bound checkpoint plus verified Google login proves session access. Transcripts and PNGs remain browser
-evidence and are not written to Redis. Ending publishes the freeze before grading;
+owner-bound checkpoint plus verified Google login proves session access. Native drawings
+and PNGs remain browser evidence; the server also stores verified chat and the latest
+turn's request hash/reply for safe retries. Ending validates submitted history against
+server messages, allows an unanswered send and one confirmed final candidate answer,
+and publishes the freeze before grading;
 completed chat publishes progress before its completion event and unlocks before EOF.
 
-Redis session records contain a validated plain checkpoint and optional scorecard,
+Redis session records contain a validated plain checkpoint, optional verified transcript,
+and optional scorecard,
 with no application encryption or nested browser resume token. Cached feedback and
 selected candidate quotes are readable in Redis. Older encrypted records remain
 readable and are rewritten as JSON on the next successful save. Browser-issued
@@ -756,13 +835,40 @@ resume tokens retain authenticated encryption; `INTERVIEW_RESUME_SECRET` still
 protects those tokens and hashes request-limit identities. Redis credentials and
 HTTPS remain the access/transport boundary. Rollbacks must retain the JSON reader.
 
-Per-account minute/hour quotas are chat 30/600, start 10/60, end 10/30, resume 60/1000
-and error reports 30/300. Chat/end additionally share a 2000-request hourly ceiling.
+Per-account minute/hour/day quotas are chat 10/120/200, start 3/10/10, end 5/20/40,
+resume 60/1000/3000, and error reports 30/300/1000. Chat/end additionally share
+500-request hourly and 2000-request daily ceilings. All windows are checked and
+incremented atomically; limits are request ceilings rather than dollar budgets.
 Verified account IDs are HMAC-hashed for interview quotas; anonymous monitoring
 uses only Vercel’s platform-overwritten IP header and ignores local forwarded headers. Exhaustion returns 429 with Retry-After.
 Same-origin checks and actual streamed JSON byte limits precede model work: 4 MB
 for chat/end, 32 KiB for start/resume, 2 KiB for monitoring. Model calls have a
 45-second timeout without SDK retries; chat/end routes have a 120-second maximum.
+Chat context retains complete recent messages and the opening within 32,000 UTF-8
+JSON bytes, while the full verified transcript remains available for grading and
+probe reuse checks. Each provider call checks instructions and escaped input text
+against a 128,000-byte limit before network work. Images are separately bounded.
+Chat generation uses at most 800 output tokens; coverage, review and grading retain
+their individual output limits. Unsupported acknowledgements use neutral wording
+rather than quoting candidate text; recognized injection requests receive a neutral
+design redirect.
+Recognized off-topic task requests receive that same redirect in every pacing mode,
+without provider calls, technical acknowledgement, or stage advancement. Retry-After
+seconds/date values produce a persisted retry deadline and a chat countdown. Retry
+is disabled until that deadline. Generation may retry once before any delivered
+output for provider 408/500/502/503/504 or connection failures, within a shared
+85-second budget; 429, authentication errors, invalid input, cancellation and partial
+output never trigger automatic retry. Invalid structured novelty checks fall back
+to an unasked configured probe and log an allowlisted reason instead of failing chat.
+Local development can set `INTELIPREP_TEST_MODEL_503_ONCE=1` to inject a 503 before
+the first model generation attempt in each chat request. The normal bounded retry
+then generates the reply. Request-scoped fault state prevents repeated injection;
+production and private-beta modes ignore the flag. Route-level tests cover the
+injection, successful retry and a single transcript commit without paid API calls.
+Generated replies and reviewed acknowledgements filter copied candidate passages
+before display, including quotations split across stream chunks. Short component
+names and diagram labels remain usable. Reviewer evidence fields may retain exact
+quotes for internal validation; visible acknowledgements must paraphrase.
 
 API request IDs and allowlisted structured runtime events cover requests, provider,
 streaming, coverage, grading and framework failures without raw errors or evidence.
@@ -806,3 +912,59 @@ The Back/Forward cache hides the previous page and reloads before showing histor
 History is local to this browser profile and origin, and does not sync across devices.
 Anonymous history is preserved outside account history; migration is a separate,
 explicit policy rather than an automatic transfer to the first account to sign in.
+
+## November 2026 interview usability contract
+
+The candidate entry point is Home (`/`), with browser-local recent sessions and an
+explicit Resume link. `/interview/new` presents the full level-specific public
+opening and pacing instructions before Start creates the server deadline.
+`/interview/[id]` restores a verified interview, and ended interviews replace the
+URL with `/interview/[id]/results`. Results URLs for live saves return to the live
+URL. Legacy `/interview?session=<id>` redirects to the corresponding interview.
+Storage remains version 1; all new checkpoint and scorecard fields are optional.
+No existing interviews are deleted or migrated destructively. Sign-out keeps local
+history. IndexedDB remains account scoped. A bounded account/session/tab draft
+journal closes the 300 ms debounce and unload window without replacing history.
+
+Stage criteria remain private, structured, quote-verified assessments. Topic
+coverage alone no longer advances a 45-minute session. Stage entry times persist
+in shared records/checkpoints: clarify has a 3-minute minimum and 8-minute maximum;
+core has an 8-minute minimum and 15-minute maximum. Drawing leaves on explicit
+review with a sketch. Scaling holds until the final 8 minutes, following the
+acceptance rule that wrap-up must never start earlier. At that boundary the server
+forces wrap-up, including on resume; the client refreshes that checkpoint without
+remounting the board. The final-time exception overrides other minimums. One-minute
+tests skip minimums and appear in setup only with
+`NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1`. Level timings are identical.
+
+Every turn receives the current semantic diagram, resolved arrow bindings, loose
+text and changes, labeled “Candidate’s current whiteboard”. Images supplement the
+text. Explicit PostgreSQL/Cassandra and other database contradictions are checked
+before a discussion reply; a mismatch is asked once and is also attached as a
+scorecard diagram-consistency note. Later affirmative corrections supersede older
+choices. Questions are held during explanation, as confirmed by the user. The
+server retains an open question across drawing and explanation. Done explaining
+requires a labeled component and a sent explanation message. A reply outside the
+paused modes ends with a question or a concrete instruction.
+
+The live page has only End interview as a session control. Board/Chat tabs replace
+the desktop split below 900 px; below 600 px a dismissible laptop note appears once.
+Results have top practice links and Scorecard/Transcript/Final diagram tabs. Final
+diagrams are read-only, fitted, and hide editor toolbars. New scorecards hide all
+numeric scores before one third of the allowed duration (15 of 45 minutes), or
+when fewer than two stages contain candidate answers. Exact evidence is retained.
+An empty attempt shows only the retry explanation. Existing saved scorecards still
+parse without the new optional metadata.
+
+Slow replies show Still thinking at 15 seconds and a cancel-and-retry action at 45
+seconds. Retry preserves the candidate message and turn ID, so a completed request
+is replayed rather than billed twice. Image export has a three-second text fallback
+and never calls editor viewport APIs. Browser development timing separates image
+preparation from total reply time; server completion logs include total turn time.
+
+Excalidraw 0.18.1 exposes history.clear but no supported history export/import API.
+Undo/redo remains available during the mounted session; its internal stack cannot
+be restored across a full refresh. Native scenes retain labels, bindings, files,
+and viewport. onChange does not write elements back into Excalidraw. Production
+Cmd+A/Cmd+D verification did not reproduce InvalidFractionalIndexError; no unstable
+library upgrade or exception suppression was added.

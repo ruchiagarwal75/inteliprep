@@ -116,18 +116,18 @@ history will not automatically appear on the beta hostname.
 
 ## Request limits and coordination
 
-| Endpoint | Per minute | Per hour | Maximum JSON body |
-| --- | ---: | ---: | ---: |
-| Chat | 30 | 600 | 4,000,000 bytes |
-| Start | 10 | 60 | 32,768 bytes |
-| End / retry scorecard | 10 | 30 | 4,000,000 bytes |
-| Resume | 60 | 1,000 | 32,768 bytes |
-| Browser error report | 30 | 300 | 2,048 bytes |
+| Endpoint | Per minute | Per hour | Per day | Maximum JSON body |
+| --- | ---: | ---: | ---: | ---: |
+| Chat | 10 | 120 | 200 | 4,000,000 bytes |
+| Start | 3 | 10 | 10 | 32,768 bytes |
+| End / retry scorecard | 5 | 20 | 40 | 4,000,000 bytes |
+| Resume | 60 | 1,000 | 3,000 | 32,768 bytes |
+| Browser error report | 30 | 300 | 1,000 | 2,048 bytes |
 
 Interview limits apply per verified candidate and endpoint; anonymous monitoring
-uses the trusted client IP. An HMAC replaces identifiers in Redis keys. Chat and end requests also share a ceiling of 2,000 requests per hour
+uses the trusted client IP. An HMAC replaces identifiers in Redis keys. Chat and end requests also share ceilings of 500 requests per hour and 2,000 per day
 for the deployment environment. These are request ceilings, not dollar budgets:
-a chat can make a coverage call and a reply call, and grading can retry invalid
+a chat can make coverage, reply, and question-review calls, and grading can retry invalid
 output once. Review provider usage and configure account spending controls before
 expanding the tester group. Change quotas in `src/lib/request-limits.ts`.
 
@@ -139,18 +139,80 @@ See [function durations](https://vercel.com/docs/functions/configuring-functions
 and [OpenAI SDK timeouts](https://developers.openai.com/api/reference/typescript#timeouts).
 
 The server persists the frozen end hash before grading and caches successful
-feedback for two hours of inactivity. Shared records are validated JSON and exclude
-full transcripts and PNGs. Progress and cached feedback, including selected answer
-quotes, are readable in Redis. The browser retains the evidence needed for grading
+feedback for two hours of inactivity. Shared records are validated JSON containing
+verified chat transcripts, progress, the most recent turn/reply for safe retries,
+and cached feedback; PNGs remain excluded. These records are readable in Redis.
+The browser retains native drawings and the frozen evidence needed for grading
 retries. Existing encrypted Redis records are read for compatibility and rewritten
 as JSON on the next successful save. Browser resume tokens remain encrypted and
 authenticated, so the stable resume secret is still required.
 Beta requests load shared progress into an isolated RAM working copy; they never
 use a process-wide interview cache. Streamed callbacks keep their request scope
 until completion/cancellation, and session publication/lease release removes the
-working copy. A retry on another instance reloads Redis progress and validates the
+working copy. A retry on another instance reloads the verified transcript and progress, and validates the
 browser's frozen evidence. Ordinary local development keeps its bounded in-memory
 fallback so Redis remains optional there.
+Chat accepts one new candidate message, a stable turn ID, and the expected message
+count. Browser-authored histories and assistant/system message submissions are
+rejected. A completed turn is replayed on a matching retry without model calls.
+Ending validates the transcript against server history and may include one unanswered
+candidate send plus one confirmed unsent answer. A replayed reply does not advance
+whiteboard delivery baselines, so edits made before retry remain eligible for the next turn.
+Active records created before transcript storage, or whose
+transcript has expired, cannot be reconstructed from browser history: close without
+scoring and start a new interview. Cached browser scorecards remain viewable.
+
+Model chat context keeps complete recent messages and the configured opening within
+32,000 UTF-8 bytes. All provider calls additionally check a 128,000-byte text budget,
+including instructions and escaped JSON; images retain their separate size limits.
+Chat generation is capped at 800 output tokens; assessment, review, and grading have
+their own bounded output and retry limits. The stored conversation is capped at
+96,000 UTF-8 JSON bytes with room reserved before another turn is accepted.
+
+Resume returns the owner-verified transcript and any cached scorecard. Stale chat
+counts and mismatched end histories return `INTERVIEW_TRANSCRIPT_CHANGED` with 409.
+The browser offers Load latest version, rereads its latest IndexedDB revision, and
+replaces chat from the server while keeping this tab's drawing, draft, and unmatched
+candidate messages in a separate unsent section. Fresh persistence remounts the
+workspace; stale delivery baselines are cleared so the next turn sends the board.
+Recovered messages are expanded by default, with an individual Copy action and
+clipboard success/error feedback; copying preserves the existing message-box draft.
+Missing transcripts still fail closed; browser history never becomes server history.
+
+The chat UI reads Retry-After, displays the seconds remaining, and disables retry
+until the wait expires. Application-level generation retries at most once for a
+connection failure or provider 408/500/502/503/504, only before any visible output,
+within an 85-second total generation budget. Authentication errors, invalid input,
+429, cancellation, and partially delivered replies are not retried automatically.
+SDK retries remain disabled. Safe structured logs distinguish model retries and
+question-review fallbacks without recording candidate text or provider error bodies.
+Invalid novelty-review output selects a specific unasked probe instead of failing
+the turn. Recognized unrelated task requests receive a neutral design redirect.
+
+To exercise the transient 503 retry locally without a provider key or server, run:
+
+```bash
+npm test -- tests/local-model-retry.test.ts
+```
+
+This test uses the real chat route, injects a 503 on its first generation attempt,
+then verifies a successful streamed reply, exactly one retry, and a single committed
+conversation turn. Provider responses are mocked; no paid request is made.
+
+For a browser check, restart the local server with:
+
+```bash
+INTELIPREP_TEST_MODEL_503_ONCE=1 npm run dev
+```
+
+Send a normal design-discussion answer that needs a model reply. The terminal should
+show `model_test_fault` followed by `model_retry`, and chat should complete without
+an error banner. The simulated failure happens before provider network work; the
+retry makes the normal provider call. Deterministic drawing acknowledgements,
+configured facts, and cached replays do not trigger this fault. It resets per chat
+request and is ignored outside local development, including private-beta mode.
+Restart without the flag after testing. Requests cannot enable the flag.
+
 Google sign-in and an owner-bound opaque checkpoint are required for chat/end/resume
 in beta. A copied session ID or checkpoint cannot access another account’s progress
 or cached scorecard, even after Redis expiry. A shared-store failure fails closed rather than making an

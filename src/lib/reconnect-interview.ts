@@ -2,6 +2,8 @@ import type { SavedInterview } from "@/lib/saved-interview";
 import { interviewResumeResponseSchema } from "@/lib/interview-resume";
 import { serverClockOffset } from "@/lib/interview-timer";
 import { interviewRecoveryFailure } from "@/lib/interview-recovery";
+import { reconcileTranscript } from "@/lib/transcript-reconciliation";
+import { responseRateLimit } from "@/lib/retry-after";
 
 /** Reopening a finished scorecard needs no provider or server request. */
 export async function reconnectInterview(
@@ -16,6 +18,8 @@ export async function reconnectInterview(
     signal: AbortSignal.timeout(8_000),
   });
   const body: unknown = await response.json();
+  const limited = responseRateLimit(response);
+  if (limited) throw limited;
   const recovery = interviewRecoveryFailure(response.status, body);
   if (!response.ok && recovery) return { ...saved, recoveryFailure: recovery };
   if (!response.ok)
@@ -30,9 +34,26 @@ export async function reconnectInterview(
   const checkpoint = interviewResumeResponseSchema.parse(body);
   return {
     ...saved,
+    ...(checkpoint.messages
+      ? reconcileTranscript(saved, checkpoint.messages)
+      : {}),
+    transcriptConflict: undefined,
     recoveryFailure: undefined,
     phase: checkpoint.phase,
-    hasEnded: saved.hasEnded || checkpoint.ended,
+    hasEnded: checkpoint.messages
+      ? checkpoint.ended
+      : saved.hasEnded || checkpoint.ended,
+    ...(checkpoint.messages && !checkpoint.ended
+      ? { endRequest: undefined, gradingError: undefined, endedAt: undefined }
+      : {}),
+    ...(checkpoint.scorecard
+      ? {
+          scorecard: checkpoint.scorecard,
+          endRequest: undefined,
+          gradingError: undefined,
+          endedAt: checkpoint.scorecard.endedAt,
+        }
+      : {}),
     clockOffsetMs: checkpoint.serverTime
       ? serverClockOffset(checkpoint.serverTime)
       : saved.clockOffsetMs,

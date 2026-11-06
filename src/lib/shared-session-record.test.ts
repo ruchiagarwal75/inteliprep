@@ -38,13 +38,18 @@ describe("JSON coordination records", () => {
     expect(parseSharedRecord(value)).toEqual(saved);
   });
 
-  it("validates progress and feedback and keeps full evidence out of the stored record", () => {
+  it("validates verified chat and feedback while excluding image bytes", () => {
     const input = {
       ...record,
-      transcript: "full answers",
+      transcript: {
+        messages: [{ role: "user" as const, content: "Verified answer" }],
+      },
       diagramImage: "PNG bytes",
     };
-    expect(JSON.parse(serializeSharedRecord(input))).toEqual(record);
+    expect(JSON.parse(serializeSharedRecord(input))).toEqual({
+      ...record,
+      transcript: input.transcript,
+    });
     expect(() => parseSharedRecord('{"checkpoint":')).toThrow();
     expect(() => parseSharedRecord("{}")).toThrow();
     expect(() =>

@@ -4,6 +4,7 @@ import type { PhaseState } from "@/lib/interview-sessions";
 import type { ProblemDefinition } from "@/lib/problems";
 import type { Scene } from "@/lib/scene";
 import { hasSketch } from "@/lib/drawing-state";
+import { stageTimeGate, type StageClock } from "@/lib/stage-clock";
 
 export function planPhaseProgress(
   problem: ProblemDefinition,
@@ -11,6 +12,7 @@ export function planPhaseProgress(
   progress: InterviewProgress,
   scene?: Scene,
   newlyCovered: number[] = [],
+  clock?: StageClock,
 ) {
   const phase = problem.phases[state.phaseIndex];
   if (!phase) throw new Error("Unknown interview stage");
@@ -34,9 +36,14 @@ export function planPhaseProgress(
     advance = coveredCriteria.length === phase.completionCriteria.length;
   } else if (phase.transition === "drawing")
     advance = progress.step === "review" && hasSketch(scene?.elements);
-  const next = advance
-    ? { phaseIndex: state.phaseIndex + 1, coveredCriteria: [] }
-    : { phaseIndex: state.phaseIndex, coveredCriteria };
+  const gated = stageTimeGate(state.phaseIndex, advance, clock);
+  advance = gated.advance;
+  const next =
+    gated.wrap && state.phaseIndex < problem.phases.length - 1
+      ? { phaseIndex: problem.phases.length - 1, coveredCriteria: [] }
+      : advance
+        ? { phaseIndex: state.phaseIndex + 1, coveredCriteria: [] }
+        : { phaseIndex: state.phaseIndex, coveredCriteria };
   let step = progress.step;
   if (phase.transition === "initial") {
     if (!advance && (step === "invite-drawing" || step === "review"))

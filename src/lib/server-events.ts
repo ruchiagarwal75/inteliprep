@@ -17,8 +17,12 @@ type Event = {
     | "api_request"
     | "api_failure"
     | "chat_stream_failure"
+    | "chat_reply_complete"
     | "grading_failure"
     | "stage_assessment_failure"
+    | "model_retry"
+    | "model_test_fault"
+    | "question_review_fallback"
     | "framework_failure"
     | "client_failure";
   requestId?: string;

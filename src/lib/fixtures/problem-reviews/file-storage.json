@@ -1,0 +1,45 @@
+{
+  "problemId": "file-storage",
+  "goalsQuestion": "What upload and download traffic, file sizes, metadata latency and download-start targets should I use?",
+  "constraintsQuestion": "What do upload completion, concurrent versions, retention, cleanup and revoked access guarantee?",
+  "requirementsAnswer": "I will estimate upload and download traffic from the agreed daily volumes and ten-times peak factor, use a 10 MB average and 1 GB maximum file size, target p95 metadata latency below 200 milliseconds and download start below 1 second, and preserve the 7-day old-version and 24-hour abandoned-upload defaults.",
+  "coreExplanation": [
+    "The upload API authorizes the owner and issues a stable upload ID with numbered resumable parts and checksums; only after complete durable bytes pass verification does a transaction publish the file metadata, and repeating completion returns the original published result.",
+    "File metadata stores owner, read grants, current version and the immutable byte-object ID; replacement includes the base version and a conditional update rejects a stale device with a conflict, keeping older completed versions for 7 days rather than silently overwriting them."
+  ],
+  "validationExplanation": [
+    "For downloads the API checks ownership or an active read grant and issues a ticket expiring within 60 seconds, so revocation stops new tickets and existing ones expire within the bound; a cleanup worker uses metadata references and last-progress time to reclaim abandoned parts after 24 hours without deleting an active upload.",
+    "For a popular large file I separate metadata requests from bulk byte transfer and measure throughput, download-start latency, interrupted-part retries, storage and egress cost; I would load-test concurrent 1 GB uploads and a failure after byte completion but before metadata publication, then recover or safely collect the unreferenced object."
+  ],
+  "rubricEvidence": [
+    "I will estimate upload and download traffic",
+    "The upload API authorizes",
+    "File metadata stores",
+    "For downloads the API checks",
+    "For a popular large file"
+  ],
+  "nodes": [
+    "Owner",
+    "File API",
+    "Metadata database",
+    "Object storage",
+    "Recipient",
+    "Cleanup worker"
+  ],
+  "edges": [
+    [0, 1],
+    [0, 3],
+    [1, 2],
+    [1, 3],
+    [4, 1],
+    [4, 3],
+    [5, 2],
+    [5, 3]
+  ],
+  "weakAnswer": "I mark an upload complete as soon as its metadata exists, restart the entire 1 GB transfer after any interruption, let a stale device overwrite the current version, and allow anyone who guesses the file ID to download it forever.",
+  "reviewFocus": [
+    "Publishing metadata before complete durable bytes exposes broken downloads.",
+    "Restarting all bytes does not meet resumable upload behavior and stale replacement loses another device's work.",
+    "A file identifier is not authorization and perpetual access cannot satisfy bounded revocation."
+  ]
+}

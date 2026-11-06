@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
-
+import { PracticePage } from "@/components/practice-page";
+export const dynamic = "force-dynamic";
 export default function Home() {
-  redirect("/interview");
+  return <PracticePage view="home" />;
 }

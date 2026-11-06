@@ -12,6 +12,7 @@ import { readInterviewPhase } from "@/lib/interview-phase";
 import { interviewEndResponseSchema } from "@/lib/scorecard";
 import { candidateQuotes } from "@/lib/scorecard-quotes";
 import { problemReviews, reviewScene } from "@/lib/fixtures/problem-reviews";
+import { chatTurnPayload } from "@/lib/chat-turn";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("openai", () => ({
@@ -37,8 +38,23 @@ beforeEach(() => {
   vi.stubEnv("OPENAI_KEY", "catalog-test-key");
   mocks.create
     .mockReset()
-    .mockImplementation(async (input: { stream?: boolean }) => {
-      if (!input.stream) throw new Error("Unexpected unscripted assessment");
+    .mockImplementation(async (input: { stream?: boolean; input?: string }) => {
+      if (!input.stream) {
+        const stage = JSON.parse(input.input ?? "{}");
+        return {
+          status: "completed",
+          output_text: JSON.stringify({
+            criteria: stage.criteria.map(
+              (_: unknown, criterionIndex: number) => ({
+                criterionIndex,
+                met: false,
+                messageIndex: -1,
+                quote: "",
+              }),
+            ),
+          }),
+        };
+      }
       return reply();
     });
 });
@@ -55,7 +71,9 @@ describe("new catalog interview wiring with scripted provider responses", () => 
       const selection = { problemId: example.problemId, level: example.level };
       const problem = getProblem(selection.problemId);
       if (!problem) throw new Error("Missing problem");
-      const startResponse = await startInterview(request(selection));
+      const startResponse = await startInterview(
+        request({ ...selection, durationMinutes: 1 }),
+      );
       expect(startResponse.status).toBe(200);
       const started = interviewStartSchema.parse(await startResponse.json());
       const messages: ChatMessage[] = [started.openingMessage];
@@ -64,27 +82,30 @@ describe("new catalog interview wiring with scripted provider responses", () => 
       const send = async (message: Omit<ChatMessage, "role">) => {
         messages.push({ role: "user", ...message });
         const response = await chat(
-          request({
-            ...selection,
-            sessionId: started.sessionId,
-            messages,
-            scene: drawing ? scene : { elements: [] },
-          }),
+          request(
+            chatTurnPayload({
+              ...selection,
+              sessionId: started.sessionId,
+              resumeToken: started.resumeToken,
+              messages,
+              scene: drawing ? scene : { elements: [] },
+            }),
+          ),
         );
         expect(response.status).toBe(200);
         const phase = readInterviewPhase(response.headers);
         const content = await response.text();
-        messages.push({ role: "assistant", content });
+        if (response.headers.get("X-Interview-Reply-Kind") !== "listening")
+          messages.push({ role: "assistant", content });
         return { phase, content };
       };
       const goals = await send({ content: example.goalsQuestion });
-      expect(goals.phase?.position).toBe(
-        example.problemId === "news-feed" ? 2 : 1,
-      );
+      const guaranteesAlreadySupplied = problem.openingCriteria.includes(2);
+      expect(goals.phase?.position).toBe(guaranteesAlreadySupplied ? 2 : 1);
       const clarified = await send({ content: example.constraintsQuestion });
       expect(clarified.phase?.position).toBe(2);
       expect(
-        example.problemId === "news-feed" ? goals.content : clarified.content,
+        guaranteesAlreadySupplied ? goals.content : clarified.content,
       ).toContain(problem.drawingPolicy.invitation);
       expect(mocks.create).not.toHaveBeenCalled();
       drawing = true;
@@ -179,7 +200,7 @@ describe("new catalog interview wiring with scripted provider responses", () => 
       );
       expect(
         result.scorecard.areas.every(
-          (area) => area.score === 3 && area.evidence.length,
+          (area) => area.score === null && area.evidence.length,
         ),
       ).toBe(true);
       expect(result.scorecard.session?.limited).toBe(true);

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { boundedChatDraft } from "@/lib/chat-draft";
 import {
   interviewStartSchema,
   type InterviewStart,
@@ -77,6 +78,8 @@ export const savedInterviewSchema = z
     phase: interviewPhaseSchema,
     messages: z.array(chatMessageSchema).min(1).max(102),
     pendingReply: pendingChatReplySchema.optional(),
+    recoveredMessages: z.array(z.string().max(8_000)).max(102).optional(),
+    transcriptConflict: z.boolean().optional(),
     recoveryFailure: interviewRecoveryFailureSchema.optional(),
     closedWithoutScoring: z.boolean().optional(),
     whiteboard: nativeSceneSchema,
@@ -86,7 +89,7 @@ export const savedInterviewSchema = z
       .object({ scene: sceneSchema, fingerprint: z.string().optional() })
       .optional(),
     hasEnded: z.boolean(),
-    draftText: z.string().max(8_000).default(""),
+    draftText: z.string().transform(boundedChatDraft).default(""),
     endedAt: z.iso.datetime().optional(),
     gradingError: z.string().max(1_000).optional(),
     endRequest: interviewEndRequestSchema.optional(),
@@ -109,6 +112,8 @@ export type InterviewSaveUpdate = Partial<
     | "phase"
     | "messages"
     | "pendingReply"
+    | "recoveredMessages"
+    | "transcriptConflict"
     | "recoveryFailure"
     | "closedWithoutScoring"
     | "previousScene"
@@ -167,6 +172,7 @@ export function updateSavedInterview(
   return {
     ...saved,
     ...changes,
+    draftText: boundedChatDraft(changes.draftText ?? saved.draftText),
     revision: crypto.randomUUID(),
     updatedAt: new Date().toISOString(),
     interview: resumeToken

@@ -10,6 +10,8 @@ import { receiveInterviewStream } from "@/lib/interview-stream";
 import { unsealSession } from "@/lib/session-token";
 import { interviewSessionState } from "@/lib/interview-session-context";
 import { getProblem } from "@/lib/problems";
+import { chatTurnPayload } from "@/lib/chat-turn";
+import { chatRequestSchema } from "@/lib/chat";
 import { redisSessionCommand } from "@/lib/fixtures/redis-session-test";
 import {
   gradingSelection,
@@ -83,11 +85,18 @@ const request = (path: string, body: unknown) =>
       Accept: "application/x-ndjson",
       "x-vercel-forwarded-for": "203.0.113.1",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(
+      path === "/api/chat"
+        ? chatTurnPayload(chatRequestSchema.parse(body))
+        : body,
+    ),
   });
 async function started() {
   const response = await start(
-    request("/api/interview/start", gradingSelection),
+    request("/api/interview/start", {
+      ...gradingSelection,
+      durationMinutes: 1,
+    }),
   );
   expect(response.status).toBe(200);
   return interviewStartSchema.parse(await response.json());
@@ -136,6 +145,11 @@ describe("beta lifecycle without a process session cache", () => {
     const evidence = {
       ...interview,
       ...gradingSnapshot,
+      messages: [
+        interview.openingMessage,
+        ...gradingSnapshot.messages.slice(1),
+        { role: "assistant", content: "Go ahead and draw." },
+      ],
       resumeToken: checkpoint.resumeToken,
     };
     const scored = await end(request("/api/interview/end", evidence));
@@ -158,7 +172,14 @@ describe("beta lifecycle without a process session cache", () => {
   it("recovers a failed grading request using the browser snapshot and rejects changed evidence", async () => {
     const interview = await started();
     mocks.grade.mockRejectedValueOnce(new Error("Provider interrupted"));
-    const evidence = { ...interview, ...gradingSnapshot };
+    const evidence = {
+      ...interview,
+      ...gradingSnapshot,
+      messages: [
+        interview.openingMessage,
+        ...gradingSnapshot.messages.slice(1),
+      ],
+    };
     const failed = await end(request("/api/interview/end", evidence));
     expect(failed.status).toBe(502);
     expect((await failed.json()).ended).toBe(true);
@@ -173,6 +194,9 @@ describe("beta lifecycle without a process session cache", () => {
     const retried = await end(request("/api/interview/end", evidence));
     expect(retried.status).toBe(200);
     expect(mocks.grade).toHaveBeenCalledTimes(2);
-    expect(mocks.grade.mock.calls[1][2]).toEqual(gradingSnapshot);
+    expect(mocks.grade.mock.calls[1][2]).toEqual({
+      ...gradingSnapshot,
+      messages: evidence.messages,
+    });
   });
 });

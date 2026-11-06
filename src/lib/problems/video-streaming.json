@@ -1,0 +1,191 @@
+{
+  "id": "video-streaming",
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
+  "title": "Design a video streaming service",
+  "summary": "Upload on-demand videos, prepare playable versions, and stream reliably under changing network conditions.",
+  "prompt": "Design an on-demand video service. Creators upload videos and viewers play and seek through published videos. Explain upload state, processing, publication, playback delivery, and recovery when processing or delivery fails.",
+  "requirements": [
+    "Support creator upload and processing status, plus public playback and seeking for ready videos. Creator identity exists. Live streaming, recommendations, subscriptions, moderation workflows, and DRM are optional extensions.",
+    "Sources can be up to 2 GB and 30 minutes. Use 250 MB average source size, 10-minute average duration, 5-minute average watch time, and 3 Mbps average delivered bitrate for initial estimates.",
+    "Successful upload completion requires durable source bytes and recoverable processing work. It does not mean the video is already ready to play. Show uploading, processing, ready, or failed status honestly.",
+    "Support at least 720p and 1080p playback choices where the source supports them, and adapt delivery to the viewer's connection. Seek should not require downloading the entire video.",
+    "Publish only complete usable playback metadata and required output bytes. Retried upload completion or processing must not create duplicate published videos or expose half-built output.",
+    "Target p95 playback start below 2 seconds for healthy regional clients playing a ready video. Target 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time depends on the user's connection.",
+    "Retain sources and playable outputs until creator deletion. Default to blocking new playback of a deleted video within 60 seconds; justified alternative deletion bounds are allowed. Buffered or previously downloaded bytes cannot be recalled. Keep processing and origin storage in one region for the core.",
+    "No numeric rebuffering-ratio target is fixed. A candidate should state a justified working threshold and distinguish rebuffer time from the separate playback-start target."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch how an upload becomes playable and how a viewer starts and seeks a video. Choose Ready to explain when you're ready to walk through it.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch how an upload becomes playable and how a viewer starts and seeks a video. Choose Explain my design to walk through it, then Done explaining when you're ready for questions."
+    ]
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design an on-demand video service. Creators upload videos; viewers play and seek through published videos under changing network conditions. Creator identity already exists and published videos are public. Support source videos up to 2 GB and 30 minutes. Live streaming, recommendations, subscriptions, and DRM are outside scope.\n\nExplain how an upload becomes playable and how a viewer starts and seeks playback. We'll agree on workload and timing before you draw and explain.\n\nUpload success means durable source bytes, not playback readiness. Keep incomplete processing hidden and expose ready or failed status. Repeated upload completion and processing must not create duplicate published videos. Retain videos until creator deletion; default to removing deleted videos from new playback within 60 seconds. Already buffered bytes cannot be recalled.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect upload/status/playback APIs, durable source storage, asynchronous processing state, complete publication, and a seekable playback path. Explore a processing failure and basic playback measurements without requiring a particular encoding format or vendor.",
+      "scaleHints": [
+        "Assume 1,000 uploads per day and 10,000 peak concurrent viewers. Average source size is 250 MB, average duration 10 minutes, average watch time 5 minutes, and average delivered bitrate 3 Mbps.",
+        "Target p95 playback start below 2 seconds for healthy regional clients playing a ready video, and 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time has no connection-independent deadline."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design an on-demand video service. Creators upload videos; viewers play and seek through published videos under changing network conditions. Creator identity already exists and published videos are public. Support source videos up to 2 GB and 30 minutes. Live streaming, recommendations, subscriptions, and DRM are outside scope.\n\nExplain processing retries, publication, and delivery of popular videos under uneven load. We'll establish service goals before drawing.\n\nUpload success means durable source bytes, not playback readiness. Keep incomplete processing hidden and expose ready or failed status. Repeated upload completion and processing must not create duplicate published videos. Retain videos until creator deletion; default to removing deleted videos from new playback within 60 seconds. Already buffered bytes cannot be recalled.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect quantitative processing and delivery estimates, idempotent job ownership, publish consistency, playback choices under variable bandwidth, and hot-video delivery. Probe retry/backlog and deletion bounds using the candidate's design.",
+      "scaleHints": [
+        "Assume 100,000 uploads per day and 1 million peak concurrent viewers with uneven video popularity. Average source size is 250 MB, duration 10 minutes, watch time 5 minutes, and delivered bitrate 3 Mbps.",
+        "Target p95 playback start below 2 seconds for healthy regional clients playing a ready video, and 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time has no connection-independent deadline."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design an on-demand video service. Creators upload videos; viewers play and seek through published videos under changing network conditions. Creator identity already exists and published videos are public. Support source videos up to 2 GB and 30 minutes. Live streaming, recommendations, subscriptions, and DRM are outside scope.\n\nExplain processing capacity, hot-video delivery, recovery, and cost. Keep processing and origin storage in one region for the core exercise before optional global expansion.\n\nUpload success means durable source bytes, not playback readiness. Keep incomplete processing hidden and expose ready or failed status. Repeated upload completion and processing must not create duplicate published videos. Retain videos until creator deletion; default to removing deleted videos from new playback within 60 seconds. Already buffered bytes cannot be recalled.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect quantified processing and egress costs, hot-content and overload policy, recoverable publication, bounded job retries, and measurable playback and readiness objectives. Discuss regional recovery after the core; reward justified alternatives rather than a mandated codec or vendor.",
+      "scaleHints": [
+        "Assume 1 million uploads per day and 10 million peak concurrent viewers with strongly skewed popularity and upload bursts. Average source size is 250 MB, duration 10 minutes, watch time 5 minutes, and delivered bitrate 3 Mbps.",
+        "Target p95 playback start below 2 seconds for healthy regional clients playing a ready video, and 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time has no connection-independent deadline."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and capacity",
+      "strong": "Separates uploads, processing, and playback, estimates byte and bitrate load from workload, and establishes scope, startup/readiness goals, and retention/deletion assumptions.",
+      "assessmentPattern": "\\b(requirement\\w*|scope|volume|traffic|concurrent|bitrate|bandwidth|capacity|estimate\\w*|latency|readiness|retention)\\b"
+    },
+    {
+      "area": "Upload API and durable state",
+      "strong": "Defines authorized upload/status APIs, stable video identity, durable source acceptance, and recoverable processing work distinct from playback readiness.",
+      "assessmentPattern": "\\b(upload\\w*|api|video.id|source|durab\\w*|accept\\w*|status|metadata|processing.work)\\b"
+    },
+    {
+      "area": "Processing and publication",
+      "strong": "Explains generating usable playback outputs, job ownership and retry safety, and publishing complete coherent playback metadata and bytes without duplicate videos.",
+      "assessmentPattern": "\\b(process\\w*|encod\\w*|transcod\\w*|rendition\\w*|output\\w*|publish\\w*|manifest\\w*|lease\\w*|idempot\\w*|duplicate\\w*)\\b"
+    },
+    {
+      "area": "Playback, seeking, and delivery",
+      "strong": "Explains startup and seeking without whole-video download, playback choice under variable bandwidth, and delivery of popular videos with a defensible latency/cost tradeoff.",
+      "assessmentPattern": "\\b(playback|stream\\w*|seek\\w*|segment\\w*|bitrate|bandwidth|cdn|cache\\w*|deliver\\w*|startup|popular|buffer\\w*)\\b"
+    },
+    {
+      "area": "Failures, operations, and cost",
+      "strong": "Recovers partial or failed processing, controls backlog and deleted-content visibility, and validates readiness, playback health, and processing or egress cost under realistic failure/load scenarios.",
+      "assessmentPattern": "\\b(fail\\w*|recover\\w*|retry|retries|backlog|delet\\w*|monitor\\w*|metric\\w*|test\\w*|cost\\w*|egress|overload)\\b"
+    }
+  ],
+  "followUps": [
+    "What does the creator see after upload success but before processing finishes?",
+    "What happens if processing stops after producing only some playback outputs?",
+    "How do two attempts to process the same upload avoid conflicting publication?",
+    "How can a viewer seek without first downloading the whole video?",
+    "What changes when a video becomes popular and the viewer's connection slows?",
+    "What do your deletion guarantee and playback metrics mean for already buffered video?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish the core workflows, workload and timing goals, and service guarantees.",
+      "completionCriteria": [
+        "Candidate clarifies or confirms on-demand upload/status, public playback/seek, and the excluded live/recommendation features.",
+        "Candidate establishes or confirms upload volume, concurrent viewers, byte and bitrate assumptions, and playback/readiness timing.",
+        "Candidate clarifies or confirms durable upload versus playable readiness, retry-safe complete publication, retention, and deletion defaults."
+      ],
+      "interviewerGuidance": "Clarify only missing scope and workload goals before drawing. The opening already supplies scope and correctness defaults; never quiz the candidate for those facts again. The message budget is guidance, never proof of completion. Answer explicit clarifications and acknowledge reasonable allowed alternatives without prescribing architecture.",
+      "transition": "initial",
+      "clarificationQuestions": [
+        "Which creator and viewer workflows and optional features are in scope?",
+        "What upload volume, concurrent viewers, source sizes, bitrate, and playback/readiness goals are you using?",
+        "What do upload completion, processing retries, publication, retention, and deletion guarantee?"
+      ]
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Give the candidate space to sketch uploading, processing, publication, and playback.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after explaining."
+      ],
+      "interviewerGuidance": "Give the candidate the floor across multiple messages. Wait for explicit discussion permission before critiquing or asking design questions. Answer explicit requirement proposals while preserving explanation pauses.",
+      "transition": "drawing"
+    },
+    {
+      "id": "upload-and-publication",
+      "title": "Upload and publication",
+      "goal": "Understand durable upload, processing state, and complete playback publication.",
+      "completionCriteria": [
+        "Candidate explains upload/status APIs, durable source identity, and recoverable processing work without equating upload acceptance with readiness.",
+        "Candidate explains processing ownership and retries and how complete playable outputs are published without exposing partial or duplicate videos."
+      ],
+      "interviewerGuidance": "Ask one focused question about an uncovered processing or publication boundary. Do not prescribe a codec, worker framework, storage vendor, or streaming protocol.",
+      "transition": "coverage"
+    },
+    {
+      "id": "playback-and-recovery",
+      "title": "Playback and recovery",
+      "goal": "Explore playback under variable bandwidth, hot content, and processing failure.",
+      "completionCriteria": [
+        "Candidate explains startup, seeking, playback choices under changing bandwidth, and a delivery path or measurement for hot videos.",
+        "Candidate explains recovery from failed or partial processing, deletion visibility, and monitoring or testing of readiness, playback health, or cost."
+      ],
+      "interviewerGuidance": "Probe one concrete playback or failed-processing scenario using the candidate's topology. Distinguish buffered bytes from new playback and protect drawing/explanation pauses.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Recap the candidate's own design and stated tradeoffs.",
+      "completionCriteria": [
+        "The candidate's choices and stated limitations are summarized."
+      ],
+      "interviewerGuidance": "Close with a short recap grounded in the candidate's answers and drawing. Do not invent guarantees, assign scores, restart requirements, or ask another design question.",
+      "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0, 2],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|rps|qps|load|volume|scale|capacity|latency|response.time|concurrent|viewers?|uploads? per|source.size|bitrate|bandwidth|readiness|how (?:many|large|fast|quickly))\\b",
+      "answers": {
+        "mid": "Assume 1,000 uploads per day and 10,000 peak concurrent viewers. Average source size is 250 MB, average duration 10 minutes, average watch time 5 minutes, and average delivered bitrate 3 Mbps. Target p95 playback start below 2 seconds for healthy regional clients playing a ready video, and 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time has no connection-independent deadline.",
+        "senior": "Assume 100,000 uploads per day and 1 million peak concurrent viewers with uneven video popularity. Average source size is 250 MB, duration 10 minutes, watch time 5 minutes, and delivered bitrate 3 Mbps. Target p95 playback start below 2 seconds for healthy regional clients playing a ready video, and 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time has no connection-independent deadline.",
+        "staff": "Assume 1 million uploads per day and 10 million peak concurrent viewers with strongly skewed popularity and upload bursts. Average source size is 250 MB, duration 10 minutes, watch time 5 minutes, and delivered bitrate 3 Mbps. Target p95 playback start below 2 seconds for healthy regional clients playing a ready video, and 99 percent of supported uploads ready within 10 minutes after upload completion during normal operation. Bulk upload transfer time has no connection-independent deadline."
+      },
+      "coversCriteria": [1]
+    },
+    {
+      "pattern": "\\b(scope|channels?|features?|sharing|public|private|permission\\w*|preferences?|opt.out|live.streaming|recommend\\w*|folder.sync)\\b",
+      "answers": {
+        "mid": "The core is on-demand upload, processing status, public playback, and seeking, including 720p and 1080p choices where the source supports them. Creator identity exists. Live streaming, recommendations, subscriptions, moderation workflows, and DRM are optional extensions.",
+        "senior": "The core is on-demand upload, processing status, public playback, and seeking, including 720p and 1080p choices where the source supports them. Creator identity exists. Live streaming, recommendations, subscriptions, moderation workflows, and DRM are optional extensions.",
+        "staff": "The core is on-demand upload, processing status, public playback, and seeking, including 720p and 1080p choices where the source supports them. Creator identity exists. Live streaming, recommendations, subscriptions, moderation workflows, and DRM are optional extensions."
+      },
+      "coversCriteria": [0]
+    },
+    {
+      "pattern": "\\b(guarantee\\w*|durab\\w*|complet\\w*|retry|retries|duplicate\\w*|idempot\\w*|publish\\w*|publication|retention|retain\\w*|delet\\w*)\\b",
+      "answers": {
+        "mid": "Upload success means durable source bytes, not playback readiness. Keep incomplete processing hidden and expose ready or failed status. Repeated upload completion and processing must not create duplicate published videos. Retain videos until creator deletion; default to removing deleted videos from new playback within 60 seconds. Already buffered bytes cannot be recalled.",
+        "senior": "Upload success means durable source bytes, not playback readiness. Keep incomplete processing hidden and expose ready or failed status. Repeated upload completion and processing must not create duplicate published videos. Retain videos until creator deletion; default to removing deleted videos from new playback within 60 seconds. Already buffered bytes cannot be recalled.",
+        "staff": "Upload success means durable source bytes, not playback readiness. Keep incomplete processing hidden and expose ready or failed status. Repeated upload completion and processing must not create duplicate published videos. Retain videos until creator deletion; default to removing deleted videos from new playback within 60 seconds. Already buffered bytes cannot be recalled."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(rebuffer\\w*|buffering|stall\\w*|playback.interrupt\\w*)\\b",
+      "answers": {
+        "mid": "No numeric rebuffering target is fixed for this exercise. Measure buffering as a fraction of watch time and propose a justified working threshold. The 2-second playback-start target is a separate goal.",
+        "senior": "No numeric rebuffering target is fixed for this exercise. Measure buffering as a fraction of watch time and propose a justified working threshold. The 2-second playback-start target is a separate goal.",
+        "staff": "No numeric rebuffering target is fixed for this exercise. Measure buffering as a fraction of watch time and propose a justified working threshold. The 2-second playback-start target is a separate goal."
+      },
+      "coversCriteria": [1]
+    }
+  ],
+  "gradingGuidance": [
+    "Credit adaptive lower-bitrate selection under changing bandwidth when explained. No fixed rebuffering-ratio SLA is specified; do not penalize failing to quote one. Missing depth or validation is different from claiming the topic was never addressed."
+  ]
+}

@@ -18,7 +18,22 @@ const mocks = vi.hoisted(() => ({
   grade: vi.fn(),
 }));
 vi.mock("@/lib/shared-interview-session", () => ({
-  openSharedSession: async () => mocks,
+  openSharedSession: async (id: string, _selection: unknown, token: string) => {
+    const { importSessionRecord } =
+      await import("@/lib/interview-session-record");
+    importSessionRecord(id, {
+      checkpoint: unsealSession(token),
+      transcript: {
+        messages: [
+          {
+            role: "assistant",
+            content: "What requirements would you clarify?",
+          },
+        ],
+      },
+    });
+    return mocks;
+  },
 }));
 vi.mock("@/lib/redis-rest", () => ({ redisCommand: async () => 0 }));
 vi.mock("@/lib/interview-grading", () => ({ gradeInterview: mocks.grade }));

@@ -1,23 +1,26 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
+import { interviewHref } from "@/lib/interview-navigation";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
-import type { InterviewStart } from "@/lib/interview-selection";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import {
-  newSavedInterview,
   type SavedInterview,
   type SavedInterviewSummary,
 } from "@/lib/saved-interview";
-import { reconnectInterview } from "@/lib/reconnect-interview";
+import { openInterviewRecord } from "@/components/interview-record-opener";
 import { useInterviewAutosave } from "@/components/use-interview-autosave";
 import { updateInterviewUrl as updateUrl } from "@/components/use-interview-navigation";
 import { useSavedInterviewBoot } from "@/components/use-saved-interview-boot";
+import { interviewRecordStarter } from "@/components/interview-record-starter";
 
 export function useInterviewLibrary(
   getScene: () => WhiteboardScene,
   restoreScene: (scene: WhiteboardScene) => void,
+  sessionId?: string,
 ) {
+  const router = useRouter();
   const { storage, request } = useCandidateAccount();
   const { deleteInterview, listInterviews, readInterview, selectInterview } =
     storage;
@@ -28,6 +31,13 @@ export function useInterviewLibrary(
   const [error, setError] = useState<string>();
   const [blocked, setBlocked] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
+  const autosave = useInterviewAutosave({
+    getScene,
+    onStatus: setStatus,
+    onError: setError,
+    onBlocked: setBlocked,
+    onHistory: setEntries,
+  });
   const {
     savedRef,
     revisionsRef,
@@ -40,66 +50,34 @@ export function useInterviewLibrary(
     initialized,
     getResumeToken,
     closeWithoutScoring,
-  } = useInterviewAutosave({
-    getScene,
-    onStatus: setStatus,
-    onError: setError,
-    onBlocked: setBlocked,
-    onHistory: setEntries,
-  });
+  } = autosave;
 
   const open = useCallback(
-    async (id: string, navigation: "push" | "replace" | "none" = "push") => {
-      if (openingRef.current) return false;
-      openingRef.current = true;
-      setIsOpening(true);
-      if (dirtyRef.current && !conflictedRef.current) await save();
-      await queueRef.current;
-      try {
-        if (dirtyRef.current && !conflictedRef.current)
-          throw new Error(
-            "Your current interview couldn't be saved. Retry save before opening another interview.",
-          );
-        const saved = await readInterview(id);
-        if (!saved)
-          throw new Error("This saved interview is no longer available.");
-        setError(undefined);
-        await selectInterview(id);
-        // Completed feedback remains viewable even when the server is offline.
-        let restored = saved;
-        let reconnectError: string | undefined;
-        try {
-          restored = await reconnectInterview(saved, request);
-        } catch (cause) {
-          reconnectError =
-            cause instanceof Error
-              ? cause.message
-              : "Couldn't reconnect to the interviewer. Your browser copy is available.";
-        }
-        savedRef.current = restored;
-        revisionsRef.current.set(id, saved.revision);
-        dirtyRef.current = false;
-        conflictedRef.current = false;
-        setBlocked(false);
-        restoreScene(restored.whiteboard);
-        setOpened(restored);
-        await save();
-        if (reconnectError && !dirtyRef.current) setError(reconnectError);
-        updateUrl(id, navigation);
-        return true;
-      } catch (cause) {
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "Couldn't open the saved interview.",
-        );
-        updateUrl(savedRef.current?.id, "replace");
-        return false;
-      } finally {
-        openingRef.current = false;
-        setIsOpening(false);
-      }
-    },
+    (id: string, navigation: "push" | "replace" | "none" = "push") =>
+      openInterviewRecord(
+        {
+          autosave: {
+            savedRef,
+            revisionsRef,
+            queueRef,
+            dirtyRef,
+            conflictedRef,
+            openingRef,
+            save,
+          },
+          storage: { readInterview, selectInterview },
+          request,
+          getScene,
+          restoreScene,
+          onOpened: setOpened,
+          onBlocked: setBlocked,
+          onError: setError,
+          onOpening: setIsOpening,
+          onUrl: updateUrl,
+        },
+        id,
+        navigation,
+      ),
     [
       save,
       savedRef,
@@ -112,10 +90,12 @@ export function useInterviewLibrary(
       readInterview,
       selectInterview,
       request,
+      getScene,
     ],
   );
 
   useSavedInterviewBoot({
+    sessionId,
     open,
     onHistory: setEntries,
     onStatus: setStatus,
@@ -123,14 +103,14 @@ export function useInterviewLibrary(
     onReady: setReady,
   });
 
-  async function start(interview: InterviewStart) {
-    savedRef.current = newSavedInterview(interview, getScene());
-    conflictedRef.current = false;
-    setBlocked(false);
-    setOpened(savedRef.current);
-    await save();
-    updateUrl(savedRef.current?.id, "push");
-  }
+  const { start, prepareReplacement } = interviewRecordStarter({
+    autosave,
+    getScene,
+    restoreScene,
+    onOpened: setOpened,
+    onUnblocked: () => setBlocked(false),
+    onUrl: (id) => router.push(interviewHref(id)),
+  });
 
   const reset = useCallback(
     async (discard = false, navigation: "push" | "none" = "push") => {
@@ -191,6 +171,20 @@ export function useInterviewLibrary(
       setError("Couldn't delete the saved interview.");
     }
   }
+  async function loadLatest(
+    messages: SavedInterview["messages"],
+    draftText: string,
+  ) {
+    const saved = savedRef.current;
+    if (!saved) return false;
+    savedRef.current = {
+      ...saved,
+      messages,
+      draftText,
+      transcriptConflict: true,
+    };
+    return open(saved.id, "none");
+  }
 
   return {
     opened,
@@ -209,5 +203,7 @@ export function useInterviewLibrary(
     remove,
     getResumeToken,
     closeWithoutScoring,
+    prepareReplacement,
+    loadLatest,
   };
 }

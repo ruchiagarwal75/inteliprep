@@ -28,7 +28,7 @@ const technical = [
   "Requests and data stay on that machine, but it costs more.",
 ];
 function discussionSession() {
-  const id = createInterviewSession(selection);
+  const id = createInterviewSession(selection, 1);
   for (const phaseIndex of [1, 2]) {
     const lease = acquireInterviewSession(id, selection);
     lease.commit({ phaseIndex, coveredCriteria: [0] });
@@ -78,17 +78,29 @@ describe("candidate evidence in stage progress and published scorecards", () => 
     "only advances for a technical quote in a mixed review message (control quote: %s)",
     async (citeControl) => {
       const id = discussionSession();
-      mocks.create.mockResolvedValue({
-        status: "completed",
-        output_text: JSON.stringify({
-          criteria: technical.map((quote, criterionIndex) => ({
-            criterionIndex,
-            met: true,
-            messageIndex: 0,
-            quote: citeControl ? "I've finished explaining." : quote,
-          })),
-        }),
-      });
+      mocks.create
+        .mockResolvedValueOnce({
+          status: "completed",
+          output_text: JSON.stringify({
+            criteria: technical.map((quote, criterionIndex) => ({
+              criterionIndex,
+              met: true,
+              messageIndex: 0,
+              quote: citeControl ? "I've finished explaining." : quote,
+            })),
+          }),
+        })
+        .mockResolvedValueOnce({
+          status: "completed",
+          output_text: JSON.stringify({
+            criteria: [0, 1].map((criterionIndex) => ({
+              criterionIndex,
+              met: false,
+              messageIndex: -1,
+              quote: "",
+            })),
+          }),
+        });
       await completeTurn(id, [
         {
           role: "user",

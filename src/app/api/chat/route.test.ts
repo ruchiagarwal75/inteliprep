@@ -1,3 +1,4 @@
+import { chatRouteFixture } from "@/lib/fixtures/chat-route-test";
 import { APIError } from "openai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import basicScene from "@/lib/fixtures/basic-system.json";
@@ -26,10 +27,12 @@ function post(body: unknown): Promise<Response> {
       body:
         typeof body === "string"
           ? body
-          : JSON.stringify({
-              ...selection,
-              ...(typeof body === "object" && body !== null ? body : {}),
-            }),
+          : JSON.stringify(
+              chatRouteFixture({
+                ...selection,
+                ...(typeof body === "object" && body !== null ? body : {}),
+              }),
+            ),
     }),
   );
 }

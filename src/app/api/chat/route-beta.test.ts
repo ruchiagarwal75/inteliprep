@@ -8,6 +8,7 @@ import { interviewSessionState } from "@/lib/interview-session-context";
 import { unsealSession } from "@/lib/session-token";
 import { gradingSelection } from "@/lib/fixtures/scorecard-test";
 import { redisSessionCommand } from "@/lib/fixtures/redis-session-test";
+import { chatTurnPayload } from "@/lib/chat-turn";
 
 const mocks = vi.hoisted(() => ({ redis: vi.fn(), reply: vi.fn() }));
 vi.mock("@/lib/redis-rest", () => ({ redisCommand: mocks.redis }));
@@ -76,13 +77,15 @@ describe("beta stream failure cleanup", () => {
       yield "I am listening.";
     });
     const response = await POST(
-      request({
-        ...interview,
-        messages: [
-          interview.openingMessage,
-          { role: "user", content: "I am drawing", action: "draw" },
-        ],
-      }),
+      request(
+        chatTurnPayload({
+          ...interview,
+          messages: [
+            interview.openingMessage,
+            { role: "user", content: "I am drawing", action: "draw" },
+          ],
+        }),
+      ),
     );
     expect(response.status).toBe(200);
     if (!response.body) throw new Error("Missing response stream");
@@ -110,10 +113,15 @@ describe("beta stream failure cleanup", () => {
       return command(args);
     });
     const response = await POST(
-      request({
-        ...interview,
-        messages: [interview.openingMessage],
-      }),
+      request(
+        chatTurnPayload({
+          ...interview,
+          messages: [
+            interview.openingMessage,
+            { role: "user", content: "I am drawing", action: "draw" },
+          ],
+        }),
+      ),
     );
     expect(response.status).toBe(503);
     expect(mocks.reply).not.toHaveBeenCalled();

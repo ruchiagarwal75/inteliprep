@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import { whiteboardContentKey } from "@/lib/whiteboard-snapshot";
 import { reportClientError } from "@/lib/report-client-error";
@@ -9,11 +10,13 @@ import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { ChatMessage } from "@/lib/chat";
 import { closedInterviewUpdate } from "@/lib/close-interview";
 import {
+  savedInterviewSummary,
   updateSavedInterview,
   type InterviewSaveUpdate,
   type SavedInterview,
   type SavedInterviewSummary,
 } from "@/lib/saved-interview";
+import { updateInterviewHistory } from "@/lib/interview-history-update";
 
 export function useInterviewAutosave({
   getScene,
@@ -26,10 +29,10 @@ export function useInterviewAutosave({
   onStatus: (value: string) => void;
   onError: (value: string | undefined) => void;
   onBlocked: (value: boolean) => void;
-  onHistory: (value: SavedInterviewSummary[]) => void;
+  onHistory: Dispatch<SetStateAction<SavedInterviewSummary[]>>;
 }) {
   const { storage } = useCandidateAccount();
-  const { listInterviews, saveInterview } = storage;
+  const { saveInterview } = storage;
   const savedRef = useRef<SavedInterview | undefined>(undefined);
   const revisionsRef = useRef(new Map<string, string>());
   const queueRef = useRef<Promise<void>>(Promise.resolve());
@@ -52,7 +55,9 @@ export function useInterviewAutosave({
           if (conflictedRef.current) return;
           await saveInterview(snapshot, revisionsRef.current.get(snapshot.id));
           revisionsRef.current.set(snapshot.id, snapshot.revision);
-          onHistory(await listInterviews());
+          onHistory((entries) =>
+            updateInterviewHistory(entries, savedInterviewSummary(snapshot)),
+          );
           if (
             savedRef.current?.revision === snapshot.revision &&
             !dirtyRef.current
@@ -77,15 +82,7 @@ export function useInterviewAutosave({
       queueRef.current = work;
       return work;
     },
-    [
-      getScene,
-      onStatus,
-      onError,
-      onBlocked,
-      onHistory,
-      listInterviews,
-      saveInterview,
-    ],
+    [getScene, onStatus, onError, onBlocked, onHistory, saveInterview],
   );
 
   const changed = useCallback(() => {

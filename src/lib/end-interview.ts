@@ -7,6 +7,7 @@ import {
   InterviewSessionError,
 } from "@/lib/interview-sessions";
 import { gradeInterview } from "@/lib/interview-grading";
+import { withDiagramConsistency } from "@/lib/scorecard-diagram";
 import { withSessionContext } from "@/lib/scorecard-calibration";
 import { BetaUnavailableError } from "@/lib/beta-config";
 import { logServerEvent } from "@/lib/server-events";
@@ -43,14 +44,18 @@ export async function endInterview(
     if (lease.scorecard) return lease.scorecard;
     if (!lease.snapshot) throw new Error("Missing ended interview evidence");
     const scorecard = withSessionContext(
-      await gradeInterview(
-        problem,
-        request.level,
+      withDiagramConsistency(
+        await gradeInterview(
+          problem,
+          request.level,
+          lease.snapshot,
+          lease.endedAt,
+          signal,
+        ),
         lease.snapshot,
-        lease.endedAt,
-        signal,
       ),
       lease.timing,
+      lease.answeredStageCount,
     );
     signal?.throwIfAborted();
     lease.complete(scorecard);

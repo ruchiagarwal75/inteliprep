@@ -22,6 +22,7 @@ export function InterviewSetup({
   onChangeProblem,
   isStarting,
   error,
+  hideStart = false,
 }: {
   problems: ProblemSummary[];
   interview?: InterviewStart;
@@ -34,6 +35,7 @@ export function InterviewSetup({
   onChangeProblem: () => void;
   isStarting: boolean;
   error?: string;
+  hideStart?: boolean;
 }) {
   const selected = problems.find(
     (problem) =>
@@ -139,13 +141,15 @@ export function InterviewSetup({
               })
             }
           />
-          <button
-            type="submit"
-            disabled={!selected || disabled || isStarting}
-            className="bg-foreground text-background rounded px-4 py-2 text-sm disabled:opacity-40"
-          >
-            {isStarting ? "Starting…" : "Start interview"}
-          </button>
+          {!hideStart && (
+            <button
+              type="submit"
+              disabled={!selected || disabled || isStarting}
+              className="bg-foreground text-background rounded px-4 py-2 text-sm disabled:opacity-40"
+            >
+              {isStarting ? "Starting…" : "Start interview"}
+            </button>
+          )}
         </form>
       )}
       {error && (

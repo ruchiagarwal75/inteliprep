@@ -7,6 +7,8 @@ import {
 import { readJsonBody, withApiRequest } from "@/lib/api-request";
 import { openSharedSession } from "@/lib/shared-interview-session";
 import { BetaUnavailableError } from "@/lib/beta-config";
+import { verifiedEndMessages } from "@/lib/interview-transcript";
+import { getProblem } from "@/lib/problems";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -21,14 +23,30 @@ async function end(request: Request): Promise<Response> {
       },
       { status: 400 },
     );
+  if (!getProblem(parsed.data.problemId))
+    return Response.json(
+      { error: "Unknown interview problem" },
+      { status: 404 },
+    );
   const shared = await openSharedSession(
     parsed.data.sessionId,
     parsed.data,
     parsed.data.resumeToken,
   );
   try {
-    const scorecard = await endInterview(
+    interviewSessionCheckpoint(
+      parsed.data.sessionId,
       parsed.data,
+      parsed.data.resumeToken,
+    );
+    const scorecard = await endInterview(
+      {
+        ...parsed.data,
+        messages: verifiedEndMessages(
+          parsed.data.sessionId,
+          parsed.data.messages,
+        ),
+      },
       request.signal,
       shared.persist,
     );

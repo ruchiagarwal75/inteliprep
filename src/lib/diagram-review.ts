@@ -73,7 +73,7 @@ export function diagramReviewQuestion(
     ...graph.components.map((node) => node.label),
     ...graph.notes.map((note) => note.text),
   ].join("\n");
-  for (const component of ["cache", "CDN"]) {
+  for (const component of ["cache", "CDN", "load balancer"]) {
     const pattern = new RegExp(`\\b${component}\\b`, "iu");
     if (pattern.test(candidateText) && !pattern.test(drawnText)) {
       const question = uncertain

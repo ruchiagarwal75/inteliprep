@@ -1,21 +1,22 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { CandidateSignOut } from "@/components/candidate-sign-out";
+import { LaptopNote } from "@/components/laptop-note";
+import { useWrapUpDeadline } from "@/components/use-wrap-up-deadline";
+import { hasLabeledShape } from "@/lib/labeled-drawing";
 import { ChatPanel } from "@/components/chat-panel";
 import { Whiteboard } from "@/components/whiteboard";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
-import { InterviewSetup } from "@/components/interview-setup";
+
 import type { ProblemSummary } from "@/lib/interview-selection";
-import { hasSketch } from "@/lib/drawing-state";
+
 import type { InterviewPhase } from "@/lib/interview-phase";
-import { InterviewStage } from "@/components/interview-stage";
+import { InterviewLiveHeader } from "@/components/interview-live-header";
 import type { useInterviewLibrary } from "@/components/use-interview-library";
 import type { useInterviewStarter } from "@/components/use-interview-starter";
-import { InterviewHistory } from "@/components/interview-history";
+
 import type { SavedInterview } from "@/lib/saved-interview";
 import { useInterviewTimer } from "@/components/use-interview-timer";
-import { InterviewTimer } from "@/components/interview-timer";
 import { useTimedWhiteboard } from "@/components/use-timed-whiteboard";
 
 export function InterviewSessionWorkspace({
@@ -47,10 +48,12 @@ export function InterviewSessionWorkspace({
   const [phase, setPhase] = useState<InterviewPhase | undefined>(saved?.phase);
   const [isReplying, setIsReplying] = useState(false);
   const [hasEnded, setHasEnded] = useState(saved?.hasEnded ?? false);
-  const [hasConfirmedEnd, setHasConfirmedEnd] = useState(
-    saved?.hasEnded ?? false,
-  );
-  const [leaveAction, setLeaveAction] = useState<"new" | "problem">();
+  const [, setHasConfirmedEnd] = useState(saved?.hasEnded ?? false);
+  const [leaveAction] = useState<"new" | "problem">();
+  const [endTarget, setEndTarget] = useState<HTMLDivElement | null>(null);
+  const [activePanel, setActivePanel] = useState<"board" | "chat">("chat");
+  const [unread, setUnread] = useState(false);
+  const activePanelRef = useRef(activePanel);
   const timer = useInterviewTimer(
     interview?.timing,
     saved?.clockOffsetMs,
@@ -68,7 +71,7 @@ export function InterviewSessionWorkspace({
     [hasEnded, isExpiredNow],
   );
   const [hasDrawing, setHasDrawing] = useState(
-    hasSketch(initialScene.elements),
+    hasLabeledShape(initialScene.elements),
   );
   const hasDrawingRef = useRef(hasDrawing);
   const onSceneChange = useCallback(
@@ -78,7 +81,7 @@ export function InterviewSessionWorkspace({
         return;
       }
       updateScene(scene);
-      const next = hasSketch(scene.elements);
+      const next = hasLabeledShape(scene.elements);
       if (hasDrawingRef.current !== next) {
         hasDrawingRef.current = next;
         setHasDrawing(next);
@@ -93,49 +96,76 @@ export function InterviewSessionWorkspace({
     },
     [onBusy],
   );
-  const disabled = isReplying || library.isOpening || starter.isStarting;
+  void starter;
+  useWrapUpDeadline(
+    interview,
+    timer.remainingSeconds,
+    hasEnded || isReplying,
+    library.getResumeToken,
+    setPhase,
+    library.save,
+  );
   return (
-    <main className="flex min-h-dvh flex-col gap-2 p-2 md:h-dvh md:min-h-[36rem]">
-      <InterviewSetup
-        problems={problems}
-        interview={interview}
-        hasEnded={hasEnded}
-        disabled={disabled}
-        choice={starter.choice}
-        onChoice={starter.setChoice}
-        onStart={() => void starter.start()}
-        onNew={() => (hasConfirmedEnd ? onNew() : setLeaveAction("new"))}
-        onChangeProblem={() =>
-          hasConfirmedEnd ? onChangeProblem() : setLeaveAction("problem")
+    <main className="interview-page flex h-dvh min-h-0 flex-col gap-2 overflow-hidden p-2">
+      <InterviewLiveHeader
+        title={
+          problems.find((p) => p.problemId === interview?.problemId)?.title
         }
-        isStarting={starter.isStarting}
-        error={starter.error}
+        interview={interview}
+        phase={phase}
+        ended={hasEnded}
+        remainingSeconds={timer.remainingSeconds}
+        expired={timer.expired}
+        status={library.status}
+        error={library.error}
+        setEndTarget={setEndTarget}
       />
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 px-1">
-        <CandidateSignOut save={() => library.save()} />
-        <InterviewStage phase={phase} ended={hasEnded} />
-        {interview?.timing && (
-          <InterviewTimer
-            remainingSeconds={timer.remainingSeconds}
-            ended={hasEnded}
-            expired={timer.expired}
-            testMode={interview.timing.durationMinutes === 1}
-          />
-        )}
-        <InterviewHistory
-          entries={library.entries}
-          problems={problems}
-          currentId={saved?.id}
-          disabled={disabled}
-          status={library.status}
-          error={library.error}
-          onOpen={(id) => void library.open(id)}
-          onDelete={(id) => void library.remove(id)}
-          onRetrySave={() => void library.save()}
-        />
-      </div>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 md:grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)]">
-        <div className="min-h-[32rem] min-w-0 md:min-h-0">
+      {library.error && (
+        <p role="alert" className="text-xs text-red-700 dark:text-red-300">
+          {library.error}
+          <button
+            className="ml-2 underline"
+            onClick={() => void library.save()}
+          >
+            Retry save
+          </button>
+        </p>
+      )}
+      {!hasEnded && (
+        <div
+          className="flex shrink-0 gap-2 min-[900px]:hidden"
+          role="tablist"
+          aria-label="Interview panels"
+        >
+          {(["board", "chat"] as const).map((panel) => (
+            <button
+              key={panel}
+              role="tab"
+              aria-selected={activePanel === panel}
+              aria-controls={`panel-${panel}`}
+              id={`tab-${panel}`}
+              onClick={() => {
+                activePanelRef.current = panel;
+                setActivePanel(panel);
+                if (panel === "chat") setUnread(false);
+              }}
+              className="rounded border px-4 py-2 text-sm"
+            >
+              {panel === "board" ? "Board" : `Chat${unread ? " ●" : ""}`}
+            </button>
+          ))}
+        </div>
+      )}
+      <LaptopNote />
+      <div
+        className={`grid min-h-0 flex-1 gap-2 ${hasEnded ? "grid-cols-1" : "min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"}`}
+      >
+        <div
+          id="panel-board"
+          role="tabpanel"
+          aria-labelledby="tab-board"
+          className={`min-h-0 min-w-0 ${hasEnded ? "hidden" : activePanel === "board" ? "block" : "hidden min-[900px]:block"}`}
+        >
           <Whiteboard
             initialScene={initialScene}
             onChange={onSceneChange}
@@ -148,10 +178,15 @@ export function InterviewSessionWorkspace({
             }
           />
         </div>
-        <div className="flex min-h-[32rem] min-w-0 md:min-h-0">
+        <div
+          id="panel-chat"
+          role="tabpanel"
+          aria-labelledby="tab-chat"
+          className={`min-h-0 min-w-0 ${hasEnded || activePanel === "chat" ? "flex" : "hidden min-[900px]:flex"}`}
+        >
           <ChatPanel
             leaveAction={leaveAction}
-            onCancelLeave={() => setLeaveAction(undefined)}
+            onCancelLeave={() => {}}
             onConfirmLeave={() =>
               leaveAction === "new" ? onNew() : onChangeProblem()
             }
@@ -164,16 +199,40 @@ export function InterviewSessionWorkspace({
             getResumeToken={library.getResumeToken}
             onSave={library.save}
             onCloseWithoutScoring={library.closeWithoutScoring}
+            onLoadLatest={library.loadLatest}
+            storageConflict={library.blocked}
             disabled={library.isOpening || library.blocked}
             onBusyChange={onBusyChange}
             onPhaseChange={setPhase}
             phase={phase}
             hasEnded={hasEnded}
+            endControlTarget={endTarget}
+            brief={
+              problems.find((p) => p.problemId === interview?.problemId)
+                ?.brief?.[interview?.level ?? "mid"]
+            }
+            onAssistantMessage={() => {
+              if (activePanelRef.current === "board") setUnread(true);
+            }}
             onEndChange={(ended) => {
               setHasEnded(ended);
+              if (interview)
+                window.history.replaceState(
+                  null,
+                  "",
+                  `/interview/${interview.sessionId}${ended ? "/results" : ""}`,
+                );
               void library.save({ hasEnded: ended });
             }}
-            onEndConfirmed={setHasConfirmedEnd}
+            onEndConfirmed={(ended) => {
+              setHasConfirmedEnd(ended);
+              if (ended && interview)
+                window.history.replaceState(
+                  null,
+                  "",
+                  `/interview/${interview.sessionId}/results`,
+                );
+            }}
           />
         </div>
       </div>

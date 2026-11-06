@@ -1,4 +1,5 @@
 "use client";
+import { MAX_CHAT_LENGTH } from "@/lib/chat-draft";
 
 export function ChatComposer({
   input,
@@ -7,6 +8,7 @@ export function ChatComposer({
   disabled,
   canSend,
   started,
+  secondary = false,
 }: {
   input: string;
   onInput: (text: string) => void;
@@ -14,21 +16,29 @@ export function ChatComposer({
   disabled: boolean;
   canSend: boolean;
   started: boolean;
+  secondary?: boolean;
 }) {
   return (
     <form
-      className="flex shrink-0 gap-2 border-t border-black/10 p-3 dark:border-white/15"
+      className="flex shrink-0 flex-wrap gap-2 border-t border-black/10 p-3 dark:border-white/15"
       onSubmit={(event) => {
         event.preventDefault();
-        onSend();
+        if (!input.trim()) onInput("");
+        else onSend();
       }}
     >
       <textarea
         rows={2}
         value={input}
-        maxLength={8_000}
+        maxLength={MAX_CHAT_LENGTH}
+        aria-describedby={
+          input.length >= MAX_CHAT_LENGTH ? "draft-length-hint" : undefined
+        }
         disabled={disabled}
         onChange={(event) => onInput(event.target.value)}
+        onBlur={() => {
+          if (input && !input.trim()) onInput("");
+        }}
         onKeyDown={(event) => {
           if (
             event.key === "Enter" &&
@@ -37,6 +47,7 @@ export function ChatComposer({
           ) {
             event.preventDefault();
             if (canSend) onSend();
+            else if (!input.trim()) onInput("");
           }
         }}
         placeholder={
@@ -50,10 +61,20 @@ export function ChatComposer({
       <button
         type="submit"
         disabled={!canSend}
-        className="bg-foreground text-background rounded-md px-4 py-2 text-sm disabled:opacity-40"
+        className={`rounded-md border px-4 py-2 text-sm disabled:opacity-40 ${secondary ? "" : "bg-foreground text-background"}`}
       >
         Send
       </button>
+      {input.length >= MAX_CHAT_LENGTH && (
+        <p
+          id="draft-length-hint"
+          role="status"
+          className="w-full text-xs text-black/60 dark:text-white/60"
+        >
+          Message limit reached (8,000 characters). Shorten your message to add
+          more.
+        </p>
+      )}
     </form>
   );
 }

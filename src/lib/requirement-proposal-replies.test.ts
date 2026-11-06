@@ -13,6 +13,7 @@ import { createInterviewStart } from "@/lib/problems";
 import { POST as chat } from "@/app/api/chat/route";
 import { postChatTurn } from "@/lib/post-chat-turn";
 import { diagramReviewQuestion } from "@/lib/diagram-review";
+import { getCachedSession } from "@/lib/interview-session-store";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock("openai", () => ({
@@ -132,6 +133,18 @@ it("delivers the proposal response through the browser transport instead of hidi
   lease.release();
   const onStart = vi.fn();
   const onDelta = vi.fn();
+  const session = getCachedSession(started.sessionId);
+  if (!session) throw new Error("Missing fixture session");
+  session.transcript = {
+    messages: [
+      started.openingMessage,
+      {
+        role: "user",
+        content: "Please let me finish explaining.",
+        action: "explain",
+      },
+    ],
+  };
   const reply = await postChatTurn(
     async (_input, init) =>
       chat(new Request("http://localhost/api/chat", init)),

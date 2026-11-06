@@ -20,6 +20,9 @@ vi.mock("@/lib/llm", () => ({
   hasApiKey: mocks.hasApiKey,
 }));
 const userId = "11111111-1111-4111-8111-111111111111";
+vi.mock("@/lib/phase-assessment", () => ({
+  assessPhaseCoverage: async () => [],
+}));
 beforeEach(() => {
   vi.stubGlobal("indexedDB", new IDBFactory());
   vi.stubEnv("OPENAI_KEY", "test-key");

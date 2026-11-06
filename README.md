@@ -12,13 +12,16 @@ across devices or website origins, and clearing site data deletes it.
 
 ## Interview questions
 
-The catalog includes five problems, each at Mid-level, Senior, and Staff:
+The catalog includes eight problems, each at Mid-level, Senior, and Staff:
 
 - Scale a single server.
 - Design a URL shortener.
 - Design a rate limiter.
 - Design a chat service.
 - Design a news feed.
+- Design a notification system.
+- Design a file storage service.
+- Design a video streaming service.
 
 See [problem scope and review cases](docs/problem-catalog.md) for the configured
 goals, guarantees, and checks still required before beta onboarding.
@@ -48,13 +51,26 @@ for provider settings and callback URLs. Sign-in is required locally as well as 
 npm run dev
 ```
 
-Open [localhost:3000/interview](http://localhost:3000/interview).
+Open [localhost:3000](http://localhost:3000). Home shows browser-local history; Start practice opens the brief before the timer starts.
+
+Interview URLs are `/interview/<id>` and results are `/interview/<id>/results`. Old `?session=` links still work. Set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` before starting the dev server to show the 1-minute test option. Signing out keeps browser-local history.
 Local development uses bounded in-memory request limits and session state;
 Redis is only required for Vercel or `INTELIPREP_ENV=beta`.
-Beta requests use Redis for shared progress and keep a temporary RAM working copy
+Beta requests use Redis for shared progress and verified transcripts, and keep a temporary RAM working copy
 only until publication or request cleanup, including streamed replies.
 Redis progress and cached scorecards are stored as validated JSON. Browser resume
 tokens remain protected by `INTERVIEW_RESUME_SECRET`.
+Chat sends only a new candidate message, a stable turn ID, and its expected position.
+Opening or resuming an active interview refreshes chat from the verified server
+transcript. A stale tab offers Load latest version; its drawing, draft and unmatched
+unsent messages stay in browser storage. Rate-limit replies show a retry countdown.
+Recovered messages open by default and have individual Copy buttons. New interviewer
+replies omit verbatim candidate passages while retaining useful component names.
+The server owns prior messages and rejects browser-authored histories. Redis transcripts
+expire after two hours of inactivity; a progress token cannot recreate a missing
+transcript. Older active saves must be closed without scoring and restarted; saved
+scorecards remain viewable. Limits include 10 chat requests/minute, 200/day, and
+10 new interviews/day per account. See [deployment safeguards](docs/deployment.md).
 
 ## Checks and production build
 

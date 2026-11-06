@@ -30,6 +30,7 @@ describe("buildInterviewerInput", () => {
     expect(input[2]).not.toHaveProperty("action");
     expect(JSON.parse(inputText(input[2]))).toEqual({
       candidate_message: "Done",
+      whiteboard_label: "Candidate’s current whiteboard",
       current_whiteboard_snapshot: "Current drawing",
       whiteboard_changes: "No changes",
     });
@@ -50,6 +51,7 @@ describe("buildInterviewerInput", () => {
     expect(input[2].role).toBe("user");
     expect(JSON.parse(inputText(input[2]))).toEqual({
       candidate_message: "Here's my design",
+      whiteboard_label: "Candidate’s current whiteboard",
       current_whiteboard_snapshot: diagram,
       whiteboard_changes: "Added component: API",
     });
@@ -95,7 +97,7 @@ describe("buildInterviewerInput", () => {
       {
         role: "user",
         content:
-          '{"current_whiteboard_snapshot":"empty","whiteboard_changes":"Initial diagram"}',
+          '{"whiteboard_label":"Candidate’s current whiteboard","current_whiteboard_snapshot":"empty","whiteboard_changes":"Initial diagram"}',
       },
     ]);
   });
@@ -152,7 +154,7 @@ describe("buildInterviewerInput", () => {
     expect(input[0].content).toEqual([
       {
         type: "input_text",
-        text: '{"current_whiteboard_snapshot":"drawing","whiteboard_changes":"Initial diagram"}',
+        text: '{"whiteboard_label":"Candidate’s current whiteboard","current_whiteboard_snapshot":"drawing","whiteboard_changes":"Initial diagram"}',
       },
       { type: "input_image", image_url: PNG_FIXTURE, detail: "high" },
     ]);

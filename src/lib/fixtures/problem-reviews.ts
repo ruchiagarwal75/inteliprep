@@ -1,10 +1,20 @@
 import rateLimiter from "@/lib/fixtures/problem-reviews/rate-limiter.json";
 import chatService from "@/lib/fixtures/problem-reviews/chat-service.json";
 import newsFeed from "@/lib/fixtures/problem-reviews/news-feed.json";
+import notificationSystem from "@/lib/fixtures/problem-reviews/notification-system.json";
+import fileStorage from "@/lib/fixtures/problem-reviews/file-storage.json";
+import videoStreaming from "@/lib/fixtures/problem-reviews/video-streaming.json";
 import { sceneSchema } from "@/lib/scene";
 
 /** Synthetic inputs for wiring checks now and reviewed real-model evaluations later. */
-export const problemReviews = [rateLimiter, chatService, newsFeed];
+export const problemReviews = [
+  rateLimiter,
+  chatService,
+  newsFeed,
+  notificationSystem,
+  fileStorage,
+  videoStreaming,
+];
 
 export function reviewScene(example: (typeof problemReviews)[number]) {
   const nodes = example.nodes.flatMap((label, index) => [

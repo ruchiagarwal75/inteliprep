@@ -94,7 +94,15 @@ export const scorecardSchema = z.object({
     .optional(),
   summary: gradingAssessmentSchema.shape.summary,
   signal: interviewSignalSchema,
-  areas: z.array(z.object({ area: z.string().min(1), ...areaFields })).min(1),
+  areas: z
+    .array(
+      z.object({
+        area: z.string().min(1),
+        ...areaFields,
+        diagramNote: z.string().max(1000).optional(),
+      }),
+    )
+    .min(1),
   strengths: z.array(findingSchema).max(3),
   gaps: z.array(findingSchema).max(3),
   nextPractice: z.object({

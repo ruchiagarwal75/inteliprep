@@ -1,3 +1,4 @@
+import { chatRouteFixture } from "@/lib/fixtures/chat-route-test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getProblem } from "@/lib/problems";
 import basicScene from "@/lib/fixtures/basic-system.json";
@@ -19,13 +20,15 @@ function post(body: Record<string, unknown>) {
     new Request("http://localhost/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        problemId: "single-server-scaling",
-        level: "mid",
-        messages,
-        scene: { elements: [] },
-        ...body,
-      }),
+      body: JSON.stringify(
+        chatRouteFixture({
+          problemId: "single-server-scaling",
+          level: "mid",
+          messages,
+          scene: { elements: [] },
+          ...body,
+        }),
+      ),
     }),
   );
 }
@@ -38,11 +41,11 @@ beforeEach(() => {
 });
 
 describe("POST /api/chat drawing progress", () => {
-  it("derives handoff from the server problem policy and history, ignoring client phase claims", async () => {
+  it("keeps requirements open in a started interview despite client phase claims and a turn count", async () => {
     const response = await post({ interview_progress: { step: "review" } });
     expect(response.status).toBe(200);
     expect(mocks.streamInterviewerReply.mock.calls[0][5].progress).toEqual({
-      step: "invite-drawing",
+      step: "discussion",
       candidateTurns: 2,
       discussionTurnLimit: 2,
     });
@@ -56,7 +59,7 @@ describe("POST /api/chat drawing progress", () => {
   it.each([
     ["draw", "drawing"],
     ["explain", "explaining"],
-    ["review", "review"],
+    ["review", "discussion"],
   ])(
     "honors the validated candidate pacing action %s",
     async (action, step) => {

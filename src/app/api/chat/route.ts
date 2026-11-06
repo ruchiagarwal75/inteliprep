@@ -1,5 +1,10 @@
-import { APIError } from "openai";
-import { chatRequestSchema } from "@/lib/chat";
+import {
+  chatError as error,
+  upstreamChatError as upstreamError,
+} from "@/lib/chat-api-error";
+import { chatTurnRequestSchema } from "@/lib/chat-turn";
+import { prepareTranscriptTurn } from "@/lib/interview-transcript";
+import { replayChatTurn } from "@/lib/replay-chat-turn";
 import { hasApiKey, streamInterviewerReply } from "@/lib/llm";
 import { sceneToGraph } from "@/lib/scene-graph";
 import { graphToText } from "@/lib/scene-to-text";
@@ -15,47 +20,18 @@ import {
   readJsonBody,
   withApiRequest,
 } from "@/lib/api-request";
-import { isPrivateBeta } from "@/lib/beta-config";
 import { openSharedSession } from "@/lib/shared-interview-session";
 import { logServerEvent } from "@/lib/server-events";
+import { retryInterviewerReply } from "@/lib/interviewer-retry";
+import { withDevelopmentModelFault } from "@/lib/development-model-fault";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-function error(message: string, status: number, code?: string): Response {
-  return Response.json(
-    { error: message, ...(code ? { code } : {}) },
-    { status },
-  );
-}
-
-/** Keeps provider detail (billing URLs, org ids) out of the client response
- * while leaving the code visible enough to debug against the logs. */
-function upstreamError(cause: unknown, requestId: string): Response {
-  logServerEvent(
-    { event: "api_failure", route: "/api/chat", requestId },
-    cause,
-  );
-  if (cause instanceof APIError) {
-    const status =
-      cause.status === 401 || cause.status === 403
-        ? 503
-        : cause.status === 429
-          ? 429
-          : 502;
-    return error(
-      "Interviewer unavailable. Please try again.",
-      status,
-      cause.code ?? undefined,
-    );
-  }
-  return error("Interviewer unavailable. Please try again.", 502);
-}
-
 async function chat(request: Request, requestId: string): Promise<Response> {
   const body = await readJsonBody(request, 4_000_000);
 
-  const parsed = chatRequestSchema.safeParse(body);
+  const parsed = chatTurnRequestSchema.safeParse(body);
   if (!parsed.success) {
     return error(parsed.error.issues[0]?.message ?? "Invalid request", 400);
   }
@@ -66,11 +42,6 @@ async function chat(request: Request, requestId: string): Promise<Response> {
   if (!hasApiKey()) {
     return error("Server is missing OPENAI_KEY", 500);
   }
-  if (isPrivateBeta() && !parsed.data.sessionId)
-    throw new ApiRequestError(
-      "Start an interview before sending a message",
-      409,
-    );
   const shared = parsed.data.sessionId
     ? await openSharedSession(
         parsed.data.sessionId,
@@ -79,10 +50,32 @@ async function chat(request: Request, requestId: string): Promise<Response> {
       )
     : undefined;
 
-  const graph = sceneToGraph(parsed.data.scene);
+  let conversation;
+  try {
+    conversation = prepareTranscriptTurn(parsed.data);
+    if (conversation.replay)
+      return await replayChatTurn(
+        request,
+        parsed.data,
+        problem,
+        conversation.replay,
+        async () => {
+          await shared?.release();
+        },
+        requestId,
+      );
+  } catch (cause) {
+    await shared?.release();
+    throw cause;
+  }
+  const data = conversation.request;
+  if (!data) throw new ApiRequestError("Invalid candidate turn", 400);
+
+  const replyStartedAt = Date.now();
+  const graph = sceneToGraph(data.scene);
   const diagramText = graphToText(graph);
-  const previousGraph = parsed.data.previousScene
-    ? sceneToGraph(parsed.data.previousScene)
+  const previousGraph = data.previousScene
+    ? sceneToGraph(data.previousScene)
     : undefined;
   const changeText = diffSceneGraphs(graph, previousGraph);
   const abort = new AbortController();
@@ -91,7 +84,7 @@ async function chat(request: Request, requestId: string): Promise<Response> {
   request.signal.addEventListener("abort", cancel, { once: true });
   let turn;
   try {
-    turn = await prepareInterviewTurn(problem, parsed.data, abort.signal);
+    turn = await prepareInterviewTurn(problem, data, abort.signal);
   } catch (cause) {
     request.signal.removeEventListener("abort", cancel);
     await shared?.release();
@@ -113,10 +106,17 @@ async function chat(request: Request, requestId: string): Promise<Response> {
   const complete = (reply: string) => {
     completion = (async () => {
       abort.signal.throwIfAborted();
+      conversation.commit(reply, Boolean(turn.context.listening));
       turn.commit(reply);
       try {
         await shared?.persist();
         abort.signal.throwIfAborted();
+        logServerEvent({
+          event: "chat_reply_complete",
+          route: "/api/chat",
+          requestId,
+          durationMs: Date.now() - replyStartedAt,
+        });
       } catch (cause) {
         try {
           await shared?.rollback();
@@ -141,18 +141,22 @@ async function chat(request: Request, requestId: string): Promise<Response> {
     console.log("[chat] Whiteboard changes:\n%s", changeText);
     console.log(
       "[chat] Whiteboard image: %s",
-      parsed.data.diagramImage ? "attached" : "not attached",
+      data.diagramImage ? "attached" : "not attached",
     );
     console.log("[chat] Interview step: %s", turn.context.progress.step);
     if (turn.phase) console.log("[chat] Interview stage: %s", turn.phase.title);
   }
-  const deltas = streamInterviewerReply(
-    parsed.data.messages,
-    diagramText,
-    changeText,
+  const deltas = retryInterviewerReply(
+    (signal) =>
+      streamInterviewerReply(
+        data.messages,
+        diagramText,
+        changeText,
+        signal,
+        data.diagramImage,
+        turn.context,
+      ),
     abort.signal,
-    parsed.data.diagramImage,
-    turn.context,
   );
 
   // Pull the first delta before answering, so an upstream failure still maps to
@@ -201,4 +205,6 @@ async function chat(request: Request, requestId: string): Promise<Response> {
   );
 }
 
-export const POST = withApiRequest("chat", "/api/chat", chat);
+export const POST = withApiRequest("chat", "/api/chat", (request, requestId) =>
+  withDevelopmentModelFault(() => chat(request, requestId)),
+);

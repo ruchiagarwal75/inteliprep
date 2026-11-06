@@ -57,7 +57,7 @@ describe("drawing handoff streaming", () => {
     );
     expect(mocks.create).not.toHaveBeenCalled();
   });
-  it("closes the final stage without adding another design question", async () => {
+  it("ends the final stage reply with a clear ask", async () => {
     mocks.create.mockImplementation(async function* () {
       yield {
         type: "response.output_text.delta",
@@ -67,7 +67,9 @@ describe("drawing handoff streaming", () => {
     });
     const context = interview("review");
     context.phase = context.problem.phases.at(-1);
-    expect(await reply(context)).toBe("You compared CPU and latency.");
+    expect(await reply(context)).toBe(
+      "You compared CPU and latency. What else could fail?",
+    );
   });
   it("keeps holding questions when the candidate draws during the final stage", async () => {
     const context = interview("drawing");

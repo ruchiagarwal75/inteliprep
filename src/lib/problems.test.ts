@@ -19,6 +19,9 @@ describe("problem registry", () => {
       "rate-limiter",
       "chat-service",
       "news-feed",
+      "notification-system",
+      "file-storage",
+      "video-streaming",
     ]);
     for (const summary of catalog)
       expect(Object.keys(summary).sort()).toEqual([

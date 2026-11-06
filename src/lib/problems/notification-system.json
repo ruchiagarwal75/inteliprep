@@ -1,0 +1,262 @@
+{
+  "id": "notification-system",
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
+  "title": "Design a notification system",
+  "summary": "Accept transactional notifications and deliver email or mobile push with retries, preferences, and visible status.",
+  "prompt": "Design a transactional notification service. Internal applications request email, mobile push, or both for a recipient. Explain durable acceptance, per-channel status, recipient preferences, dispatch, retries, and how delivery behaves during provider failures.",
+  "requirements": [
+    "Support transactional email and mobile push to one recipient per request, including requests using both channels. Internal caller identity and recipient contact details already exist; enforce caller authorization.",
+    "Expose acceptance and per-channel pending, provider-accepted, failed, or skipped status. Provider acceptance is not proof of device display, inbox placement, or reading.",
+    "A successful submission is durable. Repeating the same caller-scoped logical request must not create duplicate notification jobs. External delivery may remain uncertain after a timeout.",
+    "Check current channel preferences before dispatch. A disabled channel is skipped, while other allowed channels can proceed independently.",
+    "Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Retry transient failures for 24 hours and retain status for 30 days by default; accept justified alternatives and keep agreed values.",
+    "Keep a single-region core. Bulk marketing campaigns, scheduled delivery, SMS, and cross-region failover are optional extensions. Discuss bounded retries, overload, provider limits, and cost using the candidate's design.",
+    "For channel-mix estimates, default to 60% email-only, 30% push-only and 10% both: 1.1 initial channel attempts per logical request before retries. Accept justified alternatives."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch how a request is accepted and reaches each selected notification channel. Choose Ready to explain when you're ready to walk through it.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch how a request is accepted and reaches each selected notification channel. Choose Explain my design to walk through it, then Done explaining when you're ready for questions."
+    ]
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Hi! Let's design a transactional notification system. Internal applications request email, mobile push, or both for one recipient. Identity and contact details already exist. Users can view notification status and change channel preferences. Bulk marketing campaigns, scheduled sending, and SMS are outside the core scope.\n\nExplain acceptance and dispatch, then what happens when a provider is unavailable. We'll establish workload and timing goals before you draw and explain.\n\nSuccess means durable acceptance, not device delivery or reading. Retries of one logical request must return the same notification. Respect current channel preferences at dispatch. Provider outcomes can be uncertain; do not promise exactly-once external delivery. Default to a 24-hour retry window and 30-day status retention; justified alternatives are allowed.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect a clear acceptance API, durable job and per-channel state, dispatch paths, preferences, and bounded retries. Distinguish provider acceptance from delivery; explore a timeout or duplicate request without prescribing a queue or database.",
+      "scaleHints": [
+        "Assume 1 million logical notification requests per day, with peaks ten times the daily average. Each request has one recipient and at most two channel attempts before retries.",
+        "Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Device delivery and reading have no service-controlled deadline. If a provider quota is needed, state and justify a working assumption."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Hi! Let's design a transactional notification system. Internal applications request email, mobile push, or both for one recipient. Identity and contact details already exist. Users can view notification status and change channel preferences. Bulk marketing campaigns, scheduled sending, and SMS are outside the core scope.\n\nExplain acceptance, independent channel outcomes, and how the service behaves under uneven load and provider outages. We'll agree on workload and goals before drawing.\n\nSuccess means durable acceptance, not device delivery or reading. Retries of one logical request must return the same notification. Respect current channel preferences at dispatch. Provider outcomes can be uncertain; do not promise exactly-once external delivery. Default to a 24-hour retry window and 30-day status retention; justified alternatives are allowed.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect reasoned workload estimates, idempotency ownership, independent channel state, provider quotas and retry classification, and recovery from an uncertain send outcome. Probe fairness, backlog, and observability using the candidate's topology.",
+      "scaleHints": [
+        "Assume 100 million logical notification requests per day, with peaks ten times the daily average and uneven caller traffic. Each request has one recipient and at most two initial channel attempts.",
+        "Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Device delivery and reading have no service-controlled deadline. If a provider quota is needed, state and justify a working assumption."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Hi! Let's design a transactional notification system. Internal applications request email, mobile push, or both for one recipient. Identity and contact details already exist. Users can view notification status and change channel preferences. Bulk marketing campaigns, scheduled sending, and SMS are outside the core scope.\n\nExplain how the service protects accepted work, isolates provider failures, and controls delay and cost under uneven load. Keep the core in one region before optional regional recovery.\n\nSuccess means durable acceptance, not device delivery or reading. Retries of one logical request must return the same notification. Respect current channel preferences at dispatch. Provider outcomes can be uncertain; do not promise exactly-once external delivery. Default to a 24-hour retry window and 30-day status retention; justified alternatives are allowed.\n\nWhat workload and service goals would you clarify before drawing?",
+      "expectations": "Expect quantified dispatch amplification, ownership and hot-tenant isolation, recovery of accepted work, retry budgets, overload priorities, and observable provider uncertainty. Explore regional recovery only after the single-region core; reward justified alternatives.",
+      "scaleHints": [
+        "Assume 1 billion logical notification requests per day, with peaks ten times the daily average, uneven caller traffic, and provider quotas that may change. Each request has at most two initial channel attempts.",
+        "Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Device delivery and reading have no service-controlled deadline. If a provider quota is needed, state and justify a working assumption."
+      ]
+    }
+  },
+  "rubric": [
+    {
+      "area": "Requirements and service goals",
+      "strong": "Separates logical submissions from channel attempts and retries, establishes timing goals and scope, and distinguishes accepted work from externally delivered notifications.",
+      "assessmentPattern": "\\b(requirement\\w*|scope|volume|traffic|peak\\w*|rate|requests? per|channel.attempt\\w*|latency|dispatch.(?:time|delay)|timing|estimate\\w*)\\b"
+    },
+    {
+      "area": "Acceptance API and job state",
+      "strong": "Defines caller-authorized durable acceptance, stable notification identity, status lookup, and idempotent logical submissions with recoverable per-channel state.",
+      "assessmentPattern": "\\b(api|submit\\w*|accept\\w*|job\\w*|durab\\w*|state|status|notification.id|database|stor\\w*)\\b"
+    },
+    {
+      "area": "Channel dispatch and preferences",
+      "strong": "Explains dispatch to independent channels, contact and preference handling at dispatch, and a status model that distinguishes provider acceptance, skipped work, and user delivery.",
+      "assessmentPattern": "\\b(channel\\w*|dispatch\\w*|email|push|provider\\w*|preference\\w*|opt.out|skipp\\w*|authoriz\\w*)\\b"
+    },
+    {
+      "area": "Retries and delivery semantics",
+      "strong": "Classifies retryable and permanent failures, handles ambiguous provider outcomes and duplicate work, and bounds retry cost without inventing an exactly-once external guarantee.",
+      "assessmentPattern": "\\b(retry|retries|timeout\\w*|uncertain\\w*|ambig\\w*|duplicate\\w*|dedup\\w*|idempot\\w*|exactly.once|permanent|transient)\\b"
+    },
+    {
+      "area": "Scaling, failures, and operations",
+      "strong": "Justifies scaling and fairness, respects provider limits, recovers accepted jobs, and measures dispatch delay, retry load, backlog, errors, and cost with a concrete test plan.",
+      "assessmentPattern": "\\b(scal\\w*|fail\\w*|recover\\w*|backlog|backpressure|quota\\w*|fair\\w*|monitor\\w*|metric\\w*|cost\\w*|load.test|worker\\w*)\\b"
+    }
+  ],
+  "followUps": [
+    "What does your submission response guarantee if the process dies immediately afterward?",
+    "What happens when the same logical notification is submitted twice?",
+    "How do the email and push outcomes differ if only one provider is unavailable?",
+    "How do changed user preferences affect work that has not been dispatched yet?",
+    "What happens when a provider accepts a request but its response is lost?",
+    "How do you keep one caller's retry backlog from delaying other notifications?"
+  ],
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Establish the core workflows, workload and timing goals, and service guarantees.",
+      "completionCriteria": [
+        "Candidate clarifies or confirms transactional email/push submission, per-channel status, and recipient preferences.",
+        "Candidate establishes or confirms logical request volume, channel amplification, submission latency, and first-attempt timing.",
+        "Candidate clarifies or confirms durable idempotent acceptance, uncertain provider delivery, dispatch-time preferences, and retry/status retention defaults."
+      ],
+      "interviewerGuidance": "Clarify only missing scope and workload goals before drawing. The opening already supplies scope and correctness defaults; never quiz the candidate for those facts again. The message budget is guidance, never proof of completion. Answer explicit clarifications and acknowledge reasonable allowed alternatives without prescribing architecture.",
+      "transition": "initial",
+      "clarificationQuestions": [
+        "Which notification channels, recipient workflows, and optional features are in scope?",
+        "What request volume, channel amplification, submission latency, and first-attempt goals are you using?",
+        "What do acceptance, retries, user preferences, and retained status guarantee?"
+      ]
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Give the candidate time to draw and explain acceptance, channel dispatch, and delivery status.",
+      "completionCriteria": [
+        "A live architecture sketch exists.",
+        "The candidate explicitly invites discussion after explaining."
+      ],
+      "interviewerGuidance": "Give the candidate the floor across multiple messages. Wait for explicit discussion permission before critiquing or asking design questions. Answer explicit requirement proposals while preserving explanation pauses.",
+      "transition": "drawing"
+    },
+    {
+      "id": "acceptance-and-dispatch",
+      "title": "Acceptance and dispatch",
+      "goal": "Understand acceptance, durable state, channel dispatch, and preferences.",
+      "completionCriteria": [
+        "Candidate explains the submission API, durable job state, and idempotency for a repeated logical request.",
+        "Candidate explains independent channel dispatch and status, caller access, and checking recipient preferences."
+      ],
+      "interviewerGuidance": "Ask one focused question about an uncovered request path or state in the candidate's design. Do not equate provider acceptance with delivery or prescribe a queue, worker, or store.",
+      "transition": "coverage"
+    },
+    {
+      "id": "retries-and-recovery",
+      "title": "Retries and recovery",
+      "goal": "Explore provider uncertainty, bounded retries, and healthy operation under load.",
+      "completionCriteria": [
+        "Candidate explains transient versus permanent failures, an uncertain provider outcome, and bounded retry or duplicate handling.",
+        "Candidate explains an overload or worker-failure case and how they would measure dispatch delay, backlog, and delivery health."
+      ],
+      "interviewerGuidance": "Probe one provider timeout, retry, or overload case at a time. Preserve drawing pauses. Require honest delivery semantics rather than an unsupported exactly-once claim.",
+      "transition": "coverage"
+    },
+    {
+      "id": "wrap-up",
+      "title": "Wrap up",
+      "goal": "Recap the candidate's own design and stated tradeoffs.",
+      "completionCriteria": [
+        "The candidate's choices and stated limitations are summarized."
+      ],
+      "interviewerGuidance": "Close with a short recap grounded in the candidate's answers and drawing. Do not invent guarantees, assign scores, restart requirements, or ask another design question.",
+      "transition": "wrap-up"
+    }
+  ],
+  "openingCriteria": [0, 2],
+  "clarifications": [
+    {
+      "pattern": "\\b(traffic|rps|qps|load|volume|scale|capacity|peak|rate|latency|response.time|notifications? per|dispatch.time|how (?:many|fast|quickly))\\b",
+      "answers": {
+        "mid": "Assume 1 million logical notification requests per day, with peaks ten times the daily average. Each request has one recipient and at most two channel attempts before retries. Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Device delivery and reading have no service-controlled deadline.",
+        "senior": "Assume 100 million logical notification requests per day, with peaks ten times the daily average and uneven caller traffic. Each request has one recipient and at most two initial channel attempts. Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Device delivery and reading have no service-controlled deadline.",
+        "staff": "Assume 1 billion logical notification requests per day, with peaks ten times the daily average, uneven caller traffic, and provider quotas that may change. Each request has at most two initial channel attempts. Target p95 submission below 200 milliseconds and the first dispatch attempt within 30 seconds during normal operation with healthy providers. Device delivery and reading have no service-controlled deadline."
+      },
+      "coversCriteria": [1]
+    },
+    {
+      "pattern": "\\b(scope|channels?|features?|sharing|public|private|permission\\w*|preferences?|opt.out|live.streaming|recommend\\w*|folder.sync)\\b",
+      "answers": {
+        "mid": "The core supports transactional email, mobile push, or both for one recipient, plus per-channel status and preferences. Caller identity and contact details already exist. Bulk campaigns, scheduled notifications, SMS, and receipt-reading guarantees are outside scope.",
+        "senior": "The core supports transactional email, mobile push, or both for one recipient, plus per-channel status and preferences. Caller identity and contact details already exist. Bulk campaigns, scheduled notifications, SMS, and receipt-reading guarantees are outside scope.",
+        "staff": "The core supports transactional email, mobile push, or both for one recipient, plus per-channel status and preferences. Caller identity and contact details already exist. Bulk campaigns, scheduled notifications, SMS, and receipt-reading guarantees are outside scope."
+      },
+      "coversCriteria": [0]
+    },
+    {
+      "pattern": "\\b((?:email|push).*(?:split|mix|ratio)|(?:split|mix|ratio).*(?:email|push))\\b",
+      "answers": {
+        "mid": "Use a default mix of 60% email-only requests, 30% push-only, and 10% requesting both. That averages 1.1 initial channel attempts per logical request before retries; justified alternatives are allowed.",
+        "senior": "Use a default mix of 60% email-only requests, 30% push-only, and 10% requesting both. That averages 1.1 initial channel attempts per logical request before retries; justified alternatives are allowed.",
+        "staff": "Use a default mix of 60% email-only requests, 30% push-only, and 10% requesting both. That averages 1.1 initial channel attempts per logical request before retries; justified alternatives are allowed."
+      },
+      "coversCriteria": [1]
+    },
+    {
+      "pattern": "\\b(idempot\\w*|duplicate\\w*|same.logical|repeat\\w*.request)\\b",
+      "answers": {
+        "mid": "Repeated submissions with the same caller-scoped idempotency key refer to one notification job; separate logical events may create separate notifications.",
+        "senior": "Repeated submissions with the same caller-scoped idempotency key refer to one notification job; separate logical events may create separate notifications.",
+        "staff": "Repeated submissions with the same caller-scoped idempotency key refer to one notification job; separate logical events may create separate notifications."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(guarantee\\w*|acknowledg\\w*|durab\\w*|accept\\w*)\\b",
+      "answers": {
+        "mid": "A successful submission confirms the notification job is durably accepted. It does not confirm device delivery or reading.",
+        "senior": "A successful submission confirms the notification job is durably accepted. It does not confirm device delivery or reading.",
+        "staff": "A successful submission confirms the notification job is durably accepted. It does not confirm device delivery or reading."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(retry|retries|uncertain\\w*|timeout\\w*|exactly.once|provider.outcome\\w*)\\b",
+      "answers": {
+        "mid": "Use a 24-hour retry window by default. A provider timeout can leave delivery uncertain, so exactly-once external delivery is not guaranteed; explain your duplicate and terminal-failure behavior.",
+        "senior": "Use a 24-hour retry window by default. A provider timeout can leave delivery uncertain, so exactly-once external delivery is not guaranteed; explain your duplicate and terminal-failure behavior.",
+        "staff": "Use a 24-hour retry window by default. A provider timeout can leave delivery uncertain, so exactly-once external delivery is not guaranteed; explain your duplicate and terminal-failure behavior."
+      },
+      "coversCriteria": [2]
+    },
+    {
+      "pattern": "\\b(retention|retain\\w*|status.history)\\b",
+      "answers": {
+        "mid": "Retain notification status for 30 days by default; a justified alternative is acceptable.",
+        "senior": "Retain notification status for 30 days by default; a justified alternative is acceptable.",
+        "staff": "Retain notification status for 30 days by default; a justified alternative is acceptable."
+      },
+      "coversCriteria": [2]
+    }
+  ],
+  "gradingGuidance": [
+    "Asking about peak rate, dispatch time and idempotency is requirements-discovery evidence from clarification; do not label timing goals unexplored merely because the candidate asked questions instead of repeating the configured numbers.",
+    "Provider acceptance is distinct from external delivery and reading; evaluate the candidate's stated uncertainty and retry policy without demanding impossible exactly-once provider delivery."
+  ],
+  "reviewProbes": [
+    {
+      "id": "provider-outage",
+      "areaIndex": 4,
+      "topicPattern": "outage|unavailable|provider.*down|provider.failure",
+      "question": "If the email provider is unavailable for ten minutes, how will your design keep push notifications moving?"
+    },
+    {
+      "id": "provider-recovery",
+      "areaIndex": 4,
+      "topicPattern": "outage|unavailable|provider.*down|recover\\w*|backlog",
+      "question": "When the email provider recovers, how will you drain pending sends without exceeding its rate limit?"
+    },
+    {
+      "id": "ambiguous-send",
+      "areaIndex": 3,
+      "topicPattern": "timeout|uncertain|acknowledg\\w*|lost.response",
+      "question": "What happens if a provider accepts a send but its response is lost?"
+    },
+    {
+      "id": "caller-status",
+      "areaIndex": 1,
+      "topicPattern": "status|caller|access|authoriz\\w*",
+      "question": "How does a status lookup prevent one internal caller from reading another caller's notification?"
+    },
+    {
+      "id": "retry-expiry",
+      "areaIndex": 3,
+      "topicPattern": "retry|retries|deadline|expir\\w*",
+      "question": "What status does a caller see once a notification's retry window expires?"
+    },
+    {
+      "id": "fairness",
+      "areaIndex": 4,
+      "topicPattern": "fair\\w*|quota|rate.limit|overload|burst",
+      "question": "What keeps one application's retry burst from delaying another application's notifications?"
+    },
+    {
+      "id": "preferences",
+      "areaIndex": 2,
+      "topicPattern": "preference|opt.out|disabled",
+      "question": "What happens to a pending email if its recipient disables email before the next retry?"
+    }
+  ]
+}

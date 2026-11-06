@@ -4,6 +4,8 @@ import type { SavedInterview } from "@/lib/saved-interview";
 import { lastCandidateAction } from "@/lib/candidate-actions";
 
 export const pendingChatReplySchema = z.object({
+  turnId: z.uuid().optional(),
+  retryAt: z.number().finite().optional(),
   messageIndex: z.number().int().min(0).max(101),
   error: z.string().min(1).max(1_000).optional(),
 });

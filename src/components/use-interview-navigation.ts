@@ -36,7 +36,10 @@ export function useInterviewNavigation({
         return;
       }
       pending.current = false;
-      const id = interviewIdFromSearch(window.location.search);
+      const match = window.location.pathname.match(
+        /^\/interview\/([\da-f-]{36})(?:\/results)?$/iu,
+      );
+      const id = match?.[1] ?? interviewIdFromSearch(window.location.search);
       if (id) await open(id, "none");
       else await reset(false, "none");
     }

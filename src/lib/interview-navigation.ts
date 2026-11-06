@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export function interviewHref(id?: string): string {
-  return id ? `/interview?session=${encodeURIComponent(id)}` : "/interview";
+  return id ? `/interview/${encodeURIComponent(id)}` : "/interview/new";
 }
 
 export function interviewIdFromSearch(search: string): string | undefined {
@@ -12,7 +12,8 @@ export function interviewIdFromSearch(search: string): string | undefined {
 /** A deep link restores that interview; a bare first load opens the newest created save. */
 export function initialInterviewId(
   search: string,
-  history: readonly { id: string }[],
+  _history: readonly { id: string }[],
 ): string | undefined {
-  return interviewIdFromSearch(search) ?? history[0]?.id;
+  void _history;
+  return interviewIdFromSearch(search);
 }

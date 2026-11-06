@@ -1,3 +1,4 @@
+import { chatRouteFixture } from "@/lib/fixtures/chat-route-test";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/chat/route";
 import { createInterviewStart, getProblem } from "@/lib/problems";
@@ -28,13 +29,15 @@ const request = (interview: ReturnType<typeof started>) =>
   new Request("http://localhost/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...interview,
-      messages: [
-        interview.openingMessage,
-        { role: "user", content: "I am drawing", action: "draw" },
-      ],
-    }),
+    body: JSON.stringify(
+      chatRouteFixture({
+        ...interview,
+        messages: [
+          interview.openingMessage,
+          { role: "user", content: "I am drawing", action: "draw" },
+        ],
+      }),
+    ),
   });
 
 describe("chat expiry enforcement", () => {

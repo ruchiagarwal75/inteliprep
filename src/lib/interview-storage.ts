@@ -3,6 +3,7 @@ import {
   savedInterviewSummary,
   type SavedInterview,
 } from "@/lib/saved-interview";
+import { ZodError } from "zod";
 
 import { createInterviewDatabase } from "@/lib/interview-database";
 
@@ -40,7 +41,13 @@ export function createInterviewStorage(userId: string) {
           done(undefined);
         } catch (cause) {
           fail(
-            cause instanceof Error ? cause : new Error("Browser save failed"),
+            cause instanceof ZodError
+              ? new Error(
+                  "This interview couldn't be saved in this browser. Check the message length and try saving again.",
+                )
+              : cause instanceof Error
+                ? cause
+                : new Error("Browser save failed"),
           );
         }
       };

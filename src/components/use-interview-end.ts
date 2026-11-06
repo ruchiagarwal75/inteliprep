@@ -11,6 +11,8 @@ import { prepareWhiteboardTurn } from "@/lib/whiteboard-turn";
 import { interviewEndResponseSchema, type Scorecard } from "@/lib/scorecard";
 import { captureScene } from "@/lib/scene-snapshot";
 import { finalInterviewMessages } from "@/lib/final-interview-messages";
+import { isTranscriptConflict } from "@/lib/interview-sync";
+import { responseRateLimit } from "@/lib/retry-after";
 import {
   interviewRecoveryFailure,
   type InterviewRecoveryFailure,
@@ -36,6 +38,7 @@ export function useInterviewEnd({
   onDraftIncluded,
   recoveryFailure,
   onRecoveryFailure,
+  onSyncRequired,
 }: {
   getScene: () => WhiteboardScene;
   interview?: InterviewStart;
@@ -52,6 +55,7 @@ export function useInterviewEnd({
   onDraftIncluded: () => void;
   recoveryFailure?: InterviewRecoveryFailure;
   onRecoveryFailure: (failure: InterviewRecoveryFailure) => void;
+  onSyncRequired?: () => void;
 }) {
   const { request } = useCandidateAccount();
   const [isEnding, setIsEnding] = useState(false);
@@ -133,6 +137,9 @@ export function useInterviewEnd({
           ? body.resumeToken
           : undefined;
       if (!response.ok) {
+        const transcriptConflict = isTranscriptConflict(response.status, body);
+        if (transcriptConflict) onSyncRequired?.();
+        const limited = responseRateLimit(response);
         const failure = interviewRecoveryFailure(response.status, body);
         if (failure) onRecoveryFailure(failure);
         const detail = body && typeof body === "object" ? body : {};
@@ -146,15 +153,16 @@ export function useInterviewEnd({
           hasEnded: ended,
           endRequest: ended ? snapshotRef.current : undefined,
           resumeToken,
+          ...(transcriptConflict ? { transcriptConflict: true } : {}),
           gradingError:
             "error" in detail && typeof detail.error === "string"
-              ? detail.error
+              ? (limited?.message ?? detail.error)
               : "Scorecard generation failed.",
           ...(failure ? { recoveryFailure: failure } : {}),
         });
         setError(
           "error" in detail && typeof detail.error === "string"
-            ? detail.error
+            ? (limited?.message ?? detail.error)
             : "The scorecard couldn't be generated. Please retry.",
         );
         onEndConfirmed(ended);

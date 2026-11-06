@@ -1,3 +1,4 @@
+import { chatRouteFixture } from "@/lib/fixtures/chat-route-test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import basicScene from "@/lib/fixtures/basic-system.json";
 
@@ -16,11 +17,13 @@ function post(body: unknown) {
       body:
         typeof body === "string"
           ? body
-          : JSON.stringify({
-              problemId: "url-shortener",
-              level: "senior",
-              ...(typeof body === "object" && body !== null ? body : {}),
-            }),
+          : JSON.stringify(
+              chatRouteFixture({
+                problemId: "url-shortener",
+                level: "senior",
+                ...(typeof body === "object" && body !== null ? body : {}),
+              }),
+            ),
     }),
   );
 }

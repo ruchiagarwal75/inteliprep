@@ -47,8 +47,10 @@ export function calibrateBottleneckScore(card: Scorecard): Scorecard {
 export function withSessionContext(
   card: Scorecard,
   timing?: InterviewTiming,
+  answeredStageCount?: number,
 ): Scorecard {
   if (!timing) return card;
+
   const allowedSeconds = timing.durationMinutes * 60;
   const elapsedSeconds = Math.max(
     0,
@@ -60,22 +62,22 @@ export function withSessionContext(
     ),
   );
   const limited =
-    elapsedSeconds < Math.min(600, allowedSeconds / 2) ||
-    timing.durationMinutes === 1;
+    elapsedSeconds < allowedSeconds / 3 ||
+    (answeredStageCount !== undefined && answeredStageCount < 2);
   return {
     ...card,
+    areas: limited
+      ? card.areas.map((area) => ({ ...area, score: null }))
+      : card.areas,
     signal: limited ? "insufficient_evidence" : card.signal,
     session: {
       startedAt: timing.startedAt,
       elapsedSeconds,
       allowedSeconds,
       limited,
-      note:
-        timing.durationMinutes === 1
-          ? "This was a 1-minute test session. Area feedback is provisional; there is not enough interview time for an overall signal."
-          : limited
-            ? "This brief attempt provides limited evidence for a full interview. Area feedback reflects only the answers given; no overall signal is assigned."
-            : "Area feedback reflects the evidence provided during this session. Unexplored areas remain unassessed.",
+      note: limited
+        ? "Not enough evidence: scores are hidden until at least one third of the session and two stages with technical answers. Feedback quotes only the evidence provided."
+        : "Area feedback reflects the evidence provided during this session. Unexplored areas remain unassessed.",
     },
   };
 }

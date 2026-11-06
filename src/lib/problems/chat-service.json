@@ -1,6 +1,8 @@
 {
   "id": "chat-service",
-  "diagramReview": { "checkApplicationDataPaths": false },
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
   "title": "Design a chat service",
   "summary": "Build one-to-one text messaging with online delivery, saved history, and recovery after disconnects.",
   "prompt": "Design a one-to-one text chat service. Signed-in users send messages, receive them while online, and read saved conversation history after reconnecting. Explain message acceptance, delivery, ordering, and recovery when clients or servers disconnect.",
@@ -14,7 +16,10 @@
   ],
   "drawingPolicy": {
     "discussionTurns": 3,
-    "invitation": "Let's move to the whiteboard. Sketch how two users send and receive messages, including saved history and reconnecting. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+    "invitation": "Let's move to the whiteboard. Sketch how two users send and receive messages, including saved history and reconnecting. Choose Ready to explain when you're ready to walk through it.",
+    "legacyInvitations": [
+      "Let's move to the whiteboard. Sketch how two users send and receive messages, including saved history and reconnecting. Choose Explain my design when you're ready to walk through it, then Done explaining when you're ready for questions."
+    ]
   },
   "levels": {
     "mid": {

@@ -1,62 +1,99 @@
+"use client";
+import { useRef } from "react";
 import {
   designDiscussionControl,
   type CandidateAction,
 } from "@/lib/candidate-actions";
-
 export function InterviewPacing({
   action,
   hasDrawing,
+  hasExplanation = false,
   disabled,
   onChoose,
 }: {
   action?: CandidateAction;
   hasDrawing: boolean;
+  hasExplanation?: boolean;
   disabled: boolean;
   onChoose: (message: string, action: CandidateAction) => void;
 }) {
-  const current = action;
-  const designControl = designDiscussionControl(current);
+  const changedAt = useRef(-Infinity);
+  function choose(message: string, next: CandidateAction) {
+    if (disabled || performance.now() - changedAt.current < 500) return;
+    changedAt.current = performance.now();
+    onChoose(message, next);
+  }
+  const draw = () =>
+    choose(
+      "I'd like time to work on my drawing. Please hold questions.",
+      "draw",
+    );
+  const control = designDiscussionControl(action);
+  const primary = action === "draw" || action === "explain";
   return (
-    <div className="border-t border-black/10 p-3 dark:border-white/15">
-      <p
-        className="mb-2 text-xs text-black/60 dark:text-white/60"
-        aria-live="polite"
-      >
-        {current === "review"
-          ? "Discussion is open. Pause to draw or explain an update whenever you need."
-          : current === "explain"
-            ? "Explain across as many messages as you need. Choose Done explaining when you're ready for questions."
-            : current === "draw"
-              ? "Take your time drawing. Choose Explain my design when ready."
-              : "Draw, then explain at your own pace. You choose when discussion begins."}
+    <div className="shrink-0 border-t p-3">
+      <p className="text-sm" aria-live="polite">
+        {action === "explain"
+          ? "Explaining: interviewer is listening"
+          : action === "draw"
+            ? "Drawing: questions paused"
+            : action === "review"
+              ? "Answer the interviewer"
+              : "Ask clarifying questions"}
       </p>
       <div
-        className="flex flex-wrap gap-2"
+        className="mt-2 flex min-h-10 items-center gap-3"
         role="group"
         aria-label="Interview pace"
       >
-        <button
-          type="button"
-          disabled={disabled}
-          aria-pressed={current === "draw"}
-          onClick={() =>
-            onChoose(
-              "I'd like time to work on my drawing. Please hold questions.",
-              "draw",
-            )
-          }
-          className="rounded-md border border-black/15 px-2 py-1.5 text-xs disabled:opacity-40 aria-pressed:bg-black/10 dark:border-white/20 dark:aria-pressed:bg-white/10"
-        >
-          Draw / pause questions
-        </button>
-        <button
-          type="button"
-          disabled={disabled || !hasDrawing}
-          onClick={() => onChoose(designControl.message, designControl.action)}
-          className="rounded-md border border-black/15 px-2 py-1.5 text-xs disabled:opacity-40 dark:border-white/20"
-        >
-          {designControl.label}
-        </button>
+        {primary && (
+          <button
+            type="button"
+            disabled={
+              disabled ||
+              !hasDrawing ||
+              (action === "explain" && !hasExplanation)
+            }
+            aria-describedby={
+              !hasDrawing
+                ? "explain-drawing-hint"
+                : action === "explain" && !hasExplanation
+                  ? "explain-message-hint"
+                  : undefined
+            }
+            className="bg-foreground text-background rounded px-3 py-2 text-sm disabled:opacity-40"
+            onClick={() => choose(control.message, control.action)}
+          >
+            {action === "draw" ? "Ready to explain" : "Done explaining"}
+          </button>
+        )}
+        {action !== "draw" && (
+          <button
+            type="button"
+            disabled={disabled}
+            className="rounded px-1 py-2 text-sm underline disabled:opacity-40"
+            onClick={draw}
+          >
+            {action === "explain"
+              ? "Back to drawing"
+              : action === "review"
+                ? "Pause to draw"
+                : "Skip to drawing"}
+          </button>
+        )}
+      </div>
+      <div className="mt-1 min-h-10 text-xs">
+        {primary && !hasDrawing && (
+          <p id="explain-drawing-hint" className="mt-1 text-xs">
+            Draw at least one labeled component to start explaining.
+          </p>
+        )}
+        {action === "explain" && !hasExplanation && (
+          <p id="explain-message-hint" className="mt-1 text-xs">
+            Send at least one message walking through your design before
+            choosing Done explaining.
+          </p>
+        )}
       </div>
     </div>
   );
