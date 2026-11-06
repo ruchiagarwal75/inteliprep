@@ -82,8 +82,8 @@ it("sends the real labeled whiteboard payload and identifies spoken/drawn mismat
     whiteboardVisibilityReply(scene, "Can you see my whiteboard?"),
   ).toContain("ZooKeeper");
   expect(
-    withDiagramConsistency(scorecardFixture(), { scene, messages }).areas[0]
-      .diagramNote,
+    withDiagramConsistency(scorecardFixture(), { scene, messages })
+      .diagramConsistency?.[0].text,
   ).toContain("PostgreSQL");
 });
 it("requires an explanation and detects actionable endings and persistent questions", () => {

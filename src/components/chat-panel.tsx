@@ -1,5 +1,6 @@
 "use client";
 import { SlowReply } from "@/components/slow-reply";
+import { useAutomaticScorecard } from "@/components/use-automatic-scorecard";
 import { createPortal } from "react-dom";
 import { hasExplanation } from "@/lib/open-question";
 import { InterviewResults } from "@/components/interview-results";
@@ -29,6 +30,14 @@ import {
 
 export function ChatPanel(props: ChatPanelProps) {
   const { interview, hasDrawing, hasEnded } = props;
+  const [recoveredMessages, setRecoveredMessages] = useState(
+    props.restored?.recoveredMessages ?? [],
+  );
+  async function dismissRecovered(message: string) {
+    const next = recoveredMessages.filter((m) => m !== message);
+    setRecoveredMessages(next);
+    await props.onSave({ recoveredMessages: next });
+  }
   const [recoveryFailure, onRecoveryFailure] = useState(
     props.restored?.recoveryFailure,
   );
@@ -75,6 +84,16 @@ export function ChatPanel(props: ChatPanelProps) {
   const mode =
     lastCandidateAction(messages) ??
     (props.phase?.position && props.phase.position > 1 ? "draw" : undefined);
+  useAutomaticScorecard(
+    hasEnded,
+    ending.isEnding,
+    Boolean(ending.scorecard),
+    closure.closed ||
+      Boolean(recoveryFailure) ||
+      syncRequired ||
+      props.disabled,
+    ending.end,
+  );
   useInterviewAutoEnd(
     {
       expired: props.timeExpired,
@@ -135,6 +154,7 @@ export function ChatPanel(props: ChatPanelProps) {
       )}
       {syncRequired && !recoveryFailure && props.onLoadLatest && (
         <TranscriptSyncNotice
+          storageConflict={props.storageConflict}
           disabled={isStreaming || ending.isEnding}
           onLoad={() =>
             props.onLoadLatest?.(messages, getDraft()) ?? Promise.resolve(false)
@@ -142,7 +162,15 @@ export function ChatPanel(props: ChatPanelProps) {
         />
       )}
       <RecoveredInterviewMessages
-        messages={props.restored?.recoveredMessages}
+        messages={recoveredMessages}
+        disabled={
+          hasEnded || isStreaming || Boolean(pendingReply) || syncRequired
+        }
+        onDismiss={(message) => void dismissRecovered(message)}
+        onResend={(message) => {
+          void send(message);
+          void dismissRecovered(message);
+        }}
       />
       <InterviewRecoveryNotice
         failure={recoveryFailure}
@@ -168,6 +196,7 @@ export function ChatPanel(props: ChatPanelProps) {
           busy={ending.isEnding}
           closed={closure.closed}
           error={ending.error}
+          endedAt={ending.endedAt}
         />
       ) : (
         transcript

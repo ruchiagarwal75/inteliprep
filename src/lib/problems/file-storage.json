@@ -194,55 +194,65 @@
       "id": "storage-outage",
       "areaIndex": 4,
       "topicPattern": "outage|provider|unavailable|storage.failure",
-      "question": "If byte storage is unavailable, what response will an upload-completion request return?"
+      "question": "If byte storage is unavailable, what response will an upload-completion request return?",
+      "stageIndex": 3
     },
     {
       "id": "storage-recovery",
       "areaIndex": 4,
       "topicPattern": "outage|provider|unavailable|storage.failure",
-      "question": "After storage recovers, how will clients resume interrupted transfers without publishing duplicate files?"
+      "question": "After storage recovers, how will clients resume interrupted transfers without publishing duplicate files?",
+      "stageIndex": 3
     },
     {
       "id": "publication-crash",
       "areaIndex": 1,
       "topicPattern": "publish\\w*|metadata|complete|partial|incomplete|pending",
-      "question": "If the process stops after byte storage succeeds but before metadata publication, what happens when the client retries completion?"
+      "question": "If the process stops after byte storage succeeds but before metadata publication, what happens when the client retries completion?",
+      "stageIndex": 2
     },
     {
       "id": "revocation-clock",
       "areaIndex": 3,
       "topicPattern": "revok\\w*|revocation|grant|presigned|signed.url|60.second",
-      "question": "With your expiring download links, how will you test the revocation bound when clocks differ?"
+      "question": "With your expiring download links, how will you test the revocation bound when clocks differ?",
+      "stageIndex": 3
     },
     {
       "id": "revocation-retry",
       "areaIndex": 3,
       "topicPattern": "revok\\w*|revocation|grant|presigned|signed.url|60.second",
-      "question": "What happens if a download client retries with the same link after its access expires?"
+      "question": "What happens if a download client retries with the same link after its access expires?",
+      "stageIndex": 3
     },
     {
       "id": "conflict-client",
       "areaIndex": 2,
       "topicPattern": "version|conflict|compare.and.set|stale|concurrent",
-      "question": "After a stale-version conflict, how can the client preserve its user's changes without overwriting the newer file?"
+      "question": "After a stale-version conflict, how can the client preserve its user's changes without overwriting the newer file?",
+      "stageIndex": 2
     },
     {
       "id": "abandoned-upload",
       "areaIndex": 4,
       "topicPattern": "cleanup|abandon\\w*|slow.upload|progress",
-      "question": "How do you distinguish an abandoned upload from a slow upload that is still making progress?"
+      "question": "How do you distinguish an abandoned upload from a slow upload that is still making progress?",
+      "stageIndex": 3
     },
     {
       "id": "part-integrity",
       "areaIndex": 1,
       "topicPattern": "checksum|integrity|resum\\w*|upload.part",
-      "question": "If only one resumed upload part fails its integrity check, what does the client need to send again?"
+      "question": "If only one resumed upload part fails its integrity check, what does the client need to send again?",
+      "stageIndex": 2
     },
     {
       "id": "popular-file",
       "areaIndex": 4,
       "topicPattern": "popular|large.file|bandwidth|throughput|egress",
-      "question": "How will you measure whether repeated downloads of a popular file overload your byte-transfer path?"
+      "question": "How will you measure whether repeated downloads of a popular file overload your byte-transfer path?",
+      "stageIndex": 3
     }
-  ]
+  ],
+  "followUpStages": [2, 2, 2, 3, 3, 3]
 }

@@ -6,6 +6,8 @@ import type { InterviewStart } from "@/lib/interview-selection";
 import { startInterview } from "@/lib/start-interview";
 import type { InterviewDuration } from "@/lib/interview-timer";
 import type { InterviewSelection } from "@/lib/interview-selection";
+import { InterviewRateLimitError } from "@/lib/retry-after";
+import { startLimitMessage } from "@/lib/start-limit";
 
 export type InterviewChoice = InterviewSelection & {
   durationMinutes: InterviewDuration;
@@ -25,12 +27,21 @@ export function useInterviewStarter(
   const [choice, setChoice] = useState(initial);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string>();
+  const [retryAt, setRetryAt] = useState(0);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    if (!retryAt) return;
+    const timer = setInterval(() => setNow(Date.now()), 1_000);
+    return () => clearInterval(timer);
+  }, [retryAt]);
+  const isLimited = retryAt > now;
   const startingRef = useRef(false);
   async function start(next: InterviewChoice = choice, replace = false) {
-    if (startingRef.current) return;
+    if (startingRef.current || retryAt > Date.now()) return;
     startingRef.current = true;
     setIsStarting(true);
     setError(undefined);
+    setRetryAt(0);
     setChoice(next);
     let started = false;
     try {
@@ -46,6 +57,10 @@ export function useInterviewStarter(
             : undefined,
       });
     } catch (cause) {
+      if (cause instanceof InterviewRateLimitError) {
+        setNow(Date.now());
+        setRetryAt(cause.retryAt);
+      }
       setError(
         cause instanceof Error
           ? cause.message
@@ -59,5 +74,16 @@ export function useInterviewStarter(
       }
     }
   }
-  return { choice, setChoice, isStarting, error, start };
+  return {
+    choice,
+    setChoice,
+    isStarting,
+    isLimited,
+    error: isLimited
+      ? startLimitMessage(retryAt, now)
+      : retryAt
+        ? undefined
+        : error,
+    start,
+  };
 }

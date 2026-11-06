@@ -30,7 +30,7 @@ beforeEach(() => {
       ? (async function* () {
           yield {
             type: "response.output_text.delta",
-            delta: "How would you test this under load?",
+            delta: "How does the request reach the data store?",
           };
           yield { type: "response.completed" };
         })()
@@ -41,6 +41,7 @@ beforeEach(() => {
             answerMessageIndex: -1,
             answerQuote: "",
             followsLatestReply: true,
+            withinStage: true,
             replacementQuestion: "",
             acknowledgement: "",
             acknowledgementQuote: "",
@@ -87,7 +88,7 @@ it("recovers automatically from the local 503 flag through the actual chat route
     vi.fn(),
     vi.fn(),
   );
-  expect(reply.reply).toBe("How would you test this under load?");
+  expect(reply.reply).toBe("How does the request reach the data store?");
   const events = vi.mocked(console.info).mock.calls.flatMap((call) => {
     try {
       const value: unknown = JSON.parse(String(call[0]));

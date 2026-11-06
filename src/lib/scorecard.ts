@@ -83,6 +83,16 @@ export const scorecardSchema = z.object({
   ...interviewSelectionSchema.shape,
   problemTitle: z.string().min(1),
   endedAt: z.iso.datetime(),
+  diagramConsistency: z
+    .array(
+      z.object({
+        kind: z.enum(["technology", "missing_component"]),
+        text: z.string().max(1000),
+        resolved: z.boolean(),
+      }),
+    )
+    .max(20)
+    .optional(),
   session: z
     .object({
       startedAt: z.iso.datetime(),

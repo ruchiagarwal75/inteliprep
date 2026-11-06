@@ -37,6 +37,7 @@ const result = (
     answerQuote,
     replacementQuestion,
     followsLatestReply: true,
+    withinStage: true,
     acknowledgement,
     acknowledgementQuote,
   }),
@@ -89,7 +90,7 @@ it("retains a distinct unanswered question and uses a safe probe when review inv
   const replacement = await reviewQuestion(draft, messages, context);
   expect(replacement).not.toContain("implemented full recovery");
   expect(replacement).not.toBe(draft);
-  expect(replacement).toMatch(/\?/u);
+  expect(replacement).toContain("Pause to draw");
 });
 it("skips the extra request when there is no candidate evidence or question", async () => {
   expect(
@@ -161,14 +162,16 @@ it("rejects a topic jump after a revocation answer and continues the actual answ
     },
   ];
   const body = JSON.parse(result(false).output_text);
-  create.mockResolvedValue({
-    status: "completed",
-    output_text: JSON.stringify({ ...body, followsLatestReply: false }),
-  });
+  create
+    .mockResolvedValueOnce({
+      status: "completed",
+      output_text: JSON.stringify({ ...body, followsLatestReply: false }),
+    })
+    .mockResolvedValue(result(false));
   const reply = await reviewQuestion(
     "What happens to uploads above the 1 GB limit?",
     history,
-    context,
+    { ...context, phase: problem.phases[3] },
   );
   expect(reply).toContain("your expiring download links");
   expect(reply).not.toContain("Thanks for explaining.");
@@ -177,4 +180,64 @@ it("rejects a topic jump after a revocation answer and continues the actual answ
   const input = JSON.parse(create.mock.calls[0][0].input);
   expect(input.previous_interviewer_question).toBe(history[0].content);
   expect(input.latest_candidate_reply.content).toBe(history[1].content);
+});
+
+it("rejects a scaling probe during core design and selects an unasked core question", async () => {
+  const body = JSON.parse(result(false).output_text);
+  create
+    .mockResolvedValueOnce({
+      status: "completed",
+      output_text: JSON.stringify({ ...body, withinStage: false }),
+    })
+    .mockResolvedValue(result(false));
+  const reply = await reviewQuestion(
+    "Which metrics reveal a multi-region outage?",
+    messages,
+    context,
+  );
+  expect(reply).not.toContain("multi-region");
+  expect(reply).toMatch(
+    /metadata publication|stale-version|integrity|upload-complete|same version/iu,
+  );
+});
+
+it("checks a bank fallback against earlier ID leasing evidence before publishing it", async () => {
+  const p = getProblem("url-shortener");
+  if (!p) throw Error("Missing problem");
+  const content =
+    "Atomic reservations lease disjoint ID ranges and client idempotency with a conditional insert makes concurrent creates safe.";
+  const history = [{ role: "user" as const, content }];
+  const ctx = {
+    ...context,
+    problem: p,
+    phase: p.phases[2],
+    questionMemory: { askedQuestions: [], coveredTopics: [] as string[] },
+  };
+  const bad = JSON.parse(result(false).output_text);
+  create
+    .mockResolvedValueOnce({
+      status: "completed",
+      output_text: JSON.stringify({ ...bad, withinStage: false }),
+    })
+    .mockResolvedValueOnce(
+      result(
+        true,
+        content,
+        "How does a lookup distinguish a missing mapping from a temporarily unavailable store?",
+      ),
+    )
+    .mockResolvedValueOnce(result(false));
+  const reply = await reviewQuestion(
+    "Which monitoring metric would you use?",
+    history,
+    ctx,
+  );
+  expect(reply).toContain("lookup distinguish");
+  expect(reply).not.toContain("two create requests");
+  expect(JSON.parse(create.mock.calls[1][0].input).proposed_question).toContain(
+    "two create requests",
+  );
+  expect(ctx.questionMemory.coveredTopics).toContain(
+    "What happens if two create requests are processed at the same time?",
+  );
 });

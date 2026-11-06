@@ -14,6 +14,8 @@ const {
 } = createInterviewStorage("11111111-1111-4111-8111-111111111111");
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
 import { updateSavedInterview } from "@/lib/saved-interview";
+import { getProblem, createInterviewStart } from "@/lib/problems";
+import { newSavedInterview } from "@/lib/saved-interview";
 import { scorecardFixture } from "@/lib/fixtures/scorecard-test";
 import { initialInterviewId } from "@/lib/interview-navigation";
 
@@ -105,8 +107,10 @@ describe("IndexedDB interview library", () => {
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-03T00:00:00.000Z",
     };
+    const url = getProblem("url-shortener");
+    if (!url) throw new Error("Missing problem");
     const second = {
-      ...savedFixture(),
+      ...newSavedInterview(createInterviewStart(url, "mid"), first.whiteboard),
       createdAt: "2026-01-02T00:00:00.000Z",
       updatedAt: "2026-01-02T00:00:00.000Z",
     };
@@ -137,8 +141,13 @@ describe("IndexedDB interview library", () => {
     expect(await listInterviews()).toHaveLength(2);
   });
   it("deletes only the selected record and clears its active pointer", async () => {
-    const first = savedFixture(),
-      second = savedFixture();
+    const first = savedFixture();
+    const url = getProblem("url-shortener");
+    if (!url) throw new Error("Missing problem");
+    const second = newSavedInterview(
+      createInterviewStart(url, "mid"),
+      first.whiteboard,
+    );
     await saveInterview(first);
     await saveInterview(second);
     await deleteInterview(first.id);

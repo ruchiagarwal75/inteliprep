@@ -5,6 +5,9 @@ import { areaWasExplored } from "@/lib/grading-opportunity";
 import { candidateEvidenceExcerpts } from "@/lib/candidate-evidence";
 import { plainInterviewerText } from "@/lib/interviewer-reply-filter";
 import { isOffTopicRequest, DESIGN_REDIRECT } from "@/lib/off-topic";
+import { sameQuestion } from "@/lib/question-memory";
+import { questionAtEnd } from "@/lib/open-question";
+import type { InterviewContext } from "@/lib/interview-instructions";
 const normalized = (text: string) =>
   plainInterviewerText(text).toLowerCase().replace(/\s+/gu, " ").trim();
 export const isGenericProbe = (text: string) =>
@@ -39,24 +42,43 @@ export function wasProbeAsked(
   return messages.some(
     (message) =>
       message.role === "assistant" &&
-      normalized(message.content).includes(text),
+      (normalized(message.content).includes(text) ||
+        sameQuestion(
+          questionAtEnd(message.content) ?? message.content,
+          question,
+        )),
   );
 }
 /** Prefer the named/current thread, then an unexplored rubric area, and never reuse a question. */
+export function stageProbes(
+  problem: ProblemDefinition,
+  phase?: InterviewContext["phase"],
+) {
+  const stageIndex = phase
+    ? problem.phases.findIndex((p) => p.id === phase.id)
+    : -1;
+  const probes = [
+    ...problem.reviewProbes,
+    ...problem.followUps.map((question, index) => ({
+      id: "follow-up-" + index,
+      question,
+      areaIndex: Math.min(index, problem.rubric.length - 1),
+      stageIndex: problem.followUpStages[index],
+      topicPattern:
+        problem.rubric[Math.min(index, problem.rubric.length - 1)]
+          .assessmentPattern ?? "(?!)",
+    })),
+  ];
+  return (
+    problem.reviewProbes.length && !phase ? problem.reviewProbes : probes
+  ).filter((probe) => stageIndex < 0 || probe.stageIndex === stageIndex);
+}
 export function selectReviewProbe(
   problem: ProblemDefinition,
   messages: ChatMessage[],
+  context?: Pick<InterviewContext, "phase" | "questionMemory">,
 ) {
-  const probes = problem.reviewProbes.length
-    ? problem.reviewProbes
-    : problem.followUps.map((question, index) => ({
-        id: "follow-up-" + index,
-        question,
-        areaIndex: Math.min(index, problem.rubric.length - 1),
-        topicPattern:
-          problem.rubric[Math.min(index, problem.rubric.length - 1)]
-            .assessmentPattern ?? "(?!)",
-      }));
+  const probes = stageProbes(problem, context?.phase);
   const latest = latestCandidate(messages);
   const topic = requestedReviewTopic(messages);
   const answer = latest && latest.source !== "control" ? latest.content : "";
@@ -71,6 +93,9 @@ export function selectReviewProbe(
     .filter(
       (probe) =>
         !wasProbeAsked(probe.question, messages) &&
+        !context?.questionMemory?.coveredTopics.some((topic) =>
+          sameQuestion(probe.question, topic),
+        ) &&
         !isGenericProbe(probe.question),
     )
     .map((probe, index) => ({

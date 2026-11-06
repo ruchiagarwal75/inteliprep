@@ -60,6 +60,15 @@ export async function checkRequestLimit(
   request: Request,
   kind: RequestKind,
 ): Promise<number> {
+  // Local start quotas can be enabled explicitly for UI testing. Model-call limits remain active.
+  if (
+    kind === "start" &&
+    process.env.NODE_ENV === "development" &&
+    process.env.VERCEL !== "1" &&
+    !isPrivateBeta() &&
+    process.env.INTELIPREP_DEV_START_LIMITS !== "on"
+  )
+    return 0;
   const identity = requestIdentity(request);
   const prefix = `${redisNamespace()}:limit:${kind}:${identity}`;
   const windows: { key: string; limit: number; ms: number }[] = [

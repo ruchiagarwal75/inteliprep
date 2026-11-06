@@ -177,6 +177,10 @@ export function useInterviewLibrary(
   ) {
     const saved = savedRef.current;
     if (!saved) return false;
+    const latest = (await listInterviews()).find(
+      (entry) => entry.problemId === saved.interview.problemId,
+    );
+    if (latest && latest.id !== saved.id) return open(latest.id, "replace");
     savedRef.current = {
       ...saved,
       messages,

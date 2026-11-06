@@ -1,5 +1,6 @@
-import { hasAsk } from "@/lib/open-question";
+import { hasAsk, invitesDrawing } from "@/lib/open-question";
 import { selectReviewProbe } from "@/lib/review-probes";
+import { trimAcknowledgements } from "@/lib/question-memory";
 import type { ChatMessage } from "@/lib/chat";
 import { isRequirementProposal } from "@/lib/candidate-proposal";
 import {
@@ -93,6 +94,7 @@ async function* rawInterviewerReply(
           ],
         }
       : interview,
+    messages,
   );
   if (focusedReview && interview && requestedTopic) {
     signal?.throwIfAborted();
@@ -123,7 +125,9 @@ async function* rawInterviewerReply(
   }
   if (interview?.reviewQuestion) {
     signal?.throwIfAborted();
-    yield interview.reviewQuestion;
+    yield step === "drawing" || step === "explaining"
+      ? withoutQuestions(interview.reviewQuestion)
+      : interview.reviewQuestion;
     return;
   }
   if (
@@ -164,6 +168,7 @@ async function* rawInterviewerReply(
     step === "invite-drawing" ||
     step === "drawing" ||
     step === "explaining";
+  const clarifying = interview?.phase?.transition === "initial";
   let bufferedReply = "";
   const filtered = interviewerReplyFilter(messages);
   let completed = false;
@@ -178,7 +183,7 @@ async function* rawInterviewerReply(
     }
     if (event.type === "response.completed") completed = true;
     if (event.type === "response.output_text.delta") {
-      if (drawingReply || requirementsQuestion || focusedReview)
+      if (drawingReply || clarifying || requirementsQuestion || focusedReview)
         bufferedReply += event.delta;
       else {
         const text = filtered.push(event.delta);
@@ -194,15 +199,19 @@ async function* rawInterviewerReply(
     yield await reviewQuestion(bufferedReply, messages, interview, signal);
     return;
   }
-  if (!drawingReply && !requirementsQuestion) {
+  if (!drawingReply && !clarifying && !requirementsQuestion) {
     const text = filtered.finish();
     if (text) yield text;
   }
-  if (drawingReply || requirementsQuestion) {
+  if (drawingReply || clarifying || requirementsQuestion) {
     let reply = withoutQuestions(
       removeCandidateEcho(plainInterviewerText(bufferedReply), messages),
     );
-    if (step === "invite-drawing")
+    if (clarifying && interview && invitesDrawing(reply)) {
+      yield interview.problem.drawingPolicy.invitation;
+      return;
+    }
+    if (step === "invite-drawing" || (clarifying && invitesDrawing(reply)))
       reply = reply
         .split(/(?<=[.!])\s+/u)
         .filter(
@@ -228,7 +237,7 @@ async function* rawInterviewerReply(
             ],
           }
         : interview;
-    const nextQuestion = pendingRequirementsQuestion(afterReply);
+    const nextQuestion = pendingRequirementsQuestion(afterReply, messages);
     const justCompletedRequirements =
       requirementsQuestion &&
       afterReply?.phase &&
@@ -244,6 +253,11 @@ async function* rawInterviewerReply(
       yield `${reply ? "\n\n" : ""}${interview.problem.drawingPolicy.invitation}`;
     else if (!reply && closing)
       yield "Thanks for walking through your design and its tradeoffs.";
+    else if (!reply && clarifying && step === "discussion")
+      yield interview?.mayInviteDrawing !== false
+        ? (interview?.problem.drawingPolicy.invitation ??
+          "Please choose Skip to drawing when ready.")
+        : "Please review your requirements and choose Skip to drawing when you are ready.";
     else if (!reply)
       yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
   }
@@ -254,31 +268,34 @@ export async function* streamInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ): AsyncGenerator<string> {
   let reply = "";
-  for await (const part of rawInterviewerReply(...args)) {
-    reply += part;
-    yield part;
-  }
+  for await (const part of rawInterviewerReply(...args)) reply += part;
   const interview = args[5];
+  reply = trimAcknowledgements(reply);
+  if (interview && invitesDrawing(reply)) {
+    // Canonical wording also makes the client and next server turn recognize the handoff.
+    if (!reply.includes(interview.problem.drawingPolicy.invitation))
+      reply = interview.problem.drawingPolicy.invitation;
+    yield reply;
+    return;
+  }
+  yield reply;
   if (
     interview?.phase &&
     !["drawing", "explaining"].includes(interview.progress?.step ?? "") &&
     !hasAsk(reply)
   ) {
-    const probe = selectReviewProbe(interview.problem, args[0]);
+    const probe = selectReviewProbe(interview.problem, args[0], interview);
     if (interview.phase?.transition === "initial") {
-      const questions = [
-        "Which requirement would you prioritize if the goals conflict?",
-        "What assumption about the workload would you validate first?",
-        "How would a burst of requests change your service goals?",
-      ];
+      const pending = pendingRequirementsQuestion(interview);
+      const unasked =
+        pending &&
+        !args[0].some(
+          (m) => m.role === "assistant" && m.content.includes(pending),
+        );
       yield "\n\n" +
-        (questions.find(
-          (question) =>
-            !args[0].some(
-              (m) => m.role === "assistant" && m.content.includes(question),
-            ),
-        ) ??
-          "Please review your requirements and choose Skip to drawing when you are ready.");
+        (unasked
+          ? pending
+          : "Please review your requirements and choose Skip to drawing when you are ready.");
       return;
     }
     yield "\n\n" +

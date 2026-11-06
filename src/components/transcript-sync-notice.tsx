@@ -3,9 +3,11 @@ import { useState } from "react";
 export function TranscriptSyncNotice({
   onLoad,
   disabled,
+  storageConflict = false,
 }: {
   onLoad: () => Promise<boolean>;
   disabled: boolean;
+  storageConflict?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
@@ -15,8 +17,9 @@ export function TranscriptSyncNotice({
       className="shrink-0 border-b border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100"
     >
       <p>
-        This interview changed in another tab. Load the latest conversation to
-        continue. Your drawing and unsent text will be kept.
+        {storageConflict
+          ? "This saved interview changed in another tab. Load the latest version to continue. If a newer attempt replaced this one, that attempt will open."
+          : "This interview changed in another tab. Load the latest conversation to continue. Your drawing and unsent text will be kept."}
       </p>
       <button
         type="button"
@@ -43,11 +46,15 @@ export function TranscriptSyncNotice({
 }
 export function RecoveredInterviewMessages({
   messages,
+  onResend,
+  onDismiss,
+  disabled = false,
 }: {
   messages?: string[];
+  onResend: (message: string) => void;
+  onDismiss: (message: string) => void;
+  disabled?: boolean;
 }) {
-  const [copied, setCopied] = useState<number>();
-  const [copyError, setCopyError] = useState<string>();
   if (!messages?.length) return null;
   return (
     <details open className="shrink-0 border-b px-3 py-2 text-xs">
@@ -55,8 +62,8 @@ export function RecoveredInterviewMessages({
         Unsent messages kept from this tab ({messages.length})
       </summary>
       <p className="my-2">
-        These messages were not sent. Use Copy, then paste a message into the
-        message box when ready. Your current draft is unchanged.
+        These messages were not sent. Resend sends a message automatically. Your
+        current draft is unchanged.
       </p>
       <div className="max-h-40 overflow-y-auto">
         {messages.map((message, index) => (
@@ -64,31 +71,24 @@ export function RecoveredInterviewMessages({
             <pre className="whitespace-pre-wrap">{message}</pre>
             <button
               type="button"
-              aria-label={`Copy unsent message ${index + 1}`}
+              aria-label={`Resend unsent message ${index + 1}`}
+              disabled={disabled}
               className="mt-1 rounded-md border border-current px-2 py-1"
-              onClick={async () => {
-                setCopyError(undefined);
-                try {
-                  await navigator.clipboard.writeText(message);
-                  setCopied(index);
-                } catch {
-                  setCopyError(
-                    "Couldn't copy automatically. Select the message text and copy it.",
-                  );
-                }
-              }}
+              onClick={() => onResend(message)}
             >
-              {copied === index ? "Copied" : "Copy"}
+              Resend
+            </button>
+            <button
+              type="button"
+              className="ml-2 rounded border px-2 py-1"
+              onClick={() => onDismiss(message)}
+              aria-label={`Dismiss unsent message ${index + 1}`}
+            >
+              Dismiss
             </button>
           </div>
         ))}
       </div>
-      <p role="status" className="mt-1">
-        {copyError ??
-          (copied !== undefined
-            ? `Message ${copied + 1} copied. Your draft is unchanged.`
-            : "")}
-      </p>
     </details>
   );
 }

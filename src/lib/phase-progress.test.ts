@@ -20,17 +20,12 @@ const state = (phaseIndex: number, coveredCriteria: number[] = []) => ({
 });
 
 describe("stage progression separate from candidate pacing", () => {
-  it("keeps requirements open despite early drawing, readiness, or the old message limit", () => {
+  it("keeps requirements open until coverage or an explicit drawing choice", () => {
     expect(
       planPhaseProgress(problem, state(0), progress("discussion"), scene).state
         .phaseIndex,
     ).toBe(0);
-    for (const step of [
-      "invite-drawing",
-      "drawing",
-      "explaining",
-      "review",
-    ] as const)
+    for (const step of ["invite-drawing", "review"] as const)
       expect(
         planPhaseProgress(problem, state(0), progress(step), scene).state
           .phaseIndex,
@@ -66,7 +61,7 @@ describe("stage progression separate from candidate pacing", () => {
         scene,
         [0],
       );
-      expect(pending.state).toEqual(state(0, [0]));
+      expect(pending.state).toEqual(state(1));
       expect(pending.progress.step).toBe(step);
       const complete = planPhaseProgress(
         problem,
@@ -162,3 +157,27 @@ describe("stage progression separate from candidate pacing", () => {
     ).toBe(4);
   });
 });
+
+it.each(["drawing", "explaining"] as const)(
+  "enters stage 2 on explicit %s before the clarify minimum",
+  (step) => {
+    const plan = planPhaseProgress(
+      problem,
+      state(0),
+      progress(step),
+      scene,
+      [],
+      {
+        timing: {
+          durationMinutes: 45,
+          startedAt: "2026-11-06T10:00:00Z",
+          deadlineAt: "2026-11-06T10:45:00Z",
+        },
+        enteredAt: "2026-11-06T10:00:00Z",
+        now: Date.parse("2026-11-06T10:00:10Z"),
+      },
+    );
+    expect(plan.state.phaseIndex).toBe(1);
+    expect(plan.progress.step).toBe(step);
+  },
+);

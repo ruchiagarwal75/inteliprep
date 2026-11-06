@@ -21,29 +21,34 @@ const explanation =
 beforeEach(() => {
   create.mockReset();
   let replacement = 0;
-  create.mockImplementation(async (input: { stream?: boolean }) => {
-    if (input.stream)
-      return (async function* () {
-        yield {
-          type: "response.output_text.delta",
-          delta: "How is a complete result published?",
-        };
-        yield { type: "response.completed" };
-      })();
-    return {
-      status: "completed",
-      output_text: JSON.stringify({
-        alreadyAnswered: true,
-        answerMessageIndex: 1,
-        answerQuote: explanation,
-        replacementQuestion:
-          "What about another already-covered detail " + ++replacement + "?",
-        followsLatestReply: true,
-        acknowledgement: "",
-        acknowledgementQuote: "",
-      }),
-    };
-  });
+  create.mockImplementation(
+    async (input: { stream?: boolean; input?: string }) => {
+      if (input.stream)
+        return (async function* () {
+          yield {
+            type: "response.output_text.delta",
+            delta: "How is a complete result published?",
+          };
+          yield { type: "response.completed" };
+        })();
+      const reviewed = JSON.parse(input.input ?? "{}").proposed_question ?? "";
+      const covered = /complete result|already-covered detail/u.test(reviewed);
+      return {
+        status: "completed",
+        output_text: JSON.stringify({
+          alreadyAnswered: covered,
+          answerMessageIndex: covered ? 1 : -1,
+          answerQuote: covered ? explanation : "",
+          replacementQuestion:
+            "What about another already-covered detail " + ++replacement + "?",
+          followsLatestReply: true,
+          withinStage: true,
+          acknowledgement: "",
+          acknowledgementQuote: "",
+        }),
+      };
+    },
+  );
 });
 afterEach(() => vi.restoreAllMocks());
 it.each([
@@ -76,6 +81,7 @@ it.each([
     ];
     const session = getCachedSession(start.sessionId);
     if (!session) throw new Error("Missing fixture session");
+    session.openQuestion = undefined;
     session.transcript = { messages: structuredClone(messages.slice(0, -1)) };
     const first = await postChatTurn(
       request,
@@ -102,7 +108,7 @@ it.each([
     expect(second.reply).not.toContain(
       "What limitation of your current design",
     );
-    expect(create.mock.calls).toHaveLength(calls);
+    expect(create.mock.calls.length).toBeGreaterThan(calls);
   },
 );
 it("hands off news feed after the model supplies equivalent traffic, latency and freshness facts", async () => {

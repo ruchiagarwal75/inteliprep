@@ -1,8 +1,11 @@
 import type { InterviewContext } from "@/lib/interview-instructions";
+import type { ChatMessage } from "@/lib/chat";
+import { repliedToOpenQuestion } from "@/lib/open-question";
 
 /** Only the server-selected missing requirement may become the next question. */
 export function pendingRequirementsQuestion(
   interview?: InterviewContext,
+  messages: ChatMessage[] = [],
 ): string | undefined {
   if (
     interview?.phase?.transition !== "initial" ||
@@ -12,7 +15,8 @@ export function pendingRequirementsQuestion(
   const missing = interview.phase.completionCriteria.findIndex(
     (_, index) => !interview.coveredCriteria?.includes(index),
   );
-  return interview.phase.clarificationQuestions?.[missing];
+  const question = interview.phase.clarificationQuestions?.[missing];
+  return repliedToOpenQuestion(messages, question) ? undefined : question;
 }
 
 /** A bare acknowledgement needs confirmation, rather than a design follow-up. */

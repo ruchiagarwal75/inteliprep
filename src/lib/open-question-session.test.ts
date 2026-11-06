@@ -1,14 +1,18 @@
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { createInterviewStart, getProblem } from "@/lib/problems";
 import { prepareInterviewTurn } from "@/lib/interview-turn";
 import { getCachedSession } from "@/lib/interview-session-store";
 import { unsealSession } from "@/lib/session-token";
 import { questionAtEnd } from "@/lib/open-question";
+import { assessPhaseCoverage } from "@/lib/phase-assessment";
 import type { ChatMessage } from "@/lib/chat";
 vi.mock("@/lib/phase-assessment", () => ({
-  assessPhaseCoverage: async () => [],
+  assessPhaseCoverage: vi.fn(async () => [] as number[]),
 }));
-it("keeps the open question through drawing and explanation and restores it from an opaque checkpoint", async () => {
+beforeEach(() =>
+  vi.mocked(assessPhaseCoverage).mockReset().mockResolvedValue([]),
+);
+it("preserves an unanswered question through an unrelated drawing explanation", async () => {
   const selected = getProblem("rate-limiter");
   if (!selected) throw Error("Missing problem");
   const problem = selected;
@@ -75,7 +79,44 @@ it("keeps the open question through drawing and explanation and restores it from
   const resumed = await turn(
     "Returning to the question we paused: What happens if Redis goes down?",
   );
-  expect(resumed.context.reviewQuestion).toContain(
+  expect(resumed.context.reviewQuestion ?? "").toContain(
     "What happens if Redis goes down?",
   );
+});
+
+it("clears the open question when a paused explanation has verified answering evidence", async () => {
+  const p = getProblem("rate-limiter");
+  if (!p) throw Error("Missing problem");
+  const start = createInterviewStart(p, "mid");
+  const session = getCachedSession(start.sessionId);
+  if (!session) throw Error("Missing session");
+  session.phaseIndex = 2;
+  session.openQuestion = "What happens if Redis goes down?";
+  vi.mocked(assessPhaseCoverage).mockResolvedValue([0]);
+  const prepared = await prepareInterviewTurn(
+    p,
+    {
+      ...start,
+      messages: [
+        { role: "assistant", content: session.openQuestion },
+        {
+          role: "user",
+          content: "Ready to explain",
+          action: "explain",
+          source: "control",
+        },
+        {
+          role: "user",
+          content:
+            "If Redis is unavailable I fail closed and return a retryable service error, avoiding an unbounded allowance.",
+        },
+      ],
+    },
+    new AbortController().signal,
+  );
+  prepared.commit("I'm listening.");
+  expect(
+    unsealSession(prepared.checkpoint?.() ?? "").openQuestion,
+  ).toBeUndefined();
+  prepared.release();
 });

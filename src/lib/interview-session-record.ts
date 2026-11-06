@@ -31,6 +31,7 @@ export function exportSessionRecord(id: string): SharedSessionRecord {
       phaseEnteredAt: session.phaseEnteredAt,
       openQuestion: session.openQuestion,
       answeredStages: session.answeredStages,
+      coveredTopics: session.coveredTopics,
       ending: ending
         ? { endedAt: ending.endedAt, snapshotHash: ending.snapshotHash }
         : undefined,

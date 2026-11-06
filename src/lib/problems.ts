@@ -78,6 +78,7 @@ const problemSchema = z.object({
     )
     .min(1),
   followUps: z.array(z.string().min(1)).min(1),
+  followUpStages: z.array(z.number().int().min(2).max(4)).default([]),
   reviewProbes: z
     .array(
       z.object({
@@ -85,6 +86,7 @@ const problemSchema = z.object({
         areaIndex: z.number().int().min(0),
         topicPattern: z.string().min(1),
         question: z.string().min(1),
+        stageIndex: z.number().int().min(2).max(4).optional(),
       }),
     )
     .default([]),

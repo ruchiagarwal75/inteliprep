@@ -17,9 +17,10 @@ import { hasCandidateAnswer } from "@/lib/grading-evidence";
 import { repairGradingAssessment } from "@/lib/grading-repair";
 import { areaWasExplored } from "@/lib/grading-opportunity";
 import { boundedModelRequest } from "@/lib/model-request";
+import { auditDiagram } from "@/lib/diagram-audit";
 
 const GRADING_INSTRUCTIONS = [
-  "Compare the final diagram with the candidate words under every relevant area. Note technology mismatches and stated components absent from the final drawing. Check later corrections and clarifications before calling a mismatch unresolved. The text graph is the source of truth; the image is supporting evidence.",
+  "Compare the final diagram with the full transcript and supplied diagram_consistency audit. Respect later corrections: a resolved PostgreSQL/Cassandra conflict is a clarified design choice, not an unresolved gap. Account for described components missing from the board, including a load balancer. The server displays the audit once in its own section: never repeat generic diagram-consistency boilerplate in each area's rationale. The text graph is the source of truth; the image is supporting evidence.",
   "Check candidate evidence from every phase, including clarification and drawing explanations. Numeric scenarios such as a 50k-follower or 50,000-follower creator count as discussion of popular-creator workload even without the word popular. Do not claim a topic was never explored when its reasoning appears in those answers; limited depth and absent discussion are different findings.",
   "Grade only the configured product scope and agreed assumptions. Optional or explicitly excluded features are never required. Distinguish conflicting file replacements from collaborative document editing: an explained compare-and-set/base-version conflict check is concurrency evidence, not an absence of concurrent-edit handling. Candidate clarifying questions about workload or timing are requirements-discovery evidence even when phrased as questions, not restated answers; this does not prove a technical design in other rubric areas. Accepted alternatives to defaults remain valid assumptions. Lack of justification, when actually missing, is different from claiming retention was never explored.",
   "Audit every proposed gap against all candidate quotes before returning it. If a quoted answer already supplies the mechanism, metric, failure test, or tradeoff, do not call it absent or unexplored. A narrower missing detail needs a specific consequence and next step. Do not demand a target that was explicitly unspecified. A score of 2 may reflect limited depth, but its rationale must acknowledge the covered parts.",
@@ -84,6 +85,7 @@ export async function gradeInterview(
     ),
     candidate_quotes: candidateQuotes(snapshot.messages),
     final_diagram: graphToText(sceneToGraph(snapshot.scene)),
+    diagram_consistency: auditDiagram(snapshot),
     diagram_elements:
       snapshot.scene?.elements
         .filter((element) => !element.isDeleted && element.type !== "selection")

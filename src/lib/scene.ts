@@ -25,6 +25,7 @@ export const sceneComponentSchema = base.extend({
 export const sceneTextSchema = base.extend({
   type: z.literal("text"),
   text: z.string().max(MAX_LABEL_LENGTH),
+  originalText: z.string().max(MAX_LABEL_LENGTH).optional(),
   containerId: id.nullable().default(null),
 });
 
@@ -97,6 +98,11 @@ export type SceneElement = z.infer<typeof sceneElementSchema>;
 export type SceneComponent = z.infer<typeof sceneComponentSchema>;
 export type SceneArrow = z.infer<typeof sceneArrowSchema>;
 export type SceneText = z.infer<typeof sceneTextSchema>;
+
+/** Native text is unwrapped; rendered text may contain Excalidraw layout breaks. */
+export function sceneLabel(element: { text: string; originalText?: string }) {
+  return (element.originalText ?? element.text).replace(/\s+/gu, " ").trim();
+}
 
 export function isSceneComponent(
   element: SceneElement,

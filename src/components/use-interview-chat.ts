@@ -83,6 +83,13 @@ export function useInterviewChat({
     sendingRef.current = true;
     const abort = new AbortController();
     abortRef.current = abort;
+    const deadline = setTimeout(
+      () =>
+        abort.abort(
+          new Error("Taking too long. Your message is saved. Retry reply."),
+        ),
+      45_000,
+    );
     const startedAt = performance.now();
     onBusyChange(true);
     setError(null);
@@ -195,6 +202,7 @@ export function useInterviewChat({
         }).catch(() => {});
       }
     } finally {
+      clearTimeout(deadline);
       if (process.env.NODE_ENV === "development")
         console.info("[interview] Reply timing", {
           durationMs: Math.round(performance.now() - startedAt),
@@ -241,6 +249,7 @@ export function useInterviewChat({
       void retry();
     }
   });
+  useEffect(() => () => abortRef.current?.abort(), []);
   function retrySlowReply() {
     restartRef.current = true;
     abortRef.current?.abort();

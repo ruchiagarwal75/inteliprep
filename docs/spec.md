@@ -922,8 +922,7 @@ opening and pacing instructions before Start creates the server deadline.
 URL with `/interview/[id]/results`. Results URLs for live saves return to the live
 URL. Legacy `/interview?session=<id>` redirects to the corresponding interview.
 Storage remains version 1; all new checkpoint and scorecard fields are optional.
-No existing interviews are deleted or migrated destructively. Sign-out keeps local
-history. IndexedDB remains account scoped. A bounded account/session/tab draft
+History keeps one interview per problem per account in this browser, across difficulty and duration. A successful newer save becomes the visible history entry. Existing duplicates are filtered to the newest created attempt without deleting underlying records; valid and unreadable records remain intact. Sign-out keeps the retained history. IndexedDB remains account scoped. A bounded account/session/tab draft
 journal closes the 300 ms debounce and unload window without replacing history.
 
 Stage criteria remain private, structured, quote-verified assessments. Topic
@@ -968,3 +967,53 @@ be restored across a full refresh. Native scenes retain labels, bindings, files,
 and viewport. onChange does not write elements back into Excalidraw. Production
 Cmd+A/Cmd+D verification did not reproduce InvalidFractionalIndexError; no unstable
 library upgrade or exception suppression was added.
+
+
+### Latest interview per problem (November 6)
+
+Retakes replace the visible history entry for the same problem after the new record commits. Older records are retained without automatic deletion.
+The newest attempt is determined by createdAt, with a stable ID tie-breaker;
+updatedAt is never used, so a delayed old-tab save or scorecard cannot replace a
+newer attempt. Latest-entry selection, transcript/diagram/draft writes, and the active pointer
+commit together in the account-specific IndexedDB transaction. A failed write
+rolls back the replacement. Existing version-1 records remain readable; no migration or duplicate cleanup deletes them. Invalid
+records are retained without automatic deletion. Lightweight per-problem metadata
+remembers the latest identity even after deletion, preventing stale saves from
+resurrecting a retired record. It contains no previous transcript or drawing.
+
+Home and the brief disclose the retention policy. Load latest version can open
+the newer attempt when this tab was replaced. Browser history remains local to
+the current account/profile/origin; server verification sessions keep their
+existing expiration policy and are not a second saved-interview history.
+
+### November 6 browser retest corrections
+
+A drawing handoff uses the configured invitation once and enters stage 2, including
+an explicit Skip to drawing before the clarify minimum. Candidate answers retire
+answered questions; paused technical questions use quote-verified coverage so an
+unrelated drawing explanation does not discard them. The complete verified
+transcript supplies asked-question memory before model-context truncation, and
+Redis preserves covered topics. Follow-up banks declare stage indexes; generated
+questions, replacements, and bank fallbacks all pass novelty, continuity and
+current-stage checks before display. Repeated acknowledgements are trimmed.
+
+Semantic labels prefer Excalidraw originalText and normalize whitespace for nodes,
+arrows and loose text. The final scorecard has one optional diagramConsistency
+section that records historical database conflicts, later corrections and stated
+components missing from the final board. Existing scorecards remain readable.
+
+Interviewer requests abort after 45 seconds even when a fetch or stream ignores
+its signal. The pending turn ID survives retry and End becomes available after
+the timeout. Recovered messages open with Resend and Dismiss; sending or dismissing
+removes the notice without replacing the current draft.
+
+POST /api/interview/freeze validates owner and canonical evidence, freezes one
+server endedAt and persists the evidence hash without a model call. It uses the
+resume quota rather than a model quota. Grading uses that frozen checkpoint;
+results-route restoration automatically starts unfinished grading once. Navigation
+after ending waits for the grading attempt to settle. All elapsed-time displays
+use the frozen end time. Local start quotas are skipped unless
+INTELIPREP_DEV_START_LIMITS=on, while deployed limits always apply. The Brief puts
+a focused rate-limit explanation beside its disabled Start button with a readable
+local retry time. The 1-minute option requires NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1;
+?debug=1 does not enable it.

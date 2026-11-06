@@ -15,6 +15,20 @@ export function InterviewScorecard({
   scene?: Scene;
   children?: ReactNode;
 }) {
+  const consistency = scorecard.diagramConsistency?.map(
+    (finding) => finding.text,
+  ) ?? [
+    ...new Set(
+      scorecard.areas.flatMap((area) =>
+        area.diagramNote &&
+        !/no explicit technology conflict|no labeled final diagram/iu.test(
+          area.diagramNote,
+        )
+          ? [area.diagramNote]
+          : [],
+      ),
+    ),
+  ];
   if (
     scorecard.summary ===
     "You ended before giving a technical answer. Retry to get feedback."
@@ -64,12 +78,19 @@ export function InterviewScorecard({
             </div>
             <p className="mt-2 text-sm">{area.rationale}</p>
             <ScorecardEvidence evidence={area.evidence} scene={scene} />
-            {area.diagramNote && (
-              <p className="mt-2 text-xs">{area.diagramNote}</p>
-            )}
           </article>
         ))}
       </section>
+      {consistency.length > 0 && (
+        <section aria-label="Diagram consistency">
+          <h3 className="font-semibold">Diagram consistency</h3>
+          <ul className="mt-2 list-inside list-disc space-y-2 text-sm">
+            {consistency.map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </section>
+      )}
       {(["strengths", "gaps"] as const).map((kind) => (
         <section
           key={kind}

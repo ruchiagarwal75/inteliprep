@@ -109,3 +109,27 @@ describe("request limits", () => {
     await expect(checkRequestLimit(request, "end")).rejects.toThrow();
   });
 });
+
+it("skips local-development start quotas by default but never bypasses deployed limits", async () => {
+  vi.stubEnv("NODE_ENV", "development");
+  vi.stubEnv("VERCEL", "");
+  vi.stubEnv("INTELIPREP_PRIVATE_BETA", "0");
+  vi.stubEnv("INTELIPREP_DEV_START_LIMITS", "off");
+  for (let i = 0; i < 15; i++)
+    expect(await checkRequestLimit(request, "start")).toBe(0);
+  vi.stubEnv("INTELIPREP_DEV_START_LIMITS", "on");
+  await withCandidateIdentity("local-limit-test", async () => {
+    for (let i = 0; i < 3; i++)
+      expect(await checkRequestLimit(request, "start")).toBe(0);
+    expect(await checkRequestLimit(request, "start")).toBeGreaterThan(0);
+  });
+  vi.stubEnv("VERCEL", "1");
+  vi.stubEnv("INTERVIEW_RESUME_SECRET", "s".repeat(32));
+  vi.stubEnv("INTELIPREP_DEV_START_LIMITS", "off");
+  redis.mockResolvedValue(60_000);
+  expect(
+    await withCandidateIdentity("deployed-limit-test", () =>
+      checkRequestLimit(request, "start"),
+    ),
+  ).toBe(60);
+});

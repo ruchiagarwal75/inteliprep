@@ -162,3 +162,29 @@ describe("chat transport recovery", () => {
     expect(chunk).not.toHaveBeenCalled();
   });
 });
+
+it("aborts a fetch that ignores its signal, then resends the same turn", async () => {
+  const abort = new AbortController();
+  const request = vi
+    .fn<typeof fetch>()
+    .mockImplementationOnce(() => new Promise(() => {}))
+    .mockResolvedValueOnce(new Response(delta + complete));
+  const turnId = crypto.randomUUID();
+  const hung = postChatTurn(
+    request,
+    payload,
+    vi.fn(),
+    vi.fn(),
+    turnId,
+    abort.signal,
+  );
+  abort.abort(new Error("Taking too long"));
+  await expect(hung).rejects.toThrow("Taking too long");
+  await expect(
+    postChatTurn(request, payload, vi.fn(), vi.fn(), turnId),
+  ).resolves.toMatchObject({ reply: "Reply" });
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(request.mock.calls[0][1]?.body).toEqual(
+    request.mock.calls[1][1]?.body,
+  );
+});

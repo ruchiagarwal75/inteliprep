@@ -171,5 +171,50 @@
       },
       "coversCriteria": []
     }
+  ],
+  "followUpStages": [2, 3, 3, 2, 3, 3],
+  "reviewProbes": [
+    {
+      "id": "concurrent-create",
+      "stageIndex": 2,
+      "areaIndex": 1,
+      "topicPattern": "\\b(id\\w*|identifier\\w*|creat\\w*|leas\\w*|atomic)\\b",
+      "question": "What happens if two create requests are processed at the same time?"
+    },
+    {
+      "id": "id-encoding",
+      "stageIndex": 2,
+      "areaIndex": 1,
+      "topicPattern": "\\b(ids?|identifier\\w*|leas\\w*|range\\w*|short.?code\\w*|base.?62)\\b",
+      "question": "How does an allocated numeric ID become the short code that a redirect request looks up?"
+    },
+    {
+      "id": "idempotency-body",
+      "stageIndex": 2,
+      "areaIndex": 1,
+      "topicPattern": "\\b(idempotenc\\w*|retr\\w*|conditional|request.identity)\\b",
+      "question": "What happens when the same idempotency key is submitted with a different original URL?"
+    },
+    {
+      "id": "unknown-link",
+      "stageIndex": 2,
+      "areaIndex": 2,
+      "topicPattern": "\\b(lookup|look.up|redirect\\w*|mapping|read|cache)\\b",
+      "question": "How does a redirect distinguish an unknown short code from a mapping that could not be read?"
+    },
+    {
+      "id": "new-link-visibility",
+      "stageIndex": 2,
+      "areaIndex": 2,
+      "topicPattern": "\\b(cassandra|consisten\\w*|write|durab\\w*|read|acknowledg\\w*)\\b",
+      "question": "Which property of your read and write paths makes a newly acknowledged link immediately usable?"
+    },
+    {
+      "id": "range-exhaustion",
+      "stageIndex": 2,
+      "areaIndex": 1,
+      "topicPattern": "\\b(leas\\w*|range\\w*|allocat\\w*|ids?|identifier\\w*)\\b",
+      "question": "Once an API instance consumes its leased range, what happens to the next create while it waits for another range?"
+    }
   ]
 }

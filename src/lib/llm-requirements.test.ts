@@ -123,3 +123,91 @@ describe("requirements-stage reply control", () => {
     expect(mocks.create).not.toHaveBeenCalled();
   });
 });
+
+it("never tells a candidate to draw while still holding the clarify minimum", async () => {
+  mocks.create.mockImplementation(async function* () {
+    yield {
+      type: "response.output_text.delta",
+      delta: "Which requirement matters most?",
+    };
+    yield { type: "response.completed" };
+  });
+  const displayed = await reply("I have confirmed the service goals.", {
+    ...context,
+    coveredCriteria: [0, 1, 2],
+    mayInviteDrawing: false,
+  });
+  expect(displayed).toContain("Skip to drawing");
+  expect(displayed).not.toContain("Ready to explain");
+  expect(displayed).not.toContain("?");
+});
+
+it("canonicalizes the browser-observed handoff and never re-appends answered latency goals", async () => {
+  const p = getProblem("url-shortener");
+  if (!p) throw Error("Missing problem");
+  mocks.create.mockImplementation(async function* () {
+    yield {
+      type: "response.output_text.delta",
+      delta:
+        "Great, you've covered all core requirements. Whenever you're ready, start your design by drawing the main components and explaining how they'll handle link creation and redirects.",
+    };
+    yield { type: "response.completed" };
+  });
+  const question = p.phases[0].clarificationQuestions?.[1] ?? "";
+  const messages = [
+    { role: "assistant" as const, content: question },
+    {
+      role: "user" as const,
+      content:
+        "I will target p99 redirects under 100 ms and 99.9% availability.",
+    },
+  ];
+  const interview = {
+    ...context,
+    problem: p,
+    phase: p.phases[0],
+    coveredCriteria: [0, 2],
+    mayInviteDrawing: false,
+  };
+  let displayed = "";
+  for await (const chunk of streamInterviewerReply(
+    messages,
+    "Empty board",
+    "No changes",
+    undefined,
+    undefined,
+    interview,
+  ))
+    displayed += chunk;
+  expect(displayed).toBe(p.drawingPolicy.invitation);
+  expect(displayed).not.toContain("?");
+});
+it("does not repeat an answered configured question if the coverage assessor is unavailable", async () => {
+  mocks.create.mockImplementation(async function* () {
+    yield {
+      type: "response.output_text.delta",
+      delta: "Those goals are reasonable.",
+    };
+    yield { type: "response.completed" };
+  });
+  const question = problem.phases[0].clarificationQuestions?.[1] ?? "";
+  const messages = [
+    { role: "assistant" as const, content: question },
+    {
+      role: "user" as const,
+      content: "I will target 500 ms and 99.9% availability.",
+    },
+  ];
+  let displayed = "";
+  for await (const chunk of streamInterviewerReply(
+    messages,
+    "Empty",
+    "No changes",
+    undefined,
+    undefined,
+    context,
+  ))
+    displayed += chunk;
+  expect(displayed).not.toContain(question);
+  expect(displayed).toContain("Skip to drawing");
+});

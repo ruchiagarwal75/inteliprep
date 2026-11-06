@@ -36,19 +36,17 @@ export function InterviewResults({
   const [tab, setTab] = useState<"scorecard" | "transcript" | "diagram">(
     "scorecard",
   );
-  const [endedTime] = useState(() =>
-    endedAt ? Date.parse(endedAt) : Date.now(),
-  );
   const used =
     scorecard?.session ??
-    (interview?.timing
+    (interview?.timing && endedAt
       ? {
           elapsedSeconds: Math.min(
             interview.timing.durationMinutes * 60,
             Math.max(
               0,
               Math.round(
-                (endedTime - Date.parse(interview.timing.startedAt)) / 1000,
+                (Date.parse(endedAt) - Date.parse(interview.timing.startedAt)) /
+                  1000,
               ),
             ),
           ),
@@ -124,7 +122,7 @@ export function InterviewResults({
                 {closed
                   ? "Closed without scoring. Your transcript and diagram are saved."
                   : busy
-                    ? "Reviewing your answers and final diagram…"
+                    ? "Generating your scorecard…"
                     : (error ??
                       "Your interview has ended. Generate its scorecard to see feedback.")}
               </p>

@@ -76,6 +76,9 @@ export function useInterviewEnd({
     restored?.endRequest,
   );
   const endingRef = useRef(false);
+  const [endedAt, setEndedAt] = useState(
+    restored?.scorecard?.endedAt ?? restored?.endedAt,
+  );
 
   async function end(finalAnswer?: string): Promise<boolean> {
     if (scorecard) return true;
@@ -91,7 +94,6 @@ export function useInterviewEnd({
     endingRef.current = true;
     setIsEnding(true);
     onBusyChange(true);
-    onEndChange(true);
     setError(undefined);
     let submitted = false;
     try {
@@ -114,75 +116,96 @@ export function useInterviewEnd({
           hasEnded: true,
           messages: snapshotRef.current.messages,
           endRequest: snapshotRef.current,
-          endedAt: new Date().toISOString(),
           ...(finalAnswer?.trim() ? { draftText: "" } : {}),
         });
         if (finalAnswer?.trim()) onDraftIncluded();
       }
       submitted = true;
-      const response = await request("/api/interview/end", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...snapshotRef.current,
-          resumeToken: getResumeToken() ?? snapshotRef.current.resumeToken,
-        }),
-      });
-      const body: unknown = await response.json();
-      const resumeToken =
-        body &&
-        typeof body === "object" &&
-        "resumeToken" in body &&
-        typeof body.resumeToken === "string"
-          ? body.resumeToken
-          : undefined;
-      if (!response.ok) {
-        const transcriptConflict = isTranscriptConflict(response.status, body);
-        if (transcriptConflict) onSyncRequired?.();
-        const limited = responseRateLimit(response);
-        const failure = interviewRecoveryFailure(response.status, body);
-        if (failure) onRecoveryFailure(failure);
-        const detail = body && typeof body === "object" ? body : {};
-        const ended = "ended" in detail && detail.ended === true;
-        onEndChange(ended);
-        if (!ended) {
-          snapshotRef.current = undefined;
-          setScene(undefined);
-        }
-        await onSave({
-          hasEnded: ended,
-          endRequest: ended ? snapshotRef.current : undefined,
-          resumeToken,
-          ...(transcriptConflict ? { transcriptConflict: true } : {}),
-          gradingError:
+      for (const path of ["/api/interview/freeze", "/api/interview/end"]) {
+        const response = await request(path, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...snapshotRef.current,
+            resumeToken: getResumeToken() ?? snapshotRef.current.resumeToken,
+          }),
+        });
+        const body: unknown = await response.json();
+        const resumeToken =
+          body &&
+          typeof body === "object" &&
+          "resumeToken" in body &&
+          typeof body.resumeToken === "string"
+            ? body.resumeToken
+            : undefined;
+        if (!response.ok) {
+          const transcriptConflict = isTranscriptConflict(
+            response.status,
+            body,
+          );
+          if (transcriptConflict) onSyncRequired?.();
+          const limited = responseRateLimit(response);
+          const failure = interviewRecoveryFailure(response.status, body);
+          if (failure) onRecoveryFailure(failure);
+          const detail = body && typeof body === "object" ? body : {};
+          const ended = "ended" in detail && detail.ended === true;
+          onEndChange(ended);
+          if (!ended) {
+            snapshotRef.current = undefined;
+            setScene(undefined);
+          }
+          await onSave({
+            hasEnded: ended,
+            endRequest: ended ? snapshotRef.current : undefined,
+            resumeToken,
+            ...(transcriptConflict ? { transcriptConflict: true } : {}),
+            gradingError:
+              "error" in detail && typeof detail.error === "string"
+                ? (limited?.message ?? detail.error)
+                : "Scorecard generation failed.",
+            ...(failure ? { recoveryFailure: failure } : {}),
+          });
+          setError(
             "error" in detail && typeof detail.error === "string"
               ? (limited?.message ?? detail.error)
-              : "Scorecard generation failed.",
-          ...(failure ? { recoveryFailure: failure } : {}),
+              : "The scorecard couldn't be generated. Please retry.",
+          );
+          onEndConfirmed(ended);
+          return ended;
+        }
+        if (path.endsWith("/freeze")) {
+          if (
+            !body ||
+            typeof body !== "object" ||
+            !("endedAt" in body) ||
+            typeof body.endedAt !== "string" ||
+            !Number.isFinite(Date.parse(body.endedAt))
+          )
+            throw new Error(
+              "Couldn't confirm the interview end time. Please retry.",
+            );
+          setEndedAt(body.endedAt);
+          await onSave({ hasEnded: true, endedAt: body.endedAt, resumeToken });
+          onEndChange(true);
+          continue;
+        }
+        const parsed = interviewEndResponseSchema.safeParse(body);
+        if (!parsed.success)
+          throw new Error("The scorecard couldn't be read. Please retry.");
+        setScorecard(parsed.data.scorecard);
+        await onSave({
+          hasEnded: true,
+          scorecard: parsed.data.scorecard,
+          pendingReply: undefined,
+          endRequest: undefined,
+          resumeToken,
+          gradingError: undefined,
+          endedAt: parsed.data.scorecard.endedAt,
         });
-        setError(
-          "error" in detail && typeof detail.error === "string"
-            ? (limited?.message ?? detail.error)
-            : "The scorecard couldn't be generated. Please retry.",
-        );
-        onEndConfirmed(ended);
-        return ended;
+        onEndConfirmed(true);
+        return true;
       }
-      const parsed = interviewEndResponseSchema.safeParse(body);
-      if (!parsed.success)
-        throw new Error("The scorecard couldn't be read. Please retry.");
-      setScorecard(parsed.data.scorecard);
-      await onSave({
-        hasEnded: true,
-        scorecard: parsed.data.scorecard,
-        pendingReply: undefined,
-        endRequest: undefined,
-        resumeToken,
-        gradingError: undefined,
-        endedAt: parsed.data.scorecard.endedAt,
-      });
-      onEndConfirmed(true);
-      return true;
+      return false;
     } catch (cause) {
       // A disconnected response may already have ended the server session; retry the frozen snapshot.
       if (!submitted) onEndChange(false);
@@ -212,5 +235,6 @@ export function useInterviewEnd({
     error,
     imageWarning,
     scene,
+    endedAt,
   };
 }

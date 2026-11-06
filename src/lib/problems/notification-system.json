@@ -220,43 +220,51 @@
       "id": "provider-outage",
       "areaIndex": 4,
       "topicPattern": "outage|unavailable|provider.*down|provider.failure",
-      "question": "If the email provider is unavailable for ten minutes, how will your design keep push notifications moving?"
+      "question": "If the email provider is unavailable for ten minutes, how will your design keep push notifications moving?",
+      "stageIndex": 3
     },
     {
       "id": "provider-recovery",
       "areaIndex": 4,
       "topicPattern": "outage|unavailable|provider.*down|recover\\w*|backlog",
-      "question": "When the email provider recovers, how will you drain pending sends without exceeding its rate limit?"
+      "question": "When the email provider recovers, how will you drain pending sends without exceeding its rate limit?",
+      "stageIndex": 3
     },
     {
       "id": "ambiguous-send",
       "areaIndex": 3,
       "topicPattern": "timeout|uncertain|acknowledg\\w*|lost.response",
-      "question": "What happens if a provider accepts a send but its response is lost?"
+      "question": "What happens if a provider accepts a send but its response is lost?",
+      "stageIndex": 3
     },
     {
       "id": "caller-status",
       "areaIndex": 1,
       "topicPattern": "status|caller|access|authoriz\\w*",
-      "question": "How does a status lookup prevent one internal caller from reading another caller's notification?"
+      "question": "How does a status lookup prevent one internal caller from reading another caller's notification?",
+      "stageIndex": 2
     },
     {
       "id": "retry-expiry",
       "areaIndex": 3,
       "topicPattern": "retry|retries|deadline|expir\\w*",
-      "question": "What status does a caller see once a notification's retry window expires?"
+      "question": "What status does a caller see once a notification's retry window expires?",
+      "stageIndex": 3
     },
     {
       "id": "fairness",
       "areaIndex": 4,
       "topicPattern": "fair\\w*|quota|rate.limit|overload|burst",
-      "question": "What keeps one application's retry burst from delaying another application's notifications?"
+      "question": "What keeps one application's retry burst from delaying another application's notifications?",
+      "stageIndex": 3
     },
     {
       "id": "preferences",
       "areaIndex": 2,
       "topicPattern": "preference|opt.out|disabled",
-      "question": "What happens to a pending email if its recipient disables email before the next retry?"
+      "question": "What happens to a pending email if its recipient disables email before the next retry?",
+      "stageIndex": 2
     }
-  ]
+  ],
+  "followUpStages": [2, 2, 3, 2, 3, 3]
 }

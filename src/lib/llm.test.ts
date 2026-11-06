@@ -133,9 +133,6 @@ describe("streamInterviewerReply", () => {
         "empty",
         "Initial diagram",
       );
-      await expect(stream.next()).resolves.toMatchObject({
-        value: "Partial reply.",
-      });
       await expect(stream.next()).rejects.toThrow("did not complete");
     },
   );

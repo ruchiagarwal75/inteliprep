@@ -187,5 +187,6 @@
   ],
   "gradingGuidance": [
     "Credit adaptive lower-bitrate selection under changing bandwidth when explained. No fixed rebuffering-ratio SLA is specified; do not penalize failing to quote one. Missing depth or validation is different from claiming the topic was never addressed."
-  ]
+  ],
+  "followUpStages": [2, 2, 2, 3, 3, 3]
 }

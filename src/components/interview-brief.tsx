@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import type { useInterviewStarter } from "@/components/use-interview-starter";
 import { InterviewSetup } from "@/components/interview-setup";
+import { useEffect, useRef } from "react";
 export function InterviewBrief({
   problems,
   starter,
@@ -10,6 +11,14 @@ export function InterviewBrief({
   problems: ProblemSummary[];
   starter: ReturnType<typeof useInterviewStarter>;
 }) {
+  const errorRef = useRef<HTMLParagraphElement>(null);
+  const hasError = Boolean(starter.error);
+  useEffect(() => {
+    if (hasError) {
+      errorRef.current?.focus();
+      errorRef.current?.scrollIntoView({ block: "nearest" });
+    }
+  }, [hasError]);
   const selected = problems.find(
     (p) => p.problemId === starter.choice.problemId,
   );
@@ -29,7 +38,6 @@ export function InterviewBrief({
         onNew={() => {}}
         onChangeProblem={() => {}}
         isStarting={starter.isStarting}
-        error={starter.error}
         hideStart
       />
       <section aria-label="Problem brief" className="rounded-lg border p-4">
@@ -62,15 +70,29 @@ export function InterviewBrief({
         </li>
       </ul>
       <p className="text-sm">
-        The timer starts when you press Start interview.
+        The timer starts when you press Start interview. Only your latest
+        attempt for each problem appears in history, across difficulties and
+        durations.
       </p>
       <button
-        disabled={starter.isStarting}
+        disabled={starter.isStarting || starter.isLimited}
+        aria-describedby={starter.error ? "start-error" : undefined}
         className="bg-foreground text-background rounded px-5 py-3 disabled:opacity-40"
         onClick={() => void starter.start()}
       >
         {starter.isStarting ? "Starting…" : "Start interview"}
       </button>
+      {starter.error && (
+        <p
+          id="start-error"
+          ref={errorRef}
+          tabIndex={-1}
+          role="alert"
+          className="rounded border border-red-400 bg-red-50 p-3 font-medium text-red-900 dark:bg-red-950 dark:text-red-100"
+        >
+          {starter.error}
+        </p>
+      )}
     </main>
   );
 }

@@ -84,3 +84,35 @@ describe("sceneToGraph", () => {
     expect(reverse?.label).toBe(forward?.label);
   });
 });
+
+it("uses unwrapped original labels for components, arrows and loose text", () => {
+  const wrapped = sceneSchema.parse({
+    elements: [
+      { id: "node", type: "rectangle", x: 0, y: 0, width: 40, height: 120 },
+      {
+        id: "label",
+        type: "text",
+        x: 0,
+        y: 0,
+        width: 40,
+        height: 120,
+        containerId: "node",
+        text: "Cl\nie\nn\nt",
+        originalText: "Client",
+      },
+      {
+        id: "note",
+        type: "text",
+        x: 500,
+        y: 500,
+        width: 30,
+        height: 100,
+        text: "Redi\ns",
+        originalText: "  Redis\t cache  ",
+      },
+    ],
+  });
+  const graph = sceneToGraph(wrapped);
+  expect(graph.components[0].label).toBe("Client");
+  expect(graph.notes[0].text).toBe("Redis cache");
+});

@@ -53,8 +53,8 @@ export function PracticeHome({
         </section>
       )}
       <p className="text-sm">
-        Practice history is stored in this browser. Signing out keeps it on this
-        device.
+        Only your latest interview for each problem appears in history. Signing
+        out keeps it on this device.
       </p>
       {error && <p role="alert">{error}</p>}
       <section aria-label="Recent sessions">

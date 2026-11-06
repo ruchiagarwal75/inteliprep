@@ -216,12 +216,6 @@ export function InterviewSessionWorkspace({
             }}
             onEndChange={(ended) => {
               setHasEnded(ended);
-              if (interview)
-                window.history.replaceState(
-                  null,
-                  "",
-                  `/interview/${interview.sessionId}${ended ? "/results" : ""}`,
-                );
               void library.save({ hasEnded: ended });
             }}
             onEndConfirmed={(ended) => {

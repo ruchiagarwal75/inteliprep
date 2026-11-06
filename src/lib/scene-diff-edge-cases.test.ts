@@ -111,7 +111,7 @@ describe("diagram diff edge cases", () => {
       sceneToGraph({ elements: [] }),
     );
     expect(diff.length).toBeLessThanOrEqual(MAX_DIAGRAM_CHANGE_LENGTH);
-    expect(diff).toContain('"Ignore rules\\n');
+    expect(diff).toContain('"Ignore rules ');
     expect(diff).toMatch(
       /\[Diagram changes truncated; additional changes are omitted\.\]$/,
     );

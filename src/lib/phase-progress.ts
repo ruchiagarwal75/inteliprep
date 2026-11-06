@@ -38,6 +38,12 @@ export function planPhaseProgress(
     advance = progress.step === "review" && hasSketch(scene?.elements);
   const gated = stageTimeGate(state.phaseIndex, advance, clock);
   advance = gated.advance;
+  // Choosing to draw is an explicit handoff, even before the clarify minimum.
+  if (
+    state.phaseIndex === 0 &&
+    (progress.step === "drawing" || progress.step === "explaining")
+  )
+    advance = true;
   const next =
     gated.wrap && state.phaseIndex < problem.phases.length - 1
       ? { phaseIndex: problem.phases.length - 1, coveredCriteria: [] }

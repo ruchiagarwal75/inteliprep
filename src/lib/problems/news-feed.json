@@ -182,5 +182,6 @@
   ],
   "gradingGuidance": [
     "A justified one-year retention assumption is allowed in place of the 90-day default. Read candidate proposals and interviewer acceptance from clarification or explanation. Do not claim retention was unexplored when they established an alternative; assess any missing cost/recovery reasoning specifically."
-  ]
+  ],
+  "followUpStages": [2, 3, 2, 3, 3, 3]
 }

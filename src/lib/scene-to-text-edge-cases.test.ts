@@ -13,7 +13,9 @@ describe("sceneToText edge cases", () => {
         { ...base, id: "label", type: "text", text, containerId: "api" },
       ],
     });
-    expect(sceneToText(scene)).toContain(JSON.stringify(text));
+    expect(sceneToText(scene)).toContain(
+      JSON.stringify(text.replace(/\s+/gu, " ").trim()),
+    );
     expect(sceneToText(scene).match(/^Connections:$/gm)).toHaveLength(1);
   });
 

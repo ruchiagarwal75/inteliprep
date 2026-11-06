@@ -1,3 +1,4 @@
+import { sceneLabel } from "@/lib/scene";
 import type { SceneArrow, SceneComponent, SceneText } from "@/lib/scene";
 
 type Point = readonly [number, number];
@@ -112,7 +113,7 @@ export function inferTextContainer(
   if (
     text.isDeleted ||
     text.containerId ||
-    !text.text.trim() ||
+    !sceneLabel(text) ||
     !text.width ||
     !text.height
   )

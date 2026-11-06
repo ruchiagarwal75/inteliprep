@@ -11,6 +11,7 @@ it("updates a committed row without losing history, duplicating it, or sorting b
   const newer = {
     ...savedInterviewSummary(savedFixture()),
     createdAt: "2026-02-01T00:00:00Z",
+    problemId: "url-shortener",
   };
   const entries = [newer, older];
   const ended = {
@@ -25,4 +26,24 @@ it("updates a committed row without losing history, duplicating it, or sorting b
   expect(
     updateInterviewHistory(updated, { ...newer, hasScorecard: true }),
   ).toHaveLength(2);
+});
+it("replaces the same problem immediately and ignores a late result for the old attempt", () => {
+  const old = {
+    ...savedInterviewSummary(savedFixture()),
+    createdAt: "2026-01-01T00:00:00Z",
+  };
+  const next = {
+    ...savedInterviewSummary(savedFixture()),
+    createdAt: "2026-02-01T00:00:00Z",
+  };
+  const other = { ...old, id: crypto.randomUUID(), problemId: "url-shortener" };
+  const entries = updateInterviewHistory([old, other], next);
+  expect(entries).toEqual([next, other]);
+  expect(
+    updateInterviewHistory(entries, {
+      ...old,
+      updatedAt: "2030-01-01T00:00:00Z",
+      hasScorecard: true,
+    }),
+  ).toEqual(entries);
 });

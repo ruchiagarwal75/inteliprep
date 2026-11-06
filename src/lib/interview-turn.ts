@@ -22,13 +22,18 @@ import {
   diagramConsistencyQuestion,
   whiteboardVisibilityReply,
 } from "@/lib/diagram-consistency";
-import { questionAtEnd, hasExplanation } from "@/lib/open-question";
+import {
+  questionAtEnd,
+  hasExplanation,
+  invitesDrawing,
+} from "@/lib/open-question";
 import { diagramReviewQuestion } from "@/lib/diagram-review";
 import { hasCandidateAnswer } from "@/lib/grading-evidence";
 import { logServerEvent } from "@/lib/server-events";
 import { isRequirementProposal } from "@/lib/candidate-proposal";
 import { requestedReviewTopic } from "@/lib/review-probes";
 import { isOffTopicRequest } from "@/lib/off-topic";
+import { questionMemory } from "@/lib/question-memory";
 
 export async function prepareInterviewTurn(
   problem: ProblemDefinition,
@@ -137,11 +142,49 @@ export async function prepareInterviewTurn(
         );
       }
     }
-    const resumedQuestion =
-      latest?.action === "review" ? lease.openQuestion : undefined;
     const paused =
       plan.progress.step === "drawing" || plan.progress.step === "explaining";
+    let answeredPendingQuestion = false;
+    if (
+      lease.openQuestion &&
+      lease.state.phaseIndex >= 2 &&
+      !offTopic &&
+      ((paused && !waiting) ||
+        (latest?.action === "review" && hasExplanation(request.messages)))
+    ) {
+      try {
+        answeredPendingQuestion = (
+          await assessPhaseCoverage(
+            {
+              ...current,
+              transition: "coverage",
+              goal: "Resolve the pending interviewer question using candidate evidence only.",
+              completionCriteria: [
+                `The candidate answers this question with a concrete relevant explanation: ${lease.openQuestion}`,
+              ],
+              clarificationQuestions: undefined,
+            },
+            request.messages,
+            signal,
+          )
+        ).includes(0);
+      } catch (cause) {
+        if (signal.aborted) throw cause;
+        logServerEvent(
+          { event: "stage_assessment_failure", route: "/api/chat" },
+          cause,
+        );
+      }
+    }
+    const resumedQuestion =
+      latest?.action === "review" && !answeredPendingQuestion
+        ? lease.openQuestion
+        : undefined;
     let completedPlan = plan;
+    const memory = questionMemory(request.messages, [
+      ...lease.coveredTopics,
+      ...plan.state.coveredCriteria.map((i) => nextPhase.completionCriteria[i]),
+    ]);
     return {
       context: {
         problem,
@@ -151,6 +194,7 @@ export async function prepareInterviewTurn(
         progress: plan.progress,
         phase: problem.phases[plan.state.phaseIndex],
         coveredCriteria: plan.state.coveredCriteria,
+        questionMemory: memory,
         listening: isListeningContinuation(
           problem,
           request.messages,
@@ -208,13 +252,26 @@ export async function prepareInterviewTurn(
             ],
             lease.clock,
           );
+        if (completedPlan.state.phaseIndex === 0 && invitesDrawing(reply))
+          completedPlan = {
+            ...completedPlan,
+            state: { phaseIndex: 1, coveredCriteria: [] },
+          };
         lease.recordReply(
           reply,
-          !waiting && !offTopic && latest?.source !== "control",
+          !offTopic && !waiting && latest?.source !== "control",
           paused,
           questionAtEnd(reply),
+          answeredPendingQuestion ||
+            (lease.state.phaseIndex === 0 &&
+              completedPlan.state.phaseIndex > 0),
         );
-        lease.commit(completedPlan.state);
+        lease.commit(completedPlan.state, [
+          ...memory.coveredTopics,
+          ...[...covered, ...lease.state.coveredCriteria]
+            .map((i) => current.completionCriteria[i])
+            .filter((topic): topic is string => Boolean(topic)),
+        ]);
       },
       checkpoint: lease.checkpoint,
       release: lease.release,

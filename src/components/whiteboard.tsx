@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import "@excalidraw/excalidraw/index.css";
@@ -36,6 +36,32 @@ export function Whiteboard({
 }: WhiteboardProps) {
   const initialized = useRef(false);
   const api = useRef<ExcalidrawImperativeAPI | null>(null);
+  const fitFrame = useRef<number | undefined>(undefined);
+  useEffect(
+    () => () => {
+      if (fitFrame.current !== undefined)
+        cancelAnimationFrame(fitFrame.current);
+      api.current = null;
+    },
+    [],
+  );
+  const bindApi = useCallback(
+    (instance: ExcalidrawImperativeAPI) => {
+      if (api.current === instance) return;
+      api.current = instance;
+      if (readOnly)
+        fitFrame.current = requestAnimationFrame(() => {
+          fitFrame.current = undefined;
+          if (api.current !== instance) return;
+          instance.scrollToContent(instance.getSceneElements(), {
+            fitToViewport: true,
+            viewportZoomFactor: 0.85,
+            maxZoom: 2,
+          });
+        });
+    },
+    [readOnly],
+  );
   const [stylesOpen, setStylesOpen] = useState(false);
   return (
     <section
@@ -82,17 +108,7 @@ export function Whiteboard({
       </header>
       <div className="min-h-0 flex-1">
         <Excalidraw
-          excalidrawAPI={(instance) => {
-            api.current = instance;
-            if (readOnly)
-              requestAnimationFrame(() =>
-                instance.scrollToContent(instance.getSceneElements(), {
-                  fitToViewport: true,
-                  viewportZoomFactor: 0.85,
-                  maxZoom: 2,
-                }),
-              );
-          }}
+          excalidrawAPI={bindApi}
           initialData={
             initialScene
               ? {
@@ -103,6 +119,7 @@ export function Whiteboard({
           }
           viewModeEnabled={readOnly}
           onChange={(elements, appState, files) => {
+            if (readOnly && initialized.current) return;
             const scene = {
               elements,
               // Keep serializable drawing settings, not transient editor state.

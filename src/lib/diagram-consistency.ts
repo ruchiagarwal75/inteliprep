@@ -2,13 +2,14 @@ import type { Scene } from "@/lib/scene";
 import type { ChatMessage } from "@/lib/chat";
 import { sceneToGraph } from "@/lib/scene-graph";
 
-const stores = [
+export const diagramStores = [
   { name: "PostgreSQL", pattern: /\bpostgres(?:ql)?\b/iu },
   { name: "Cassandra", pattern: /\bcassandra\b/iu },
   { name: "MySQL", pattern: /\bmysql\b/iu },
   { name: "MongoDB", pattern: /\bmongo(?:db)?\b/iu },
   { name: "DynamoDB", pattern: /\bdynamodb\b/iu },
 ];
+const stores = diagramStores;
 
 /** Only affirmative design statements are compared; questions and rejected options aren't choices. */
 export function diagramConflicts(

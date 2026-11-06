@@ -115,7 +115,7 @@ describe("requirements checkpoint before drawing-stage progression", () => {
     await clarification.text();
   });
   it.each(["draw", "explain"] as const)(
-    "preserves %s and keeps the first stage while requirements are incomplete",
+    "preserves %s and enters drawing stage even with requirements incomplete",
     async (action) => {
       const interview = createInterviewStart(problem, "mid", 1);
       mocks.assessPhaseCoverage.mockResolvedValueOnce([0]);
@@ -132,10 +132,10 @@ describe("requirements checkpoint before drawing-stage progression", () => {
         { scene: basicScene },
       );
       await response.text();
-      expect(readInterviewPhase(response.headers)?.position).toBe(1);
+      expect(readInterviewPhase(response.headers)?.position).toBe(2);
       expect(state(interview.sessionId)).toEqual({
-        phaseIndex: 0,
-        coveredCriteria: [0, 2],
+        phaseIndex: 1,
+        coveredCriteria: [],
       });
       expect(mocks.streamInterviewerReply.mock.calls[0][5].progress.step).toBe(
         action === "draw" ? "drawing" : "explaining",

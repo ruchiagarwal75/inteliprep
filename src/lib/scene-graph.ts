@@ -1,4 +1,9 @@
-import { isSceneComponent, type Scene, type SceneElement } from "@/lib/scene";
+import {
+  isSceneComponent,
+  sceneLabel,
+  type Scene,
+  type SceneElement,
+} from "@/lib/scene";
 import { inferArrowEndpoint, inferTextContainer } from "@/lib/scene-geometry";
 
 export type DiagramReference = { id: string; label: string };
@@ -52,9 +57,9 @@ export function sceneToGraph(scene?: Scene): SceneGraph {
   const components = live.filter(isSceneComponent);
   const labelsByContainer = new Map<string, { id: string; text: string }[]>();
   for (const element of live) {
-    if (element.type === "text" && element.containerId && element.text.trim()) {
+    if (element.type === "text" && element.containerId && sceneLabel(element)) {
       const labels = labelsByContainer.get(element.containerId) ?? [];
-      labels.push({ id: element.id, text: element.text.trim() });
+      labels.push({ id: element.id, text: sceneLabel(element) });
       labelsByContainer.set(element.containerId, labels);
     }
   }
@@ -66,7 +71,7 @@ export function sceneToGraph(scene?: Scene): SceneGraph {
     const container = inferTextContainer(element, components);
     if (!container || explicitlyLabeled.has(container)) continue;
     const labels = labelsByContainer.get(container) ?? [];
-    labels.push({ id: element.id, text: element.text.trim() });
+    labels.push({ id: element.id, text: sceneLabel(element) });
     labelsByContainer.set(container, labels);
     inferredTextIds.add(element.id);
     inferredLabelTargets.add(container);
@@ -86,9 +91,9 @@ export function sceneToGraph(scene?: Scene): SceneGraph {
     const label =
       attached ??
       (element.type === "text"
-        ? element.text.trim() || "unlabeled text"
+        ? sceneLabel(element) || "unlabeled text"
         : element.type === "frame" || element.type === "magicframe"
-          ? element.name?.trim() || "unlabeled frame"
+          ? element.name?.replace(/\s+/gu, " ").trim() || "unlabeled frame"
           : `unlabeled ${element.type}`);
     return { id: element.id, label };
   }
@@ -152,13 +157,13 @@ export function sceneToGraph(scene?: Scene): SceneGraph {
   graph.notes = live.flatMap((element) => {
     if (
       element.type !== "text" ||
-      !element.text.trim() ||
+      !sceneLabel(element) ||
       inferredTextIds.has(element.id)
     )
       return [];
     if (element.containerId && byId.has(element.containerId)) return [];
     return [
-      { id: element.id, text: element.text.trim(), ...grouping(element) },
+      { id: element.id, text: sceneLabel(element), ...grouping(element) },
     ];
   });
   graph.frames = live

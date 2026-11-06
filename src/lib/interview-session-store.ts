@@ -26,6 +26,7 @@ export type Session = InterviewSelection & {
   phaseEnteredAt?: string;
   openQuestion?: string;
   answeredStages?: number[];
+  coveredTopics?: string[];
   ending?: {
     endedAt: string;
     snapshotHash: string;

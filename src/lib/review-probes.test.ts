@@ -113,3 +113,22 @@ it.each([
   expect(reply).toBe("Let's stay on your design.");
   expect(reply).not.toContain(content);
 });
+
+it("keeps the question pool inside the current stage across all eight problems", () => {
+  for (const summary of listProblems()) {
+    const p = getProblem(summary.problemId);
+    if (!p) throw Error("Missing problem");
+    for (const stageIndex of [2, 3]) {
+      const history: ChatMessage[] = [];
+      for (let i = 0; i < 30; i++) {
+        const probe = selectReviewProbe(p, history, {
+          phase: p.phases[stageIndex],
+        });
+        if (!probe) break;
+        expect(probe.stageIndex).toBe(stageIndex);
+        history.push({ role: "assistant", content: probe.question });
+      }
+      expect(history.length).toBeGreaterThan(0);
+    }
+  }
+});

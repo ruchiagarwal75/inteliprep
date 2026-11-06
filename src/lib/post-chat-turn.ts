@@ -1,4 +1,5 @@
 import type { ChatRequest } from "@/lib/chat";
+import { abortable } from "@/lib/abortable";
 import { chatTurnPayload } from "@/lib/chat-turn";
 import { isTranscriptConflict, InterviewSyncError } from "@/lib/interview-sync";
 import { responseRateLimit } from "@/lib/retry-after";
@@ -26,16 +27,20 @@ export async function postChatTurn(
 ) {
   let response: Response;
   try {
-    response = await request("/api/chat", {
-      method: "POST",
+    response = await abortable(
+      request("/api/chat", {
+        method: "POST",
+        signal,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: INTERVIEW_STREAM_TYPE,
+        },
+        body: JSON.stringify(chatTurnPayload(payload, turnId)),
+      }),
       signal,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: INTERVIEW_STREAM_TYPE,
-      },
-      body: JSON.stringify(chatTurnPayload(payload, turnId)),
-    });
+    );
   } catch {
+    signal?.throwIfAborted();
     throw new Error(INTERVIEWER_UNAVAILABLE);
   }
   if (!response.ok || !response.body) {
@@ -65,9 +70,16 @@ export async function postChatTurn(
     response.headers.get("X-Interview-Reply-Kind") === "listening";
   onStart(listening);
   try {
-    const completed = await receiveInterviewStream(response.body, (text) => {
-      if (!listening) onDelta(text);
-    });
+    const cancel = () => {
+      void response.body?.cancel().catch(() => {});
+    };
+    signal?.addEventListener("abort", cancel, { once: true });
+    const completed = await abortable(
+      receiveInterviewStream(response.body, (text) => {
+        if (!listening && !signal?.aborted) onDelta(text);
+      }),
+      signal,
+    ).finally(() => signal?.removeEventListener("abort", cancel));
     const { phase, resumeToken } = completed.checkpoint;
     if (!phase || !resumeToken) throw new Error("Missing checkpoint");
     return {
@@ -78,6 +90,7 @@ export async function postChatTurn(
       ...(completed.checkpoint.replayed ? { replayed: true } : {}),
     };
   } catch {
+    signal?.throwIfAborted();
     throw new Error("The interviewer's reply was interrupted. Please retry.");
   }
 }

@@ -74,18 +74,21 @@ export function acquireInterviewSession(
   const { session } = lease;
   return {
     openQuestion: session.openQuestion,
+    coveredTopics: session.coveredTopics ?? [],
     recordReply(
       reply: string,
       answered: boolean,
       paused: boolean,
       question?: string,
+      resolvedQuestion = false,
     ) {
       lease.assertHeld();
       if (answered)
         session.answeredStages = [
           ...new Set([...(session.answeredStages ?? []), session.phaseIndex]),
         ];
-      if (!paused && (answered || question)) session.openQuestion = question;
+      if (resolvedQuestion || (!paused && (answered || question)))
+        session.openQuestion = question;
     },
     clock: {
       timing: lease.timing,
@@ -98,7 +101,7 @@ export function acquireInterviewSession(
       phaseIndex: session.phaseIndex,
       coveredCriteria: [...session.coveredCriteria],
     },
-    commit(state: PhaseState) {
+    commit(state: PhaseState, coveredTopics: string[] = []) {
       lease.assertHeld();
       if (
         state.phaseIndex < session.phaseIndex ||
@@ -114,6 +117,9 @@ export function acquireInterviewSession(
         session.phaseEnteredAt = new Date().toISOString();
       session.phaseIndex = state.phaseIndex;
       session.coveredCriteria = [...state.coveredCriteria];
+      session.coveredTopics = [
+        ...new Set([...(session.coveredTopics ?? []), ...coveredTopics]),
+      ].slice(-40);
       session.updatedAt = Date.now();
     },
     checkpoint() {
