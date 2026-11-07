@@ -56,6 +56,7 @@ export function PracticeHome({
           </Link>
         </PracticeHero>
         <section className="practice-surface" aria-label="Recent sessions">
+          <HomeMascot />
           <div className="section-heading">
             <div>
               <p className="practice-kicker">Pick up a thread</p>
@@ -197,7 +198,6 @@ export function PracticeHome({
           )}
         </InterviewDialog>
       </div>
-      <HomeMascot />
     </main>
   );
 }

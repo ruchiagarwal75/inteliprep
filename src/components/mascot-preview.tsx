@@ -51,7 +51,7 @@ export function MascotPreview() {
         </div>
         <h1 className="mt-8 text-3xl">Supplied mascot preview</h1>
         <p className="mt-3">
-          Original artwork, at its actual app sizes: 80px / 64px / 80px. Each
+          Original artwork, at its actual app sizes: 100px / 80px / 100px. Each
           visit unmounts.
         </p>
         <div className="mascot-preview-poses">

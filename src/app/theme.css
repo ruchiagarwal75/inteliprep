@@ -35,6 +35,8 @@
   --mascot-hair: #263044;
   --mascot-skin: #e5ad86;
   --mascot-cheek: #cc7d68;
+  --mascot-size: 100px;
+  --mascot-working-size: 80px;
   --transparent: transparent;
 
   /* Layout spacing is an eight-pixel rhythm. */

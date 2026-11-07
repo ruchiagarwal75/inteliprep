@@ -2,8 +2,8 @@
   position: fixed;
   bottom: 0;
   right: 0;
-  width: 80px;
-  height: 80px;
+  width: var(--mascot-size);
+  height: var(--mascot-size);
   z-index: 1;
   pointer-events: none;
   user-select: none;
@@ -14,9 +14,18 @@
   left: 0;
   right: auto;
 }
+.mascot-appearance-card {
+  position: absolute;
+  top: calc(var(--mascot-size) * -0.72);
+  right: auto;
+  bottom: auto;
+  left: calc(25% - var(--mascot-size) / 2);
+  /* The card's top edge hides her lower body throughout the short peek. */
+  clip-path: inset(0 0 28% 0);
+}
 .mascot-appearance-working {
-  width: 64px;
-  height: 64px;
+  width: var(--mascot-working-size);
+  height: var(--mascot-working-size);
 }
 .mascot-arrival {
   width: 100%;
@@ -155,7 +164,7 @@
 }
 
 .mascot-appearance-center:not(.mascot-preview-appearance) {
-  left: calc(50% - 32px);
+  left: calc(50% - var(--mascot-working-size) / 2);
   right: auto;
 }
 

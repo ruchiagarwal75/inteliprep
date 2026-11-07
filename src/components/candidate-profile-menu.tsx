@@ -80,7 +80,6 @@ export function CandidateProfileMenu({
             </svg>
           )}
         </span>
-        <span className="profile-trigger-name">{name}</span>
         <svg
           width="12"
           height="12"

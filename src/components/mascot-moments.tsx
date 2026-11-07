@@ -29,7 +29,9 @@ function useOncePeek(ready: boolean) {
 }
 export function HomeMascot() {
   const { show, finish } = useOncePeek(true);
-  return show ? <MascotAppearance pose="wave" onDone={finish} /> : null;
+  return show ? (
+    <MascotAppearance pose="wave" cardPeek onDone={finish} />
+  ) : null;
 }
 export function ResultsMascot({
   scorecard,

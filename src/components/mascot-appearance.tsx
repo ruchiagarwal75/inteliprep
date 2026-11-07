@@ -13,12 +13,14 @@ export function MascotAppearance({
   onDone,
   preview = false,
   centered = false,
+  cardPeek = false,
 }: {
   pose: Pose;
   gentle?: boolean;
   onDone: () => void;
   preview?: boolean;
   centered?: boolean;
+  cardPeek?: boolean;
 }) {
   const duration =
     pose === "wave"
@@ -40,9 +42,18 @@ export function MascotAppearance({
         gentle ? "mascot-gentle" : "",
         centered ? "mascot-appearance-center" : "",
         preview ? "mascot-preview-appearance" : "",
+        cardPeek ? "mascot-appearance-card" : "",
       ].join(" ")}
       data-mascot={pose}
-      data-placement={centered ? "center" : pose === "wave" ? "left" : "right"}
+      data-placement={
+        cardPeek
+          ? "card"
+          : centered
+            ? "center"
+            : pose === "wave"
+              ? "left"
+              : "right"
+      }
       aria-hidden="true"
     >
       <div
@@ -55,6 +66,6 @@ export function MascotAppearance({
       </div>
     </div>
   );
-  // A portal avoids hidden chat tabs, overflow clipping and transformed ancestors.
-  return preview ? visual : createPortal(visual, document.body);
+  // Card peeks stay anchored to their surface; corner visits escape hidden chat tabs.
+  return preview || cardPeek ? visual : createPortal(visual, document.body);
 }

@@ -24,12 +24,6 @@
   background: var(--teal-soft);
   font-weight: 600;
 }
-.profile-trigger-name {
-  max-width: 128px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .profile-menu {
   --brand: var(--teal);
   position: absolute;
@@ -73,16 +67,8 @@
 .profile-menu .quiet-signout:hover {
   background: var(--teal-soft);
 }
-.profile-account-compact .profile-trigger-name {
-  display: none;
-}
 .profile-account-compact .profile-initials {
   width: var(--space-3);
   height: var(--space-3);
   font-size: 0.75rem;
-}
-@media (max-width: 599px) {
-  .profile-trigger-name {
-    display: none;
-  }
 }

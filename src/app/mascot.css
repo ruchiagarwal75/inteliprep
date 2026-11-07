@@ -1,13 +1,10 @@
 /* Reserve edge space throughout a page visit: the mascot never resizes the board. */
 @media (min-width: 768px) {
-  .mascot-home-page {
-    padding-left: calc(var(--space-10) + var(--space-1));
-  }
   .mascot-working-page {
-    padding-right: var(--space-9);
+    padding-right: calc(var(--mascot-working-size) + var(--space-1));
   }
   .mascot-results-page {
-    padding-right: calc(var(--space-10) + var(--space-1));
+    padding-right: calc(var(--mascot-size) + var(--space-1));
   }
 }
 .mascot-toggle {

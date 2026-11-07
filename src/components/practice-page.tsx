@@ -48,6 +48,7 @@ export async function PracticePage({
             </Link>
           </PracticeHero>
           <section className="practice-surface welcome-note">
+            <HomeMascot />
             <p className="practice-kicker">A space to work it out</p>
             <h2>Bring your ideas. We’ll bring the questions.</h2>
             <p>
@@ -60,7 +61,6 @@ export async function PracticePage({
             resume your interviews.
           </p>
         </div>
-        <HomeMascot />
       </main>
     );
   }
