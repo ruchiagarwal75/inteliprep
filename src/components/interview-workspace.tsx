@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { Brand } from "@/components/brand";
 import { PracticeSkeleton } from "@/components/practice-skeleton";
 
 import { useCallback, useRef, useState, useEffect } from "react";
@@ -109,12 +109,10 @@ export function InterviewWorkspace({
   if (!library.opened)
     return sessionId ? (
       <main className="p-6">
+        <Brand />
         <p role="alert">
           {library.error ?? "This interview is not saved in this browser."}
         </p>
-        <Link href="/" className="underline">
-          Back to home
-        </Link>
       </main>
     ) : (
       <InterviewBrief problems={problems} starter={starter} />

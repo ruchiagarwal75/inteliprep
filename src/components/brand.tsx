@@ -1,7 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import { BRAND } from "@/lib/brand";
 
-/** A non-navigating wordmark also works safely inside a live interview. */
+/** The logo and wordmark share one accessible link back to Home. */
 export function Brand({
   compact = false,
   small = false,
@@ -10,7 +11,11 @@ export function Brand({
   small?: boolean;
 }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-2.5 align-middle">
+    <Link
+      href="/"
+      aria-label={`${BRAND.name} home`}
+      className="inline-flex shrink-0 items-center gap-2.5 align-middle no-underline"
+    >
       <Image
         src="/brand-mark.svg"
         alt=""
@@ -26,6 +31,6 @@ export function Brand({
       >
         {BRAND.name}
       </span>
-    </span>
+    </Link>
   );
 }

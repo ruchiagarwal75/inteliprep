@@ -81,9 +81,6 @@ export function InterviewResults({
           >
             Try suggested problem
           </Link>
-          <Link className="rounded border px-3 py-2 text-sm" href="/">
-            Back to home
-          </Link>
         </nav>
         <div
           role="tablist"

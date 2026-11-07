@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { Brand } from "@/components/brand";
 import type { ProblemSummary } from "@/lib/interview-selection";
@@ -32,9 +31,6 @@ export function InterviewBrief({
       <div className="practice-shell">
         <header className="practice-nav">
           <Brand />
-          <Link href="/" className="underline">
-            Back to home
-          </Link>
         </header>
         <PracticeHero brief />
         <div className="practice-surface">

@@ -7,6 +7,23 @@ It uses Node 24 and Vercel Authentication for preview/deployment URLs. The local
 The existing beta URL is
 [the protected interview app](https://inteliprep-ruchiagarwal75s-projects.vercel.app/interview).
 
+## Custom domain
+
+`mockmeai.com` is assigned to the protected `beta` branch of the same Vercel
+project. `www.mockmeai.com` redirects to `mockmeai.com` with HTTP 308. Adding the
+domain does not change the deployment environment or disable Vercel Authentication.
+
+DNS is hosted at GoDaddy. Vercel's domain configuration is the source of truth for
+the required A and CNAME records; check it before updating the zone. Preserve MX,
+TXT, nameservers, and unrelated records. After DNS changes, verify both hostnames,
+HTTPS, the www redirect, signed-out protection, and an authorized `/api/health`.
+
+Supabase Site URL is `https://mockmeai.com`, with
+`https://mockmeai.com/auth/callback` allowed alongside the existing localhost and
+Vercel beta callbacks. The Google-to-Supabase callback remains unchanged.
+Browser interview history remains on the hostname where it was saved; switching
+to the custom domain does not copy or delete that IndexedDB history.
+
 ## Deployment shape
 
 Use a **protected Preview deployment** and its stable branch URL for testers.

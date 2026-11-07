@@ -21,12 +21,13 @@ https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback
 4. Enter Google’s Client ID and Client Secret directly into Supabase’s Google
    provider settings, enable the provider, and save. The Google secret belongs in
    Supabase; the app does not need it.
-5. In Supabase → Authentication → URL Configuration, use the stable beta origin as
-   Site URL. Add these exact app return URLs:
+5. In Supabase → Authentication → URL Configuration, use `https://mockmeai.com` as
+   Site URL. Keep these exact app return URLs:
 
 ```text
 http://localhost:3000/auth/callback
 https://inteliprep-ruchiagarwal75s-projects.vercel.app/auth/callback
+https://mockmeai.com/auth/callback
 ```
 
 The Google-to-Supabase callback and Supabase-to-app return URLs serve different
