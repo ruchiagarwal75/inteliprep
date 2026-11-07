@@ -1,4 +1,4 @@
-# InteliPrep
+# MockMeAI
 
 Practice a system design interview with an AI interviewer and an Excalidraw
 whiteboard. Choose a problem, difficulty and duration; clarify requirements,
@@ -36,8 +36,16 @@ npm ci
 cp .env.example .env.local
 ```
 
-Set `OPENAI_KEY` in `.env.local` to a server API key. `OPENAI_MODEL` defaults to
-`gpt-4o`. Set a stable `INTERVIEW_RESUME_SECRET` of at least 32 characters;
+Set `OPENAI_KEY` in `.env.local` to a server API key. `.env.example` selects
+`gpt-6.1-terra` for interactive calls and `gpt-6.1-sol` for scorecards after a
+latency comparison. The compatibility fallback when `OPENAI_MODEL` is unset
+remains `gpt-6.1-sol`. Interview replies, stage checks, and follow-up reviews use
+`OPENAI_INTERVIEW_REASONING_EFFORT=low`; scorecards use
+`OPENAI_SCORECARD_REASONING_EFFORT=high`. `OPENAI_SCORECARD_MODEL` optionally
+selects a separate grader and otherwise uses `OPENAI_MODEL`. Reasoning settings
+support low, medium, high, xhigh, and max for Sol; Terra also supports none.
+Set a stable
+`INTERVIEW_RESUME_SECRET` of at least 32 characters;
 generate one locally with `openssl rand -hex 32`. Keep credentials out of source
 control and never use `NEXT_PUBLIC_` for these settings. Changing the resume
 secret invalidates old checkpoints, while already saved scorecards remain viewable.
@@ -53,7 +61,7 @@ npm run dev
 
 Open [localhost:3000](http://localhost:3000). Home shows browser-local history; Start practice opens the brief before the timer starts.
 
-Interview URLs are `/interview/<id>` and results are `/interview/<id>/results`. Old `?session=` links still work. Set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` before starting the dev server to show the 1-minute test option. History shows the latest attempt per problem for each account, across difficulties and durations. Earlier saved records remain in IndexedDB; no automatic cleanup or migration deletes them. Signing out keeps browser history. The legacy anonymous `inteliprep` database stays separate from `inteliprep:account:<id>` to avoid assigning anonymous evidence to the wrong account; an explicit import policy is future work.
+Interview URLs are `/interview/<id>` and results are `/interview/<id>/results`. Old `?session=` links still work. Set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` before starting the dev server to show the 1-minute test option. History shows the three most recent attempts for each account, with View all revealing the rest. Every saved attempt remains independently readable and editable in IndexedDB; no history view or automatic cleanup deletes them. Signing out keeps browser history. The legacy anonymous `inteliprep` database stays separate from `inteliprep:account:<id>` to avoid assigning anonymous evidence to the wrong account; an explicit import policy is future work.
 Local development uses bounded in-memory request limits and session state;
 start quotas are skipped locally unless `INTELIPREP_DEV_START_LIMITS=on`.
 Chat and grading limits still apply. This override has no effect on deployed or
@@ -113,3 +121,50 @@ without generating a model response.
 Private rubrics, prompts and credentials stay on the server. Production error
 events exclude interview content. Chat and drawing evidence still go to the model
 provider when you send an answer or generate a scorecard.
+
+Private operational reporting is at `/admin`. Setup, metric definitions, data
+coverage, exclusions, debugging references and cost estimates are documented in
+[docs/admin.md](docs/admin.md). Configure the exact server-only `ADMIN_USER_ID` and
+`SUPABASE_CONNECTION_STRING`, then run `npm run db:admin` for that database.
+
+Interviewer requests use a stable explicitly cached problem/rubric prefix, a bounded summary of older turns and the latest eight messages. The full verified transcript remains authoritative for scoring and question memory. Turn logs record latency, token usage, cache reads and reasoning tokens without candidate answers. Local settings use `OPENAI_MODEL=gpt-6.1-terra` with `OPENAI_INTERVIEW_REASONING_EFFORT=low`; grading stays `gpt-6.1-sol` / `high`. Configure the same overrides in Preview before deploying to use them there. Grading has a 120-second provider deadline, a 135-second client deadline and a 150-second route budget.
+
+The Brief sends one POST per Start click with an account-scoped client request UUID, retained across failed requests and Brief refreshes. The server replays that UUID for two hours with the original start/deadline. In the private beta, publishing the transcript, replay response and new-session quota is atomic in Redis; retries do not consume start quota. Clients predating request IDs still work but cannot deduplicate an ambiguous retry.
+
+For the one-minute local test, set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` in `.env.local`, restart `npm run dev` and reload the Brief. Select **1 minute (test)** before starting. `?debug=1` has no effect. Production bundles need rebuilding after a public environment setting changes. Local start quotas are off unless `INTELIPREP_DEV_START_LIMITS=on`; chat/model quotas stay enabled.
+
+## MockMeAI branding and domain
+
+The public product name is **MockMeAI**, with `https://mockmeai.com` as its intended
+public origin. `src/lib/brand.ts` owns the shared name, description, and domain.
+The wordmark, teal/navy theme, favicon, and Apple touch icon use the same identity.
+
+The existing GitHub, Vercel, and Supabase project names can stay as they are.
+`inteliprep` storage keys, cookies, Redis namespaces, signed-token contexts, and
+`INTELIPREP_*` environment variables are deliberately retained for compatibility.
+Rebranding does not rename databases or remove saved interviews.
+
+Before serving the app on the custom domain:
+
+- Add `mockmeai.com` to the existing Vercel project and configure the DNS records
+  Vercel supplies. Keep the current beta deployment protection policy.
+- Add `https://mockmeai.com/auth/callback` to Supabase's allowed app return URLs.
+  Set its Site URL to the custom origin when cutting over. Keep the existing
+  local and beta return URLs while they are still in use.
+- Update Google's consent-screen display name to **MockMeAI** and add
+  `https://mockmeai.com` to the OAuth client's JavaScript origins. The existing
+  Google-to-Supabase callback remains unchanged.
+
+Browser history is scoped to a website origin. Existing interviews remain on the
+original localhost or beta hostname; a new domain does not automatically import
+that hostname's IndexedDB history.
+
+## Visual theme
+
+Home and Brief use a lightweight inline SVG architecture hero, with cream content
+surfaces, navy, teal, amber and coral. `ArchitectureHero` has an accessible title
+and description, three staggered request packets and destination pulses. CSS
+animations pause in hidden tabs and become a still frame with reduced motion.
+Palette, spacing and corner tokens live in `src/app/theme.css`. Interview and
+scorecard content stays plain. [Before/after captures](artifacts/mockmeai-architecture/README.md)
+include desktop and phone views.

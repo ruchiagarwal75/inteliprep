@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ResultsMascot } from "@/components/mascot-moments";
 import { useRef, useState } from "react";
 import type { Scorecard } from "@/lib/scorecard";
 import type { Scene } from "@/lib/scene";
@@ -58,6 +59,7 @@ export function InterviewResults({
     `/interview/new?problem=${encodeURIComponent(problem ?? interview?.problemId ?? "single-server-scaling")}`;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <ResultsMascot scorecard={scorecard} ready={!busy && !closed} />
       <header className="shrink-0 space-y-3 border-b p-3">
         <h2 className="text-lg font-semibold">Interview results</h2>
         {used && (
@@ -68,7 +70,7 @@ export function InterviewResults({
         )}
         <nav className="flex flex-wrap gap-2" aria-label="Next practice">
           <Link
-            className="bg-foreground text-background rounded px-3 py-2 text-sm"
+            className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm"
             href={brief()}
           >
             Retry this problem
@@ -118,7 +120,7 @@ export function InterviewResults({
             <InterviewScorecard scorecard={scorecard} scene={scene} />
           ) : (
             <div className="p-4">
-              <p role="status">
+              <p role={error && !busy ? "alert" : "status"}>
                 {closed
                   ? "Closed without scoring. Your transcript and diagram are saved."
                   : busy
@@ -126,7 +128,7 @@ export function InterviewResults({
                     : (error ??
                       "Your interview has ended. Generate its scorecard to see feedback.")}
               </p>
-              {!closed && (
+              {!closed && !busy && (
                 <button
                   className="mt-3 rounded border px-3 py-2"
                   disabled={busy}

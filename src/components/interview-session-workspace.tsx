@@ -106,7 +106,12 @@ export function InterviewSessionWorkspace({
     library.save,
   );
   return (
-    <main className="interview-page flex h-dvh min-h-0 flex-col gap-2 overflow-hidden p-2">
+    <main
+      className={[
+        "interview-page flex h-dvh min-h-0 flex-col gap-2 overflow-hidden p-2",
+        hasEnded ? "mascot-results-page" : "mascot-working-page",
+      ].join(" ")}
+    >
       <InterviewLiveHeader
         title={
           problems.find((p) => p.problemId === interview?.problemId)?.title

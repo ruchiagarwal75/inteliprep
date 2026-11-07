@@ -125,6 +125,7 @@ export function useInterviewEnd({
         const response = await request(path, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(path.endsWith("/end") ? 135_000 : 30_000),
           body: JSON.stringify({
             ...snapshotRef.current,
             resumeToken: getResumeToken() ?? snapshotRef.current.resumeToken,
@@ -187,6 +188,7 @@ export function useInterviewEnd({
           setEndedAt(body.endedAt);
           await onSave({ hasEnded: true, endedAt: body.endedAt, resumeToken });
           onEndChange(true);
+          onEndConfirmed(true);
           continue;
         }
         const parsed = interviewEndResponseSchema.safeParse(body);

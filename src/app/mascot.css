@@ -1,0 +1,38 @@
+/* Reserve edge space throughout a page visit: the mascot never resizes the board. */
+@media (min-width: 768px) {
+  .mascot-home-page {
+    padding-left: calc(var(--space-10) + var(--space-1));
+  }
+  .mascot-working-page {
+    padding-right: var(--space-9);
+  }
+  .mascot-results-page {
+    padding-right: calc(var(--space-10) + var(--space-1));
+  }
+}
+.mascot-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 400 12px/1.4 var(--font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mascot-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--teal);
+}
+.practice-account-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 16px;
+}
+@media (max-width: 599px) {
+  .live-header .mascot-toggle {
+    font-size: 11px;
+    gap: 4px;
+  }
+}

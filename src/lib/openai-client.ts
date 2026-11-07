@@ -10,7 +10,8 @@ export class MissingApiKeyError extends Error {
 export function hasApiKey(): boolean {
   return Boolean(process.env.OPENAI_KEY);
 }
-export const interviewerModel = () => process.env.OPENAI_MODEL ?? "gpt-4o";
+export const interviewerModel = () =>
+  process.env.OPENAI_MODEL?.trim() || "gpt-6.1-sol";
 
 /** Read credentials lazily so imports remain safe during build and tests. */
 export function createOpenAIClient(): OpenAI {

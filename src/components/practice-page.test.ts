@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
 import { PracticePage } from "@/components/practice-page";
 it("gives a fresh signed-out browser Home without opening a session", async () => {
   const html = renderToStaticMarkup(await PracticePage({ view: "home" }));
-  expect(html).toContain("InteliPrep");
+  expect(html).toContain("MockMeAI");
   expect(html).toContain("Start practice");
   expect(html).toContain('href="/sign-in"');
   expect(html).not.toContain("Time left");

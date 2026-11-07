@@ -1,45 +1,69 @@
 @import "tailwindcss";
+@import "./theme.css";
+@import "./practice.css";
+@import "./practice-hero.css";
+@import "./architecture-hero.css";
+@import "./architecture-motion.css";
+@import "./practice-home.css";
+@import "./practice-brief.css";
+@import "./practice-loading.css";
+@import "./mascot.css";
+@import "./mascot-appearance.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --brand: var(--teal);
+  --brand-foreground: var(--white);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-cream: var(--cream);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --radius-sm: var(--corner-small);
+  --radius-md: var(--corner-small);
+  --radius-lg: var(--corner-large);
+  --radius-xl: var(--corner-large);
+  --radius-2xl: var(--corner-large);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--navy);
+    --foreground: var(--cream);
+    --brand: var(--teal-light);
+    --brand-foreground: var(--teal-deep);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Selecting a tool must leave the left side of the canvas available to draw. */
-[data-styles-open="false"] .excalidraw .selected-shape-actions {
+[aria-label="Whiteboard"] .excalidraw .selected-shape-actions {
   display: none;
 }
 
-[data-styles-open] .excalidraw .App-menu_top__left {
+[aria-label="Whiteboard"] .excalidraw .App-menu_top__left {
   pointer-events: none;
 }
 
-[data-styles-open] .excalidraw .App-menu_top__left > * {
+[aria-label="Whiteboard"] .excalidraw .App-menu_top__left > * {
   pointer-events: auto;
 }
 
 :where(button, a, input, summary, select, textarea):focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--brand);
   outline-offset: 3px;
 }
 html,
@@ -57,4 +81,22 @@ body {
   .interview-page {
     max-height: 100dvh;
   }
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), Georgia, serif;
+}
+.welcome-note h2 {
+  font:
+    500 1.5rem/1.4 var(--font-display),
+    Georgia,
+    serif;
+  margin-bottom: var(--space-2);
+}
+.welcome-note > p:last-child {
+  color: var(--ink-muted);
+  max-width: 640px;
+  line-height: 1.75;
 }

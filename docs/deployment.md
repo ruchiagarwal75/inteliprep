@@ -77,7 +77,10 @@ limits. See [authentication setup](authentication.md) for provider configuration
 | `NEXT_PUBLIC_SUPABASE_URL` | Public Supabase project origin for candidate sign-in |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public `sb_publishable_...` client key; never a service-role/secret key |
 | `OPENAI_KEY` | Server model-provider key for this project |
-| `OPENAI_MODEL` | Optional; existing default is `gpt-4o` |
+| `OPENAI_MODEL` | Optional; default is `gpt-6.1-sol` |
+| `OPENAI_INTERVIEW_REASONING_EFFORT` | Sol interviewer, coverage and question review effort; default `low` |
+| `OPENAI_SCORECARD_MODEL` | Optional separate grading model; defaults to `OPENAI_MODEL` |
+| `OPENAI_SCORECARD_REASONING_EFFORT` | Sol grading effort; default `high` |
 | `INTERVIEW_RESUME_SECRET` | Stable secret for browser resume tokens and rate-limit identities, at least 32 characters; generate with `openssl rand -hex 32` |
 | `UPSTASH_REDIS_REST_URL` | HTTPS Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST credential with read/write and scripting access |
@@ -133,8 +136,9 @@ expanding the tester group. Change quotas in `src/lib/request-limits.ts`.
 
 Atomic Redis operations prevent different instances bypassing quotas or running
 chat and grading concurrently for one interview. A session lock lasts three minutes
-and uses owner-checked writes/releases. Chat and grading routes have a 120-second
-Vercel maximum; each model call uses a 45-second timeout with SDK retries disabled.
+and uses owner-checked writes/releases. Chat has a 120-second Vercel maximum and
+45-second model timeout. Grading has a shared 120-second model budget, 135-second
+browser deadline, and 150-second route maximum. SDK retries remain disabled.
 See [function durations](https://vercel.com/docs/functions/configuring-functions/duration)
 and [OpenAI SDK timeouts](https://developers.openai.com/api/reference/typescript#timeouts).
 

@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 const SESSIONS = "interviews";
 const META = "meta";
 
@@ -21,7 +22,7 @@ function openDatabase(name: string): Promise<IDBDatabase> {
     request.onblocked = () => {
       blocked = true;
       reject(
-        new Error("Close other InteliPrep tabs to enable browser storage."),
+        new Error(`Close other ${BRAND.name} tabs to enable browser storage.`),
       );
     };
     request.onsuccess = () => {

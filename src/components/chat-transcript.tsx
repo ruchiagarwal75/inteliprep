@@ -53,7 +53,7 @@ export function ChatTranscript({
             className={message.role === "user" ? "text-right" : "text-left"}
           >
             <span
-              className={`inline-block max-w-[85%] rounded-lg px-3 py-2 text-left text-sm whitespace-pre-wrap ${message.role === "user" ? "bg-foreground text-background" : "bg-black/5 dark:bg-white/10"}`}
+              className={`inline-block max-w-[85%] rounded-lg px-3 py-2 text-left text-sm whitespace-pre-wrap ${message.role === "user" ? "bg-brand text-brand-foreground" : "bg-black/5 dark:bg-white/10"}`}
             >
               {(message.role === "assistant"
                 ? plainInterviewerText(message.content)

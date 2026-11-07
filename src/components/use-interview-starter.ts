@@ -17,13 +17,7 @@ export function useInterviewStarter(
   prepareReplacement: () => Promise<boolean>,
   initial: InterviewChoice,
 ) {
-  const { request } = useCandidateAccount();
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
-    // Compile the local POST route while the workspace loads, without creating a session.
-    // Next supplies OPTIONS automatically; this neither starts a timer nor uses a start quota.
-    void request("/api/interview/start", { method: "OPTIONS" }).catch(() => {});
-  }, [request]);
+  const { request, userId } = useCandidateAccount();
   const [choice, setChoice] = useState(initial);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string>();
@@ -36,6 +30,9 @@ export function useInterviewStarter(
   }, [retryAt]);
   const isLimited = retryAt > now;
   const startingRef = useRef(false);
+  const pendingStart = useRef<{ key: string; id: string } | undefined>(
+    undefined,
+  );
   async function start(next: InterviewChoice = choice, replace = false) {
     if (startingRef.current || retryAt > Date.now()) return;
     startingRef.current = true;
@@ -43,10 +40,28 @@ export function useInterviewStarter(
     setError(undefined);
     setRetryAt(0);
     setChoice(next);
+    const key = `inteliprep:pending-start:${userId}:${next.problemId}:${next.level}:${next.durationMinutes}`;
+    if (pendingStart.current?.key !== key) {
+      let saved: string | null = null;
+      try {
+        saved = sessionStorage.getItem(key);
+      } catch {}
+      pendingStart.current = {
+        key,
+        id:
+          saved && /^[0-9a-f-]{36}$/iu.test(saved)
+            ? saved
+            : crypto.randomUUID(),
+      };
+      try {
+        sessionStorage.setItem(key, pendingStart.current.id);
+      } catch {}
+    }
     let started = false;
     try {
       started = await startInterview({
         choice: next,
+        requestId: pendingStart.current.id,
         replace,
         request,
         prepareReplacement,
@@ -67,6 +82,12 @@ export function useInterviewStarter(
           : "Couldn't start the interview.",
       );
     } finally {
+      if (started) {
+        try {
+          sessionStorage.removeItem(key);
+        } catch {}
+        pendingStart.current = undefined;
+      }
       // A successful start navigates to the saved interview; keep the brief locked until it unmounts.
       if (!started) {
         startingRef.current = false;

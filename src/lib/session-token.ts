@@ -9,6 +9,7 @@ import { z } from "zod";
 import { interviewSelectionSchema } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { interviewTimingSchema } from "@/lib/interview-timer";
+import { pendingQuestionSchema } from "@/lib/open-question-queue";
 
 export const sessionCheckpointSchema = interviewSelectionSchema.extend({
   id: z.uuid(),
@@ -16,6 +17,12 @@ export const sessionCheckpointSchema = interviewSelectionSchema.extend({
   timing: interviewTimingSchema.optional(),
   phaseEnteredAt: z.iso.datetime().optional(),
   openQuestion: z.string().max(1200).optional(),
+  openQuestions: z.array(pendingQuestionSchema).max(8).optional(),
+  pendingDiagramComponents: z.array(z.string().max(1000)).max(12).optional(),
+  topicTurnCounts: z
+    .record(z.string().max(200), z.number().int().min(0).max(100))
+    .refine((value) => Object.keys(value).length <= 50)
+    .optional(),
   answeredStages: z.array(z.number().int().min(0).max(9)).max(10).optional(),
   coveredTopics: z.array(z.string().max(500)).max(40).optional(),
   phaseIndex: z.number().int().min(0).max(9),

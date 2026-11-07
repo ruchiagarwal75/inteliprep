@@ -1,0 +1,249 @@
+.brief-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 288px;
+  gap: var(--space-4);
+}
+.practice-setup {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--paper-line);
+  margin-bottom: var(--space-3);
+}
+.practice-setup > section {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+.practice-setup form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--space-2);
+  align-items: end;
+}
+.practice-setup label {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--ink-muted);
+  font: 500 0.75rem/1.5 var(--font-ui);
+}
+.practice-setup label::after {
+  content: "";
+  width: var(--space-1);
+  height: var(--space-1);
+  border-right: 1.5px solid var(--ink-muted);
+  border-bottom: 1.5px solid var(--ink-muted);
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-3);
+  transform: translateY(50%) rotate(45deg);
+  pointer-events: none;
+}
+.practice-setup select {
+  appearance: none;
+  width: 100%;
+  min-height: var(--space-6);
+  border-radius: var(--corner-small);
+  border: 1px solid var(--control-line);
+  background: var(--cream-raised);
+  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-2);
+  font: 500 0.875rem/1.5 var(--font-ui);
+  color: var(--ink);
+  cursor: pointer;
+}
+.practice-setup select:focus-visible {
+  outline-color: var(--teal);
+}
+.practice-setup select:disabled {
+  cursor: wait;
+}
+.problem-card {
+  border: 1px solid var(--paper-line);
+  border-radius: var(--corner-small);
+  background: var(--cream-raised);
+  padding: var(--space-3);
+}
+.problem-card h2 {
+  font:
+    500 1.5rem/1.3 var(--font-display),
+    Georgia,
+    serif;
+  margin-bottom: var(--space-2);
+}
+.problem-card p {
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+.brief-tips {
+  padding-top: var(--space-1);
+}
+.brief-tips h2 {
+  font:
+    500 1.25rem/1.4 var(--font-display),
+    Georgia,
+    serif;
+  margin-bottom: var(--space-3);
+}
+.brief-tips ul {
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+.tip-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+.tip-icon {
+  color: var(--teal-deep);
+  background: var(--teal-soft);
+  padding: var(--space-1);
+  border-radius: var(--corner-small);
+  flex-shrink: 0;
+}
+.tip-row h3 {
+  font: 600 0.875rem/1.5 var(--font-ui);
+  margin-bottom: var(--space-1);
+}
+.tip-row p {
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+}
+.brief-start {
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--paper-line);
+  padding-top: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.practice-journey {
+  border-top: 1px solid var(--paper-line);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+}
+.practice-journey .section-heading {
+  margin-bottom: var(--space-2);
+}
+.practice-journey h2 {
+  font-size: 1.25rem;
+}
+.house-stepper {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+  position: relative;
+  gap: var(--space-2);
+}
+.house-stepper::before {
+  content: "";
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  top: var(--space-3);
+  height: 1px;
+  background: var(--paper-line);
+}
+.house-stepper li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.house-stepper .house-icon {
+  background: var(--cream);
+  padding-inline: var(--space-1);
+  width: var(--space-7);
+  height: var(--space-6);
+}
+.house-window {
+  fill: var(--paper-line);
+}
+.is-lit .house-window {
+  fill: var(--amber);
+}
+.house-stepper [aria-current="step"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.step-number {
+  display: block;
+  font: 400 0.6875rem/1.6 var(--font-ui);
+  color: var(--ink-muted);
+}
+@media (max-width: 1100px) {
+  .brief-layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: var(--space-3);
+  }
+}
+@media (max-width: 899px) {
+  .brief-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .brief-tips ul {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .tip-row {
+    flex-direction: column;
+  }
+}
+@media (max-width: 599px) {
+  .practice-setup form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .practice-setup label:first-child {
+    grid-column: 1 / -1;
+  }
+  .problem-card {
+    padding: var(--space-2);
+  }
+  .problem-card h2 {
+    font-size: 1.25rem;
+  }
+  .brief-tips ul {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  .tip-row {
+    flex-direction: row;
+  }
+  .brief-tips h2 {
+    margin-bottom: var(--space-2);
+  }
+  .house-stepper {
+    gap: 0;
+  }
+  .house-stepper li {
+    font-size: 0.625rem;
+  }
+  .house-stepper .house-icon {
+    width: var(--space-6);
+  }
+  .practice-journey .section-heading > .practice-muted {
+    display: none;
+  }
+  .brief-start {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .brief-start .practice-primary {
+    width: 100%;
+  }
+}
+
+.is-lit .house-window {
+  stroke: var(--amber-ink);
+  stroke-width: 0.5;
+}

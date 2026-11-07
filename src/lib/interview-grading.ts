@@ -1,10 +1,11 @@
+import { observedModelRequest } from "@/lib/observed-model-request";
 import "server-only";
-import { APIError } from "openai";
+import { APIError, APIConnectionTimeoutError } from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { InterviewLevel } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { listProblems, type ProblemDefinition } from "@/lib/problems";
-import { createOpenAIClient, interviewerModel } from "@/lib/openai-client";
+import { modelSettings } from "@/lib/model-settings";
 import { gradingAssessmentSchema } from "@/lib/scorecard";
 import { candidateQuotes } from "@/lib/scorecard-quotes";
 import {
@@ -18,6 +19,8 @@ import { repairGradingAssessment } from "@/lib/grading-repair";
 import { areaWasExplored } from "@/lib/grading-opportunity";
 import { boundedModelRequest } from "@/lib/model-request";
 import { auditDiagram } from "@/lib/diagram-audit";
+import { GradingOutputError, gradingFailureKind } from "@/lib/grading-failure";
+import { logServerEvent } from "@/lib/server-events";
 
 const GRADING_INSTRUCTIONS = [
   "Compare the final diagram with the full transcript and supplied diagram_consistency audit. Respect later corrections: a resolved PostgreSQL/Cassandra conflict is a clarified design choice, not an unresolved gap. Account for described components missing from the board, including a load balancer. The server displays the audit once in its own section: never repeat generic diagram-consistency boilerplate in each area's rationale. The text graph is the source of truth; the image is supporting evidence.",
@@ -103,11 +106,15 @@ export async function gradeInterview(
     })),
   });
   let correction = "";
+  const deadline = Date.now() + 120_000;
   for (let attempt = 0; ; attempt++) {
+    const startedAt = Date.now();
     try {
-      const response = await createOpenAIClient().responses.create(
+      if (Date.now() >= deadline) throw new APIConnectionTimeoutError();
+      const response = await observedModelRequest(
+        "feedback",
         boundedModelRequest({
-          model: interviewerModel(),
+          ...modelSettings("feedback"),
           instructions: GRADING_INSTRUCTIONS + correction,
           input: [
             {
@@ -124,8 +131,6 @@ export async function gradeInterview(
                 : text,
             },
           ],
-          temperature: 0,
-          max_output_tokens: 5_000,
           text: {
             format: zodTextFormat(
               gradingAssessmentSchema,
@@ -133,23 +138,57 @@ export async function gradeInterview(
             ),
           },
         }),
-        { signal, timeout: 45_000, maxRetries: 0 },
+        { signal, timeout: Math.max(1, deadline - Date.now()), maxRetries: 0 },
       );
+      logServerEvent({
+        event: "grading_attempt",
+        route: "/api/interview/end",
+        durationMs: Date.now() - startedAt,
+        attempt: attempt + 1,
+        model: response.model,
+        kind: response.status,
+        inputTokens: response.usage?.input_tokens,
+        outputTokens: response.usage?.output_tokens,
+      });
+      if (
+        response.output?.some(
+          (item) =>
+            item.type === "message" &&
+            item.content.some((part) => part.type === "refusal"),
+        )
+      )
+        throw new GradingOutputError("refusal");
       if (response.status !== "completed")
-        throw new Error("Grading did not complete");
+        throw new GradingOutputError(
+          response.incomplete_details?.reason === "max_output_tokens"
+            ? "truncated_output"
+            : "provider_output_failure",
+        );
       signal?.throwIfAborted();
-      return validateScorecard(
-        problem,
-        level,
-        snapshot,
-        endedAt,
-        repairGradingAssessment(
+      try {
+        return validateScorecard(
           problem,
+          level,
           snapshot,
-          JSON.parse(response.output_text),
-        ),
-      );
+          endedAt,
+          repairGradingAssessment(
+            problem,
+            snapshot,
+            JSON.parse(response.output_text),
+          ),
+        );
+      } catch (cause) {
+        if (cause instanceof SyntaxError) throw cause;
+        throw new GradingOutputError("schema_validation");
+      }
     } catch (cause) {
+      logServerEvent({
+        event: "grading_attempt",
+        route: "/api/interview/end",
+        durationMs: Date.now() - startedAt,
+        attempt: attempt + 1,
+        kind: gradingFailureKind(cause),
+      });
       if (signal?.aborted || cause instanceof APIError || attempt >= 1)
         throw cause;
       correction =

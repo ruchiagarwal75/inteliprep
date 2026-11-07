@@ -1,15 +1,17 @@
 import "server-only";
 import { APIError } from "openai";
-import { AsyncLocalStorage } from "node:async_hooks";
-
-const context = new AsyncLocalStorage<{ requestId: string; route: string }>();
+import {
+  reportingContext,
+  withReportingContext,
+} from "@/lib/reporting-context";
+import { captureLoggedFailure } from "@/lib/reporting-failures";
 
 export function withServerContext<T>(
   requestId: string,
   route: string,
   work: () => T,
 ): T {
-  return context.run({ requestId, route }, work);
+  return withReportingContext({ requestId, route }, work);
 }
 
 type Event = {
@@ -19,6 +21,9 @@ type Event = {
     | "chat_stream_failure"
     | "chat_reply_complete"
     | "grading_failure"
+    | "grading_attempt"
+    | "grading_complete"
+    | "model_call_complete"
     | "stage_assessment_failure"
     | "model_retry"
     | "model_test_fault"
@@ -31,17 +36,26 @@ type Event = {
   durationMs?: number;
   kind?: string;
   fingerprint?: string;
+  attempt?: number;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  cachedTokens?: number;
+  reasoningTokens?: number;
 };
 
 /** A strict allowlist: never serialize errors, messages, stacks, headers or request bodies. */
 export function logServerEvent(event: Event, cause?: unknown): void {
   const record = {
     timestamp: new Date().toISOString(),
-    ...context.getStore(),
+    ...reportingContext(),
     ...event,
     ...(cause instanceof APIError ? { providerStatus: cause.status } : {}),
-    ...(cause instanceof Error ? { errorType: safeErrorType(cause.name) } : {}),
+    ...(cause instanceof Error
+      ? { errorType: safeErrorType(cause.constructor.name) }
+      : {}),
   };
+  captureLoggedFailure(event, cause);
   const line = JSON.stringify(record);
   if (event.event.includes("failure")) console.error(line);
   else console.info(line);
@@ -56,6 +70,12 @@ function safeErrorType(name: string): string {
     "APIError",
     "APIConnectionError",
     "APIConnectionTimeoutError",
+    "APIUserAbortError",
+    "InternalServerError",
+    "BadRequestError",
+    "AuthenticationError",
+    "PermissionDeniedError",
+    "RateLimitError",
     "BetaUnavailableError",
   ].includes(name)
     ? name

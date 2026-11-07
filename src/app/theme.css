@@ -1,0 +1,56 @@
+:root {
+  /* Palette: a night sky, warm paper, evergreen ink and lamplight. */
+  --navy: #0b1220;
+  --navy-soft: #142636;
+  --navy-line: #435563;
+  --cream: #f4f1ea;
+  --cream-raised: #fcfaf5;
+  --amber: #f5b94a;
+  --amber-soft: #f6e3b4;
+  --amber-ink: #62420e;
+  --teal: #0f766e;
+  --teal-deep: #0a554f;
+  --teal-light: #5eead4;
+  --teal-soft: #dcebe5;
+  --ink: #182d36;
+  --ink-muted: #52636b;
+  --paper-line: #d4d8d0;
+  --control-line: #788984;
+  --white: #ffffff;
+  --danger: #9b352c;
+  --arch-panel: #141c30;
+  --arch-grid: #2a3b63;
+  --arch-line: #3a4f7c;
+  --arch-server: #22335a;
+  --arch-server-stroke: #4a6598;
+  --arch-amber: #f5b94a;
+  --arch-coral: #ff8a6b;
+  --arch-teal: #5eead4;
+  --arch-db: #2fb5a3;
+  --arch-db-top: #7fe3d3;
+  --arch-cream: #f6efe0;
+  --arch-label: #a8b5d1;
+  --arch-moon: #f6e3b4;
+  --arch-radius: 12px;
+  --mascot-hair: #263044;
+  --mascot-skin: #e5ad86;
+  --mascot-cheek: #cc7d68;
+  --transparent: transparent;
+
+  /* Layout spacing is an eight-pixel rhythm. */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-7: 56px;
+  --space-8: 64px;
+  --space-9: 72px;
+  --space-10: 80px;
+  --space-12: 96px;
+  --corner-small: 8px;
+  --corner-large: 24px;
+  --page-width: 1168px;
+  --font-ui: var(--font-geist-sans), sans-serif;
+}

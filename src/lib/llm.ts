@@ -1,3 +1,4 @@
+import { observedModelRequest } from "@/lib/observed-model-request";
 import { hasAsk, invitesDrawing } from "@/lib/open-question";
 import { selectReviewProbe } from "@/lib/review-probes";
 import { trimAcknowledgements } from "@/lib/question-memory";
@@ -22,10 +23,14 @@ import {
   EXPLANATION_WAIT_REPLY,
 } from "@/lib/drawing-reply";
 
-import { createOpenAIClient, interviewerModel } from "@/lib/openai-client";
+import { modelSettings } from "@/lib/model-settings";
 import { reviewQuestion } from "@/lib/review-question";
 import { requestedReviewTopic } from "@/lib/review-probes";
 import { boundedModelMessages } from "@/lib/model-budget";
+import { olderTurnSummary } from "@/lib/model-budget";
+import { interviewerState } from "@/lib/interviewer-state";
+import { diagramUpdateClause } from "@/lib/pending-diagram-components";
+import { discussionReply } from "@/lib/discussion-reply";
 import { boundedModelRequest } from "@/lib/model-request";
 import { isOffTopicRequest, DESIGN_REDIRECT } from "@/lib/off-topic";
 import { injectDevelopmentModelFailure } from "@/lib/development-model-fault";
@@ -76,6 +81,9 @@ async function* rawInterviewerReply(
   const requirementProposal = Boolean(
     latestCandidate && isRequirementProposal(latestCandidate.content),
   );
+  const modernModel = /^gpt-6\.1-(?:sol|terra)(?:-|$)/u.test(
+    modelSettings("reply").model,
+  );
   const clarification =
     interview &&
     latestCandidate &&
@@ -96,7 +104,7 @@ async function* rawInterviewerReply(
       : interview,
     messages,
   );
-  if (focusedReview && interview && requestedTopic) {
+  if (focusedReview && interview && requestedTopic && !modernModel) {
     signal?.throwIfAborted();
     yield await reviewQuestion("", messages, interview, signal);
     return;
@@ -123,6 +131,16 @@ async function* rawInterviewerReply(
         : DRAWING_WAIT_REPLY;
     return;
   }
+  if (focusedReview && interview && modernModel && !interview.reviewQuestion) {
+    injectDevelopmentModelFailure();
+    yield await discussionReply(
+      messages,
+      interview,
+      { summary: diagramText, changes: changeText, image: diagramImage },
+      signal,
+    );
+    return;
+  }
   if (interview?.reviewQuestion) {
     signal?.throwIfAborted();
     yield step === "drawing" || step === "explaining"
@@ -140,23 +158,56 @@ async function* rawInterviewerReply(
     return;
   }
   injectDevelopmentModelFailure();
-  const stream = await createOpenAIClient().responses.create(
+  const stream = await observedModelRequest(
+    "reply",
     boundedModelRequest({
-      model: interviewerModel(),
-      max_output_tokens: 800,
-      instructions: interview
-        ? buildInterviewInstructions({
-            ...interview,
-            requirementProposal,
-            focusedReview,
-          })
-        : INTERVIEWER_INSTRUCTIONS,
-      input: buildInterviewerInput(
-        modelMessages,
-        diagramText,
-        changeText,
-        diagramImage,
-      ),
+      ...modelSettings("reply"),
+      instructions:
+        interview && modernModel
+          ? buildInterviewInstructions({
+              problem: interview.problem,
+              level: interview.level,
+            })
+          : interview
+            ? buildInterviewInstructions({
+                ...interview,
+                requirementProposal,
+                focusedReview,
+              })
+            : INTERVIEWER_INSTRUCTIONS,
+      input: [
+        ...(interview && modernModel
+          ? [
+              {
+                role: "developer" as const,
+                content: interviewerState({
+                  ...interview,
+                  requirementProposal,
+                  focusedReview,
+                }),
+              },
+            ]
+          : []),
+        ...(modernModel && olderTurnSummary(messages, modelMessages).length
+          ? [
+              {
+                role: "user" as const,
+                content: JSON.stringify({
+                  untrusted_earlier_turn_excerpts: olderTurnSummary(
+                    messages,
+                    modelMessages,
+                  ),
+                }),
+              },
+            ]
+          : []),
+        ...buildInterviewerInput(
+          modelMessages,
+          diagramText,
+          changeText,
+          diagramImage,
+        ),
+      ],
       stream: true,
     }),
     { signal },
@@ -256,8 +307,8 @@ async function* rawInterviewerReply(
     else if (!reply && clarifying && step === "discussion")
       yield interview?.mayInviteDrawing !== false
         ? (interview?.problem.drawingPolicy.invitation ??
-          "Please choose Skip to drawing when ready.")
-        : "Please review your requirements and choose Skip to drawing when you are ready.";
+          "Please choose Start drawing when ready.")
+        : "Please review your requirements and choose Start drawing when you are ready.";
     else if (!reply)
       yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
   }
@@ -271,6 +322,15 @@ export async function* streamInterviewerReply(
   for await (const part of rawInterviewerReply(...args)) reply += part;
   const interview = args[5];
   reply = trimAcknowledgements(reply);
+  if (interview?.diagramUpdates?.length)
+    reply = `${diagramUpdateClause(interview.diagramUpdates)} ${reply}`;
+  if (
+    interview?.openQuestions?.length &&
+    !interview.reviewQuestion &&
+    interview.progress?.step === "review" &&
+    isFactualQuestion(args[0].findLast((m) => m.role === "user")?.content ?? "")
+  )
+    reply = `${withoutQuestions(reply).trim()}\n\n${interview.openQuestions[0].question}`;
   if (interview && invitesDrawing(reply)) {
     // Canonical wording also makes the client and next server turn recognize the handoff.
     if (!reply.includes(interview.problem.drawingPolicy.invitation))
@@ -295,7 +355,7 @@ export async function* streamInterviewerReply(
       yield "\n\n" +
         (unasked
           ? pending
-          : "Please review your requirements and choose Skip to drawing when you are ready.");
+          : "Please review your requirements and choose Start drawing when you are ready.");
       return;
     }
     yield "\n\n" +

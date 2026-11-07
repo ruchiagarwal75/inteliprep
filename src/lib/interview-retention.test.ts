@@ -65,7 +65,7 @@ async function rawRecords(
     };
   });
 }
-it("shows the latest attempt while preserving the entire earlier saved record", async () => {
+it("lists and preserves every attempt and its complete saved record", async () => {
   const store = createInterviewStorage(user);
   const old = { ...attempt(1), hasEnded: true, scorecard: scorecardFixture() };
   const next = {
@@ -82,9 +82,9 @@ it("shows the latest attempt while preserving the entire earlier saved record", 
   expect(await store.readInterview(next.id)).toEqual(next);
   expect(await store.activeInterviewId()).toBe(next.id);
   expect(await rawRecords()).toEqual(expect.arrayContaining([old, next]));
-  expect(await createInterviewStorage(user).listInterviews()).toHaveLength(1);
+  expect(await createInterviewStorage(user).listInterviews()).toHaveLength(2);
 });
-it("filters version-1 duplicates without deleting valid or unreadable saved records", async () => {
+it("reads version-1 attempts without deleting valid or unreadable saved records", async () => {
   const old = attempt(1),
     latest = attempt(3),
     other = attempt(2, "url-shortener");
@@ -94,15 +94,16 @@ it("filters version-1 duplicates without deleting valid or unreadable saved reco
   expect((await store.listInterviews()).map((row) => row.id)).toEqual([
     latest.id,
     other.id,
+    old.id,
   ]);
-  expect(await store.activeInterviewId()).toBe(latest.id);
+  expect(await store.activeInterviewId()).toBe(old.id);
   expect(await rawRecords()).toEqual(
     expect.arrayContaining([old, latest, other, corrupt]),
   );
   expect(await rawRecords()).toHaveLength(4);
   await expect(store.readInterview(corrupt.id)).rejects.toThrow("retained");
 });
-it("does not let stale autosaves or late scorecards revive the old copy", async () => {
+it("saves an older attempt independently, including a late scorecard", async () => {
   const tabA = createInterviewStorage(user),
     tabB = createInterviewStorage(user);
   const old = attempt(1),
@@ -115,16 +116,12 @@ it("does not let stale autosaves or late scorecards revive the old copy", async 
     old.whiteboard,
   );
   late.updatedAt = "2030-01-01T00:00:00.000Z";
-  await expect(tabA.saveInterview(late, old.revision)).rejects.toBeInstanceOf(
-    InterviewStorageConflict,
-  );
-  await expect(tabA.saveInterview(late)).rejects.toBeInstanceOf(
-    InterviewStorageConflict,
-  );
+  await tabA.saveInterview(late, old.revision);
+  expect(await tabA.readInterview(old.id)).toEqual(late);
   expect(await tabB.readInterview(latest.id)).toEqual(latest);
-  expect(await tabB.listInterviews()).toHaveLength(1);
+  expect(await tabB.listInterviews()).toHaveLength(2);
 });
-it("serializes concurrent tab saves and retains the newest created attempt", async () => {
+it("serializes concurrent saves without dropping either attempt", async () => {
   const older = attempt(1),
     newer = attempt(2);
   const results = await Promise.allSettled([
@@ -132,8 +129,8 @@ it("serializes concurrent tab saves and retains the newest created attempt", asy
     createInterviewStorage(user).saveInterview(older),
   ]);
   expect(results[0].status).toBe("fulfilled");
-  expect(results[1].status).toBe("rejected");
-  expect(await rawRecords()).toEqual([newer]);
+  expect(results[1].status).toBe("fulfilled");
+  expect(await rawRecords()).toEqual(expect.arrayContaining([older, newer]));
 });
 it("rolls back the new attempt and pruning together if a replacement cannot be written", async () => {
   const store = createInterviewStorage(user),
@@ -163,7 +160,7 @@ it("rolls back the new attempt and pruning together if a replacement cannot be w
   expect(await store.activeInterviewId()).toBe(old.id);
   expect(await rawRecords()).toEqual([old]);
 });
-it("does not resurrect a deleted attempt or its predecessor, but permits a newer retake", async () => {
+it("only tombstones the explicitly deleted attempt, keeping previous attempts usable", async () => {
   const store = createInterviewStorage(user),
     old = attempt(1),
     latest = attempt(2),
@@ -171,14 +168,12 @@ it("does not resurrect a deleted attempt or its predecessor, but permits a newer
   await store.saveInterview(old);
   await store.saveInterview(latest);
   await store.deleteInterview(latest.id);
-  await expect(store.saveInterview(old)).rejects.toBeInstanceOf(
-    InterviewStorageConflict,
-  );
+  await store.saveInterview(old);
   await expect(store.saveInterview(latest)).rejects.toBeInstanceOf(
     InterviewStorageConflict,
   );
-  expect(await store.listInterviews()).toEqual([]);
-  expect(await store.activeInterviewId()).toBeUndefined();
+  expect((await store.listInterviews()).map((e) => e.id)).toEqual([old.id]);
+  expect(await store.activeInterviewId()).toBe(old.id);
   await store.saveInterview(next);
   expect(await rawRecords()).toEqual(expect.arrayContaining([old, next]));
 });
@@ -194,7 +189,7 @@ it("keeps different problems and different accounts independent", async () => {
   await alice.saveInterview(next);
   expect((await alice.listInterviews()).map((row) => row.id)).toEqual([
     next.id,
-    other.id,
+    ...[old, other].sort((a, b) => a.id.localeCompare(b.id)).map((e) => e.id),
   ]);
   expect(await bob.readInterview(old.id)).toEqual(old);
   expect(await bob.listInterviews()).toHaveLength(1);

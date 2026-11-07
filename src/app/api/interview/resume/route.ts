@@ -1,3 +1,5 @@
+import { trackCurrentInterview } from "@/lib/interview-tracking";
+import { setInterviewReference } from "@/lib/reporting-context";
 import { interviewResumeRequestSchema } from "@/lib/interview-resume";
 import {
   interviewSessionCheckpoint,
@@ -23,6 +25,7 @@ async function resume(request: Request): Promise<Response> {
       { error: "Unknown interview problem" },
       { status: 404 },
     );
+  setInterviewReference(parsed.data.sessionId);
   const shared = await openSharedSession(
     parsed.data.sessionId,
     parsed.data,
@@ -41,6 +44,7 @@ async function resume(request: Request): Promise<Response> {
         false,
         "INTERVIEW_CONFIGURATION_CHANGED",
       );
+    await trackCurrentInterview(parsed.data.sessionId);
     assertTranscriptAvailable(parsed.data.sessionId);
     const session = getCachedSession(parsed.data.sessionId);
     const messages = session?.transcript

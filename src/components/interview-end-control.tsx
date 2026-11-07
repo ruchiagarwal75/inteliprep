@@ -68,6 +68,7 @@ export function InterviewEndControl({
       {interview &&
         !ending.scorecard &&
         !closure.closed &&
+        (!hasEnded || recoveryFailure) &&
         (recoveryFailure || !timeExpired || hasEnded) && (
           <button
             type="button"

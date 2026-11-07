@@ -1,8 +1,13 @@
+import { trackInterview } from "@/lib/interview-tracking";
+import { setInterviewReference } from "@/lib/reporting-context";
 import { interviewStartRequestSchema } from "@/lib/interview-selection";
-import { createInterviewStart, getProblem } from "@/lib/problems";
+import { getProblem } from "@/lib/problems";
 import { InterviewSessionError } from "@/lib/interview-sessions";
 import { readJsonBody, withApiRequest } from "@/lib/api-request";
-import { publishNewSession } from "@/lib/shared-interview-session";
+import {
+  idempotentInterviewStart,
+  InterviewStartLimit,
+} from "@/lib/idempotent-interview-start";
 
 export const runtime = "nodejs";
 
@@ -23,20 +28,33 @@ async function start(request: Request): Promise<Response> {
       { status: 404 },
     );
   try {
-    const interview = createInterviewStart(
+    const { interview, created, record } = await idempotentInterviewStart(
+      request,
       problem,
       parsed.data.level,
       parsed.data.durationMinutes,
+      parsed.data.requestId,
     );
-    await publishNewSession(interview.sessionId);
+    setInterviewReference(
+      interview.sessionId,
+      interview.timing?.durationMinutes === 1,
+    );
+    if (created && record) await trackInterview(record, { started: true });
     return Response.json(interview, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (cause) {
+    if (cause instanceof InterviewStartLimit)
+      return Response.json(
+        { error: cause.message },
+        { status: 429, headers: { "Retry-After": String(cause.retryAfter) } },
+      );
     if (cause instanceof InterviewSessionError)
       return Response.json({ error: cause.message }, { status: cause.status });
     throw cause;
   }
 }
 
-export const POST = withApiRequest("start", "/api/interview/start", start);
+export const POST = withApiRequest("start", "/api/interview/start", start, {
+  deferLimit: true,
+});

@@ -11,6 +11,7 @@ import { withDiagramConsistency } from "@/lib/scorecard-diagram";
 import { withSessionContext } from "@/lib/scorecard-calibration";
 import { BetaUnavailableError } from "@/lib/beta-config";
 import { logServerEvent } from "@/lib/server-events";
+import { gradingFailureKind } from "@/lib/grading-failure";
 
 export class InterviewGradingError extends Error {
   constructor(
@@ -39,6 +40,7 @@ export async function endInterview(
     },
     request.resumeToken,
   );
+  const startedAt = Date.now();
   try {
     await onFrozen?.();
     if (lease.scorecard) return lease.scorecard;
@@ -59,11 +61,21 @@ export async function endInterview(
     );
     signal?.throwIfAborted();
     lease.complete(scorecard);
+    logServerEvent({
+      event: "grading_complete",
+      route: "/api/interview/end",
+      durationMs: Date.now() - startedAt,
+    });
     return scorecard;
   } catch (cause) {
     // Log a diagnostic code, never provider headers, credentials, or evidence.
     logServerEvent(
-      { event: "grading_failure", route: "/api/interview/end" },
+      {
+        event: "grading_failure",
+        route: "/api/interview/end",
+        kind: gradingFailureKind(cause),
+        durationMs: Date.now() - startedAt,
+      },
       cause,
     );
     if (cause instanceof BetaUnavailableError) throw cause;

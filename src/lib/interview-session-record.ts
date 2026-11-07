@@ -30,6 +30,9 @@ export function exportSessionRecord(id: string): SharedSessionRecord {
       timing,
       phaseEnteredAt: session.phaseEnteredAt,
       openQuestion: session.openQuestion,
+      openQuestions: session.openQuestions,
+      pendingDiagramComponents: session.pendingDiagramComponents,
+      topicTurnCounts: session.topicTurnCounts,
       answeredStages: session.answeredStages,
       coveredTopics: session.coveredTopics,
       ending: ending

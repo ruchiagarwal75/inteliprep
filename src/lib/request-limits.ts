@@ -56,19 +56,7 @@ for i, key in ipairs(KEYS) do
 end
 return 0`;
 
-export async function checkRequestLimit(
-  request: Request,
-  kind: RequestKind,
-): Promise<number> {
-  // Local start quotas can be enabled explicitly for UI testing. Model-call limits remain active.
-  if (
-    kind === "start" &&
-    process.env.NODE_ENV === "development" &&
-    process.env.VERCEL !== "1" &&
-    !isPrivateBeta() &&
-    process.env.INTELIPREP_DEV_START_LIMITS !== "on"
-  )
-    return 0;
+export function requestLimitWindows(request: Request, kind: RequestKind) {
   const identity = requestIdentity(request);
   const prefix = `${redisNamespace()}:limit:${kind}:${identity}`;
   const windows: { key: string; limit: number; ms: number }[] = [
@@ -89,6 +77,23 @@ export async function checkRequestLimit(
       limit: 2_000,
       ms: 86_400_000,
     });
+  return windows;
+}
+
+export async function checkRequestLimit(
+  request: Request,
+  kind: RequestKind,
+): Promise<number> {
+  // Local start quotas can be enabled explicitly for UI testing. Model-call limits remain active.
+  if (
+    kind === "start" &&
+    process.env.NODE_ENV === "development" &&
+    process.env.VERCEL !== "1" &&
+    !isPrivateBeta() &&
+    process.env.INTELIPREP_DEV_START_LIMITS !== "on"
+  )
+    return 0;
+  const windows = requestLimitWindows(request, kind);
   if (isPrivateBeta()) {
     const result = await redisCommand([
       "EVAL",
@@ -119,4 +124,12 @@ export async function checkRequestLimit(
     counters.set(key, counter);
   }
   return 0;
+}
+
+/** A local creation failure must not consume a real-session quota. */
+export function refundLocalStartLimit(request: Request) {
+  for (const { key } of requestLimitWindows(request, "start")) {
+    const counter = counters.get(key);
+    if (counter) counter.count = Math.max(0, counter.count - 1);
+  }
 }

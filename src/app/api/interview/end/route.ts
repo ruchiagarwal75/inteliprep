@@ -1,3 +1,5 @@
+import { trackCurrentInterview } from "@/lib/interview-tracking";
+import { setInterviewReference } from "@/lib/reporting-context";
 import { interviewEndRequestSchema } from "@/lib/interview-end";
 import { endInterview, InterviewGradingError } from "@/lib/end-interview";
 import {
@@ -11,7 +13,7 @@ import { verifiedEndMessages } from "@/lib/interview-transcript";
 import { getProblem } from "@/lib/problems";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 150;
 
 async function end(request: Request): Promise<Response> {
   const body = await readJsonBody(request, 4_000_000);
@@ -28,6 +30,7 @@ async function end(request: Request): Promise<Response> {
       { error: "Unknown interview problem" },
       { status: 404 },
     );
+  setInterviewReference(parsed.data.sessionId);
   const shared = await openSharedSession(
     parsed.data.sessionId,
     parsed.data,
@@ -48,9 +51,13 @@ async function end(request: Request): Promise<Response> {
         ),
       },
       request.signal,
-      shared.persist,
+      async () => {
+        await shared.persist();
+        await trackCurrentInterview(parsed.data.sessionId, { grading: true });
+      },
     );
     await shared.persist();
+    await trackCurrentInterview(parsed.data.sessionId);
     return Response.json(
       {
         ended: true,

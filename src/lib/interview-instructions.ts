@@ -9,6 +9,7 @@ import {
 import type { PhaseConfig } from "@/lib/phase-config";
 import type { QuestionMemory } from "@/lib/question-memory";
 import { stageProbes } from "@/lib/review-probes";
+import type { PendingQuestion } from "@/lib/open-question-queue";
 
 export type InterviewContext = {
   problem: ProblemDefinition;
@@ -23,6 +24,12 @@ export type InterviewContext = {
   explanationMissing?: boolean;
   mayInviteDrawing?: boolean;
   questionMemory?: QuestionMemory;
+  openQuestions?: PendingQuestion[];
+  diagramQuestion?: string;
+  answeredQuestionIds?: string[];
+  diagramUpdates?: string[];
+  selectedTopic?: string;
+  allowedFollowUps?: { id: string; question: string }[];
 };
 
 /** Reattach trusted problem context to every provider call, outside user input. */

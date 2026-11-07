@@ -41,7 +41,7 @@ export const SIGNAL_LABELS: Record<
   no: "No",
   yes: "Yes",
   strong_yes: "Strong yes",
-  insufficient_evidence: "Not enough evidence for an overall signal",
+  insufficient_evidence: "Too short to score",
 };
 
 const findingSchema = z.object({

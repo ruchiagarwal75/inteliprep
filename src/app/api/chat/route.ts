@@ -1,3 +1,7 @@
+import { trackCurrentInterview } from "@/lib/interview-tracking";
+import { setInterviewReference } from "@/lib/reporting-context";
+import { getCachedSession } from "@/lib/interview-session-store";
+import { hasExplanation } from "@/lib/open-question";
 import {
   chatError as error,
   upstreamChatError as upstreamError,
@@ -39,6 +43,7 @@ async function chat(request: Request, requestId: string): Promise<Response> {
   const problem = getProblem(parsed.data.problemId);
   if (!problem) return error("Unknown interview problem", 404);
 
+  setInterviewReference(parsed.data.sessionId);
   if (!hasApiKey()) {
     return error("Server is missing OPENAI_KEY", 500);
   }
@@ -71,6 +76,19 @@ async function chat(request: Request, requestId: string): Promise<Response> {
   const data = conversation.request;
   if (!data) throw new ApiRequestError("Invalid candidate turn", 400);
 
+  setInterviewReference(
+    parsed.data.sessionId,
+    getCachedSession(parsed.data.sessionId)?.timing?.durationMinutes === 1,
+  );
+  const latest = data.messages.at(-1);
+  await trackCurrentInterview(parsed.data.sessionId, {
+    activity: {
+      firstResponse:
+        latest?.source !== "control" && Boolean(latest?.content.trim()),
+      designPresented:
+        latest?.action === "review" && hasExplanation(data.messages),
+    },
+  });
   const replyStartedAt = Date.now();
   const graph = sceneToGraph(data.scene);
   const diagramText = graphToText(graph);
@@ -137,12 +155,10 @@ async function chat(request: Request, requestId: string): Promise<Response> {
     return completion;
   };
   if (process.env.NODE_ENV === "development") {
-    console.log("[chat] Current whiteboard diagram:\n%s", diagramText);
-    console.log("[chat] Whiteboard changes:\n%s", changeText);
-    console.log(
-      "[chat] Whiteboard image: %s",
-      data.diagramImage ? "attached" : "not attached",
-    );
+    console.log("[chat] Whiteboard metadata", {
+      elementCount: data.scene?.elements.length ?? 0,
+      hasImage: Boolean(data.diagramImage),
+    });
     console.log("[chat] Interview step: %s", turn.context.progress.step);
     if (turn.phase) console.log("[chat] Interview stage: %s", turn.phase.title);
   }

@@ -27,7 +27,7 @@ import {
 import { logServerEvent } from "@/lib/server-events";
 
 const TTL_SECONDS = 7_200;
-const LOCK_MS = 180_000; // Longer than the route's 120-second hard limit.
+const LOCK_MS = 180_000; // Longer than the route's 150-second ceiling.
 const SAVE_SCRIPT = `
 if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
 redis.call('SET', KEYS[2], ARGV[2], 'EX', ARGV[3])
@@ -152,18 +152,26 @@ export async function openSharedSession(
     localOwner = getCachedSession(id);
     const before = exportSessionRecord(id);
     const save = async (record: string) => {
-      if (released) throw new BetaUnavailableError();
-      const result = await redisCommand([
-        "EVAL",
-        SAVE_SCRIPT,
-        2,
-        lockKey,
-        recordKey(id),
-        owner,
-        record,
-        TTL_SECONDS,
-      ]);
-      if (result !== 1) throw new BetaUnavailableError();
+      try {
+        if (released) throw new BetaUnavailableError();
+        const result = await redisCommand([
+          "EVAL",
+          SAVE_SCRIPT,
+          2,
+          lockKey,
+          recordKey(id),
+          owner,
+          record,
+          TTL_SECONDS,
+        ]);
+        if (result !== 1) throw new BetaUnavailableError();
+      } catch (cause) {
+        logServerEvent(
+          { event: "api_failure", route: "session-save", status: 503 },
+          cause,
+        );
+        throw cause;
+      }
     };
     const persist = AsyncLocalStorage.bind(() =>
       save(serializeSharedRecord(exportSessionRecord(id))),

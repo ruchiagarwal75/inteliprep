@@ -1,9 +1,20 @@
-import { APIError } from "openai";
+import { APIError, APIConnectionTimeoutError } from "openai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
 
 afterEach(() => vi.restoreAllMocks());
 describe("server event privacy", () => {
+  it("records the actual timeout class without serializing its message", () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    logServerEvent(
+      { event: "grading_failure" },
+      new APIConnectionTimeoutError({ message: "private evidence" }),
+    );
+    expect(JSON.parse(log.mock.calls[0][0]).errorType).toBe(
+      "APIConnectionTimeoutError",
+    );
+    expect(log.mock.calls[0][0]).not.toContain("private evidence");
+  });
   it("preserves independent request IDs through async provider work", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     await Promise.all(

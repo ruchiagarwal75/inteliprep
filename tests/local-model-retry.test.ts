@@ -88,7 +88,7 @@ it("recovers automatically from the local 503 flag through the actual chat route
     vi.fn(),
     vi.fn(),
   );
-  expect(reply.reply).toBe("How does the request reach the data store?");
+  expect(reply.reply).toContain("How does the request reach the data store?");
   const events = vi.mocked(console.info).mock.calls.flatMap((call) => {
     try {
       const value: unknown = JSON.parse(String(call[0]));

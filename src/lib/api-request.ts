@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { setReportingUser } from "@/lib/reporting-context";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import { withCandidateIdentity } from "@/lib/candidate-context";
 import { CandidateAuthError } from "@/lib/supabase-config";
@@ -66,91 +67,99 @@ export function withApiRequest(
   kind: RequestKind,
   route: string,
   handler: (request: Request, requestId: string) => Promise<Response>,
+  options?: { deferLimit?: boolean },
 ) {
   return async (request: Request): Promise<Response> => {
     const requestId = randomUUID();
-    const startedAt = Date.now();
-    let response: Response;
-    let failure: unknown;
-    let accountChanged = false;
-    try {
-      const origin = request.headers.get("origin");
-      if (origin && origin !== new URL(request.url).origin)
-        throw new ApiRequestError(
-          "This request must come from the interview site",
-          403,
-        );
-      assertBetaReady();
-      const candidateId =
-        kind === "clientError" ? undefined : await requireCandidateIdentity();
-      const expectedAccount = request.headers.get("X-Interview-Account");
-      if (expectedAccount && candidateId !== expectedAccount) {
-        accountChanged = Boolean(candidateId);
-        throw new ApiRequestError(
-          "Your signed-in account changed. Please reopen the interview.",
-          403,
+    return withServerContext(requestId, route, async () => {
+      const startedAt = Date.now();
+      let response: Response;
+      let failure: unknown;
+      let accountChanged = false;
+      try {
+        const origin = request.headers.get("origin");
+        if (origin && origin !== new URL(request.url).origin)
+          throw new ApiRequestError(
+            "This request must come from the interview site",
+            403,
+          );
+        assertBetaReady();
+        const candidateId =
+          kind === "clientError" ? undefined : await requireCandidateIdentity();
+        setReportingUser(candidateId);
+        const expectedAccount = request.headers.get("X-Interview-Account");
+        if (expectedAccount && candidateId !== expectedAccount) {
+          accountChanged = Boolean(candidateId);
+          throw new ApiRequestError(
+            "Your signed-in account changed. Please reopen the interview.",
+            403,
+          );
+        }
+        const run = async () => {
+          const retry = options?.deferLimit
+            ? 0
+            : await checkRequestLimit(request, kind);
+          return retry
+            ? Response.json(
+                {
+                  error: "Too many requests. Please wait before trying again.",
+                },
+                { status: 429, headers: { "Retry-After": String(retry) } },
+              )
+            : await withInterviewSessionContext(() =>
+                handler(request, requestId),
+              );
+        };
+        response = candidateId
+          ? await withCandidateIdentity(candidateId, run)
+          : await run();
+      } catch (cause) {
+        failure = cause;
+        const authError =
+          cause instanceof CandidateAuthError && cause.status === 401
+            ? CANDIDATE_AUTH_REQUIRED
+            : accountChanged
+              ? CANDIDATE_ACCOUNT_CHANGED
+              : undefined;
+        const status =
+          cause instanceof ApiRequestError ||
+          cause instanceof CandidateAuthError ||
+          cause instanceof InterviewSessionError
+            ? cause.status
+            : cause instanceof BetaUnavailableError
+              ? 503
+              : 500;
+        response = Response.json(
+          {
+            code:
+              authError ??
+              (cause instanceof InterviewSessionError ? cause.code : undefined),
+            error:
+              status === 500 || !(cause instanceof Error)
+                ? "The server couldn't complete this request. Please try again."
+                : cause.message,
+          },
+          {
+            status,
+            headers: authError
+              ? { [CANDIDATE_AUTH_ERROR_HEADER]: authError }
+              : undefined,
+          },
         );
       }
-      const run = async () => {
-        const retry = await checkRequestLimit(request, kind);
-        return retry
-          ? Response.json(
-              { error: "Too many requests. Please wait before trying again." },
-              { status: 429, headers: { "Retry-After": String(retry) } },
-            )
-          : await withServerContext(requestId, route, () =>
-              withInterviewSessionContext(() => handler(request, requestId)),
-            );
-      };
-      response = candidateId
-        ? await withCandidateIdentity(candidateId, run)
-        : await run();
-    } catch (cause) {
-      failure = cause;
-      const authError =
-        cause instanceof CandidateAuthError && cause.status === 401
-          ? CANDIDATE_AUTH_REQUIRED
-          : accountChanged
-            ? CANDIDATE_ACCOUNT_CHANGED
-            : undefined;
-      const status =
-        cause instanceof ApiRequestError ||
-        cause instanceof CandidateAuthError ||
-        cause instanceof InterviewSessionError
-          ? cause.status
-          : cause instanceof BetaUnavailableError
-            ? 503
-            : 500;
-      response = Response.json(
+      response.headers.set("X-Request-Id", requestId);
+      response.headers.set("Cache-Control", "no-store");
+      logServerEvent(
         {
-          code:
-            authError ??
-            (cause instanceof InterviewSessionError ? cause.code : undefined),
-          error:
-            status === 500 || !(cause instanceof Error)
-              ? "The server couldn't complete this request. Please try again."
-              : cause.message,
+          event: response.status >= 500 ? "api_failure" : "api_request",
+          requestId,
+          route,
+          status: response.status,
+          durationMs: Date.now() - startedAt,
         },
-        {
-          status,
-          headers: authError
-            ? { [CANDIDATE_AUTH_ERROR_HEADER]: authError }
-            : undefined,
-        },
+        failure,
       );
-    }
-    response.headers.set("X-Request-Id", requestId);
-    response.headers.set("Cache-Control", "no-store");
-    logServerEvent(
-      {
-        event: response.status >= 500 ? "api_failure" : "api_request",
-        requestId,
-        route,
-        status: response.status,
-        durationMs: Date.now() - startedAt,
-      },
-      failure,
-    );
-    return response;
+      return response;
+    });
   };
 }

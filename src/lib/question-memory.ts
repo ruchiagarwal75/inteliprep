@@ -4,6 +4,7 @@ import { questionAtEnd } from "@/lib/open-question";
 export type QuestionMemory = {
   askedQuestions: string[];
   coveredTopics: string[];
+  topicTurns?: Record<string, number>;
 };
 /** Built from the complete verified transcript, before model-history truncation. */
 export function questionMemory(

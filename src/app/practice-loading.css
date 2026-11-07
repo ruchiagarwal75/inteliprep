@@ -1,0 +1,59 @@
+.practice-loading {
+  min-height: 100dvh;
+  padding: var(--space-4);
+  background: var(--background);
+  color: var(--foreground);
+}
+.practice-loading-entry {
+  background: var(--navy);
+  color: var(--cream);
+}
+.practice-loading-shell {
+  max-width: var(--page-width);
+  margin: auto;
+}
+.skeleton-title,
+.skeleton-copy {
+  border-radius: var(--corner-small);
+  background: var(--navy-line);
+}
+.skeleton-title {
+  margin-top: var(--space-8);
+  height: var(--space-6);
+  width: min(80%, 440px);
+}
+.skeleton-copy {
+  margin-top: var(--space-2);
+  height: var(--space-2);
+  width: min(85%, 480px);
+}
+.skeleton-copy-short {
+  width: min(65%, 360px);
+}
+.skeleton-surface {
+  margin-top: var(--space-7);
+  background: var(--cream);
+  border-radius: var(--corner-large);
+  padding: var(--space-4);
+}
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--paper-line);
+}
+.skeleton-row span {
+  height: var(--space-2);
+  width: 50%;
+  border-radius: var(--corner-small);
+  background: var(--paper-line);
+}
+.skeleton-row span:last-child {
+  width: 15%;
+}
+@media (max-width: 599px) {
+  .practice-loading {
+    padding: var(--space-3);
+  }
+}

@@ -5,10 +5,7 @@ import {
 } from "@/lib/saved-interview";
 import { ZodError } from "zod";
 import { compareInterviewRecency } from "@/lib/latest-interview";
-import {
-  retainLatestInterviews,
-  rememberLatestInterview,
-} from "@/lib/interview-retention";
+import { readInterviewRecords } from "@/lib/interview-retention";
 
 import { createInterviewDatabase } from "@/lib/interview-database";
 
@@ -29,26 +26,23 @@ export function createInterviewStorage(userId: string) {
   /** Resolves after transaction commit, not merely after the put request succeeds. */
   function saveInterview(saved: SavedInterview, expectedRevision?: string) {
     return transaction<void>("readwrite", (tx, done, fail) => {
-      retainLatestInterviews(
+      readInterviewRecords(
         tx,
         (_rows, markers) => {
           const store = tx.objectStore(SESSIONS);
           const request = store.get(saved.id);
-          request.onsuccess = () => {
+          const deleted = tx.objectStore(META).get(`deleted:${saved.id}`);
+          deleted.onsuccess = () => {
             try {
+              if (deleted.result === true)
+                throw new InterviewStorageConflict(
+                  "This interview was deleted in another tab.",
+                );
               const next = savedInterviewSchema.parse(saved);
               const marker = markers.get(next.interview.problemId);
-              if (
-                marker &&
-                ((marker.id === next.id && marker.deleted) ||
-                  (marker.id !== next.id &&
-                    compareInterviewRecency(
-                      { ...next, problemId: next.interview.problemId },
-                      marker,
-                    ) >= 0))
-              )
+              if (marker?.id === next.id && marker.deleted)
                 throw new InterviewStorageConflict(
-                  "A newer interview for this problem has replaced this attempt. Load the latest version to continue.",
+                  "This interview was deleted in another tab.",
                 );
               const current = savedInterviewSchema.safeParse(request.result);
               if (
@@ -59,7 +53,7 @@ export function createInterviewStorage(userId: string) {
                 return;
               }
               store.put(next);
-              rememberLatestInterview(tx, next);
+
               tx.objectStore(META).put(saved.id, "active");
               done(undefined);
             } catch (cause) {
@@ -82,9 +76,9 @@ export function createInterviewStorage(userId: string) {
 
   function readInterview(id: string) {
     return transaction<SavedInterview | undefined>(
-      "readwrite",
+      "readonly",
       (tx, done, fail) => {
-        retainLatestInterviews(
+        readInterviewRecords(
           tx,
           () => {
             const request = tx.objectStore(SESSIONS).get(id);
@@ -113,9 +107,9 @@ export function createInterviewStorage(userId: string) {
 
   function listInterviews() {
     return transaction<ReturnType<typeof savedInterviewSummary>[]>(
-      "readwrite",
+      "readonly",
       (tx, done, fail) => {
-        retainLatestInterviews(
+        readInterviewRecords(
           tx,
           (rows) =>
             done(
@@ -130,8 +124,8 @@ export function createInterviewStorage(userId: string) {
   }
 
   function activeInterviewId() {
-    return transaction<string | undefined>("readwrite", (tx, done, fail) => {
-      retainLatestInterviews(
+    return transaction<string | undefined>("readonly", (tx, done, fail) => {
+      readInterviewRecords(
         tx,
         () => {
           const request = tx.objectStore(META).get("active");
@@ -155,11 +149,10 @@ export function createInterviewStorage(userId: string) {
 
   function deleteInterview(id: string) {
     return transaction<void>("readwrite", (tx, done, fail) => {
-      retainLatestInterviews(
+      readInterviewRecords(
         tx,
-        (rows) => {
-          const saved = rows.find((row) => row.id === id);
-          if (saved) rememberLatestInterview(tx, saved, true);
+        () => {
+          tx.objectStore(META).put(true, `deleted:${id}`);
           tx.objectStore(SESSIONS).delete(id);
           const request = tx.objectStore(META).get("active");
           request.onsuccess = () => {

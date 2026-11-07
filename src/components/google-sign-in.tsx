@@ -5,7 +5,9 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 
 export function GoogleSignIn({
   failure,
+  returnTo,
 }: {
+  returnTo?: "/admin";
   failure?: "connection" | "generic";
 }) {
   const [busy, setBusy] = useState(false);
@@ -14,10 +16,12 @@ export function GoogleSignIn({
     setBusy(true);
     setError(undefined);
     try {
+      const callback = new URL("/auth/callback", window.location.origin);
+      if (returnTo) callback.searchParams.set("next", returnTo);
       const { error } = await supabaseBrowser().auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: new URL("/auth/callback", window.location.origin).href,
+          redirectTo: callback.href,
           scopes: "openid email profile",
         },
       });
@@ -33,7 +37,7 @@ export function GoogleSignIn({
         type="button"
         disabled={busy}
         onClick={() => void signIn()}
-        className="rounded-lg bg-slate-900 px-5 py-3 font-medium text-white disabled:opacity-60"
+        className="bg-brand text-brand-foreground rounded-lg px-5 py-3 font-medium disabled:opacity-60"
       >
         {busy ? "Opening Google…" : "Continue with Google"}
       </button>

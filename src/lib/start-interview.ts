@@ -15,6 +15,7 @@ export type InterviewStartTiming = {
 /** Keep the current workspace until a validated response can replace it in one commit. */
 export async function startInterview({
   choice,
+  requestId = crypto.randomUUID(),
   replace,
   request,
   prepareReplacement,
@@ -22,6 +23,7 @@ export async function startInterview({
   onTiming,
 }: {
   choice: InterviewSelection & { durationMinutes: InterviewDuration };
+  requestId?: string;
   replace: boolean;
   request: typeof fetch;
   prepareReplacement: () => Promise<boolean>;
@@ -34,7 +36,7 @@ export async function startInterview({
   const response = await request("/api/interview/start", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(choice),
+    body: JSON.stringify({ ...choice, requestId }),
   });
   const body: unknown = await response.json();
   const receivedAt = performance.now();

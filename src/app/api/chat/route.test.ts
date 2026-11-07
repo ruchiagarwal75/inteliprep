@@ -193,7 +193,11 @@ describe("POST /api/chat", () => {
     vi.stubEnv("NODE_ENV", "development");
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
     await post({ messages, scene: basicScene, diagramImage: PNG_FIXTURE });
-    expect(log).toHaveBeenCalledWith("[chat] Whiteboard image: %s", "attached");
+    expect(log).toHaveBeenCalledWith("[chat] Whiteboard metadata", {
+      elementCount: basicScene.elements.length,
+      hasImage: true,
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain("Client");
     expect(JSON.stringify(log.mock.calls)).not.toContain(PNG_FIXTURE);
   });
 

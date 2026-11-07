@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { withMascotTest } from "@/lib/mascot-timing";
 import { interviewHref } from "@/lib/interview-navigation";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import { useCandidateAccount } from "@/components/candidate-account-context";
@@ -109,7 +110,8 @@ export function useInterviewLibrary(
     restoreScene,
     onOpened: setOpened,
     onUnblocked: () => setBlocked(false),
-    onUrl: (id) => router.push(interviewHref(id)),
+    onUrl: (id) =>
+      router.push(withMascotTest(interviewHref(id), window.location.search)),
   });
 
   const reset = useCallback(
@@ -177,10 +179,6 @@ export function useInterviewLibrary(
   ) {
     const saved = savedRef.current;
     if (!saved) return false;
-    const latest = (await listInterviews()).find(
-      (entry) => entry.problemId === saved.interview.problemId,
-    );
-    if (latest && latest.id !== saved.id) return open(latest.id, "replace");
     savedRef.current = {
       ...saved,
       messages,

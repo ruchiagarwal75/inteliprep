@@ -1,5 +1,5 @@
 {
-  "name": "inteliprep",
+  "name": "mockmeai",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -16,7 +16,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "db:admin": "node scripts/migrate-admin.mjs"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.1",
@@ -24,6 +25,7 @@
     "@supabase/supabase-js": "2.118.0",
     "next": "16.3.8",
     "openai": "^7.27.0",
+    "postgres": "4.1.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.6.5"

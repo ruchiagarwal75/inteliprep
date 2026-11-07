@@ -5,7 +5,8 @@ import { getProblem } from "@/lib/problems";
 import { buildInterviewInstructions } from "@/lib/interview-instructions";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },
@@ -30,6 +31,24 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("streamInterviewerReply", () => {
+  it("sends Sol interviewer requests with low reasoning and no sampling parameters", async () => {
+    vi.stubEnv("OPENAI_MODEL", "gpt-6.1-sol");
+    vi.stubEnv("OPENAI_INTERVIEW_REASONING_EFFORT", "low");
+    for await (const chunk of streamInterviewerReply(
+      [{ role: "user", content: "The API writes to storage." }],
+      "API -> Storage",
+      "No diagram changes.",
+    ))
+      expect(chunk).toBeTruthy();
+    const request = mocks.create.mock.calls[0][0];
+    expect(request).toMatchObject({
+      model: "gpt-6.1-sol",
+      reasoning: { effort: "low" },
+      max_output_tokens: 4_096,
+      stream: true,
+    });
+    expect(request).not.toHaveProperty("temperature");
+  });
   it.each(["mid", "staff"] as const)(
     "reattaches trusted %s problem instructions on every turn independently of candidate text",
     async (level) => {

@@ -31,7 +31,7 @@ export function useInterviewAutosave({
   onBlocked: (value: boolean) => void;
   onHistory: Dispatch<SetStateAction<SavedInterviewSummary[]>>;
 }) {
-  const { storage } = useCandidateAccount();
+  const { storage, request } = useCandidateAccount();
   const { saveInterview } = storage;
   const savedRef = useRef<SavedInterview | undefined>(undefined);
   const revisionsRef = useRef(new Map<string, string>());
@@ -66,7 +66,7 @@ export function useInterviewAutosave({
           onError(undefined);
         })
         .catch((cause: unknown) => {
-          void reportClientError("storage", cause);
+          void reportClientError("storage", cause, snapshot.id);
           dirtyRef.current = true;
           if (cause instanceof InterviewStorageConflict) {
             conflictedRef.current = true;
@@ -155,6 +155,27 @@ export function useInterviewAutosave({
       return false;
     await save(closedInterviewUpdate(messages, draft));
     await queueRef.current;
+    if (!dirtyRef.current && !conflictedRef.current) {
+      try {
+        const response = await request("/api/interview/exit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: savedRef.current.id }),
+          signal: AbortSignal.timeout(4000),
+        });
+        const result: unknown = await response.json();
+        if (
+          response.ok &&
+          result &&
+          typeof result === "object" &&
+          "endedAt" in result &&
+          typeof result.endedAt === "string"
+        )
+          await save({ endedAt: result.endedAt });
+      } catch {
+        /* Local archival must still work offline and for old, unresumable sessions. */
+      }
+    }
     return !dirtyRef.current && !conflictedRef.current;
   }
   return {

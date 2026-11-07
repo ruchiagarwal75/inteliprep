@@ -6,8 +6,8 @@ import { interviewEndResponseSchema } from "@/lib/scorecard";
 import { problemReviews, reviewScene } from "@/lib/fixtures/problem-reviews";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
-  APIError: class extends Error {},
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },

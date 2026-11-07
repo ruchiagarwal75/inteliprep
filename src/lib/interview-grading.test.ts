@@ -27,6 +27,19 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("separate end-of-interview grading", () => {
+  it("uses the separate Sol grader with high reasoning and structured output", async () => {
+    vi.stubEnv("OPENAI_SCORECARD_MODEL", "gpt-6.1-sol");
+    vi.stubEnv("OPENAI_SCORECARD_REASONING_EFFORT", "high");
+    await gradeInterview(problem, "mid", gradingSnapshot, endedAtFixture);
+    const request = mocks.create.mock.calls[0][0];
+    expect(request).toMatchObject({
+      model: "gpt-6.1-sol",
+      reasoning: { effort: "high" },
+      max_output_tokens: 16_000,
+      text: { format: { type: "json_schema", strict: true } },
+    });
+    expect(request).not.toHaveProperty("temperature");
+  });
   it("returns insufficient evidence for an unexplained drawing even when the provider is unavailable", async () => {
     mocks.create.mockRejectedValue(new Error("Offline"));
     const card = await gradeInterview(
@@ -61,7 +74,9 @@ describe("separate end-of-interview grading", () => {
     expect(data.private_rubric[0].strong).toBe(problem.rubric[0].strong);
     expect(data.candidate_level).toBe("mid");
     expect(data.final_diagram).toContain("API");
-    expect(options).toMatchObject({ maxRetries: 0, timeout: 45_000 });
+    expect(options.maxRetries).toBe(0);
+    expect(options.timeout).toBeGreaterThan(115_000);
+    expect(options.timeout).toBeLessThanOrEqual(120_000);
   });
   it("includes the final screenshot even if it was unchanged on the last chat turn", async () => {
     await gradeInterview(

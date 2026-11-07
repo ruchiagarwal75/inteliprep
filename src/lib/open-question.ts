@@ -31,8 +31,12 @@ export function hasAsk(reply: string) {
 
 /** A handoff is an instruction, never an invitation to answer another question. */
 export function invitesDrawing(reply: string) {
+  const instruction = reply.replace(
+    /\b(?:choose|select|click|use) (?:the )?["“]?Start drawing["”]?(?: (?:button|link))?/giu,
+    "",
+  );
   return /\b(?:start|begin|continue|go ahead (?:and|with)|feel free to)\s+(?:(?:your|the)\s+)?(?:draw(?:ing)?|sketch(?:ing)?|designing)\b|\b(?:start|begin) (?:your |the )?(?:design|approach|architecture) by (?:drawing|sketching)\b|(?:^|[.!,:]\s*)(?:please )?(?:draw|sketch)\b|\b(?:move|turn) to (?:the |your )?whiteboard\b/iu.test(
-    reply,
+    instruction,
   );
 }
 

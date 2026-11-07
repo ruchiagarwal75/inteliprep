@@ -843,13 +843,30 @@ Verified account IDs are HMAC-hashed for interview quotas; anonymous monitoring
 uses only Vercel’s platform-overwritten IP header and ignores local forwarded headers. Exhaustion returns 429 with Retry-After.
 Same-origin checks and actual streamed JSON byte limits precede model work: 4 MB
 for chat/end, 32 KiB for start/resume, 2 KiB for monitoring. Model calls have a
-45-second timeout without SDK retries; chat/end routes have a 120-second maximum.
+45-second timeout without SDK retries. Grading has a shared 120-second budget
+across its validation attempts, a 135-second browser deadline, and a 150-second
+route maximum; chat retains its 120-second route maximum.
 Chat context retains complete recent messages and the opening within 32,000 UTF-8
 JSON bytes, while the full verified transcript remains available for grading and
 probe reuse checks. Each provider call checks instructions and escaped input text
 against a 128,000-byte limit before network work. Images are separately bounded.
-Chat generation uses at most 800 output tokens; coverage, review and grading retain
-their individual output limits. Unsupported acknowledgements use neutral wording
+The recommended interactive model is `gpt-6.1-terra`, selected in `.env.example`;
+the unset-model compatibility fallback remains `gpt-6.1-sol`. Replies, coverage and follow-up review use low
+reasoning with a 4,096-token combined reasoning/output cap; scorecards use high
+reasoning with a 16,000-token cap. Separate server-only interviewer and scorecard
+model/effort settings live in `model-settings.ts`; legacy model overrides retain
+their previous caps and sampling parameters. Sol requests omit temperature.
+Existing input budgets, timeouts and bounded retries remain in effect. Normal
+Sol/Terra discussion uses one structured follow-up generation instead of a draft
+and repeated review calls. Static problem/rubric instructions are byte-identical
+across turns; current stage, pace and question memory follow in a developer input.
+Only the opening and last eight messages (within 32 KiB), plus up to 4 KiB of
+extractive older context, reach interactive generation. The full verified
+transcript remains available for grading, duplicate checks and stage evidence.
+Coverage is not reassessed every turn while a stage's minimum time is still running.
+Per-call logs contain model, elapsed time, input/output/cache and reasoning token
+counts without logging request or response text.
+Unsupported acknowledgements use neutral wording
 rather than quoting candidate text; recognized injection requests receive a neutral
 design redirect.
 Recognized off-topic task requests receive that same redirect in every pacing mode,
@@ -922,7 +939,7 @@ opening and pacing instructions before Start creates the server deadline.
 URL with `/interview/[id]/results`. Results URLs for live saves return to the live
 URL. Legacy `/interview?session=<id>` redirects to the corresponding interview.
 Storage remains version 1; all new checkpoint and scorecard fields are optional.
-History keeps one interview per problem per account in this browser, across difficulty and duration. A successful newer save becomes the visible history entry. Existing duplicates are filtered to the newest created attempt without deleting underlying records; valid and unreadable records remain intact. Sign-out keeps the retained history. IndexedDB remains account scoped. A bounded account/session/tab draft
+History stores every interview attempt per account in this browser, across difficulty and duration. Home shows the three latest attempts; View all reveals the rest. Reading history never mutates records or the selected interview. Explicit deletion only affects the selected attempt; unreadable and legacy records remain intact. Sign-out keeps history. IndexedDB remains account scoped. A bounded account/session/tab draft
 journal closes the 300 ms debounce and unload window without replacing history.
 
 Stage criteria remain private, structured, quote-verified assessments. Topic
@@ -969,27 +986,18 @@ Cmd+A/Cmd+D verification did not reproduce InvalidFractionalIndexError; no unsta
 library upgrade or exception suppression was added.
 
 
-### Latest interview per problem (November 6)
+### Interview history presentation (November 6)
 
-Retakes replace the visible history entry for the same problem after the new record commits. Older records are retained without automatic deletion.
-The newest attempt is determined by createdAt, with a stable ID tie-breaker;
-updatedAt is never used, so a delayed old-tab save or scorecard cannot replace a
-newer attempt. Latest-entry selection, transcript/diagram/draft writes, and the active pointer
-commit together in the account-specific IndexedDB transaction. A failed write
-rolls back the replacement. Existing version-1 records remain readable; no migration or duplicate cleanup deletes them. Invalid
-records are retained without automatic deletion. Lightweight per-problem metadata
-remembers the latest identity even after deletion, preventing stale saves from
-resurrecting a retired record. It contains no previous transcript or drawing.
+Every attempt remains stored independently. Home shows the three newest-created attempts, with View all revealing every attempt. Creation time and a stable ID tie-breaker determine display order; later saves and scorecards update only their own attempt.
 
-Home and the brief disclose the retention policy. Load latest version can open
-the newer attempt when this tab was replaced. Browser history remains local to
-the current account/profile/origin; server verification sessions keep their
-existing expiration policy and are not a second saved-interview history.
+History reads are read-only and never rewrite the active pointer or discard records. Existing version-1 records and legacy metadata remain readable without migration. Explicit deletion marks only the selected attempt so a late save cannot resurrect it; older attempts remain usable. Same-attempt revision conflicts still protect concurrent tab edits. Load latest version refreshes that same interview from its verified server transcript.
+
+Home and the Brief disclose that every attempt is retained in the current account/profile/origin. Server verification sessions keep their existing expiration policy and are not a second saved-interview history.
 
 ### November 6 browser retest corrections
 
 A drawing handoff uses the configured invitation once and enters stage 2, including
-an explicit Skip to drawing before the clarify minimum. Candidate answers retire
+an explicit Start drawing before the clarify minimum. Candidate answers retire
 answered questions; paused technical questions use quote-verified coverage so an
 unrelated drawing explanation does not discard them. The complete verified
 transcript supplies asked-question memory before model-context truncation, and
@@ -1011,9 +1019,65 @@ POST /api/interview/freeze validates owner and canonical evidence, freezes one
 server endedAt and persists the evidence hash without a model call. It uses the
 resume quota rather than a model quota. Grading uses that frozen checkpoint;
 results-route restoration automatically starts unfinished grading once. Navigation
-after ending waits for the grading attempt to settle. All elapsed-time displays
+after ending switches to results as soon as the freeze is confirmed, while grading
+continues in the mounted workspace. All elapsed-time displays
 use the frozen end time. Local start quotas are skipped unless
 INTELIPREP_DEV_START_LIMITS=on, while deployed limits always apply. The Brief puts
 a focused rate-limit explanation beside its disabled Start button with a readable
 local retry time. The 1-minute option requires NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1;
 ?debug=1 does not enable it.
+
+## Private admin reporting (November 6)
+
+The `/admin` server-rendered dashboard and GET-only `/api/admin/*` routes authorize
+only the exact configured `ADMIN_USER_ID`, with fresh Supabase Auth verification
+at each data boundary. Missing configuration denies access. Admin data is never
+publicly cached, and account metadata cannot grant privileges.
+
+Supabase's `auth.users` is the existing account source. The additive private
+`interview_admin` schema persists operational interview metadata, milestone times,
+feedback projections, failure references and per-attempt AI usage. RLS is enabled,
+with no schema/table access for browser roles. Redis remains the temporary
+canonical interview store and IndexedDB remains browser history; no saved
+interviews are deleted or moved. Unrecoverable history is unavailable.
+
+Server lifecycle hooks preserve start/end times and deduplicate by interview ID.
+Completion is independent of feedback generation. Existing explicit local closure
+also best-effort records an owner-checked server exit. Inactivity remains
+unfinished, with duration estimated only through last recorded activity. Drawing
+pauses questions, not elapsed time. Average duration uses completed interviews with
+valid timing only. Admin/test activity is excluded by default.
+
+Creation, response, persistence and feedback errors retain safe timestamps,
+operation/category and request/interview references. Model instrumentation covers
+all reply, assessment, question-review and grading attempts, including retries;
+missing token usage or pricing is never zero. Tracking failures do not fail
+interviews. See [admin.md](admin.md) for configuration, exact definitions, privacy,
+coverage limitations and live database acceptance checks.
+
+### Retest reliability update (November 6)
+
+Unanswered questions are kept in a server-owned FIFO queue. Structured discussion output clears a question only by referencing a real candidate excerpt after the question was asked. Side questions and silent drawing/explaining turns preserve the queue. Diagram additions/renames survive listening turns until Done explaining, where the reply names them once. Current-stage topics have a three-follow-up budget before other topics are probed; deliberately resumed questions remain queued until resolved.
+
+History reads preserve every attempt and existing legacy metadata. Older attempts can be reopened and saved independently. Concurrent revisions of the same attempt still conflict; explicit deletion tombstones only that attempt. New interview starts use account-scoped idempotency IDs; beta Redis atomically stores the response, canonical transcript and a single quota charge.
+
+### Calm visual theme (November 6)
+
+Home and `/interview/new` use the shared `ArchitectureHero` inline SVG only in
+those pages' hero. Interview, whiteboard, chat and scorecard content have no
+illustrated background. Lora is the display face; Geist is the UI face. Shared
+colors, spacing and corners are CSS variables in `theme.css`.
+
+The accessible 680×350 diagram has a cream laptop, amber load balancer, three app
+servers, coral cache and teal database. Three teal request packets run on a
+nine-second loop at three-second intervals; arrivals pulse the matching
+endpoint. Only transforms, opacity and outline stroke animate. Hidden tabs
+pause animations; reduced motion shows a still frame. At narrow widths the
+panel sits above the headline; otherwise it stays clear of the headline text.
+
+The Home shows three recent attempts; View all reveals remaining records.
+Dates and status labels are display-only. The Brief retains existing choices,
+Start action and house-icon stage preview. No phases or timer rules change.
+Server waiting and browser-history initialization use skeletons. The unused
+local OPTIONS pre-warm was removed from startup; actual interview creation,
+auth checks, quotas, routes, stored records and grading are unchanged.

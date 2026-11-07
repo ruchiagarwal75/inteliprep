@@ -34,6 +34,12 @@ import { isRequirementProposal } from "@/lib/candidate-proposal";
 import { requestedReviewTopic } from "@/lib/review-probes";
 import { isOffTopicRequest } from "@/lib/off-topic";
 import { questionMemory } from "@/lib/question-memory";
+import type { InterviewContext } from "@/lib/interview-instructions";
+import { pendingDiagramComponents } from "@/lib/pending-diagram-components";
+import { stageTopicCounts } from "@/lib/probe-topics";
+import { modelSettings } from "@/lib/model-settings";
+import { withoutQuestions } from "@/lib/drawing-reply";
+import { stageTimeGate } from "@/lib/stage-clock";
 
 export async function prepareInterviewTurn(
   problem: ProblemDefinition,
@@ -42,29 +48,34 @@ export async function prepareInterviewTurn(
 ) {
   const progress = getInterviewProgress(problem, request.messages);
   // Stateless callers retain the configured turn-count handoff and explicit pacing controls.
-  if (!request.sessionId)
-    return {
-      context: {
+  if (!request.sessionId) {
+    const context: InterviewContext & { progress: typeof progress } = {
+      problem,
+      level: request.level,
+      progress,
+      listening: isListeningContinuation(
         problem,
-        level: request.level,
-        progress,
-        listening: isListeningContinuation(
-          problem,
-          request.messages,
-          progress.step,
-        ),
-      },
+        request.messages,
+        progress.step,
+      ),
+    };
+    return {
+      context,
       phase: undefined,
       completedPhase: () => undefined,
       commit() {},
       release() {},
     };
+  }
   const lease = acquireInterviewSession(
     request.sessionId,
     request,
     request.resumeToken,
   );
   try {
+    const modern = /^gpt-6\.1-(?:sol|terra)(?:-|$)/u.test(
+      modelSettings("reply").model,
+    );
     const current = problem.phases[lease.state.phaseIndex];
     if (!current)
       throw new InterviewSessionError(
@@ -91,7 +102,13 @@ export async function prepareInterviewTurn(
         !clarification &&
         !waiting &&
         covered.length < current.completionCriteria.length) ||
-        (current.transition === "coverage" && progress.step === "review"))
+        (current.transition === "coverage" &&
+          progress.step === "review" &&
+          (lease.clock.timing.durationMinutes === 1 ||
+            (!waiting &&
+              !isFactualQuestion(latest?.content ?? "") &&
+              stageTimeGate(lease.state.phaseIndex, true, lease.clock)
+                .advance))))
     ) {
       try {
         covered = [
@@ -120,7 +137,8 @@ export async function prepareInterviewTurn(
     // Seed a newly entered stage from explanations already given; advance at most once.
     if (
       plan.state.phaseIndex > lease.state.phaseIndex &&
-      nextPhase.transition === "coverage"
+      nextPhase.transition === "coverage" &&
+      current.transition !== "coverage"
     ) {
       try {
         plan = {
@@ -146,6 +164,7 @@ export async function prepareInterviewTurn(
       plan.progress.step === "drawing" || plan.progress.step === "explaining";
     let answeredPendingQuestion = false;
     if (
+      !modern &&
       lease.openQuestion &&
       lease.state.phaseIndex >= 2 &&
       !offTopic &&
@@ -185,52 +204,79 @@ export async function prepareInterviewTurn(
       ...lease.coveredTopics,
       ...plan.state.coveredCriteria.map((i) => nextPhase.completionCriteria[i]),
     ]);
-    return {
-      context: {
-        problem,
-        level: request.level,
-        mayInviteDrawing:
-          plan.state.phaseIndex > 0 || lease.clock.timing.durationMinutes === 1,
-        progress: plan.progress,
-        phase: problem.phases[plan.state.phaseIndex],
-        coveredCriteria: plan.state.coveredCriteria,
-        questionMemory: memory,
-        listening: isListeningContinuation(
-          problem,
-          request.messages,
-          plan.progress.step,
-        ),
-        reviewQuestion:
-          whiteboardVisibilityReply(request.scene, latest?.content ?? "") ??
-          (!paused
-            ? diagramConsistencyQuestion(request.scene, request.messages)
-            : undefined) ??
-          (resumedQuestion
-            ? `Returning to the question we paused: ${resumedQuestion}`
-            : undefined) ??
-          (plan.progress.step === "review" &&
-          problem.phases[plan.state.phaseIndex]?.transition !== "wrap-up" &&
-          !isRequirementProposal(latest?.content ?? "") &&
-          !isFactualQuestion(latest?.content ?? "") &&
-          !requestedReviewTopic(request.messages) &&
-          !offTopic &&
-          (latest?.source === "control" || latest?.action === "review")
-            ? diagramReviewQuestion(
-                request.scene,
-                request.messages,
-                problem.diagramReview.checkApplicationDataPaths,
-              )
-            : undefined) ??
-          (plan.progress.step === "review"
-            ? addedComponentQuestion(
-                request.scene,
-                request.previousScene,
-                request.messages,
-              )
-            : undefined),
-        explanationMissing:
-          latest?.action === "review" && !hasExplanation(request.messages),
+    const diagramComponents = pendingDiagramComponents(
+      lease.pendingDiagramComponents,
+      request.scene,
+      request.previousScene,
+    );
+    const visibility = whiteboardVisibilityReply(
+      request.scene,
+      latest?.content ?? "",
+    );
+    const mismatch = !paused
+      ? diagramConsistencyQuestion(request.scene, request.messages)
+      : undefined;
+    const context: InterviewContext & { progress: typeof progress } = {
+      problem,
+      level: request.level,
+      mayInviteDrawing:
+        plan.state.phaseIndex > 0 || lease.clock.timing.durationMinutes === 1,
+      progress: plan.progress,
+      phase: problem.phases[plan.state.phaseIndex],
+      coveredCriteria: plan.state.coveredCriteria,
+      questionMemory: {
+        ...memory,
+        topicTurns: stageTopicCounts(lease.topicTurnCounts, nextPhase.id),
       },
+      openQuestions: lease.openQuestions,
+      diagramQuestion: modern ? mismatch : undefined,
+      answeredQuestionIds: [],
+      diagramUpdates:
+        !paused && latest?.action === "review" ? diagramComponents : [],
+      listening: isListeningContinuation(
+        problem,
+        request.messages,
+        plan.progress.step,
+      ),
+      reviewQuestion:
+        (visibility
+          ? paused || !lease.openQuestions[0]
+            ? visibility
+            : `${withoutQuestions(visibility).trim()}\n\n${lease.openQuestions[0].question}`
+          : undefined) ??
+        (!modern ? mismatch : undefined) ??
+        (!modern && resumedQuestion
+          ? `Returning to the question we paused: ${resumedQuestion}`
+          : undefined) ??
+        (!lease.openQuestions.length &&
+        !mismatch &&
+        plan.progress.step === "review" &&
+        problem.phases[plan.state.phaseIndex]?.transition !== "wrap-up" &&
+        !isRequirementProposal(latest?.content ?? "") &&
+        !isFactualQuestion(latest?.content ?? "") &&
+        !requestedReviewTopic(request.messages) &&
+        !offTopic &&
+        (latest?.source === "control" || latest?.action === "review")
+          ? diagramReviewQuestion(
+              request.scene,
+              request.messages,
+              problem.diagramReview.checkApplicationDataPaths,
+            )
+          : undefined) ??
+        (!lease.openQuestions.length &&
+        !mismatch &&
+        plan.progress.step === "review"
+          ? addedComponentQuestion(
+              request.scene,
+              request.previousScene,
+              request.messages,
+            )
+          : undefined),
+      explanationMissing:
+        latest?.action === "review" && !hasExplanation(request.messages),
+    };
+    return {
+      context,
       phase: publicPhase(problem.phases, plan.state.phaseIndex),
       completedPhase: () =>
         publicPhase(problem.phases, completedPlan.state.phaseIndex),
@@ -265,6 +311,18 @@ export async function prepareInterviewTurn(
           answeredPendingQuestion ||
             (lease.state.phaseIndex === 0 &&
               completedPlan.state.phaseIndex > 0),
+          {
+            resolvedQuestionIds: context.answeredQuestionIds ?? [],
+            topicId: context.selectedTopic,
+            stageId: nextPhase.id,
+            diagramComponents:
+              context.diagramUpdates?.length && !paused
+                ? []
+                : diagramComponents,
+            resetQuestions:
+              lease.state.phaseIndex === 0 &&
+              completedPlan.state.phaseIndex > 0,
+          },
         );
         lease.commit(completedPlan.state, [
           ...memory.coveredTopics,

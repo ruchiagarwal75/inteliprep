@@ -61,7 +61,7 @@ export function ChatComposer({
       <button
         type="submit"
         disabled={!canSend}
-        className={`rounded-md border px-4 py-2 text-sm disabled:opacity-40 ${secondary ? "" : "bg-foreground text-background"}`}
+        className={`rounded-md border px-4 py-2 text-sm disabled:opacity-40 ${secondary ? "" : "bg-brand text-brand-foreground"}`}
       >
         Send
       </button>

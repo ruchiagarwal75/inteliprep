@@ -34,7 +34,7 @@ it("opens recovered messages and offers Resend and Dismiss for each message with
   expect(html).toContain("&lt;img");
   expect(html).not.toContain("<img");
 });
-it("explains when loading latest opens a replacement attempt", () => {
+it("loads the same attempt after a storage conflict", () => {
   const html = renderToStaticMarkup(
     createElement(TranscriptSyncNotice, {
       disabled: false,
@@ -42,6 +42,7 @@ it("explains when loading latest opens a replacement attempt", () => {
       onLoad: async () => true,
     }),
   );
-  expect(html).toContain("newer attempt replaced this one");
+  expect(html).toContain("This saved interview changed in another tab");
+  expect(html).not.toContain("newer attempt");
   expect(html).not.toContain("drawing and unsent text will be kept");
 });

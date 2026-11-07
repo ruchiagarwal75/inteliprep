@@ -8,7 +8,8 @@ import {
 } from "@/lib/drawing-reply";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },
@@ -38,6 +39,7 @@ async function reply(context: InterviewContext): Promise<string> {
   return chunks.join("");
 }
 beforeEach(() => {
+  vi.stubEnv("OPENAI_MODEL", "test-model");
   vi.stubEnv("OPENAI_KEY", "test-key");
   mocks.create.mockReset();
   mocks.create.mockImplementation(async function* () {

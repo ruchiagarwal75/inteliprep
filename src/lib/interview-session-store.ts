@@ -7,6 +7,7 @@ import type { Scorecard } from "@/lib/scorecard";
 import type { InterviewTranscript } from "@/lib/interview-transcript";
 import { endSnapshotHash, unsealSession } from "@/lib/session-token";
 import { interviewSessionState } from "@/lib/interview-session-context";
+import type { PendingQuestion } from "@/lib/open-question-queue";
 import {
   createInterviewTiming,
   remainingInterviewSeconds,
@@ -25,6 +26,9 @@ export type Session = InterviewSelection & {
   timing?: InterviewTiming;
   phaseEnteredAt?: string;
   openQuestion?: string;
+  openQuestions?: PendingQuestion[];
+  pendingDiagramComponents?: string[];
+  topicTurnCounts?: Record<string, number>;
   answeredStages?: number[];
   coveredTopics?: string[];
   ending?: {

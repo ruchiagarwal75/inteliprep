@@ -72,3 +72,17 @@ describe("POST /api/interview/start", () => {
     expect((await post(body)).status).toBe(400);
   });
 });
+it("returns one session and original timer for repeated client request IDs", async () => {
+  const requestId = crypto.randomUUID();
+  const a = await post({ problemId: "url-shortener", level: "mid", requestId });
+  const b = await post({ problemId: "url-shortener", level: "mid", requestId });
+  const first = await a.json(),
+    again = await b.json();
+  expect(b.status).toBe(200);
+  expect(again.sessionId).toBe(first.sessionId);
+  expect(again.timing).toEqual(first.timing);
+  expect(
+    (await post({ problemId: "url-shortener", level: "staff", requestId }))
+      .status,
+  ).toBe(409);
+});

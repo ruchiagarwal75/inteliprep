@@ -1,0 +1,147 @@
+# Private admin MVP
+
+`/admin` is a read-only operational dashboard. It uses Supabase Postgres and the
+existing structured server logs; it adds no external analytics or monitoring
+service. Account counts come directly from `auth.users`.
+
+## Setup
+
+1. Set server-only `ADMIN_USER_ID` to the exact Supabase Auth UUID of the owner.
+   Find that UUID under Supabase Authentication → Users. The confirmed owner is
+   configured locally in `.env.local`; no owner identity is hardcoded in the app.
+   Missing/invalid configuration denies access. Never put it in a `NEXT_PUBLIC_`
+   variable or use editable user metadata as an admin role.
+2. Set `SUPABASE_CONNECTION_STRING` to the project's session-pooler Postgres URI.
+   URL-encode the database password and quote the complete value in `.env.local`.
+   The bundled public Supabase CA verifies TLS and the pooler hostname. The Node
+   client uses a maximum of two connections and disables prepared statements.
+3. Run `npm run db:admin` once in each target database. It applies the checked-in
+   additive migration in a transaction, under an advisory lock, and is safe to run
+   again. It never deletes or changes existing interview/account data. It does not
+   alter Supabase's migration-history tables. If managing migrations through the
+   Supabase CLI, apply the same file there instead; do not apply it twice.
+4. Add the same server-only settings to the intended Vercel environment and deploy.
+   Local `.env.local` changes do not configure Vercel. Optional `ADMIN_TEST_USER_IDS`
+   is a comma-separated list of test-account UUIDs.
+5. Sign in normally, then visit `/admin`. Admin sign-in returns only to the fixed
+   same-origin admin route. APIs return 401/403 rather than redirecting.
+
+Every page and data-read API independently checks the owner against a freshly
+verified `auth.getUser()` response. Dashboard/API responses are private and
+uncached. Only GET admin APIs exist. The `interview_admin` schema is not exposed to
+browser roles: its tables have RLS enabled, no browser policies, and no schema or
+table grants for `anon` or `authenticated`. Its credentials remain server-only.
+
+## Definitions and coverage
+
+- **Registered users:** current, non-anonymous, non-deleted Supabase accounts,
+  all time. **New signups:** the same accounts created in the trailing 7 days.
+- **Active in the last 7 days:** distinct users with a persisted interview action
+  during that window: start (including a failed authenticated start attempt), accepted candidate turn/control, completion, explicit exit, or an uncached feedback attempt.
+  Browsing Home/admin, refreshing a cached result, and resuming do not update last activity. Actual feedback retries do.
+- **Started:** recorded sessions that successfully started. **Failed to start:**
+  recorded authenticated start attempts that failed, including failures before an interview ID exists. Later AI or feedback failures
+  never change an interview to failed. **Completed:** the server froze an ending,
+  even if feedback is pending or failed. **Exited:** an existing Close without
+  scoring action was recorded by the server. **Unfinished:** no explicit outcome
+  has been persisted. Inactivity never means failure.
+- Interview outcomes, durations and costs cover **all recorded data in the current
+  environment** (`VERCEL_ENV`, otherwise development/production). The UI labels
+  each metric, the seven-day window, reporting start, and UTC timestamps.
+- The configured admin account, configured test accounts, and 1-minute tests are
+  excluded by default. Include admin/test activity is a read-only report filter.
+  Account totals use the shared Auth registry; interviews/costs use environment
+  scope. A test account should be listed in `ADMIN_TEST_USER_IDS`.
+- **Elapsed interview time:** server start to the first completion/explicit exit,
+  in minutes and seconds. Feedback latency is excluded. Drawing pauses questions,
+  not the timer, so there is no paused time to subtract. Resuming never replaces
+  the original start. This does not measure active engagement.
+- Open interviews are shown as unfinished. Their elapsed-so-far estimate stops at
+  their last recorded action; there is no heartbeat, online presence heuristic,
+  or running abandoned-session counter. No known activity/timing means unavailable.
+- **Average completed duration:** completed sessions with both valid start/end
+  values only. Exited, failed and unfinished sessions and missing/invalid timing
+  are excluded. An empty sample is unavailable, not a zero-second average.
+- User counts mean recorded attempts, including failed starts with an interview
+  ID. Lists are searched by email and paginated in stable batches of 20.
+
+Redis still holds short-lived canonical interview state; IndexedDB still holds
+browser history and drawings. The private tables keep only operational metadata,
+selected feedback fields, failure references and model usage. On successful
+resume, verified timing/outcomes/feedback can be recovered into reporting, labeled
+partial. No browser database is scanned, deleted, or migrated. Old browser-only
+interviews, expired Redis records, previous model usage, and unknown first-action
+milestones cannot be reconstructed and remain unavailable.
+
+## Reliability, privacy and debugging
+
+A small shared helper records start, first candidate response, design presentation
+when supported, completion/exit and feedback outcomes. Milestone timestamps use
+first-write preservation; interview IDs and failure/request IDs deduplicate
+replays. Accepted turns update last activity, not every click/keystroke. Reopening
+or refreshing does not insert another interview or milestone. Each actual model
+retry is a separate AI call, not a new interview.
+
+Authoritative completion is recorded after the existing shared-session freeze and
+before grading. Feedback status is separate. Feedback projections reuse validated
+summary/area scores/rationales and findings without copying candidate quotes,
+full transcripts, drawings, images, or raw provider responses.
+
+Failures record operation, category, timestamp, interview/account IDs when known,
+and request/reference IDs. Correlate the request ID with the existing server JSON
+logs. Browser storage failures are explicitly labeled browser-reported and are
+associated only with a matching owned reporting record. Browser reports cannot
+supply server outcomes or change status/scores. No secrets, full answers or raw
+audio are logged. Diagnostic logs retain allowlisted status/error categories.
+
+Tracking errors never reject an interview operation. Writes have bounded database
+timeouts and back off for 30 seconds after an outage; failures are logged. This
+is best-effort reporting of persisted evidence, not a lossless event pipeline.
+A database/read failure displays unavailable, not zero. An offline local close or
+save error that never reaches the server cannot be guaranteed in the dashboard.
+
+## AI cost
+
+Each provider attempt records the operation, model, start/end, result status,
+request/interview references and reported input/output/cache token counts. Stream
+terminal events provide usage; failed provider requests retain usage when it is
+returned. SDK retries remain disabled; the existing bounded retry is observed as
+another call. Reporting never records model request bodies or generated answers.
+
+Default standard USD/million rates for `gpt-6.1-terra` are input 1.00, cached input
+0.05, cache writes 1.25, and output 5.00, verified against
+[OpenAI's Terra model page](https://developers.openai.com/api/docs/models/gpt-6.1-terra).
+Default rates for `gpt-6.1-sol` are input 2.00, cached input
+0.10, cache writes 2.50, and output 10.00, including reported reasoning tokens
+in the output total. See [OpenAI's Sol model page](https://developers.openai.com/api/docs/models/gpt-6.1-sol).
+Cache-read and cache-write tokens are removed from ordinary input before pricing;
+they are not counted twice. The app uses standard service with default cache
+retention and bounded inputs below the long-context pricing threshold.
+Default rates for `gpt-4o`, `gpt-4o-2024-08-06`, and
+`gpt-4o-2024-11-20` are input 2.50, cached input 1.25, output 10.00, checked against
+[OpenAI's model page](https://developers.openai.com/api/docs/models/gpt-4o) on
+2026-11-06. Set `AI_MODEL_RATES_USD_PER_MILLION` to a complete JSON rate map for a
+custom model or negotiated pricing. The rate version is saved with each estimate;
+changes affect future calls, not existing estimates. Cache-write usage without a
+configured price is unpriced.
+
+Totals include known priced failed/retried attempts and show the number of
+unpriced calls. Missing usage/pricing is never zero. No recorded calls is distinct
+from missing usage. Costs are estimates for recorded provider calls, not invoices,
+credits, taxes, discounts, or costs before tracking began.
+
+## Verification
+
+`npm run check` covers auth/authorization, safe filters, time definitions, pricing,
+privacy, per-attempt usage/retry instrumentation, and existing interview regressions.
+
+`INTELIPREP_ADMIN_DB_TEST=1 npm test -- tests/admin-database.test.ts` runs an opt-in
+integration check using the real private schema. It creates a test user and
+interviews inside one transaction and rolls back only those fixtures. It checks
+counts, preserved starts/endings, partial timing, completed/failed-feedback status,
+exit replay and ownership, abandoned duration, deduplication, cost coverage,
+search/exclusions, and browser-role denial. It sends no emails or model requests.
+
+Not tracked: replay/heatmaps/click trails, live presence, raw answers/audio,
+voice analytics, abandoned-tab exit guesses, durable transcript synchronization,
+alerts, custom charting, PostHog, or Sentry.

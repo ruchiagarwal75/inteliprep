@@ -1,9 +1,14 @@
+import { MascotToggle } from "@/components/mascot-preference";
+import { HomeMascot } from "@/components/mascot-moments";
 import { redirect } from "next/navigation";
 import { candidateIdentity } from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { listProblems, getProblem } from "@/lib/problems";
 import { CandidateWorkspace } from "@/components/candidate-workspace";
 import Link from "next/link";
+import { Brand } from "@/components/brand";
+import { PracticeHero } from "@/components/practice-hero";
+import { PracticeIcon } from "@/components/practice-icons";
 export async function PracticePage({
   view,
   sessionId,
@@ -25,22 +30,37 @@ export async function PracticePage({
   if (!userId) {
     if (view !== "home") redirect("/sign-in");
     return (
-      <main className="mx-auto max-w-3xl space-y-5 p-4 sm:p-8">
-        <h1 className="text-2xl font-semibold">InteliPrep</h1>
-        <p>
-          Practice a system design interview and review evidence-backed
-          feedback.
-        </p>
-        <Link
-          className="bg-foreground text-background inline-block rounded px-4 py-3"
-          href="/sign-in"
-        >
-          Start practice
-        </Link>
-        <p className="text-sm">
-          Practice history is stored in this browser. Sign in to start or resume
-          your interviews.
-        </p>
+      <main className="practice-page mascot-home-page">
+        <div className="practice-shell">
+          <header className="practice-nav">
+            <Brand />
+            <div className="practice-account-actions">
+              <MascotToggle />
+              <Link href="/sign-in" className="underline">
+                Sign in
+              </Link>
+            </div>
+          </header>
+          <PracticeHero>
+            <Link className="practice-primary" href="/sign-in">
+              Start practice
+              <PracticeIcon name="arrow" />
+            </Link>
+          </PracticeHero>
+          <section className="practice-surface welcome-note">
+            <p className="practice-kicker">A space to work it out</p>
+            <h2>Bring your ideas. We’ll bring the questions.</h2>
+            <p>
+              Practice a realistic system design interview, sketch as you think,
+              and get feedback grounded in your own answers.
+            </p>
+          </section>
+          <p className="practice-note">
+            Practice history is stored in this browser. Sign in to start or
+            resume your interviews.
+          </p>
+        </div>
+        <HomeMascot />
       </main>
     );
   }

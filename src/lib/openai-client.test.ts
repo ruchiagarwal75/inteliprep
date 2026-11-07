@@ -7,6 +7,10 @@ import {
 
 afterEach(() => vi.unstubAllEnvs());
 describe("bounded provider client", () => {
+  it("defaults to GPT-6.1 Sol when no override is configured", () => {
+    vi.stubEnv("OPENAI_MODEL", "");
+    expect(interviewerModel()).toBe("gpt-6.1-sol");
+  });
   it("bounds provider waiting and disables retries so route deadlines remain meaningful", () => {
     vi.stubEnv("OPENAI_KEY", "test-key");
     const client = createOpenAIClient();

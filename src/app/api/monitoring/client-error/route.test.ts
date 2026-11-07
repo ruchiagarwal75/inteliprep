@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { requireCandidateIdentity } from "@/lib/candidate-auth";
+import { CandidateAuthError } from "@/lib/supabase-config";
 import { POST } from "@/app/api/monitoring/client-error/route";
 
 const report = {
@@ -17,9 +19,19 @@ const post = (body: unknown) =>
   );
 describe("monitoring ingestion", () => {
   it("accepts anonymous allowlisted metadata", async () => {
+    vi.mocked(requireCandidateIdentity).mockRejectedValue(
+      new CandidateAuthError(),
+    );
     const response = await post(report);
     expect(response.status).toBe(204);
+    expect(requireCandidateIdentity).not.toHaveBeenCalled();
     expect(response.headers.get("X-Request-Id")).toBeTruthy();
+  });
+  it("requires a verified account before associating browser storage failures", async () => {
+    vi.mocked(requireCandidateIdentity).mockRejectedValue(
+      new CandidateAuthError(),
+    );
+    expect((await post({ ...report, kind: "storage" })).status).toBe(401);
   });
   it("rejects extra evidence fields and oversized reports", async () => {
     expect((await post({ ...report, message: "private answer" })).status).toBe(

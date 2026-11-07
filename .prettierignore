@@ -9,3 +9,8 @@ next-env.d.ts
 
 # Hand-authored spec: keep the author's formatting.
 docs/
+
+# Supplied mascot files: preserve the original bytes.
+src/components/mascot-art/mascotArt.ts
+src/components/mascot-art/Mascot.tsx
+src/components/mascot-art/mascot.css

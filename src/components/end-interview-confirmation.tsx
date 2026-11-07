@@ -54,7 +54,7 @@ export function EndInterviewConfirmation({
           <button
             type="button"
             onClick={() => onConfirm(true)}
-            className="bg-foreground text-background rounded px-3 py-2 text-sm"
+            className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm"
           >
             {switchTo
               ? "Include answer, end, and continue"

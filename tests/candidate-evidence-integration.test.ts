@@ -14,7 +14,8 @@ import {
 } from "@/lib/fixtures/scorecard-test";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },

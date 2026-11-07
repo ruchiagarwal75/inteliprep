@@ -23,6 +23,7 @@ it("preserves an unanswered question through an unrelated drawing explanation", 
     questionAtEnd(start.openingMessage.content),
   );
   session.phaseIndex = 2;
+  session.openQuestion = undefined;
   const messages: ChatMessage[] = [
     {
       role: "user",
@@ -79,12 +80,12 @@ it("preserves an unanswered question through an unrelated drawing explanation", 
   const resumed = await turn(
     "Returning to the question we paused: What happens if Redis goes down?",
   );
-  expect(resumed.context.reviewQuestion ?? "").toContain(
+  expect(resumed.context.openQuestions?.[0]?.question ?? "").toContain(
     "What happens if Redis goes down?",
   );
 });
 
-it("clears the open question when a paused explanation has verified answering evidence", async () => {
+it("keeps the question until the discussion response verifies answering evidence", async () => {
   const p = getProblem("rate-limiter");
   if (!p) throw Error("Missing problem");
   const start = createInterviewStart(p, "mid");
@@ -115,8 +116,8 @@ it("clears the open question when a paused explanation has verified answering ev
     new AbortController().signal,
   );
   prepared.commit("I'm listening.");
-  expect(
-    unsealSession(prepared.checkpoint?.() ?? "").openQuestion,
-  ).toBeUndefined();
+  expect(unsealSession(prepared.checkpoint?.() ?? "").openQuestion).toBe(
+    "What happens if Redis goes down?",
+  );
   prepared.release();
 });

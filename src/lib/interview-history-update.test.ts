@@ -27,7 +27,7 @@ it("updates a committed row without losing history, duplicating it, or sorting b
     updateInterviewHistory(updated, { ...newer, hasScorecard: true }),
   ).toHaveLength(2);
 });
-it("replaces the same problem immediately and ignores a late result for the old attempt", () => {
+it("retains earlier attempts and applies late results to their own row", () => {
   const old = {
     ...savedInterviewSummary(savedFixture()),
     createdAt: "2026-01-01T00:00:00Z",
@@ -38,12 +38,19 @@ it("replaces the same problem immediately and ignores a late result for the old 
   };
   const other = { ...old, id: crypto.randomUUID(), problemId: "url-shortener" };
   const entries = updateInterviewHistory([old, other], next);
-  expect(entries).toEqual([next, other]);
+  expect(entries).toHaveLength(3);
+  expect(entries[0]).toEqual(next);
   expect(
     updateInterviewHistory(entries, {
       ...old,
       updatedAt: "2030-01-01T00:00:00Z",
       hasScorecard: true,
     }),
-  ).toEqual(entries);
+  ).toEqual(
+    expect.arrayContaining([
+      { ...old, updatedAt: "2030-01-01T00:00:00Z", hasScorecard: true },
+      next,
+      other,
+    ]),
+  );
 });

@@ -1,9 +1,14 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { Brand } from "@/components/brand";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import type { useInterviewStarter } from "@/components/use-interview-starter";
 import { InterviewSetup } from "@/components/interview-setup";
-import { useEffect, useRef } from "react";
+import { PracticeHero } from "@/components/practice-hero";
+import { PracticeIcon } from "@/components/practice-icons";
+import { PracticeStepper } from "@/components/practice-stepper";
+
 export function InterviewBrief({
   problems,
   starter,
@@ -23,76 +28,110 @@ export function InterviewBrief({
     (p) => p.problemId === starter.choice.problemId,
   );
   return (
-    <main className="mx-auto max-w-3xl space-y-5 p-4 sm:p-8">
-      <Link className="underline" href="/">
-        Back to home
-      </Link>
-      <h1 className="text-2xl font-semibold">Your practice brief</h1>
-      <InterviewSetup
-        problems={problems}
-        hasEnded={false}
-        disabled={false}
-        choice={starter.choice}
-        onChoice={starter.setChoice}
-        onStart={() => void starter.start()}
-        onNew={() => {}}
-        onChangeProblem={() => {}}
-        isStarting={starter.isStarting}
-        hideStart
-      />
-      <section aria-label="Problem brief" className="rounded-lg border p-4">
-        <h2 className="mb-3 font-semibold">{selected?.title}</h2>
-        <p className="whitespace-pre-wrap">
-          {selected?.brief?.[starter.choice.level] ?? selected?.summary}
-        </p>
-      </section>
-      <section>
-        <h2 className="font-semibold">The five stages</h2>
-        <ol className="mt-2 list-inside list-decimal space-y-1">
-          <li>Clarify requirements</li>
-          <li>Draw and explain</li>
-          <li>Core design</li>
-          <li>Scaling and reliability</li>
-          <li>Tradeoffs and wrap-up</li>
-        </ol>
-      </section>
-      <ul className="list-inside list-disc space-y-2">
-        <li>
-          Draw your components and connections. Questions pause while you draw.
-        </li>
-        <li>
-          Choose Ready to explain, then describe your design in chat. The
-          interviewer listens.
-        </li>
-        <li>
-          Choose Done explaining to open discussion. You can pause to draw
-          again.
-        </li>
-      </ul>
-      <p className="text-sm">
-        The timer starts when you press Start interview. Only your latest
-        attempt for each problem appears in history, across difficulties and
-        durations.
-      </p>
-      <button
-        disabled={starter.isStarting || starter.isLimited}
-        aria-describedby={starter.error ? "start-error" : undefined}
-        className="bg-foreground text-background rounded px-5 py-3 disabled:opacity-40"
-        onClick={() => void starter.start()}
-      >
-        {starter.isStarting ? "Starting…" : "Start interview"}
-      </button>
-      {starter.error && (
-        <p
-          id="start-error"
-          ref={errorRef}
-          tabIndex={-1}
-          role="alert"
-          className="rounded border border-red-400 bg-red-50 p-3 font-medium text-red-900 dark:bg-red-950 dark:text-red-100"
-        >
-          {starter.error}
-        </p>
-      )}
+    <main className="practice-page">
+      <div className="practice-shell">
+        <header className="practice-nav">
+          <Brand />
+          <Link href="/" className="underline">
+            Back to home
+          </Link>
+        </header>
+        <PracticeHero brief />
+        <div className="practice-surface">
+          <div className="practice-setup">
+            <InterviewSetup
+              problems={problems}
+              hasEnded={false}
+              disabled={false}
+              choice={starter.choice}
+              onChoice={starter.setChoice}
+              onStart={() => void starter.start()}
+              onNew={() => {}}
+              onChangeProblem={() => {}}
+              isStarting={starter.isStarting}
+              hideStart
+            />
+          </div>
+          <div className="brief-layout">
+            <section className="problem-card" aria-label="Problem brief">
+              <p className="practice-kicker">Your challenge</p>
+              <h2>{selected?.title}</h2>
+              <p>
+                {selected?.brief?.[starter.choice.level] ?? selected?.summary}
+              </p>
+            </section>
+            <aside className="brief-tips" aria-labelledby="tips-title">
+              <h2 id="tips-title">A small guide</h2>
+              <ul>
+                <li className="tip-row">
+                  <span className="tip-icon">
+                    <PracticeIcon name="draw" />
+                  </span>
+                  <div>
+                    <h3>Draw your approach</h3>
+                    <p>
+                      Add components and connections. Questions pause while you
+                      draw.
+                    </p>
+                  </div>
+                </li>
+                <li className="tip-row">
+                  <span className="tip-icon">
+                    <PracticeIcon name="explain" />
+                  </span>
+                  <div>
+                    <h3>Talk it through</h3>
+                    <p>
+                      Choose Ready to explain. Take as many messages as you
+                      need.
+                    </p>
+                  </div>
+                </li>
+                <li className="tip-row">
+                  <span className="tip-icon">
+                    <PracticeIcon name="discuss" />
+                  </span>
+                  <div>
+                    <h3>Open the discussion</h3>
+                    <p>
+                      Choose Done explaining for follow-ups. You can pause to
+                      draw again.
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </aside>
+          </div>
+          <PracticeStepper />
+          <div className="brief-start">
+            <button
+              disabled={starter.isStarting || starter.isLimited}
+              aria-describedby={starter.error ? "start-error" : "start-note"}
+              className="practice-primary"
+              onClick={() => void starter.start()}
+            >
+              {starter.isStarting ? "Starting…" : "Start interview"}
+              <PracticeIcon name="arrow" />
+            </button>
+            <p id="start-note" className="practice-muted">
+              The timer starts when you do.
+              <br />
+              Every attempt is kept in history.
+            </p>
+          </div>
+          {starter.error && (
+            <p
+              id="start-error"
+              ref={errorRef}
+              tabIndex={-1}
+              role="alert"
+              className="practice-error"
+            >
+              {starter.error}
+            </p>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

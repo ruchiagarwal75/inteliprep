@@ -3,7 +3,8 @@ import { getProblem } from "@/lib/problems";
 import type { InterviewContext } from "@/lib/interview-instructions";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },
@@ -137,7 +138,7 @@ it("never tells a candidate to draw while still holding the clarify minimum", as
     coveredCriteria: [0, 1, 2],
     mayInviteDrawing: false,
   });
-  expect(displayed).toContain("Skip to drawing");
+  expect(displayed).toContain("Start drawing");
   expect(displayed).not.toContain("Ready to explain");
   expect(displayed).not.toContain("?");
 });
@@ -209,5 +210,5 @@ it("does not repeat an answered configured question if the coverage assessor is 
   ))
     displayed += chunk;
   expect(displayed).not.toContain(question);
-  expect(displayed).toContain("Skip to drawing");
+  expect(displayed).toContain("Start drawing");
 });

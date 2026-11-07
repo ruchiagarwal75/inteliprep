@@ -15,8 +15,8 @@ import { problemReviews, reviewScene } from "@/lib/fixtures/problem-reviews";
 import { chatTurnPayload } from "@/lib/chat-turn";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
-  APIError: class extends Error {},
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },
@@ -35,6 +35,7 @@ async function* reply() {
   yield { type: "response.completed" };
 }
 beforeEach(() => {
+  vi.stubEnv("OPENAI_MODEL", "test-model");
   vi.stubEnv("OPENAI_KEY", "catalog-test-key");
   mocks.create
     .mockReset()

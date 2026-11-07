@@ -12,6 +12,7 @@ const reported = new Set<string>();
 export async function reportClientError(
   kind: ClientErrorReport["kind"],
   cause: unknown,
+  interviewId?: string,
 ): Promise<void> {
   if (process.env.NODE_ENV !== "production" || reports >= 20) return;
   reports++;
@@ -33,7 +34,11 @@ export async function reportClientError(
     await fetch("/api/monitoring/client-error", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...metadata, fingerprint }),
+      body: JSON.stringify({
+        ...metadata,
+        fingerprint,
+        ...(interviewId ? { interviewId } : {}),
+      }),
       keepalive: true,
       signal: AbortSignal.timeout(3_000),
     });

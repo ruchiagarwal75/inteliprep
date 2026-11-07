@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { PracticeSkeleton } from "@/components/practice-skeleton";
 
 import { useCallback, useRef, useState, useEffect } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
@@ -13,6 +14,7 @@ import { useInterviewNavigation } from "@/components/use-interview-navigation";
 import { InterviewSessionWorkspace } from "@/components/interview-session-workspace";
 import { PracticeHome } from "@/components/practice-home";
 import { InterviewBrief } from "@/components/interview-brief";
+import { withMascotTest } from "@/lib/mascot-timing";
 import { interviewHref } from "@/lib/interview-navigation";
 import { nextInterviewSelection } from "@/lib/interview-restart";
 
@@ -70,7 +72,11 @@ export function InterviewWorkspace({
       interviewHref(library.opened.id) +
       (library.opened.hasEnded ? "/results" : "");
     if (window.location.pathname !== href)
-      window.history.replaceState(null, "", href);
+      window.history.replaceState(
+        null,
+        "",
+        withMascotTest(href, window.location.search),
+      );
   }, [library.opened]);
   const changed = library.changed;
   const updateScene = useCallback(
@@ -88,12 +94,7 @@ export function InterviewWorkspace({
       }
     : starter.choice;
 
-  if (!library.ready)
-    return (
-      <main className="p-6" role="status">
-        Loading saved interviews…
-      </main>
-    );
+  if (!library.ready) return <PracticeSkeleton view={view} />;
   if (view === "home")
     return (
       <PracticeHome

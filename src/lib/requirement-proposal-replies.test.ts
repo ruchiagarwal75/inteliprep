@@ -16,8 +16,8 @@ import { diagramReviewQuestion } from "@/lib/diagram-review";
 import { getCachedSession } from "@/lib/interview-session-store";
 
 const mocks = vi.hoisted(() => ({ create: vi.fn() }));
-vi.mock("openai", () => ({
-  APIError: class extends Error {},
+vi.mock("openai", async (original) => ({
+  ...(await original<typeof import("openai")>()),
   default: class {
     responses = { create: mocks.create };
   },
@@ -29,6 +29,7 @@ const problem = getProblem("news-feed");
 if (!problem) throw new Error("Missing news feed");
 const candidate = "I suggest keeping posts 1 year instead of 90 days.";
 beforeEach(() => {
+  vi.stubEnv("OPENAI_MODEL", "test-model");
   vi.stubEnv("OPENAI_KEY", "test-key");
   mocks.create.mockReset().mockImplementation(async function* () {
     yield {

@@ -7,6 +7,11 @@ import {
   InterviewSessionError,
   type PhaseState,
 } from "@/lib/interview-session-store";
+import {
+  pendingQuestions,
+  enqueueQuestion,
+  unresolvedQuestions,
+} from "@/lib/open-question-queue";
 import { stageTimeGate } from "@/lib/stage-clock";
 import { endSnapshotHash, sealSession } from "@/lib/session-token";
 
@@ -74,6 +79,12 @@ export function acquireInterviewSession(
   const { session } = lease;
   return {
     openQuestion: session.openQuestion,
+    openQuestions: pendingQuestions(
+      session,
+      session.transcript?.messages ?? [],
+    ),
+    pendingDiagramComponents: session.pendingDiagramComponents ?? [],
+    topicTurnCounts: session.topicTurnCounts ?? {},
     coveredTopics: session.coveredTopics ?? [],
     recordReply(
       reply: string,
@@ -81,13 +92,51 @@ export function acquireInterviewSession(
       paused: boolean,
       question?: string,
       resolvedQuestion = false,
+      metadata?: {
+        resolvedQuestionIds: string[];
+        topicId?: string;
+        stageId: string;
+        diagramComponents: string[];
+        resetQuestions: boolean;
+      },
     ) {
       lease.assertHeld();
+      if (metadata) {
+        const previous = pendingQuestions(
+          session,
+          session.transcript?.messages ?? [],
+        );
+        const remaining = metadata.resetQuestions
+          ? []
+          : unresolvedQuestions(previous, metadata.resolvedQuestionIds);
+        const queue = paused
+          ? remaining
+          : enqueueQuestion(
+              remaining,
+              reply,
+              (session.transcript?.messages.length ?? 1) - 1,
+              metadata.topicId,
+            );
+        session.openQuestions = queue;
+        session.openQuestion = queue[0]?.question;
+        session.pendingDiagramComponents = metadata.diagramComponents;
+        if (metadata.topicId && question) {
+          const key = `${metadata.stageId}:${metadata.topicId}`;
+          session.topicTurnCounts ??= {};
+          session.topicTurnCounts[key] = Math.min(
+            100,
+            (session.topicTurnCounts[key] ?? 0) + 1,
+          );
+        }
+      }
       if (answered)
         session.answeredStages = [
           ...new Set([...(session.answeredStages ?? []), session.phaseIndex]),
         ];
-      if (resolvedQuestion || (!paused && (answered || question)))
+      if (
+        !metadata &&
+        (resolvedQuestion || (!paused && (answered || question)))
+      )
         session.openQuestion = question;
     },
     clock: {

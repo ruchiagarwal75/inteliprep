@@ -18,7 +18,7 @@ export function TranscriptSyncNotice({
     >
       <p>
         {storageConflict
-          ? "This saved interview changed in another tab. Load the latest version to continue. If a newer attempt replaced this one, that attempt will open."
+          ? "This saved interview changed in another tab. Load the latest version to continue."
           : "This interview changed in another tab. Load the latest conversation to continue. Your drawing and unsent text will be kept."}
       </p>
       <button

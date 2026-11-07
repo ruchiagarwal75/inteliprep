@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { withMascotTest } from "@/lib/mascot-timing";
 import {
   interviewHref,
   interviewIdFromSearch,
@@ -11,7 +12,7 @@ export function updateInterviewUrl(
   navigation: "push" | "replace" | "none",
 ) {
   if (navigation === "none") return;
-  const href = interviewHref(id);
+  const href = withMascotTest(interviewHref(id), window.location.search);
   if (`${window.location.pathname}${window.location.search}` === href) return;
   if (navigation === "push") window.history.pushState(null, "", href);
   else window.history.replaceState(null, "", href);

@@ -5,7 +5,9 @@ import { authFailureKind } from "@/lib/auth-failure";
 import { logServerEvent } from "@/lib/server-events";
 
 export async function GET(request: Request) {
-  const code = new URL(request.url).searchParams.get("code");
+  const params = new URL(request.url).searchParams;
+  const code = params.get("code");
+  const returnTo = params.get("next") === "/admin" ? "/admin" : "/interview";
   const requestId = randomUUID();
   let success = false;
   let cause: unknown;
@@ -36,13 +38,21 @@ export async function GET(request: Request) {
   const response = NextResponse.redirect(
     new URL(
       success
-        ? "/interview"
+        ? returnTo
         : failure === "connection"
           ? "/sign-in?error=connection"
           : "/sign-in?error=1",
       request.url,
     ),
   );
+  if (!success && returnTo === "/admin") {
+    const destination = new URL(
+      response.headers.get("Location") ?? "/sign-in",
+      request.url,
+    );
+    destination.searchParams.set("next", "/admin");
+    response.headers.set("Location", destination.href);
+  }
   response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("X-Request-Id", requestId);
   return response;

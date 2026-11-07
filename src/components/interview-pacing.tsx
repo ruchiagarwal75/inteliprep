@@ -61,7 +61,7 @@ export function InterviewPacing({
                   ? "explain-message-hint"
                   : undefined
             }
-            className="bg-foreground text-background rounded px-3 py-2 text-sm disabled:opacity-40"
+            className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm disabled:opacity-40"
             onClick={() => choose(control.message, control.action)}
           >
             {action === "draw" ? "Ready to explain" : "Done explaining"}
@@ -78,7 +78,7 @@ export function InterviewPacing({
               ? "Back to drawing"
               : action === "review"
                 ? "Pause to draw"
-                : "Skip to drawing"}
+                : "Start drawing"}
           </button>
         )}
       </div>

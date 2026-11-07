@@ -10,6 +10,7 @@ export const clientErrorReportSchema = z.strictObject({
     "AbortError",
     "other",
   ]),
+  interviewId: z.uuid().optional(),
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
 });
 export type ClientErrorReport = z.infer<typeof clientErrorReportSchema>;

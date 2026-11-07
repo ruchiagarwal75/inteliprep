@@ -1,3 +1,5 @@
+import { trackCurrentInterview } from "@/lib/interview-tracking";
+import { setInterviewReference } from "@/lib/reporting-context";
 import { interviewEndRequestSchema } from "@/lib/interview-end";
 import { readJsonBody, withApiRequest } from "@/lib/api-request";
 import { openSharedSession } from "@/lib/shared-interview-session";
@@ -19,6 +21,7 @@ async function freeze(request: Request) {
       { status: 400 },
     );
   const input = parsed.data;
+  setInterviewReference(parsed.data.sessionId);
   const shared = await openSharedSession(
     input.sessionId,
     input,
@@ -38,6 +41,7 @@ async function freeze(request: Request) {
     const endedAt = lease.endedAt;
     lease.release();
     await shared.persist();
+    await trackCurrentInterview(input.sessionId, { grading: true });
     const checkpoint = interviewSessionCheckpoint(input.sessionId, input);
     return Response.json(
       { ended: true, endedAt, resumeToken: checkpoint.resumeToken },
