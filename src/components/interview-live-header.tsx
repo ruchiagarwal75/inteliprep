@@ -1,4 +1,3 @@
-import { MascotToggle } from "@/components/mascot-preference";
 import { Brand } from "@/components/brand";
 import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import type { InterviewPhase } from "@/lib/interview-phase";
@@ -33,8 +32,8 @@ export function InterviewLiveHeader({
 }) {
   return (
     <header className="live-header grid shrink-0 grid-cols-[1fr_auto] items-center gap-2 rounded-lg border px-3 py-2 min-[900px]:grid-cols-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <Brand compact small />
+      <div className="live-identity">
+        <Brand />
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold">{title}</h1>
           <p className="text-xs">
@@ -48,7 +47,6 @@ export function InterviewLiveHeader({
         </div>
       )}
       <div className="flex flex-wrap items-center justify-end gap-2 min-[900px]:col-start-3">
-        {ended && <MascotToggle />}
         {!ended && interview?.timing && (
           <InterviewTimer
             remainingSeconds={remainingSeconds}

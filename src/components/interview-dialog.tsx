@@ -35,7 +35,7 @@ export function InterviewDialog({
         onClose();
       }}
       onClose={onClose}
-      className="bg-background text-foreground m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain rounded-xl border border-black/20 p-5 shadow-xl backdrop:bg-black/40 dark:border-white/20"
+      className="interview-dialog m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain p-5 backdrop:bg-black/40"
       aria-label={title}
     >
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -44,9 +44,20 @@ export function InterviewDialog({
           type="button"
           autoFocus
           onClick={onClose}
-          className="rounded border px-3 py-1 text-sm"
+          className="dialog-close"
+          aria-label="Close dialog"
         >
-          Close
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            aria-hidden="true"
+          >
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
         </button>
       </div>
       {children}

@@ -109,7 +109,7 @@ export function InterviewSessionWorkspace({
     <main
       className={[
         "interview-page flex h-dvh min-h-0 flex-col gap-2 overflow-hidden p-2",
-        hasEnded ? "mascot-results-page" : "",
+        hasEnded ? "results-page" : "",
       ].join(" ")}
     >
       <InterviewLiveHeader
@@ -191,6 +191,7 @@ export function InterviewSessionWorkspace({
           className={`min-h-0 min-w-0 ${hasEnded || activePanel === "chat" ? "flex" : "hidden min-[900px]:flex"}`}
         >
           <ChatPanel
+            remainingSeconds={timer.remainingSeconds}
             leaveAction={leaveAction}
             onCancelLeave={() => {}}
             onConfirmLeave={() =>

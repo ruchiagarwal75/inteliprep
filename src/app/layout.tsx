@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { AppViewerTracker } from "@/components/app-viewer-tracker";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
@@ -22,12 +24,12 @@ const displayFont = Lora({
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.url),
   applicationName: BRAND.name,
-  title: `${BRAND.name} — System design interview practice`,
+  title: `${BRAND.name} · System design interview practice`,
   description: BRAND.description,
   openGraph: {
     type: "website",
     siteName: BRAND.name,
-    title: `${BRAND.name} — System design interview practice`,
+    title: `${BRAND.name} · System design interview practice`,
     description: BRAND.description,
   },
   robots: { index: false, follow: false },
@@ -39,7 +41,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${displayFont.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <Suspense fallback={null}>
+          <AppViewerTracker />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

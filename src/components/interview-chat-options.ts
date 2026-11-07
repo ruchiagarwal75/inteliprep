@@ -35,6 +35,7 @@ export type ChatPanelProps = InterviewChatOptions & {
   onEndConfirmed: (ended: boolean) => void;
   disabled: boolean;
   timeExpired: boolean;
+  remainingSeconds?: number;
   leaveAction?: "new" | "problem";
   onCancelLeave: () => void;
   onConfirmLeave: () => void;

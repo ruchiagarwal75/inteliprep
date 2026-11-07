@@ -1,6 +1,7 @@
 import type { Scene } from "@/lib/scene";
 import { sceneToGraph } from "@/lib/scene-graph";
 import { isOffTopicRequest } from "@/lib/off-topic";
+import { diagramComponentList } from "@/lib/diagram-component-copy";
 
 /** Ready-to-explain and listening turns must not consume additions before discussion resumes. */
 export function pendingDiagramComponents(
@@ -26,9 +27,6 @@ export function pendingDiagramComponents(
 }
 export function diagramUpdateClause(components: string[]) {
   return components.length
-    ? `I see ${components
-        .slice(0, 3)
-        .map((s) => s.slice(0, 100))
-        .join(", ")} in your updated drawing.`
+    ? `I see ${diagramComponentList(components.slice(0, 3))} on your diagram.`
     : "";
 }

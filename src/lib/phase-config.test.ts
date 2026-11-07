@@ -14,7 +14,7 @@ describe("configured interview stages", () => {
     ]);
     expect(publicPhase(phases, 2)).toEqual({
       id: "discuss-improvements",
-      title: "Discuss improvements",
+      title: "Core design",
       position: 3,
       total: 5,
     });

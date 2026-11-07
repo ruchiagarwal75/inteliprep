@@ -32,21 +32,21 @@ export function ScorecardEvidence({
         : "Drawn element";
   }
   return (
-    <ul className="mt-2 space-y-2 text-xs text-black/60 dark:text-white/60">
-      {evidence.map((item, index) => (
-        <li
-          key={index}
-          className="border-l-2 border-black/15 pl-2 dark:border-white/20"
-        >
-          {item.kind === "message" ? (
-            <blockquote className="whitespace-pre-wrap">
-              You said: “{item.quote}”
-            </blockquote>
-          ) : (
-            <p>Diagram reference: {label(item.elementId)}</p>
-          )}
-        </li>
-      ))}
-    </ul>
+    <details className="scorecard-evidence">
+      <summary>Show evidence ({evidence.length})</summary>
+      <ul>
+        {evidence.map((item, index) => (
+          <li key={index} className="evidence-quote">
+            {item.kind === "message" ? (
+              <blockquote className="whitespace-pre-wrap">
+                You said: “{item.quote}”
+              </blockquote>
+            ) : (
+              <p>Diagram reference: {label(item.elementId)}</p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

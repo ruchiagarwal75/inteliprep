@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import type { InterviewPhase } from "@/lib/interview-phase";
+import { interviewStageName } from "@/lib/interview-stage-names";
 
 export const phaseConfigSchema = z.object({
   id: z
@@ -53,7 +54,7 @@ export function publicPhase(
   if (!phase) throw new Error("Unknown interview stage");
   return {
     id: phase.id,
-    title: phase.title,
+    title: interviewStageName(index + 1, phase.title),
     position: index + 1,
     total: phases.length,
   };

@@ -1,0 +1,348 @@
+.interview-page {
+  width: 100%;
+  max-width: calc(var(--page-width) + var(--space-8));
+  margin-inline: auto;
+  background: var(--navy);
+  color: var(--cream);
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-2);
+  --brand: var(--teal);
+  --brand-foreground: var(--white);
+}
+body:has(.interview-page) {
+  background: var(--navy);
+}
+.live-header {
+  border: 0;
+  border-radius: var(--corner-large);
+  background: var(--cream);
+  color: var(--ink);
+  padding: var(--space-2);
+  min-height: 80px;
+}
+.live-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.live-identity > div {
+  min-width: 0;
+}
+.live-identity h1 {
+  font-size: 1rem;
+  white-space: normal;
+}
+.live-identity p {
+  color: var(--ink-muted);
+}
+.live-header [aria-label="Interview stage"] {
+  justify-content: center;
+}
+.live-header [aria-label="Interview stage"] > span:first-child {
+  color: var(--ink-muted);
+}
+.live-header [aria-label="Interview stage"] > span:last-child {
+  color: var(--ink);
+}
+.live-header button:not(.profile-trigger) {
+  border-color: var(--control-line);
+  border-radius: var(--corner-small);
+}
+.interview-page .profile-trigger {
+  color: var(--ink);
+  border-color: var(--control-line);
+}
+.chat-panel,
+.whiteboard-panel {
+  background: var(--cream);
+  color: var(--ink);
+  color-scheme: light;
+  border: 0;
+  border-radius: var(--corner-large);
+  overflow: hidden;
+  --background: var(--cream);
+  --foreground: var(--ink);
+}
+.whiteboard-heading {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--paper-line);
+}
+.whiteboard-heading h2 {
+  font:
+    500 1.125rem/1.2 var(--font-display),
+    Georgia,
+    serif;
+}
+.whiteboard-panel .excalidraw {
+  --color-primary: var(--teal);
+  --color-primary-darker: var(--teal-deep);
+  --color-primary-light: var(--teal-soft);
+  --color-surface-primary-container: var(--teal-soft);
+  --island-bg-color: var(--cream-raised);
+  --default-bg-color: var(--cream);
+}
+.whiteboard-panel .excalidraw .HintViewer,
+.whiteboard-panel .excalidraw .ToolIcon__keybinding,
+.whiteboard-panel .excalidraw .default-sidebar-trigger,
+.whiteboard-panel .excalidraw [aria-label="Library"],
+.whiteboard-panel .excalidraw [title="Library"] {
+  display: none;
+}
+.chat-problem-brief {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--paper-line);
+  padding: var(--space-2) var(--space-3);
+}
+.chat-problem-brief summary {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  list-style: none;
+}
+.chat-problem-brief summary::-webkit-details-marker {
+  display: none;
+}
+.chat-problem-brief summary::marker {
+  content: "";
+}
+.chat-problem-brief[open] summary svg {
+  transform: rotate(90deg);
+}
+.chat-problem-content {
+  margin-top: var(--space-2);
+  max-height: min(20dvh, 180px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  white-space: pre-wrap;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.chat-transcript {
+  padding: var(--space-3);
+  scrollbar-gutter: stable;
+}
+.chat-message {
+  max-width: 92%;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.chat-message-user {
+  margin-left: auto;
+  text-align: right;
+}
+.chat-bubble {
+  display: inline-block;
+  text-align: left;
+  white-space: pre-wrap;
+  padding: 12px var(--space-2);
+  border-radius: var(--corner-small);
+  background: var(--cream-raised);
+  border: 1px solid var(--paper-line);
+}
+.chat-message-user .chat-bubble {
+  background: var(--teal-deep);
+  color: var(--white);
+  border-color: var(--teal-deep);
+}
+.interviewer-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+.interviewer-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--corner-small);
+  background: var(--teal-soft);
+  color: var(--teal-deep);
+  font-weight: 600;
+}
+.chat-pending,
+.chat-transcript > [role="status"] {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+.interview-pacing {
+  flex-shrink: 0;
+  border-top: 1px solid var(--paper-line);
+  padding: 12px var(--space-3);
+}
+.interview-pacing > p {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+.interview-pacing .practice-primary,
+.interview-pacing .practice-secondary {
+  min-height: 40px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+}
+.chat-composer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--paper-line);
+}
+.chat-composer textarea {
+  min-width: 0;
+  flex: 1;
+  min-height: 72px;
+  max-height: 160px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--corner-small);
+  background: var(--cream-raised);
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.chat-composer textarea::placeholder {
+  color: var(--ink-muted);
+}
+.chat-composer .practice-primary {
+  min-height: 40px;
+  padding: 12px 16px;
+  align-self: flex-end;
+}
+.chat-panel [role="alert"] {
+  color: var(--danger);
+}
+.practice-secondary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--corner-small);
+  background: transparent;
+  color: var(--teal-deep);
+  font: 500 0.875rem/1.3 var(--font-ui);
+  text-decoration: none;
+}
+.practice-secondary:hover {
+  background: var(--teal-soft);
+}
+.practice-primary:disabled,
+.practice-secondary:disabled {
+  background: var(--teal-soft);
+  color: var(--teal-deep);
+  border-color: var(--paper-line);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.interview-dialog {
+  background: var(--cream);
+  color: var(--ink);
+  color-scheme: light;
+  border: 1px solid var(--paper-line);
+  border-radius: var(--corner-large);
+}
+.dialog-close {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--corner-small);
+  color: var(--ink-muted);
+}
+.dialog-close:hover {
+  background: var(--teal-soft);
+}
+.interview-loading .live-header {
+  min-height: 80px;
+}
+.interview-loading .live-header .skeleton-copy {
+  background: var(--paper-line);
+}
+@media (min-width: 900px) {
+  .live-header {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+  .live-identity {
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+  }
+}
+@media (max-width: 899px) {
+  .interview-page {
+    padding: var(--space-2);
+  }
+  .live-header {
+    padding: var(--space-2);
+  }
+  .live-identity {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .live-identity h1 {
+    font-size: 0.875rem;
+  }
+  .live-identity p {
+    font-size: 0.75rem;
+  }
+  .interview-page > [role="tablist"] {
+    border-radius: var(--corner-small);
+    background: var(--navy-soft);
+    padding: 4px;
+  }
+  .interview-page > [role="tablist"] button {
+    flex: 1;
+    border: 0;
+    color: var(--cream);
+  }
+  .interview-page > [role="tablist"] [aria-selected="true"] {
+    background: var(--cream);
+    color: var(--ink);
+  }
+  .chat-transcript {
+    padding: var(--space-2);
+  }
+  .chat-composer,
+  .interview-pacing,
+  .chat-problem-brief {
+    padding-inline: var(--space-2);
+  }
+}
+.interview-loading .live-header {
+  display: grid;
+  padding: var(--space-2);
+}
+.skeleton-live-title .skeleton-copy {
+  height: 16px;
+  width: 144px;
+}
+.skeleton-live-title .skeleton-copy + .skeleton-copy {
+  margin-top: 4px;
+  height: 12px;
+  width: 64px;
+}
+.live-identity > a {
+  min-width: max-content;
+}
+@media (max-width: 899px) {
+  .skeleton-live-title .skeleton-copy {
+    height: 40px;
+  }
+  .skeleton-live-title .skeleton-copy + .skeleton-copy {
+    height: 12px;
+  }
+}

@@ -31,15 +31,19 @@ export function InterviewPacing({
   const control = designDiscussionControl(action);
   const primary = action === "draw" || action === "explain";
   return (
-    <div className="shrink-0 border-t p-3">
-      <p className="text-sm" aria-live="polite">
+    <div className="interview-pacing">
+      <p id="pace-instruction" aria-live="polite">
         {action === "explain"
-          ? "Explaining: interviewer is listening"
+          ? hasExplanation
+            ? "Explaining: the interviewer is listening"
+            : "Explaining: send a message walking through your design before finishing."
           : action === "draw"
-            ? "Drawing: questions paused"
+            ? hasDrawing
+              ? "Drawing: questions paused"
+              : "Drawing: add at least one labeled component to start explaining."
             : action === "review"
-              ? "Answer the interviewer"
-              : "Ask clarifying questions"}
+              ? "Discussion: answer the interviewer, or pause to draw."
+              : "Ask clarifying questions, or start drawing."}
       </p>
       <div
         className="mt-2 flex min-h-10 items-center gap-3"
@@ -54,14 +58,8 @@ export function InterviewPacing({
               !hasDrawing ||
               (action === "explain" && !hasExplanation)
             }
-            aria-describedby={
-              !hasDrawing
-                ? "explain-drawing-hint"
-                : action === "explain" && !hasExplanation
-                  ? "explain-message-hint"
-                  : undefined
-            }
-            className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm disabled:opacity-40"
+            aria-describedby="pace-instruction"
+            className="practice-primary"
             onClick={() => choose(control.message, control.action)}
           >
             {action === "draw" ? "Ready to explain" : "Done explaining"}
@@ -71,7 +69,9 @@ export function InterviewPacing({
           <button
             type="button"
             disabled={disabled}
-            className="rounded px-1 py-2 text-sm underline disabled:opacity-40"
+            className={
+              action === "explain" ? "practice-secondary" : "practice-primary"
+            }
             onClick={draw}
           >
             {action === "explain"
@@ -80,19 +80,6 @@ export function InterviewPacing({
                 ? "Pause to draw"
                 : "Start drawing"}
           </button>
-        )}
-      </div>
-      <div className="mt-1 min-h-10 text-xs">
-        {primary && !hasDrawing && (
-          <p id="explain-drawing-hint" className="mt-1 text-xs">
-            Draw at least one labeled component to start explaining.
-          </p>
-        )}
-        {action === "explain" && !hasExplanation && (
-          <p id="explain-message-hint" className="mt-1 text-xs">
-            Send at least one message walking through your design before
-            choosing Done explaining.
-          </p>
         )}
       </div>
     </div>

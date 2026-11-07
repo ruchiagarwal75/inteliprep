@@ -15,6 +15,7 @@ export const REQUEST_LIMITS = {
   end: [5, 20, 40],
   resume: [60, 1_000, 3_000],
   clientError: [30, 300, 1_000],
+  viewer: [60, 1_000, 10_000],
 } as const;
 export type RequestKind = keyof typeof REQUEST_LIMITS;
 type Counter = { count: number; expiresAt: number };

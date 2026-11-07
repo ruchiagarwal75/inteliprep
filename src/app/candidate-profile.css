@@ -72,3 +72,55 @@
   height: var(--space-3);
   font-size: 0.75rem;
 }
+.profile-menu-link {
+  display: block;
+  border-radius: var(--corner-small);
+  color: var(--ink);
+  padding: var(--space-1);
+  text-decoration: none;
+}
+.profile-menu-link:hover {
+  background: var(--teal-soft);
+}
+.mascot-switch {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border-radius: var(--corner-small);
+  color: var(--ink);
+  font: 500 0.875rem/1.5 var(--font-ui);
+  cursor: pointer;
+}
+.mascot-switch:hover {
+  background: var(--teal-soft);
+}
+.mascot-switch-track {
+  display: block;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  border-radius: var(--corner-large);
+  background: var(--control-line);
+}
+.mascot-switch-track > span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--corner-large);
+  background: var(--cream-raised);
+}
+.mascot-switch[aria-checked="true"] .mascot-switch-track {
+  background: var(--teal);
+}
+.mascot-switch[aria-checked="true"] .mascot-switch-track > span {
+  transform: translateX(16px);
+}
+#practice-history {
+  scroll-margin-top: var(--space-3);
+}
+.profile-menu .profile-menu-link {
+  color: var(--ink);
+}

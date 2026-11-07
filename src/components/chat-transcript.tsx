@@ -2,7 +2,7 @@
 
 import { useEffect, type RefObject } from "react";
 import type { ChatMessage } from "@/lib/chat";
-import { plainInterviewerText } from "@/lib/interviewer-reply-filter";
+import { interviewerChatText } from "@/lib/chat-display";
 
 type ChatTranscriptProps = {
   logRef: RefObject<HTMLDivElement | null>;
@@ -10,6 +10,7 @@ type ChatTranscriptProps = {
   pendingMessageIndex?: number;
   imageWarning: string | null;
   isStreaming?: boolean;
+  openingMessage?: string;
 };
 
 export function ChatTranscript({
@@ -18,6 +19,7 @@ export function ChatTranscript({
   pendingMessageIndex,
   imageWarning,
   isStreaming = false,
+  openingMessage,
 }: ChatTranscriptProps) {
   useEffect(() => {
     const log = logRef.current;
@@ -27,46 +29,44 @@ export function ChatTranscript({
     <div
       ref={logRef}
       aria-live="polite"
-      className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3"
+      className="chat-transcript min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3"
     >
       {messages.length === 0 && (
         <p className="text-sm text-black/50 dark:text-white/50">
           Choose a problem and difficulty, then select Start interview.
         </p>
       )}
-      {messages.map((message, index) =>
-        message.source === "control" ? (
-          <p
+      {messages.map((message, index) => {
+        if (message.source === "control") return null;
+        const content =
+          message.role === "assistant"
+            ? interviewerChatText(
+                message.content,
+                index === 0 ? openingMessage : undefined,
+              )
+            : message.content;
+        if (!content && !isStreaming) return null;
+        if (!content) return null;
+        return (
+          <article
             key={index}
-            className="text-right text-xs text-black/50 dark:text-white/50"
+            className={`chat-message chat-message-${message.role}`}
           >
-            {message.action === "draw"
-              ? "Paused questions to draw"
-              : message.action === "explain"
-                ? "Started explaining"
-                : "Opened design discussion"}
-            {index === pendingMessageIndex ? " · reply pending" : ""}
-          </p>
-        ) : (
-          <div
-            key={index}
-            className={message.role === "user" ? "text-right" : "text-left"}
-          >
-            <span
-              className={`inline-block max-w-[85%] rounded-lg px-3 py-2 text-left text-sm whitespace-pre-wrap ${message.role === "user" ? "bg-brand text-brand-foreground" : "bg-black/5 dark:bg-white/10"}`}
-            >
-              {(message.role === "assistant"
-                ? plainInterviewerText(message.content)
-                : message.content) || "…"}
-            </span>
-            {index === pendingMessageIndex && (
-              <p className="mt-1 text-xs text-black/60 dark:text-white/60">
-                Awaiting reply
-              </p>
+            {message.role === "assistant" && (
+              <div className="interviewer-identity">
+                <span className="interviewer-avatar" aria-hidden="true">
+                  M
+                </span>
+                <span>MockMeAI interviewer</span>
+              </div>
             )}
-          </div>
-        ),
-      )}
+            <div className="chat-bubble">{content}</div>
+            {index === pendingMessageIndex && (
+              <p className="chat-pending">Awaiting reply</p>
+            )}
+          </article>
+        );
+      })}
       {isStreaming && (
         <p
           role="status"

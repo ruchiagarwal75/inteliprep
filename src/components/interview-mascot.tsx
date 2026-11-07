@@ -21,6 +21,7 @@ export function InterviewMascot({
   blocked,
   blockedReason = "interview is busy",
   testMode = false,
+  immediate = false,
 }: {
   sessionId: string;
   startedAt: string;
@@ -30,6 +31,7 @@ export function InterviewMascot({
   blocked: boolean;
   blockedReason?: string;
   testMode?: boolean;
+  immediate?: boolean;
 }) {
   const [show, setShow] = useState(false);
   const [centered, setCentered] = useState(false);
@@ -47,13 +49,17 @@ export function InterviewMascot({
   }, [paused, blocked, blockedReason, environment]);
 
   useEffect(() => {
-    const test = testMode;
-    const schedule = test ? MASCOT_TEST_SCHEDULE : MASCOT_SCHEDULE;
+    const test = process.env.NODE_ENV === "development" && testMode;
+    const schedule = test
+      ? immediate
+        ? { first: 1000, repeat: 45000 }
+        : MASCOT_TEST_SCHEDULE
+      : MASCOT_SCHEDULE;
     const debug = test && process.env.NODE_ENV === "development";
     const log = (event: string, detail: object = {}) => {
       if (debug) console.info("[MockMeAI mascot]", event, detail);
     };
-    const key = `mockmeai:mascot-clock:v2:${sessionId}:${test ? "test" : "normal"}`;
+    const key = `mockmeai:mascot-clock:v2:${sessionId}:${test ? (immediate ? "instant" : "test") : "normal"}`;
     const elapsed = Math.max(
       0,
       Date.now() + clockOffsetMs - Date.parse(startedAt),
@@ -64,6 +70,7 @@ export function InterviewMascot({
     } catch {
       // Browser storage is optional for this decorative feature.
     }
+    if (test && immediate) restored = null;
     let hasAppeared = false;
     try {
       hasAppeared = JSON.parse(restored ?? "null")?.shown === true;
@@ -71,7 +78,7 @@ export function InterviewMascot({
       /* Older UI clock entries have no visit marker. */
     }
     let clock = createMascotClock(
-      restoredMascotTime(restored, elapsed),
+      test && immediate ? 0 : restoredMascotTime(restored, elapsed),
       schedule,
     );
     log("mounted", {
@@ -242,7 +249,15 @@ export function InterviewMascot({
       window.removeEventListener("blur", blur);
       window.removeEventListener("pagehide", save);
     };
-  }, [sessionId, startedAt, deadlineAt, clockOffsetMs, testMode, finish]);
+  }, [
+    sessionId,
+    startedAt,
+    deadlineAt,
+    clockOffsetMs,
+    testMode,
+    immediate,
+    finish,
+  ]);
 
   return show &&
     !paused &&

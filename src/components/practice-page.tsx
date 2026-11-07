@@ -1,4 +1,4 @@
-import { MascotToggle } from "@/components/mascot-preference";
+import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import { HomeMascot } from "@/components/mascot-moments";
 import { redirect } from "next/navigation";
 import { candidateIdentity } from "@/lib/candidate-auth";
@@ -35,10 +35,7 @@ export async function PracticePage({
           <header className="practice-nav">
             <Brand />
             <div className="practice-account-actions">
-              <MascotToggle />
-              <Link href="/sign-in" className="underline">
-                Sign in
-              </Link>
+              <CandidateProfileMenu />
             </div>
           </header>
           <PracticeHero>
@@ -49,16 +46,14 @@ export async function PracticePage({
           </PracticeHero>
           <section className="practice-surface welcome-note">
             <HomeMascot />
-            <p className="practice-kicker">A space to work it out</p>
-            <h2>Bring your ideas. We’ll bring the questions.</h2>
+            <h2>Practice a design and get feedback on your approach.</h2>
             <p>
               Practice a realistic system design interview, sketch as you think,
               and get feedback grounded in your own answers.
             </p>
           </section>
           <p className="practice-note">
-            Practice history is stored in this browser. Sign in to start or
-            resume your interviews.
+            Your practice history is saved in this browser.
           </p>
         </div>
       </main>

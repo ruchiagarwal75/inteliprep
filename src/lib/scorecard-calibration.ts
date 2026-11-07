@@ -76,7 +76,7 @@ export function withSessionContext(
       allowedSeconds,
       limited,
       note: limited
-        ? "Not enough evidence: scores are hidden until at least one third of the session and two stages with technical answers. Feedback quotes only the evidence provided."
+        ? "Scores show after you've used at least a third of the time and answered in two stages."
         : "Area feedback reflects the evidence provided during this session. Unexplored areas remain unassessed.",
     },
   };

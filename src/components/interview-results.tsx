@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ScorecardLoading } from "@/components/scorecard-loading";
 import { ResultsMascot } from "@/components/mascot-moments";
 import { useRef, useState } from "react";
 import type { Scorecard } from "@/lib/scorecard";
@@ -11,6 +12,7 @@ import { InterviewScorecard } from "@/components/interview-scorecard";
 import { ChatTranscript } from "@/components/chat-transcript";
 import { Whiteboard } from "@/components/whiteboard";
 import { formatInterviewTime } from "@/lib/interview-timer";
+import { INTERVIEW_STAGE_NAMES } from "@/lib/interview-stage-names";
 export function InterviewResults({
   scorecard,
   scene,
@@ -58,10 +60,10 @@ export function InterviewResults({
   const brief = (problem?: string) =>
     `/interview/new?problem=${encodeURIComponent(problem ?? interview?.problemId ?? "single-server-scaling")}`;
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="interview-results">
       <ResultsMascot scorecard={scorecard} ready={!busy && !closed} />
-      <header className="shrink-0 space-y-3 border-b p-3">
-        <h2 className="text-lg font-semibold">Interview results</h2>
+      <header className="results-heading">
+        <h2 className="results-title">Interview results</h2>
         {used && (
           <p>
             Time used: {formatInterviewTime(used.elapsedSeconds)} of{" "}
@@ -69,23 +71,30 @@ export function InterviewResults({
           </p>
         )}
         <nav className="flex flex-wrap gap-2" aria-label="Next practice">
-          <Link
-            className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm"
-            href={brief()}
-          >
+          <Link className="practice-primary" href={brief()}>
             Retry this problem
           </Link>
           <Link
-            className="rounded border px-3 py-2 text-sm"
+            className="practice-secondary"
             href={brief(scorecard?.nextPractice.problemId)}
           >
             Try suggested problem
           </Link>
         </nav>
+        <details className="results-stage-guide">
+          <summary>Interview stages</summary>
+          <ol className="results-stage-list" aria-label="Interview stages">
+            {INTERVIEW_STAGE_NAMES.map((name, i) => (
+              <li key={name}>
+                {i + 1}. {name}
+              </li>
+            ))}
+          </ol>
+        </details>
         <div
           role="tablist"
           aria-label="Interview results"
-          className="flex gap-2"
+          className="results-tabs"
         >
           {(["scorecard", "transcript", "diagram"] as const).map((t) => (
             <button
@@ -94,7 +103,28 @@ export function InterviewResults({
               role="tab"
               aria-selected={tab === t}
               aria-controls={`results-${t}`}
-              className="rounded border px-3 py-2 text-sm aria-selected:underline"
+              className="results-tab"
+              tabIndex={tab === t ? 0 : -1}
+              onKeyDown={(event) => {
+                const tabs = ["scorecard", "transcript", "diagram"] as const;
+                if (
+                  !["ArrowLeft", "ArrowRight", "Home", "End"].includes(
+                    event.key,
+                  )
+                )
+                  return;
+                event.preventDefault();
+                const index =
+                  event.key === "Home"
+                    ? 0
+                    : event.key === "End"
+                      ? 2
+                      : (tabs.indexOf(t) +
+                          (event.key === "ArrowRight" ? 1 : 2)) %
+                        3;
+                setTab(tabs[index]);
+                document.getElementById(`results-tab-${tabs[index]}`)?.focus();
+              }}
               onClick={() => setTab(t)}
             >
               {t === "diagram"
@@ -110,13 +140,15 @@ export function InterviewResults({
         id={`results-${tab}`}
         role="tabpanel"
         aria-labelledby={`results-tab-${tab}`}
-        className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+        className={`results-content results-content-${tab}`}
       >
         {tab === "scorecard" &&
           (scorecard ? (
             <InterviewScorecard scorecard={scorecard} scene={scene} />
+          ) : busy ? (
+            <ScorecardLoading />
           ) : (
-            <div className="p-4">
+            <div className="results-pending">
               <p role={error && !busy ? "alert" : "status"}>
                 {closed
                   ? "Closed without scoring. Your transcript and diagram are saved."
@@ -127,7 +159,7 @@ export function InterviewResults({
               </p>
               {!closed && !busy && (
                 <button
-                  className="mt-3 rounded border px-3 py-2"
+                  className="practice-primary"
                   disabled={busy}
                   onClick={retry}
                 >
@@ -141,16 +173,19 @@ export function InterviewResults({
             logRef={logRef}
             messages={messages}
             imageWarning={null}
+            openingMessage={interview?.openingMessage.content}
           />
         )}
         {tab === "diagram" && (
-          <Whiteboard
-            key="final"
-            initialScene={whiteboard}
-            onChange={() => {}}
-            onInitialize={() => {}}
-            readOnly
-          />
+          <div className="final-diagram">
+            <Whiteboard
+              key="final"
+              initialScene={whiteboard}
+              onChange={() => {}}
+              onInitialize={() => {}}
+              readOnly
+            />
+          </div>
         )}
       </div>
     </div>

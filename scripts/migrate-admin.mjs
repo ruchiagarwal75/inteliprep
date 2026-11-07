@@ -29,17 +29,21 @@ try {
     await tx`select pg_advisory_xact_lock(hashtext('inteliprep_admin_reporting_migration'))`;
     const rows =
       await tx`select to_regclass('interview_admin.reporting_state') as existing`;
-    if (rows[0]?.existing) {
-      console.log("Reporting schema is already installed; no changes applied.");
-      return;
+    if (!rows[0]?.existing) {
+      const initial = new URL(
+        "../supabase/migrations/20261106214658_interview_admin_reporting.sql",
+        import.meta.url,
+      );
+      await tx.unsafe(readFileSync(fileURLToPath(initial), "utf8"));
+      console.log("Installed the private reporting schema.");
     }
-    const file = new URL(
-      "../supabase/migrations/20261106214658_interview_admin_reporting.sql",
+    const viewers = new URL(
+      "../supabase/migrations/20261107221500_app_viewer_reporting.sql",
       import.meta.url,
     );
-    await tx.unsafe(readFileSync(fileURLToPath(file), "utf8"));
+    await tx.unsafe(readFileSync(fileURLToPath(viewers), "utf8"));
     console.log(
-      "Installed the private reporting schema. Existing account and interview data was not changed.",
+      "Private reporting and visitor-count schema are ready. Existing interviews were preserved.",
     );
   });
 } catch (cause) {

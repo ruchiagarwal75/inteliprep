@@ -1,3 +1,5 @@
+import { adminVisitors } from "@/lib/admin-visitors";
+import { AdminVisitorsPanel } from "@/components/admin-visitors-panel";
 import { adminPageAccess } from "@/lib/admin-page-access";
 import { adminQuery } from "@/lib/admin-query";
 import { adminOverview } from "@/lib/admin-overview";
@@ -27,9 +29,10 @@ export default async function AdminPage({
       </p>
     );
   }
-  const [overview, users] = await Promise.allSettled([
+  const [overview, users, visitors] = await Promise.allSettled([
     adminOverview(query.includeExcluded),
     adminUsers(query),
+    adminVisitors(query.includeExcluded),
   ]);
   return (
     <div className="space-y-8">
@@ -50,6 +53,14 @@ export default async function AdminPage({
             : "Admin account, configured test users and 1-minute tests excluded by default."}
         </p>
       </form>
+      {visitors.status === "fulfilled" ? (
+        <AdminVisitorsPanel data={visitors.value} />
+      ) : (
+        <p role="alert" className="rounded border p-4">
+          Visitor counts unavailable. Check the visitor-reporting migration and
+          server logs; unavailable does not mean zero.
+        </p>
+      )}
       {overview.status === "fulfilled" ? (
         <AdminOverviewPanel
           data={overview.value}

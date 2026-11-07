@@ -1,8 +1,7 @@
 "use client";
-import { MascotToggle } from "@/components/mascot-preference";
 import { HomeMascot } from "@/components/mascot-moments";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Brand } from "@/components/brand";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import { INTERVIEW_LEVEL_LABELS } from "@/lib/interview-selection";
@@ -33,19 +32,25 @@ export function PracticeHome({
 }) {
   const [confirm, setConfirm] = useState<SavedInterviewSummary>();
   const [showAll, setShowAll] = useState(false);
-  const [now] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
   const title = (e: SavedInterviewSummary) =>
     problems.find((p) => p.problemId === e.problemId)?.title ?? e.problemId;
   const shown = showAll ? entries : entries.slice(0, 3);
   const href = (entry: SavedInterviewSummary) =>
-    interviewHref(entry.id) + (entry.hasEnded ? "/results" : "");
+    interviewHref(entry.id) +
+    (entry.hasEnded || historyInterviewState(entry, now).status === "expired"
+      ? "/results"
+      : "");
   return (
     <main className="practice-page mascot-home-page">
       <div className="practice-shell">
         <header className="practice-nav">
           <Brand />
           <div className="practice-account-actions">
-            <MascotToggle />
             <CandidateProfileMenu />
           </div>
         </header>
@@ -55,11 +60,14 @@ export function PracticeHome({
             <PracticeIcon name="arrow" />
           </Link>
         </PracticeHero>
-        <section className="practice-surface" aria-label="Recent sessions">
+        <section
+          id="practice-history"
+          className="practice-surface"
+          aria-label="Recent sessions"
+        >
           <HomeMascot />
           <div className="section-heading">
             <div>
-              <p className="practice-kicker">Pick up a thread</p>
               <h2>Recent sessions</h2>
               {entries.length > 0 && (
                 <p className="practice-muted">
@@ -74,7 +82,7 @@ export function PracticeHome({
                 aria-expanded={showAll}
                 onClick={() => setShowAll((v) => !v)}
               >
-                {showAll ? "Show latest 3" : `View all (${entries.length})`}
+                {showAll ? "Show latest 3" : "View all"}
               </button>
             )}
           </div>
@@ -94,11 +102,7 @@ export function PracticeHome({
               </div>
             </div>
           )}
-          <ul
-            className={["session-list", showAll ? "history-expanded" : ""].join(
-              " ",
-            )}
-          >
+          <ul className="session-list">
             {shown.map((e) => {
               const state = historyInterviewState(e, now);
               const status = sessionStatusCopy(e, state);
@@ -138,7 +142,9 @@ export function PracticeHome({
                       {status}
                     </span>
                     <Link className="session-open" href={href(e)}>
-                      {e.hasEnded ? "View feedback" : "Resume"}
+                      {e.hasEnded || state.status === "expired"
+                        ? "View feedback"
+                        : "Resume"}
                       <PracticeIcon name="chevron" />
                     </Link>
                     <button
@@ -167,8 +173,7 @@ export function PracticeHome({
           </ul>
         </section>
         <p className="practice-note">
-          Practice history is stored in this browser. All attempts are kept.
-          Signing out keeps them on this device.
+          Your practice history is saved in this browser.
         </p>
         <InterviewDialog
           open={Boolean(confirm)}

@@ -38,13 +38,20 @@ export function CandidateWorkspace({
         if (session?.user.id === userId) {
           // Editable metadata is display-only; authorization still uses the verified ID.
           const metadata = session.user.user_metadata;
-          const name = [metadata.full_name, metadata.name].find(
+          const name = [
+            metadata.display_name,
+            metadata.full_name,
+            metadata.name,
+          ].find(
             (value): value is string =>
               typeof value === "string" && Boolean(value.trim()),
           );
           setProfile({
             name: name?.replace(/\s+/gu, " ").trim().slice(0, 80),
             email: session.user.email,
+            nameIsCustom:
+              typeof metadata.display_name === "string" &&
+              Boolean(metadata.display_name.trim()),
           });
           return;
         }

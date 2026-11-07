@@ -3,9 +3,6 @@
   .brief-mascot-surface {
     margin-top: var(--space-6);
   }
-  .mascot-results-page {
-    padding-right: calc(var(--mascot-size) + var(--space-1));
-  }
 }
 .mascot-toggle {
   display: inline-flex;

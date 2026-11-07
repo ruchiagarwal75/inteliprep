@@ -1,29 +1,18 @@
-import { HouseIcon } from "@/components/practice-icons";
-const steps = [
-  "Clarify requirements",
-  "Draw and explain",
-  "Core design",
-  "Scaling and reliability",
-  "Tradeoffs and wrap-up",
-];
+import { INTERVIEW_STAGE_NAMES } from "@/lib/interview-stage-names";
 export function PracticeStepper() {
   return (
     <section className="practice-journey" aria-labelledby="journey-title">
       <div className="section-heading">
-        <div>
-          <p className="practice-kicker">One step at a time</p>
-          <h2 id="journey-title">The five stages</h2>
-        </div>
-        <span className="practice-muted">You’ll begin here</span>
+        <h2 id="journey-title">The five stages</h2>
       </div>
-      <ol className="house-stepper">
-        {steps.map((step, i) => (
+      <ol className="stage-stepper">
+        {INTERVIEW_STAGE_NAMES.map((step, i) => (
           <li key={step} aria-current={i === 0 ? "step" : undefined}>
-            <HouseIcon lit={i === 0} />
-            <span>
-              <span className="step-number">0{i + 1}</span>
-              {step}
-            </span>
+            <span className="step-number">{i + 1}</span>
+            <span className="stage-label">{step}</span>
+            {i === 0 && (
+              <span className="stage-begin">You&apos;ll begin here</span>
+            )}
           </li>
         ))}
       </ol>

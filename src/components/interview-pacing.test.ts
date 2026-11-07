@@ -12,9 +12,9 @@ it("explains why Explain my design is disabled when the board is empty", () => {
     }),
   );
   expect(html).toContain(
-    "Draw at least one labeled component to start explaining",
+    "add at least one labeled component to start explaining",
   );
-  expect(html).toContain('aria-describedby="explain-drawing-hint"');
+  expect(html).toContain('aria-describedby="pace-instruction"');
   expect(html).toContain("Ready to explain");
 });
 it("explains typed-explanation state and removes the hint once a drawing exists", () => {
@@ -25,7 +25,7 @@ it("explains typed-explanation state and removes the hint once a drawing exists"
     onChoose: vi.fn(),
   };
   expect(renderToStaticMarkup(createElement(InterviewPacing, props))).toContain(
-    "Send at least one message walking through your design",
+    "send a message walking through your design",
   );
   expect(
     renderToStaticMarkup(

@@ -57,3 +57,60 @@
     padding: var(--space-3);
   }
 }
+.interview-loading {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  background: var(--navy);
+  color: var(--cream);
+}
+.interview-loading .live-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) 12px;
+  min-height: 64px;
+}
+.interview-loading .skeleton-copy {
+  margin: 0;
+  width: 160px;
+}
+.interview-loading-panels {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: var(--space-2);
+  flex: 1;
+  min-height: 0;
+}
+.skeleton-board,
+.skeleton-chat {
+  border-radius: var(--corner-large);
+  background: var(--cream);
+  padding: var(--space-3);
+}
+.skeleton-chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.skeleton-chat .skeleton-copy {
+  background: var(--paper-line);
+  width: 85%;
+  height: 64px;
+}
+.skeleton-chat .skeleton-composer {
+  margin-top: auto;
+  height: 120px;
+  border: 1px solid var(--paper-line);
+  border-radius: var(--corner-small);
+}
+@media (max-width: 899px) {
+  .interview-loading-panels {
+    grid-template-columns: 1fr;
+  }
+  .skeleton-board {
+    display: none;
+  }
+}

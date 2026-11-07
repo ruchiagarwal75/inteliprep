@@ -22,9 +22,10 @@ export function InterviewDurationPicker({
         className="bg-background rounded-md border border-black/15 px-3 py-2 disabled:opacity-70 dark:border-white/20"
       >
         <option value={45}>45 minutes</option>
-        {process.env.NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS === "1" && (
-          <option value={1}>1 minute (test)</option>
-        )}
+        {process.env.NODE_ENV === "development" &&
+          process.env.NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS === "1" && (
+            <option value={1}>1 minute (test)</option>
+          )}
       </select>
     </label>
   );

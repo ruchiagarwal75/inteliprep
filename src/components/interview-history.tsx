@@ -111,7 +111,7 @@ export function InterviewHistory({
                       ? "Closed without scoring"
                       : entry.hasEnded
                         ? entry.gradingError
-                          ? "Scorecard failed — retry available"
+                          ? "Scorecard failed, retry available"
                           : "Awaiting scorecard"
                         : state.status === "expired"
                           ? "Time expired · Open to finish and generate a scorecard"

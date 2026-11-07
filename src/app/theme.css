@@ -55,5 +55,6 @@
   --corner-small: 8px;
   --corner-large: 24px;
   --page-width: 1168px;
+  --font-accent: "MockMeAI handwriting", cursive;
   --font-ui: var(--font-geist-sans), sans-serif;
 }

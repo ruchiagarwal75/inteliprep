@@ -47,6 +47,7 @@ export function InterviewEndControl({
   onConfirmLeave,
   recoveryFailure,
   closure,
+  remainingSeconds,
 }: {
   interview?: InterviewStart;
   ending: ReturnType<typeof useInterviewEnd>;
@@ -61,6 +62,7 @@ export function InterviewEndControl({
   onConfirmLeave: () => void;
   recoveryFailure: boolean;
   closure: ReturnType<typeof useInterviewClosure>;
+  remainingSeconds?: number;
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false);
   return (
@@ -101,6 +103,7 @@ export function InterviewEndControl({
         withoutScoring={recoveryFailure}
         switchTo={leaveAction}
         draft={draft}
+        remainingSeconds={remainingSeconds}
         onCancel={() => {
           setConfirmEnd(false);
           onCancelLeave();

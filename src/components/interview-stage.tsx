@@ -1,4 +1,5 @@
 import type { InterviewPhase } from "@/lib/interview-phase";
+import { interviewStageName } from "@/lib/interview-stage-names";
 
 export function InterviewStage({
   phase,
@@ -23,7 +24,9 @@ export function InterviewStage({
       <span className="text-sm font-medium">
         {ended
           ? "Review your results below"
-          : (phase?.title ?? "Start an interview to begin")}
+          : phase
+            ? interviewStageName(phase.position, phase.title)
+            : "Start an interview to begin"}
       </span>
     </section>
   );

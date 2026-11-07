@@ -9,6 +9,9 @@
 @import "./mascot.css";
 @import "./mascot-appearance.css";
 @import "./candidate-profile.css";
+@import "./interview.css";
+@import "./results.css";
+@import "./handmade-accents.css";
 
 :root {
   --background: var(--cream);
@@ -38,8 +41,8 @@
   :root {
     --background: var(--navy);
     --foreground: var(--cream);
-    --brand: var(--teal-light);
-    --brand-foreground: var(--teal-deep);
+    --brand: var(--teal);
+    --brand-foreground: var(--white);
   }
 }
 
@@ -99,4 +102,14 @@ h3 {
   color: var(--ink-muted);
   max-width: 640px;
   line-height: 1.75;
+}
+.interview-page.results-page {
+  width: 100%;
+  max-width: calc(var(--page-width) + var(--space-8));
+  margin-inline: auto;
+  padding: var(--space-3) var(--space-4) var(--space-6);
+  height: auto;
+  min-height: 100dvh;
+  max-height: none;
+  overflow: visible;
 }

@@ -39,13 +39,18 @@ export function setMascotPreference(enabled: boolean) {
 export function MascotToggle() {
   const enabled = useMascotPreference();
   return (
-    <label className="mascot-toggle">
-      <input
-        type="checkbox"
-        checked={enabled}
-        onChange={(event) => setMascotPreference(event.target.checked)}
-      />
-      Show mascot
-    </label>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      aria-label="Show mascot"
+      className="mascot-switch"
+      onClick={() => setMascotPreference(!enabled)}
+    >
+      <span>Show mascot</span>
+      <span className="mascot-switch-track" aria-hidden="true">
+        <span />
+      </span>
+    </button>
   );
 }

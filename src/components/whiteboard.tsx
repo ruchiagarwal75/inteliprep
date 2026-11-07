@@ -38,27 +38,42 @@ export function Whiteboard({
     <section
       aria-label="Whiteboard"
       data-read-only={readOnly}
-      className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-black/10 dark:border-white/15"
+      className="whiteboard-panel flex h-full min-h-0 flex-col overflow-hidden"
     >
-      <header className="flex items-center justify-between border-b border-black/10 px-3 py-2 dark:border-white/15">
+      <header className="whiteboard-heading">
         <h2 className="text-sm font-medium">
           {readOnly ? "Final whiteboard" : "Whiteboard"}
         </h2>
       </header>
       <div className="min-h-0 flex-1">
         <Excalidraw
-          initialData={
-            initialScene
-              ? {
-                  ...initialScene,
-                  scrollToContent:
-                    initialScene.elements.some(
-                      (element) => !element.isDeleted,
-                    ) &&
-                    (readOnly || !initialScene.appState.zoom),
-                }
-              : undefined
-          }
+          theme="light"
+          UIOptions={{
+            canvasActions: {
+              toggleTheme: false,
+              changeViewBackgroundColor: false,
+              loadScene: false,
+              saveToActiveFile: false,
+            },
+          }}
+          initialData={{
+            ...initialScene,
+            appState: {
+              ...initialScene?.appState,
+              viewBackgroundColor:
+                !initialScene?.appState.viewBackgroundColor ||
+                /^#(?:fff|ffffff)$/iu.test(
+                  initialScene.appState.viewBackgroundColor,
+                )
+                  ? "#f4f1ea"
+                  : initialScene.appState.viewBackgroundColor,
+            },
+            scrollToContent:
+              Boolean(
+                initialScene?.elements.some((element) => !element.isDeleted),
+              ) &&
+              (readOnly || !initialScene?.appState.zoom),
+          }}
           viewModeEnabled={readOnly}
           onChange={(elements, appState, files) => {
             if (readOnly && initialized.current) return;

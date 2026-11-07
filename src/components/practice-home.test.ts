@@ -27,5 +27,28 @@ it("shows saved attempts and keeps their existing links without deleting any", (
   expect(html).toContain("2 attempts");
   expect(html).toContain(`/interview/${old.id}`);
   expect(html).toContain(`/interview/${recent.id}`);
-  expect(html).toContain("All attempts are kept");
+  expect(html).toContain("Your practice history is saved in this browser.");
+});
+
+it("links expired attempts to feedback instead of offering Resume", () => {
+  const saved = savedInterviewSummary(savedFixture());
+  const entry = {
+    ...saved,
+    hasEnded: false,
+    timing: {
+      durationMinutes: 45 as const,
+      startedAt: "2026-01-01T00:00:00.000Z",
+      deadlineAt: "2026-01-01T00:45:00.000Z",
+    },
+  };
+  const html = renderToStaticMarkup(
+    createElement(PracticeHome, {
+      entries: [entry],
+      problems: [],
+      onDelete: async () => {},
+    }),
+  );
+  expect(html).toContain(`/interview/${entry.id}/results`);
+  expect(html).toContain("View feedback");
+  expect(html).not.toContain(">Resume");
 });

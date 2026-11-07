@@ -1,0 +1,120 @@
+@font-face {
+  font-family: "MockMeAI handwriting";
+  src: url("/fonts/Excalifont-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+.stage-label,
+.results-stage-list,
+.live-header [aria-label="Interview stage"] > span:last-child {
+  font-family: var(--font-accent);
+  font-weight: 400;
+}
+.live-header [aria-label="Interview stage"] > span:last-child {
+  font-size: 1rem;
+}
+.home-scaling-story .ss-cap {
+  font-family: var(--font-accent);
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+.mm-bubble text {
+  font-family: var(--font-accent) !important;
+  font-weight: 400;
+}
+.practice-hero-home h1 {
+  font-size: clamp(2.25rem, 3.5vw, 3.125rem);
+}
+.stage-stepper {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+  list-style: none;
+}
+.stage-stepper li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--space-1);
+  align-content: start;
+  align-items: baseline;
+}
+.stage-label {
+  font-size: 1rem;
+  line-height: 1.45;
+}
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--control-line);
+  border-radius: var(--corner-small);
+  font: 400 0.75rem/1 var(--font-ui);
+  color: var(--ink-muted);
+}
+.stage-stepper [aria-current="step"] .step-number {
+  color: var(--teal-deep);
+  background: var(--teal-soft);
+  border-color: var(--teal);
+}
+.stage-begin {
+  grid-column: 2;
+  color: var(--ink-muted);
+  font-size: 0.6875rem;
+}
+.brief-guide h2 {
+  font:
+    500 1.25rem/1.4 var(--font-display),
+    Georgia,
+    serif;
+  margin-bottom: var(--space-2);
+}
+.brief-guide ol {
+  list-style: none;
+  display: grid;
+  gap: var(--space-3);
+}
+.brief-guide figure {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+}
+.brief-guide img {
+  width: 88px;
+  height: 80px;
+  object-fit: contain;
+  background: var(--cream-raised);
+  border: 1px solid var(--paper-line);
+  border-radius: var(--corner-small);
+}
+.brief-guide h3 {
+  font: 500 0.875rem/1.3 var(--font-ui);
+  margin-bottom: 4px;
+}
+.brief-guide p {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+@media (max-width: 899px) {
+  .stage-stepper {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  .stage-stepper li {
+    grid-template-columns: 24px auto minmax(0, 1fr);
+    justify-content: start;
+  }
+  .stage-begin {
+    grid-column: 3;
+  }
+  .brief-guide figure {
+    grid-template-columns: 120px minmax(0, 1fr);
+  }
+  .brief-guide img {
+    width: 120px;
+    height: 88px;
+  }
+}

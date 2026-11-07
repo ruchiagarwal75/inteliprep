@@ -17,6 +17,7 @@ import { InterviewBrief } from "@/components/interview-brief";
 import { withMascotTest } from "@/lib/mascot-timing";
 import { interviewHref } from "@/lib/interview-navigation";
 import { nextInterviewSelection } from "@/lib/interview-restart";
+import { remainingInterviewSeconds } from "@/lib/interview-timer";
 
 const emptyBoard: WhiteboardScene = {
   elements: [],
@@ -70,7 +71,14 @@ export function InterviewWorkspace({
     if (!library.opened) return;
     const href =
       interviewHref(library.opened.id) +
-      (library.opened.hasEnded ? "/results" : "");
+      (library.opened.hasEnded ||
+      (library.opened.interview.timing &&
+        remainingInterviewSeconds(
+          library.opened.interview.timing,
+          Date.now() + (library.opened.clockOffsetMs ?? 0),
+        ) === 0)
+        ? "/results"
+        : "");
     if (window.location.pathname !== href)
       window.history.replaceState(
         null,

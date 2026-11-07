@@ -9,6 +9,7 @@ export function EndInterviewConfirmation({
   onConfirm,
   switchTo,
   withoutScoring = false,
+  remainingSeconds,
 }: {
   open: boolean;
   draft: string;
@@ -16,6 +17,7 @@ export function EndInterviewConfirmation({
   onConfirm: (includeDraft: boolean) => void;
   switchTo?: "new" | "problem";
   withoutScoring?: boolean;
+  remainingSeconds?: number;
 }) {
   return (
     <InterviewDialog
@@ -31,6 +33,12 @@ export function EndInterviewConfirmation({
       }
       onClose={onCancel}
     >
+      {remainingSeconds !== undefined && remainingSeconds > 0 && (
+        <p className="practice-muted">
+          You still have {Math.ceil(remainingSeconds / 60)}{" "}
+          {Math.ceil(remainingSeconds / 60) === 1 ? "minute" : "minutes"}.
+        </p>
+      )}
       {draft.trim() && !withoutScoring && (
         <>
           <p className="mt-3 text-sm font-medium">
@@ -43,18 +51,14 @@ export function EndInterviewConfirmation({
         </>
       )}
       <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded border px-3 py-2 text-sm"
-        >
+        <button type="button" onClick={onCancel} className="practice-secondary">
           Keep going
         </button>
         {draft.trim() && !withoutScoring && (
           <button
             type="button"
             onClick={() => onConfirm(true)}
-            className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm"
+            className="practice-primary"
           >
             {switchTo
               ? "Include answer, end, and continue"
@@ -64,7 +68,11 @@ export function EndInterviewConfirmation({
         <button
           type="button"
           onClick={() => onConfirm(false)}
-          className="rounded border border-red-400 px-3 py-2 text-sm text-red-700 dark:text-red-300"
+          className={
+            draft.trim() && !withoutScoring
+              ? "practice-secondary"
+              : "practice-primary"
+          }
         >
           {withoutScoring
             ? switchTo

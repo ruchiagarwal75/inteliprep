@@ -145,3 +145,29 @@ search/exclusions, and browser-role denial. It sends no emails or model requests
 Not tracked: replay/heatmaps/click trails, live presence, raw answers/audio,
 voice analytics, abandoned-tab exit guesses, durable transcript synchronization,
 alerts, custom charting, PostHog, or Sentry.
+
+## First-visit metric
+
+The New app visitors (browsers) panel reports distinct first-party browsers since
+tracking began, plus first visits in the trailing seven days. It is separate from
+registered users and uses the existing environment and admin/test exclusion filter.
+Local/development visits are test activity. Earlier visits are unavailable.
+
+The additive `20261107221500_app_viewer_reporting.sql` migration creates the private
+`interview_admin.app_viewers` table. Run `npm run db:admin` in each target database;
+the command also applies this migration when the original reporting schema exists.
+No additional environment variables or external services are needed.
+
+A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its
+SHA-256 hash, environment, first-seen server timestamp, exclusion flag and optional
+verified account reference are persisted. Refreshes and retries cannot increase
+the count or reset first-seen time. Signing in can link a browser to an admin/test
+account and exclude it retroactively. The public write-only endpoint is same-origin,
+size-bounded and rate-limited; `/api/admin/visitors` uses the existing owner check.
+Reporting remains best effort and never blocks interviews.
+
+This measures browsers, not exact people. Clearing storage or switching browsers
+can count a person again; blocked storage and failed requests can miss visits.
+There are no IP records, browsing trails, referrers, heartbeats or session replay.
+Nothing before tracking started is backfilled. Missing database data is displayed
+as unavailable, not zero.

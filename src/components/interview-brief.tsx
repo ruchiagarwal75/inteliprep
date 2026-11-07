@@ -8,6 +8,7 @@ import type { useInterviewStarter } from "@/components/use-interview-starter";
 import { InterviewSetup } from "@/components/interview-setup";
 import { PracticeHero } from "@/components/practice-hero";
 import { PracticeIcon } from "@/components/practice-icons";
+import { PracticeGuide } from "@/components/practice-guide";
 import { PracticeStepper } from "@/components/practice-stepper";
 
 export function InterviewBrief({
@@ -54,60 +55,19 @@ export function InterviewBrief({
           </div>
           <div className="brief-layout">
             <section className="problem-card" aria-label="Problem brief">
-              <p className="practice-kicker">Your challenge</p>
               <h2>{selected?.title}</h2>
               <p>
                 {selected?.brief?.[starter.choice.level] ?? selected?.summary}
               </p>
             </section>
-            <aside className="brief-tips" aria-labelledby="tips-title">
-              <h2 id="tips-title">A small guide</h2>
-              <ul>
-                <li className="tip-row">
-                  <span className="tip-icon">
-                    <PracticeIcon name="draw" />
-                  </span>
-                  <div>
-                    <h3>Draw your approach</h3>
-                    <p>
-                      Add components and connections. Questions pause while you
-                      draw.
-                    </p>
-                  </div>
-                </li>
-                <li className="tip-row">
-                  <span className="tip-icon">
-                    <PracticeIcon name="explain" />
-                  </span>
-                  <div>
-                    <h3>Talk it through</h3>
-                    <p>
-                      Choose Ready to explain. Take as many messages as you
-                      need.
-                    </p>
-                  </div>
-                </li>
-                <li className="tip-row">
-                  <span className="tip-icon">
-                    <PracticeIcon name="discuss" />
-                  </span>
-                  <div>
-                    <h3>Open the discussion</h3>
-                    <p>
-                      Choose Done explaining for follow-ups. You can pause to
-                      draw again.
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </aside>
+            <PracticeGuide />
           </div>
           <PracticeStepper />
           <div className="brief-start">
             <button
               disabled={starter.isStarting || starter.isLimited}
               aria-describedby={starter.error ? "start-error" : "start-note"}
-              className="practice-primary"
+              className="practice-primary start-interview-button"
               onClick={() => void starter.start()}
             >
               {starter.isStarting ? "Starting…" : "Start interview"}

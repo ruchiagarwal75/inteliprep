@@ -1,6 +1,7 @@
 import type { Scene } from "@/lib/scene";
 import type { ChatMessage } from "@/lib/chat";
 import { sceneToGraph } from "@/lib/scene-graph";
+import { diagramComponentList } from "@/lib/diagram-component-copy";
 
 export const diagramStores = [
   { name: "PostgreSQL", pattern: /\bpostgres(?:ql)?\b/iu },
@@ -75,7 +76,7 @@ export function whiteboardVisibilityReply(
     return;
   const graph = sceneToGraph(scene);
   return graph.components.length
-    ? `Your current whiteboard contains ${graph.components.map((n) => n.label).join(", ")}. Which part would you like to walk through?`
+    ? `Your current whiteboard contains ${diagramComponentList(graph.components.map((n) => n.label))}. Which part would you like to walk through?`
     : "Your current whiteboard has no labeled components yet. Please add and label your first component.";
 }
 

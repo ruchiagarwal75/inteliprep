@@ -68,13 +68,6 @@
 .session-delete:hover {
   color: var(--danger);
 }
-.history-expanded {
-  max-height: 65dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  padding-right: var(--space-1);
-}
 .history-empty {
   display: flex;
   align-items: center;

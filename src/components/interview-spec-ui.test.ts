@@ -17,9 +17,7 @@ it("shows exactly one filled pace control, and disables Done until a message exi
         onChoose: vi.fn(),
       }),
     );
-    expect((html.match(/bg-brand\b/gu) ?? []).length).toBe(
-      action === "draw" || action === "explain" ? 1 : 0,
-    );
+    expect((html.match(/practice-primary\b/gu) ?? []).length).toBe(1);
     if (action === "explain")
       expect(html).toMatch(/disabled=""[^>]*>Done explaining/u);
     if (action === undefined) expect(html).not.toContain("Done explaining");

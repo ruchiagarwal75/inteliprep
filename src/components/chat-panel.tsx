@@ -1,4 +1,6 @@
 "use client";
+import { useSearchParams } from "next/navigation";
+import { InterviewMascot } from "@/components/interview-mascot";
 import { SlowReply } from "@/components/slow-reply";
 import { useAutomaticScorecard } from "@/components/use-automatic-scorecard";
 import { createPortal } from "react-dom";
@@ -30,6 +32,9 @@ import {
 
 export function ChatPanel(props: ChatPanelProps) {
   const { interview, hasDrawing, hasEnded } = props;
+  const mascotTest =
+    useSearchParams()?.get("mascotTest") === "1" &&
+    process.env.NODE_ENV === "development";
   const [recoveredMessages, setRecoveredMessages] = useState(
     props.restored?.recoveredMessages ?? [],
   );
@@ -118,6 +123,7 @@ export function ChatPanel(props: ChatPanelProps) {
     <ChatTranscript
       logRef={logRef}
       messages={messages}
+      openingMessage={interview?.openingMessage.content}
       pendingMessageIndex={hasEnded ? undefined : pendingReply?.messageIndex}
       imageWarning={imageWarning}
       isStreaming={isStreaming}
@@ -126,8 +132,30 @@ export function ChatPanel(props: ChatPanelProps) {
   return (
     <section
       aria-label="Chat"
-      className="flex min-h-0 w-full flex-col rounded-lg border border-black/10 dark:border-white/15"
+      className={`chat-panel flex min-h-0 w-full flex-col ${hasEnded ? "results-panel" : ""}`}
     >
+      {!hasEnded && interview?.timing && (
+        <InterviewMascot
+          sessionId={interview.sessionId}
+          startedAt={interview.timing.startedAt}
+          deadlineAt={interview.timing.deadlineAt}
+          clockOffsetMs={props.restored?.clockOffsetMs ?? 0}
+          paused={false}
+          testMode={mascotTest}
+          immediate={mascotTest}
+          blocked={
+            mode === "draw" ||
+            mode === "explain" ||
+            isStreaming ||
+            ending.isEnding ||
+            props.disabled ||
+            syncRequired ||
+            Boolean(recoveryFailure) ||
+            closure.closed ||
+            props.timeExpired
+          }
+        />
+      )}
       {props.endControlTarget &&
         createPortal(
           <InterviewEndControl
@@ -143,13 +171,21 @@ export function ChatPanel(props: ChatPanelProps) {
           props.endControlTarget,
         )}
       {!hasEnded && props.brief && (
-        <details className="shrink-0 border-b px-3 py-2 text-sm">
-          <summary className="cursor-pointer font-medium">
+        <details className="chat-problem-brief">
+          <summary>
+            <svg
+              viewBox="0 0 16 16"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path d="m6 3 5 5-5 5" />
+            </svg>
             Problem brief
           </summary>
-          <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap">
-            {props.brief}
-          </p>
+          <p className="chat-problem-content">{props.brief}</p>
         </details>
       )}
       {syncRequired && !recoveryFailure && props.onLoadLatest && (

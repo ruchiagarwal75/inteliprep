@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
-import { useCandidateAccount } from "@/components/candidate-account-context";
+import { useContext, useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
+import { MascotToggle } from "@/components/mascot-preference";
+import { CandidateAccountContext } from "@/components/candidate-account-context";
 import { CandidateSignOut } from "@/components/candidate-sign-out";
+import { candidateDisplayName } from "@/lib/candidate-display-name";
 
 const nothingToSave = async () => {};
 
@@ -13,12 +16,13 @@ export function CandidateProfileMenu({
   save?: () => Promise<void>;
   compact?: boolean;
 }) {
-  const { profile } = useCandidateAccount();
+  const account = useContext(CandidateAccountContext);
+  const profile = account?.profile;
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
-  const name = profile?.name || profile?.email?.split("@")[0] || "Your account";
+  const name = candidateDisplayName(profile);
   const words = name.split(/\s+/u);
   const initials = (
     words.length > 1
@@ -94,11 +98,27 @@ export function CandidateProfileMenu({
       </button>
       {open && (
         <section id={id} className="profile-menu" aria-label="Account details">
-          <p className="profile-caption">Signed in as</p>
-          <p className="profile-name">{name}</p>
+          {account && <p className="profile-caption">Signed in as</p>}
+          <p className="profile-name">{account ? name : "Preferences"}</p>
           {profile?.email && <p className="profile-email">{profile.email}</p>}
           <div className="profile-menu-actions">
-            <CandidateSignOut save={save} />
+            <MascotToggle />
+            {account ? (
+              <>
+                <Link
+                  className="profile-menu-link"
+                  href="/#practice-history"
+                  onClick={() => setOpen(false)}
+                >
+                  Practice history
+                </Link>
+                <CandidateSignOut save={save} />
+              </>
+            ) : (
+              <Link className="profile-menu-link" href="/sign-in">
+                Sign in
+              </Link>
+            )}
           </div>
         </section>
       )}

@@ -20,7 +20,7 @@ export function ChatComposer({
 }) {
   return (
     <form
-      className="flex shrink-0 flex-wrap gap-2 border-t border-black/10 p-3 dark:border-white/15"
+      className="chat-composer"
       onSubmit={(event) => {
         event.preventDefault();
         if (!input.trim()) onInput("");
@@ -61,7 +61,7 @@ export function ChatComposer({
       <button
         type="submit"
         disabled={!canSend}
-        className={`rounded-md border px-4 py-2 text-sm disabled:opacity-40 ${secondary ? "" : "bg-brand text-brand-foreground"}`}
+        className={secondary ? "practice-secondary" : "practice-primary"}
       >
         Send
       </button>
