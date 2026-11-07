@@ -4,8 +4,8 @@ import { expect, it, vi } from "vitest";
 import { PracticeHome } from "@/components/practice-home";
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
 import { savedInterviewSummary } from "@/lib/saved-interview";
-vi.mock("@/components/candidate-sign-out", () => ({
-  CandidateSignOut: () => null,
+vi.mock("@/components/candidate-profile-menu", () => ({
+  CandidateProfileMenu: () => null,
 }));
 it("shows saved attempts and keeps their existing links without deleting any", () => {
   const old = {

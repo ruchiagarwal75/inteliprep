@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import { Brand } from "@/components/brand";
+import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import type { useInterviewStarter } from "@/components/use-interview-starter";
 import { InterviewSetup } from "@/components/interview-setup";
@@ -31,6 +32,7 @@ export function InterviewBrief({
       <div className="practice-shell">
         <header className="practice-nav">
           <Brand />
+          <CandidateProfileMenu />
         </header>
         <PracticeHero brief />
         <div className="practice-surface">

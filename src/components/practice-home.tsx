@@ -10,7 +10,7 @@ import type { SavedInterviewSummary } from "@/lib/saved-interview";
 import { historyInterviewState } from "@/lib/interview-history-state";
 import { formatInterviewTime } from "@/lib/interview-timer";
 import { interviewHref } from "@/lib/interview-navigation";
-import { CandidateSignOut } from "@/components/candidate-sign-out";
+import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import { InterviewDialog } from "@/components/interview-dialog";
 import { PracticeHero } from "@/components/practice-hero";
 import { HouseIcon, PracticeIcon } from "@/components/practice-icons";
@@ -46,7 +46,7 @@ export function PracticeHome({
           <Brand />
           <div className="practice-account-actions">
             <MascotToggle />
-            <CandidateSignOut save={() => Promise.resolve()} />
+            <CandidateProfileMenu />
           </div>
         </header>
         <PracticeHero>

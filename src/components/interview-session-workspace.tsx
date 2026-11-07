@@ -124,6 +124,7 @@ export function InterviewSessionWorkspace({
         status={library.status}
         error={library.error}
         setEndTarget={setEndTarget}
+        save={library.save}
       />
       {library.error && (
         <p role="alert" className="text-xs text-red-700 dark:text-red-300">

@@ -5,6 +5,7 @@ import type { InterviewStorage } from "@/lib/interview-storage";
 
 export type CandidateAccount = {
   userId: string;
+  profile?: { name?: string; email?: string };
   storage: InterviewStorage;
   request: typeof fetch;
   signOut: () => Promise<void>;

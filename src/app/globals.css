@@ -9,6 +9,7 @@
 @import "./practice-loading.css";
 @import "./mascot.css";
 @import "./mascot-appearance.css";
+@import "./candidate-profile.css";
 
 :root {
   --background: var(--cream);

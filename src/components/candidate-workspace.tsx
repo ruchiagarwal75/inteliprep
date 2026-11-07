@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { createCandidateBrowserScope } from "@/lib/candidate-browser-scope";
-import { CandidateAccountContext } from "@/components/candidate-account-context";
+import {
+  CandidateAccountContext,
+  type CandidateAccount,
+} from "@/components/candidate-account-context";
 import { InterviewWorkspace } from "@/components/interview-workspace";
 
 export function CandidateWorkspace({
@@ -19,6 +22,7 @@ export function CandidateWorkspace({
   sessionId?: string;
 }) {
   const [visible, setVisible] = useState(true);
+  const [profile, setProfile] = useState<CandidateAccount["profile"]>();
   const [signOutFailed, setSignOutFailed] = useState(false);
   // Identity never mutates on an existing workspace; reauthentication remounts it.
   const [scope] = useState(() =>
@@ -31,7 +35,19 @@ export function CandidateWorkspace({
     const detach = scope.attach();
     const { data } = supabaseBrowser().auth.onAuthStateChange(
       (_event, session) => {
-        if (session?.user.id === userId) return;
+        if (session?.user.id === userId) {
+          // Editable metadata is display-only; authorization still uses the verified ID.
+          const metadata = session.user.user_metadata;
+          const name = [metadata.full_name, metadata.name].find(
+            (value): value is string =>
+              typeof value === "string" && Boolean(value.trim()),
+          );
+          setProfile({
+            name: name?.replace(/\s+/gu, " ").trim().slice(0, 80),
+            email: session.user.email,
+          });
+          return;
+        }
         scope.deactivate();
         setVisible(false);
         window.location.replace("/sign-in");
@@ -64,6 +80,7 @@ export function CandidateWorkspace({
   const account = useMemo(
     () => ({
       userId,
+      profile,
       storage: scope.storage,
       request: scope.request,
       async signOut() {
@@ -88,7 +105,7 @@ export function CandidateWorkspace({
         }
       },
     }),
-    [scope, userId],
+    [scope, userId, profile],
   );
   if (!visible)
     return (

@@ -1,5 +1,6 @@
 import { MascotToggle } from "@/components/mascot-preference";
 import { Brand } from "@/components/brand";
+import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import type { InterviewPhase } from "@/lib/interview-phase";
 import {
   INTERVIEW_LEVEL_LABELS,
@@ -17,6 +18,7 @@ export function InterviewLiveHeader({
   status,
   error,
   setEndTarget,
+  save,
 }: {
   title?: string;
   interview?: InterviewStart;
@@ -27,6 +29,7 @@ export function InterviewLiveHeader({
   status: string;
   error?: string;
   setEndTarget: (node: HTMLDivElement | null) => void;
+  save: () => Promise<void>;
 }) {
   return (
     <header className="live-header grid shrink-0 grid-cols-[1fr_auto] items-center gap-2 rounded-lg border px-3 py-2 min-[900px]:grid-cols-3">
@@ -44,7 +47,7 @@ export function InterviewLiveHeader({
           <InterviewStage phase={phase} ended={false} />
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2 min-[900px]:col-start-3">
         <MascotToggle />
         {!ended && interview?.timing && (
           <InterviewTimer
@@ -64,6 +67,7 @@ export function InterviewLiveHeader({
           </span>
         )}
         <div ref={setEndTarget} />
+        <CandidateProfileMenu compact save={save} />
       </div>
     </header>
   );
