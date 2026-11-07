@@ -16,7 +16,12 @@ export function isPrivateBeta(): boolean {
 /** Read lazily: builds do not need deployment secrets. Never return secret values. */
 export function missingBetaSettings(): string[] {
   const missing: string[] = [];
-  if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "production")
+  // A deliberate production rollout must opt in; accidental production builds stay closed.
+  if (
+    process.env.VERCEL === "1" &&
+    process.env.VERCEL_ENV === "production" &&
+    process.env.INTELIPREP_ENV !== "production"
+  )
     missing.push("PRIVATE_BETA_REQUIRES_PREVIEW");
   if (!process.env.OPENAI_KEY) missing.push("OPENAI_KEY");
   if ((process.env.INTERVIEW_RESUME_SECRET?.length ?? 0) < 32)

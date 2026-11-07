@@ -43,30 +43,12 @@
   max-width: 680px;
 }
 
-.practice-hero > .architecture-hero {
-  position: absolute;
-  width: 56%;
-  max-width: 680px;
-  right: var(--space-2);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 0;
-}
 @media (max-width: 899px) {
   .practice-hero,
   .practice-hero-brief {
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-  .practice-hero > .architecture-hero {
-    position: relative;
-    width: 100%;
-    max-width: none;
-    right: auto;
-    top: auto;
-    transform: none;
-    margin-top: var(--space-3);
   }
   .practice-hero-copy,
   .practice-hero-brief .practice-hero-copy {

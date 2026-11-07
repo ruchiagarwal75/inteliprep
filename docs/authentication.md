@@ -36,7 +36,7 @@ origin and its `/auth/callback` return URL before testing it.
 
 ## App configuration
 
-Set these in `.env.local`, and in Vercel for Preview only:
+Set these in `.env.local`, and in Vercel for Preview and Production:
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://bjqjocrfsiprlvnitfuo.supabase.co
@@ -47,7 +47,7 @@ Use a modern `sb_publishable_...` key. It is intended for browser use; never use
 service-role or `sb_secret_...` key here. No privileged Supabase key, custom user
 table, interview table, SQL policy, or webhook is needed for this browser-local
 milestone. Install the pinned versions with `npm ci`. Restart local development
-and create a new Preview build after changing public environment variables.
+and create a new build in each affected environment after changing public variables.
 
 Keep `INTERVIEW_RESUME_SECRET`: Supabase login and interview progress tokens have
 different purposes. Redis progress remains JSON; no new encryption layer is added.

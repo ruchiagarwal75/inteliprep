@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { Brand } from "@/components/brand";
 import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
+import { BriefMascot } from "@/components/mascot-moments";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import type { useInterviewStarter } from "@/components/use-interview-starter";
 import { InterviewSetup } from "@/components/interview-setup";
@@ -35,7 +36,8 @@ export function InterviewBrief({
           <CandidateProfileMenu />
         </header>
         <PracticeHero brief />
-        <div className="practice-surface">
+        <div className="practice-surface brief-mascot-surface">
+          <BriefMascot />
           <div className="practice-setup">
             <InterviewSetup
               problems={problems}

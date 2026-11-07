@@ -1,7 +1,7 @@
 /* Reserve edge space throughout a page visit: the mascot never resizes the board. */
 @media (min-width: 768px) {
-  .mascot-working-page {
-    padding-right: calc(var(--mascot-working-size) + var(--space-1));
+  .brief-mascot-surface {
+    margin-top: var(--space-6);
   }
   .mascot-results-page {
     padding-right: calc(var(--mascot-size) + var(--space-1));

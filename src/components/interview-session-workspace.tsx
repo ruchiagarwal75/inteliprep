@@ -109,7 +109,7 @@ export function InterviewSessionWorkspace({
     <main
       className={[
         "interview-page flex h-dvh min-h-0 flex-col gap-2 overflow-hidden p-2",
-        hasEnded ? "mascot-results-page" : "mascot-working-page",
+        hasEnded ? "mascot-results-page" : "",
       ].join(" ")}
     >
       <InterviewLiveHeader

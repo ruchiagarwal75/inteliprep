@@ -14,6 +14,7 @@ export function MascotAppearance({
   preview = false,
   centered = false,
   cardPeek = false,
+  cardTop = false,
 }: {
   pose: Pose;
   gentle?: boolean;
@@ -21,14 +22,17 @@ export function MascotAppearance({
   preview?: boolean;
   centered?: boolean;
   cardPeek?: boolean;
+  cardTop?: boolean;
 }) {
   const duration =
     pose === "wave"
       ? MASCOT_TIMING.wave
       : pose === "working"
-        ? centered
-          ? MASCOT_TIMING.firstWorking
-          : MASCOT_TIMING.working
+        ? cardTop
+          ? MASCOT_TIMING.briefWorking
+          : centered
+            ? MASCOT_TIMING.firstWorking
+            : MASCOT_TIMING.working
         : MASCOT_TIMING.done;
   useEffect(() => {
     const timer = setTimeout(onDone, duration);
@@ -42,11 +46,12 @@ export function MascotAppearance({
         gentle ? "mascot-gentle" : "",
         centered ? "mascot-appearance-center" : "",
         preview ? "mascot-preview-appearance" : "",
-        cardPeek ? "mascot-appearance-card" : "",
+        cardPeek || cardTop ? "mascot-appearance-card" : "",
+        cardTop ? "mascot-appearance-card-top" : "",
       ].join(" ")}
       data-mascot={pose}
       data-placement={
-        cardPeek
+        cardPeek || cardTop
           ? "card"
           : centered
             ? "center"
@@ -67,5 +72,7 @@ export function MascotAppearance({
     </div>
   );
   // Card peeks stay anchored to their surface; corner visits escape hidden chat tabs.
-  return preview || cardPeek ? visual : createPortal(visual, document.body);
+  return preview || cardPeek || cardTop
+    ? visual
+    : createPortal(visual, document.body);
 }

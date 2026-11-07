@@ -14,3 +14,7 @@ docs/
 src/components/mascot-art/mascotArt.ts
 src/components/mascot-art/Mascot.tsx
 src/components/mascot-art/mascot.css
+
+# Supplied scaling story: preserve the author's files exactly.
+src/components/scaling-story/ScalingStory.tsx
+src/components/scaling-story/scalingStory.css

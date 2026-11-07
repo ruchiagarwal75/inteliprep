@@ -33,6 +33,12 @@ export function HomeMascot() {
     <MascotAppearance pose="wave" cardPeek onDone={finish} />
   ) : null;
 }
+export function BriefMascot() {
+  const { show, finish } = useOncePeek(true);
+  return show ? (
+    <MascotAppearance pose="working" cardTop onDone={finish} />
+  ) : null;
+}
 export function ResultsMascot({
   scorecard,
   ready,

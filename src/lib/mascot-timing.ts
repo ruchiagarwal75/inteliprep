@@ -2,8 +2,9 @@ import type { Scorecard } from "@/lib/scorecard";
 
 export const MASCOT_TIMING = {
   delay: 800,
-  wave: 3500,
+  wave: 7500,
   working: 3800,
+  briefWorking: 15000,
   firstWorking: 7000,
   done: 4500,
   interval: 600_000,

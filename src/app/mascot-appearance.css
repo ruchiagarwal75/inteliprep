@@ -11,6 +11,7 @@
   contain: layout paint;
 }
 .mascot-appearance-wave {
+  --mascot-size: var(--mascot-home-size);
   left: 0;
   right: auto;
 }
@@ -27,10 +28,15 @@
   width: var(--mascot-working-size);
   height: var(--mascot-working-size);
 }
+.mascot-appearance-card-top {
+  top: calc(0px - var(--mascot-working-size));
+  left: calc(25% - var(--mascot-working-size) / 2);
+  clip-path: none;
+}
 .mascot-arrival {
   width: 100%;
   height: 100%;
-  animation: mascot-arrive 3.5s both;
+  animation: mascot-arrive 7.5s both;
 }
 .mascot-appearance-working .mascot-arrival {
   animation: mascot-work-arrive 3.8s both;
@@ -55,8 +61,8 @@
     transform: translateY(110%);
     opacity: 0;
   }
-  14.286%,
-  85.714% {
+  6.667%,
+  93.333% {
     transform: translateY(0);
     opacity: 1;
   }
@@ -90,8 +96,8 @@
   100% {
     opacity: 0;
   }
-  14.286%,
-  85.714% {
+  6.667%,
+  93.333% {
     opacity: 1;
   }
 }
@@ -171,6 +177,31 @@
 .mascot-appearance-working.mascot-appearance-center .mascot-arrival {
   animation: mascot-first-work-arrive 7s both;
 }
+.mascot-appearance-working.mascot-appearance-card-top .mascot-arrival {
+  animation: mascot-brief-work-arrive 15s both;
+}
+@keyframes mascot-brief-work-arrive {
+  0%,
+  100% {
+    transform: translateY(110%);
+    opacity: 0;
+  }
+  2.667%,
+  97.333% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes mascot-brief-work-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  2.667%,
+  97.333% {
+    opacity: 1;
+  }
+}
 @keyframes mascot-first-work-arrive {
   0%,
   100% {
@@ -196,6 +227,10 @@
 @media (prefers-reduced-motion: reduce) {
   .mascot-appearance-working.mascot-appearance-center .mascot-arrival {
     animation-name: mascot-first-work-fade;
+    transform: none;
+  }
+  .mascot-appearance-working.mascot-appearance-card-top .mascot-arrival {
+    animation-name: mascot-brief-work-fade;
     transform: none;
   }
 }

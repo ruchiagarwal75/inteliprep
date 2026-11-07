@@ -2,16 +2,16 @@
 
 The Vercel project is `inteliprep` in `ruchiagarwal75s-projects`:
 [project dashboard](https://vercel.com/ruchiagarwal75s-projects/inteliprep).
-It uses Node 24 and Vercel Authentication for preview/deployment URLs. The local
+It uses Node 24 and Vercel Authentication for all deployments, including Production domains. The local
 `.vercel/project.json` records its project/workspace IDs and stays gitignored.
 The existing beta URL is
 [the protected interview app](https://inteliprep-ruchiagarwal75s-projects.vercel.app/interview).
 
 ## Custom domain
 
-`mockmeai.com` is assigned to the protected `beta` branch of the same Vercel
-project. `www.mockmeai.com` redirects to `mockmeai.com` with HTTP 308. Adding the
-domain does not change the deployment environment or disable Vercel Authentication.
+`mockmeai.com` serves the protected Production deployment of the same Vercel
+project. `www.mockmeai.com` redirects to `mockmeai.com` with HTTP 308. Vercel
+Authentication remains enabled for All Deployments; this is a private release.
 
 DNS is hosted at GoDaddy. Vercel's domain configuration is the source of truth for
 the required A and CNAME records; check it before updating the zone. Preserve MX,
@@ -26,33 +26,33 @@ to the custom domain does not copy or delete that IndexedDB history.
 
 ## Deployment shape
 
-Use a **protected Preview deployment** and its stable branch URL for testers.
-Keep `main` as the Vercel Production branch and deploy a separate `beta` branch.
-`vercel.json` disables automatic Git deployments from `main` so ordinary MVP
-commits do not publish the beta to a production domain. Manual deployments still
-need the correct Preview target and protection settings.
-The beta's API readiness check also rejects the Vercel Production environment,
-even if secrets were accidentally configured there. A later production release
-must deliberately change this guard and verify protection for its chosen domain.
+The `main` branch builds Production; `beta` builds Preview. Both Git deployments
+are enabled in `vercel.json`. Production requires the explicit server setting
+`INTELIPREP_ENV=production`; without it the readiness guard rejects Production
+requests. The same shared Redis, authentication and quota checks remain required.
+
+Vercel Authentication must use **All Deployments**, covering both custom Production
+domains and Preview URLs. Vercel made this option free on every plan in
+[September 2026](https://vercel.com/changelog/protect-production-deployments-for-free-on-every-plan).
+No public launch or protection bypass is implied by deploying to Production.
 
 ### GitHub releases
 
 The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed
-changes to `beta`; `vercel.json` explicitly enables that branch while disabling
-automatic deployments from `main`. Keep `main` as the Production branch in Vercel.
+changes to `beta` for Preview and fast-forward the reviewed commit to `main` for
+Production. Keep `main` as the Production branch in Vercel.
 The GitHub `Check` workflow runs `npm ci`, `npm run check`, and `npm run build`
 using the pinned Node version. Vercel builds independently, so confirm both the
-workflow result and the Preview deployment's Ready status for the same commit.
+workflow result and the intended deployment's Ready status for the same commit.
 
-Before sharing a release, verify the existing beta URL points to that deployment,
+Before sharing a release, verify the intended hostname points to that deployment,
 signed-out requests still require Vercel Authentication, and an authorized
 `/api/health` request returns `status: "ok"` with both checks true. Retain the same
 browser hostname so testers keep their IndexedDB interviews. A successful health
 check verifies configuration and Redis; it does not make a model request.
 
-Enable Vercel Authentication under Settings → Deployment Protection before
-sharing the URL. Standard Protection covers previews and deployment URLs but
-excludes production domains; protecting every domain requires All Deployments.
+Enable Vercel Authentication → All Deployments under Settings → Deployment
+Protection before sharing any URL. Standard Protection excludes Production domains.
 Verify access in a signed-out browser. This configuration lives in the Vercel
 dashboard, not in `vercel.json`. See
 [Vercel Deployment Protection](https://vercel.com/docs/deployment-protection).
@@ -71,23 +71,25 @@ limits. See [authentication setup](authentication.md) for provider configuration
 1. Connect the Vercel account and import `ruchiagarwal75/inteliprep`. Use the Next.js
    preset, repository root, `npm ci` and `npm run build`. Node 24 is pinned in
    `package.json`; no secrets are needed during the build.
-2. Enable Preview deployment protection. Avoid creating a publicly usable
-   Production deployment during import; keep model/Redis secrets scoped to Preview.
+2. Enable Vercel Authentication for All Deployments before assigning any domain.
+   Configure both Preview and Production deliberately; keep the Production opt-in
+   unset until its configuration is complete.
 3. Create an Upstash Redis database for this project. Choose a region near the
-   Vercel function region and connect it to **Preview**. The native integration
+   Vercel function region and connect it to **Preview and Production**. The native integration
    supplies `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically. For a manual
    connection, configure the `UPSTASH_REDIS_REST_*` pair in the table below instead.
    The implementation uses atomic Lua commands over
    [Upstash's REST API](https://upstash.com/docs/redis/features/restapi).
 4. In Settings → Environment Variables, add `OPENAI_KEY` and
-   `INTERVIEW_RESUME_SECRET` as **Secret** variables with **Preview only** selected.
+   `INTERVIEW_RESUME_SECRET` as sensitive variables for **Preview and Production**.
    Generate the resume secret once with `openssl rand -hex 32`; paste the resulting
    64-character value directly into Vercel. Confirm the environment selection after
    saving. Enter secrets directly in the provider dashboards; do not paste them
    into chat or commit them. See [Vercel environment variables](https://vercel.com/docs/environment-variables).
-5. Push the reviewed version to `beta`, or create a Preview deployment explicitly.
-   Keep the Production branch set to `main`. Redeploy after changing environment
-   variables, then use the protected branch URL for all subsequent testing.
+5. Push the reviewed version to `beta` for Preview. For Production, set
+   `INTELIPREP_ENV=production` in Production only, enable the same Auth and database
+   settings there, and fast-forward `main`. Redeploy after environment changes.
+   Check health on the built deployment before assigning the Production domain.
 
 | Variable | Purpose |
 | --- | --- |
@@ -103,7 +105,7 @@ limits. See [authentication setup](authentication.md) for provider configuration
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST credential with read/write and scripting access |
 | `KV_REST_API_URL` | Native Vercel integration's Redis REST endpoint; alternative to `UPSTASH_REDIS_REST_URL` |
 | `KV_REST_API_TOKEN` | Native Vercel integration's read/write REST token; alternative to `UPSTASH_REDIS_REST_TOKEN` |
-| `INTELIPREP_ENV` | Optional locally: set `beta` to exercise shared safeguards; Vercel automatically enables them |
+| `INTELIPREP_ENV` | Leave blank locally, or use `beta` to exercise shared safeguards. Set `production` in Vercel Production to opt in to this release |
 
 The native Upstash integration may install `KV_REST_API_URL` and
 `KV_REST_API_TOKEN`. The app accepts that pair directly; copying or renaming the
@@ -112,7 +114,7 @@ precedence. Both values must come from the same family/database; a partial expli
 pair fails readiness instead of borrowing the other integration's token.
 
 To review configuration, list variable names, types and environment targets without
-decrypting values. Check that both application secrets target Preview and that the
+decrypting values. Check that both application secrets target the intended environment and that the
 Redis REST URL/token pair is available there from the same database. The example
 file contains empty secret values; `.env.local` and `.vercel` stay gitignored.
 After redeployment, an authorized `/api/health` request must return 200 with both
@@ -127,7 +129,10 @@ deployment target before sharing it.
 
 Keep the resume secret stable across builds and provider-key rotation. Rotate it
 deliberately if compromised; old unfinished checkpoints will stop reconnecting.
-Preview and Production use separate Redis key namespaces. Use separate Redis
+Preview and Production use separate Redis key namespaces. Before switching a
+hostname between them, check for live interviews and leave the previous protected
+Preview URL available. Existing browser history is preserved, but unfinished
+server progress is not automatically moved between namespaces. Use separate Redis
 databases and model keys for unrelated projects.
 
 The stable branch URL matters: IndexedDB is tied to the browser origin. Opening
@@ -261,8 +266,8 @@ health check needs authorized access without removing deployment protection.
 
 ## Release smoke test
 
-1. In a signed-out browser, confirm the protected preview and its API routes require
-   authorized access. Do not share the production hostname.
+1. In a signed-out browser, confirm the intended Preview or Production hostname
+   and its API routes require authorized Vercel access.
 2. In an authorized browser, open `/api/health`: expect 200 with `status: "ok"` and
    both checks true. It checks Redis and settings, not provider billing/model access.
 3. Start a 45-minute scaling interview, ask a clarification, draw and explain,
@@ -283,7 +288,8 @@ must also verify the actual Upstash scripting permissions and Vercel protection.
 
 ## Troubleshooting and rollback
 
-- **503 / unhealthy:** confirm Preview-scoped settings, secret length and the REST
+- **503 / unhealthy:** confirm environment-scoped settings, the Production opt-in
+  when applicable, secret length and the REST
   endpoint/token; redeploy. Check Redis availability. Never disable shared limits
   to make an unhealthy beta accept paid requests.
 - **429:** wait for `Retry-After`; shared-network testers may hit the same quota.

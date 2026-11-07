@@ -1,0 +1,35 @@
+/* Scaling story animation. Only transform and opacity are animated. */
+.ss-wrap { background: #141c30; border-radius: 12px; overflow: hidden; }
+.ss-svg { display: block; width: 100%; height: auto; }
+.ss-cap { font-size: 15px; color: #e4eaf6; text-align: center; padding: 10px 16px 4px; margin: 0; min-height: 44px; }
+.ss-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 6px 12px 14px; }
+.ss-pill {
+  font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  border: 1px solid #3a4f7c; background: transparent; color: #c9d3e8; cursor: pointer;
+}
+.ss-pill:focus-visible { outline: 2px solid #5eead4; outline-offset: 2px; }
+.ss-pill.ss-act { background: #5eead4; color: #141c30; border-color: #5eead4; }
+
+.ss-svg [data-f] { transition: opacity 0.35s; }
+.ss-svg [data-pop] { transform-box: fill-box; transform-origin: center; }
+.ss-pop { animation: ss-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.ss-shake { animation: ss-shake 0.12s linear infinite alternate; }
+.ss-bounce { animation: ss-bounce 0.6s ease-in-out infinite alternate; }
+.ss-sw { animation: ss-sw 1.2s infinite; }
+.ss-cape { transform-box: fill-box; transform-origin: left center; animation: ss-cape 0.5s ease-in-out infinite alternate; }
+.ss-tw { transform-box: fill-box; transform-origin: center; animation: ss-tw 1.4s ease-in-out infinite; }
+.ss-eye { transform-box: fill-box; transform-origin: center; animation: ss-blink 4s infinite; }
+
+@keyframes ss-pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes ss-shake { from { transform: translateX(-2px); } to { transform: translateX(2px); } }
+@keyframes ss-bounce { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes ss-sw { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(16px); } }
+@keyframes ss-cape { from { transform: scaleX(1) skewY(-5deg); } to { transform: scaleX(0.8) skewY(5deg); } }
+@keyframes ss-tw { 0%, 100% { opacity: 0; transform: scale(0.3); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes ss-blink { 0%, 90%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.1); } }
+
+/* Reduced motion: no looping animation. The step buttons still work. */
+.ss-still .ss-svg *, .ss-still .ss-svg { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .ss-svg *, .ss-svg { animation: none !important; }
+}

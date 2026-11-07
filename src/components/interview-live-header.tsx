@@ -48,7 +48,7 @@ export function InterviewLiveHeader({
         </div>
       )}
       <div className="flex flex-wrap items-center justify-end gap-2 min-[900px]:col-start-3">
-        <MascotToggle />
+        {ended && <MascotToggle />}
         {!ended && interview?.timing && (
           <InterviewTimer
             remainingSeconds={remainingSeconds}

@@ -1,6 +1,4 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import { InterviewMascot } from "@/components/interview-mascot";
 import { SlowReply } from "@/components/slow-reply";
 import { useAutomaticScorecard } from "@/components/use-automatic-scorecard";
 import { createPortal } from "react-dom";
@@ -32,7 +30,6 @@ import {
 
 export function ChatPanel(props: ChatPanelProps) {
   const { interview, hasDrawing, hasEnded } = props;
-  const mascotTest = useSearchParams()?.get("mascotTest") === "1";
   const [recoveredMessages, setRecoveredMessages] = useState(
     props.restored?.recoveredMessages ?? [],
   );
@@ -131,39 +128,6 @@ export function ChatPanel(props: ChatPanelProps) {
       aria-label="Chat"
       className="flex min-h-0 w-full flex-col rounded-lg border border-black/10 dark:border-white/15"
     >
-      {!hasEnded && interview?.timing && (
-        <InterviewMascot
-          testMode={mascotTest}
-          sessionId={interview.sessionId}
-          startedAt={interview.timing.startedAt}
-          deadlineAt={interview.timing.deadlineAt}
-          clockOffsetMs={props.restored?.clockOffsetMs ?? 0}
-          paused={false}
-          blockedReason={[
-            mode === "draw" ? "drawing mode" : "",
-            mode === "explain" ? "candidate explaining" : "",
-            isStreaming ? "interviewer replying" : "",
-            ending.isEnding ? "ending interview" : "",
-            props.disabled ? "interview loading or blocked" : "",
-            syncRequired ? "conversation needs syncing" : "",
-            recoveryFailure ? "recovery required" : "",
-            closure.closed || props.timeExpired ? "interview ended" : "",
-          ]
-            .filter(Boolean)
-            .join(", ")}
-          blocked={
-            mode === "draw" ||
-            mode === "explain" ||
-            isStreaming ||
-            ending.isEnding ||
-            Boolean(props.disabled) ||
-            syncRequired ||
-            Boolean(recoveryFailure) ||
-            closure.closed ||
-            Boolean(props.timeExpired)
-          }
-        />
-      )}
       {props.endControlTarget &&
         createPortal(
           <InterviewEndControl

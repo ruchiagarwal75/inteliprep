@@ -23,7 +23,22 @@ describe("beta configuration", () => {
   it("keeps the private beta unavailable on a production domain", () => {
     vi.stubEnv("VERCEL", "1");
     vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("INTELIPREP_ENV", "beta");
     expect(missingBetaSettings()).toContain("PRIVATE_BETA_REQUIRES_PREVIEW");
+    expect(() => assertBetaReady()).toThrow("temporarily unavailable");
+  });
+  it("allows an explicit production rollout while requiring shared-store credentials", () => {
+    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("INTELIPREP_ENV", "production");
+    vi.stubEnv("OPENAI_KEY", "test-key");
+    vi.stubEnv("INTERVIEW_RESUME_SECRET", "s".repeat(32));
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://redis.example");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "test-token");
+    expect(missingBetaSettings()).toEqual([]);
+    expect(() => assertBetaReady()).not.toThrow();
+    expect(redisNamespace()).toBe("inteliprep:v1:production");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
     expect(() => assertBetaReady()).toThrow("temporarily unavailable");
   });
   it("keeps local builds usable without deployment credentials", () => {

@@ -1,0 +1,22 @@
+.home-scaling-story {
+  position: absolute;
+  width: 56%;
+  max-width: 680px;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 680 / 340;
+  z-index: 0;
+}
+@media (max-width: 899px) {
+  .home-scaling-story {
+    position: relative;
+    width: 100%;
+    max-width: none;
+    right: auto;
+    top: auto;
+    transform: none;
+    margin-top: var(--space-3);
+    min-height: calc((100vw - var(--space-4)) / 2 + var(--space-8));
+  }
+}

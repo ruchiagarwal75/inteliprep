@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ArchitectureHero } from "@/components/architecture-hero";
+import ScalingStory from "@/components/scaling-story/ScalingStory";
 
 export function PracticeHero({
   brief = false,
@@ -10,12 +10,17 @@ export function PracticeHero({
 }) {
   return (
     <section
-      className={["practice-hero", brief ? "practice-hero-brief" : ""].join(
-        " ",
-      )}
+      className={[
+        "practice-hero",
+        brief ? "practice-hero-brief" : "practice-hero-home",
+      ].join(" ")}
       aria-labelledby="practice-title"
     >
-      {!brief && <ArchitectureHero />}
+      {!brief && (
+        <div className="home-scaling-story">
+          <ScalingStory showControls={false} />
+        </div>
+      )}
       <div className="practice-hero-copy">
         <p className="practice-eyebrow">
           {brief ? "A moment to get ready" : "System design, at your own pace"}
