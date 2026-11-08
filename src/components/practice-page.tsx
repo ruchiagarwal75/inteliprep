@@ -1,5 +1,4 @@
 import { LegalLinks } from "@/components/legal-links";
-import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import { HomeMascot } from "@/components/mascot-moments";
 import { redirect } from "next/navigation";
 import { candidateIdentity } from "@/lib/candidate-auth";
@@ -38,7 +37,9 @@ export async function PracticePage({
           <header className="practice-nav">
             <Brand />
             <div className="practice-account-actions">
-              <CandidateProfileMenu />
+              <Link className="practice-link" href="/sign-in">
+                Sign in
+              </Link>
             </div>
           </header>
           <PracticeHero>
