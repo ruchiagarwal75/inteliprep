@@ -16,6 +16,11 @@ export default function PrivacyPage() {
         Signing out keeps that history on this device. It does not sync across
         devices.
       </p>
+      <p>
+        We store your invited Google email, beta approval status, and when and
+        by which admin that status changed. Approvals control access to practice
+        interviews and can be withdrawn without deleting your saved history.
+      </p>
       <h2>Interview processing</h2>
       <p>
         The server uses Redis for the verified transcript, interview progress,

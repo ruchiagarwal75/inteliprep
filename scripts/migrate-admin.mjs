@@ -51,6 +51,30 @@ try {
         "utf8",
       ),
     );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261108050628_beta_invitations.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    // One-way compatibility import only. Existing rows (including revocations) win.
+    const legacy = [
+      ...new Set(
+        (process.env.MOCKMEAI_INVITED_EMAILS ?? "")
+          .split(/[,\n]/u)
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    ];
+    for (const email of legacy) {
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email))
+        throw new Error("Invalid legacy invitation email");
+      await tx`insert into interview_admin.beta_invites (email,approved) values (${email},true)
+        on conflict (email) do nothing`;
+    }
     console.log(
       "Private reporting and visitor-count schema are ready. Existing interviews were preserved.",
     );

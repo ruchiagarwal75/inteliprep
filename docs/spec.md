@@ -1081,3 +1081,23 @@ Start action and house-icon stage preview. No phases or timer rules change.
 Server waiting and browser-history initialization use skeletons. The unused
 local OPTIONS pre-warm was removed from startup; actual interview creation,
 auth checks, quotas, routes, stored records and grading are unchanged.
+
+### Database-managed beta access (November 7)
+
+Exact Google emails and approval state live in the private
+`interview_admin.beta_invites` table. `/admin/access` lets the freshly verified
+configured owner approve or revoke an email. Writes are same-origin, size-bounded,
+strictly validated POSTs, using the existing restricted runtime database role.
+The email primary key and upsert preserve one row and the original creation time.
+Reporting remains read-only; no saved interview is changed by an access update.
+
+Candidate pages and APIs await the current database decision after verifying Auth.
+The existing Auth client calls `is_beta_invited()`, a no-argument SECURITY INVOKER
+function returning only the caller's own RLS-protected membership boolean.
+Authenticated users can read only their own invitation's email/approval columns;
+they cannot edit invitations or read reporting/audit fields. Anonymous execution
+is denied. No permission cache or environment-list fallback delays revocation.
+An unavailable database fails closed with 503. The verified configured admin
+retains access independently. The migration imports any legacy environment list
+without overwriting existing rows or revocations. Google OAuth testing and Vercel
+deployment protection remain separate admission gates.

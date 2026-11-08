@@ -314,9 +314,11 @@ variables. Keep its new styles in that system rather than adding global selector
 
 `usesSharedStore()` selects Redis-backed coordination on deployed instances,
 including Production. It does not describe audience or invitation policy.
-`MOCKMEAI_INVITED_EMAILS` is a server-only exact-email private-beta allowlist;
-missing configuration permits only `ADMIN_USER_ID`. New authenticated users can
-have an Auth record without being invited to interview APIs.
+Private-beta access lives in `interview_admin.beta_invites`, managed by the owner
+at `/admin/access`. Candidates use an own-email RLS-protected SECURITY INVOKER RPC;
+the admin remains independently authorized by verified `ADMIN_USER_ID`. The old
+`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database
+membership fails closed. New Auth records alone never grant interview access.
 
 Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and
 `inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;

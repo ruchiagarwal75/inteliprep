@@ -1,6 +1,7 @@
 # Private admin MVP
 
-`/admin` is a read-only operational dashboard. It uses Supabase Postgres and the
+`/admin` has read-only reporting and an owner-only beta-access editor at
+`/admin/access`. It uses Supabase Postgres and the
 existing structured server logs; it adds no external analytics or monitoring
 service. Account counts come directly from `auth.users`.
 
@@ -26,11 +27,41 @@ service. Account counts come directly from `auth.users`.
 5. Sign in normally, then visit `/admin`. Admin sign-in returns only to the fixed
    same-origin admin route. APIs return 401/403 rather than redirecting.
 
-Every page and data-read API independently checks the owner against a freshly
+Every page and admin API independently checks the owner against a freshly
 verified `auth.getUser()` response. Dashboard/API responses are private and
-uncached. Only GET admin APIs exist. The `interview_admin` schema is not exposed to
-browser roles: its tables have RLS enabled, no browser policies, and no schema or
-table grants for `anon` or `authenticated`. Its credentials remain server-only.
+uncached. Invitation updates require same-origin POSTs, JSON with a 1 KB size limit,
+and strict email/boolean validation. Reporting APIs remain GET-only. The
+`interview_admin` schema is not exposed through the Data API. Reporting tables
+have RLS and no browser table grants; the invitation exception is described below.
+
+## Approving beta users
+
+1. Sign in with the configured admin account and open `/admin/access`.
+2. Enter the person's Google email and choose **Approve access**. They do not need
+   to have signed in yet. No email is sent automatically.
+3. They can refresh or sign in. **Revoke** withdraws access on their next protected
+   request without deleting their account or saved interviews.
+
+The private `interview_admin.beta_invites` table stores one normalized email per
+row, approval state, server timestamps and the admin who last changed that state.
+Retries preserve the original creation time and do not create duplicate rows.
+The configured admin always has access independently of the table.
+
+Candidates call the no-argument `is_beta_invited()` RPC with their existing Auth
+session. This SECURITY INVOKER function returns only their own membership boolean.
+Authenticated roles have schema USAGE and SELECT on only the invitation email and
+approval columns, restricted by an own-verified-JWT-email RLS policy. They cannot
+read another email, audit metadata or reporting tables, or insert/update invitations.
+Anonymous users cannot call the function. Admin writes use the existing restricted
+runtime database role. No service-role key is added.
+
+Run `npm run db:admin` before deploying. It imports a locally configured legacy
+`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including
+revocations, win. Remove the old variable after import. Runtime checks never read it.
+For another environment with legacy invitees, import its emails before retiring
+its list. Verify permissions with `node scripts/verify-beta-invites.mjs`; all test
+writes roll back. Approvals share the existing database across environments using
+that project. Google OAuth test users and Vercel protection remain separate gates.
 
 ## Definitions and coverage
 

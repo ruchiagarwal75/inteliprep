@@ -30,7 +30,7 @@ export async function candidateIdentity(options?: {
         ? id
         : undefined;
     if (verified && options?.requireInvite)
-      requireCandidateInvite(verified, data?.claims.email);
+      await requireCandidateInvite(verified, data?.claims.email, client);
     return verified;
   } catch (cause) {
     if (

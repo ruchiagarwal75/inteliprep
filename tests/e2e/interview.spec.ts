@@ -109,6 +109,49 @@ test("private interview from brief through saved results, with no external model
   });
   expect(denied.status()).toBe(400);
   expect((await context.request.get("/api/admin/visitors")).status()).toBe(403);
+  expect((await context.request.get("/api/admin/invites")).status()).toBe(403);
+  expect(
+    (
+      await context.request.post("/api/admin/invites", {
+        headers: { origin: "http://localhost:3100" },
+        data: { email: "browser-smoke@example.invalid", approved: true },
+      })
+    ).status(),
+  ).toBe(403);
+});
+test("database approval and revocation take effect with the same signed-in session", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "uninvited");
+  await page.goto("/interview/new");
+  await expect(
+    page.getByRole("heading", { name: "You're not invited yet", exact: true }),
+  ).toBeVisible();
+  try {
+    await context.request.post(fixture + "/fixture/invitation", {
+      data: { account: "uninvited", approved: true },
+    });
+    await page.goto("/interview/new");
+    await expect(
+      page.getByRole("heading", { name: "Your practice brief", exact: true }),
+    ).toBeVisible();
+  } finally {
+    await context.request.post(fixture + "/fixture/invitation", {
+      data: { account: "uninvited", approved: false },
+    });
+  }
+  const response = await context.request.post("/api/interview/start", {
+    headers: { origin: "http://localhost:3100" },
+    data: { problemId: "single-server-scaling", level: "mid" },
+  });
+  expect(response.status()).toBe(403);
+  expect((await response.json()).code).toBe("INVITE_REQUIRED");
+  expect(response.headers()["x-interview-auth-error"]).toBeUndefined();
+  await page.goto("/interview/new");
+  await expect(
+    page.getByRole("heading", { name: "You're not invited yet", exact: true }),
+  ).toBeVisible();
 });
 test("uninvited and signed-out users cannot start, and policies are linked", async ({
   page,

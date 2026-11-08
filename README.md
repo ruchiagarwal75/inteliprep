@@ -171,10 +171,12 @@ include desktop and phone views.
 
 ## Private-beta and security configuration
 
-`MOCKMEAI_INVITED_EMAILS` is the server-only exact-email invitation list. Without
-it, only the configured admin can practice. An authenticated but uninvited account
-gets `/not-invited`; candidate APIs deny it before model work. Set the list in each
-intended runtime environment, then deploy. Google Audience test users and Vercel
+Invitations live in `interview_admin.beta_invites`. The configured admin manages
+exact Google email approvals at `/admin/access`, without redeploying.
+An authenticated but uninvited account gets `/not-invited`; candidate APIs deny it
+before model work. Run `npm run db:admin` before deploying this version. The old
+environment list is only a one-way migration input, never a runtime fallback.
+Google Audience test users and Vercel
 protection are independent controls. See [authentication](docs/authentication.md)
 for the Google branding checklist and callback configuration.
 
