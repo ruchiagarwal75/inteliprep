@@ -132,7 +132,7 @@ export function ChatPanel(props: ChatPanelProps) {
   return (
     <section
       aria-label="Chat"
-      className={`chat-panel flex min-h-0 w-full flex-col ${hasEnded ? "results-panel" : ""}`}
+      className={`chat-panel paper-card flex min-h-0 w-full flex-col ${hasEnded ? "results-panel" : ""}`}
     >
       {!hasEnded && interview?.timing && (
         <InterviewMascot

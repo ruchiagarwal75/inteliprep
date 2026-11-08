@@ -125,13 +125,13 @@ provider when you send an answer or generate a scorecard.
 Private operational reporting is at `/admin`. Setup, metric definitions, data
 coverage, exclusions, debugging references and cost estimates are documented in
 [docs/admin.md](docs/admin.md). Configure the exact server-only `ADMIN_USER_ID` and
-`SUPABASE_CONNECTION_STRING`, then run `npm run db:admin` for that database.
+`SUPABASE_REPORTING_CONNECTION_STRING`. Keep the privileged `SUPABASE_CONNECTION_STRING` for `npm run db:admin` only; see the restricted-role setup in the admin guide.
 
 Interviewer requests use a stable explicitly cached problem/rubric prefix, a bounded summary of older turns and the latest eight messages. The full verified transcript remains authoritative for scoring and question memory. Turn logs record latency, token usage, cache reads and reasoning tokens without candidate answers. Local settings use `OPENAI_MODEL=gpt-6.1-terra` with `OPENAI_INTERVIEW_REASONING_EFFORT=low`; grading stays `gpt-6.1-sol` / `high`. Configure the same overrides in Preview before deploying to use them there. Grading has a 120-second provider deadline, a 135-second client deadline and a 150-second route budget.
 
 The Brief sends one POST per Start click with an account-scoped client request UUID, retained across failed requests and Brief refreshes. The server replays that UUID for two hours with the original start/deadline. In the private beta, publishing the transcript, replay response and new-session quota is atomic in Redis; retries do not consume start quota. Clients predating request IDs still work but cannot deduplicate an ambiguous retry.
 
-For the one-minute local test, set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` in `.env.local`, restart `npm run dev` and reload the Brief. Select **1 minute (test)** before starting. `?debug=1` has no effect. Production bundles need rebuilding after a public environment setting changes. Local start quotas are off unless `INTELIPREP_DEV_START_LIMITS=on`; chat/model quotas stay enabled.
+For the one-minute local test, set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` and the server-only `INTELIPREP_ALLOW_TEST_INTERVIEWS=1` (or sign in as the configured admin) in `.env.local`, restart `npm run dev` and reload the Brief. Select **1 minute (test)** before starting. `?debug=1` has no effect. Production bundles need rebuilding after a public environment setting changes. Local start quotas are off unless `INTELIPREP_DEV_START_LIMITS=on`; chat/model quotas stay enabled.
 
 ## MockMeAI branding and domain
 
@@ -168,3 +168,25 @@ animations pause in hidden tabs and become a still frame with reduced motion.
 Palette, spacing and corner tokens live in `src/app/theme.css`. Interview and
 scorecard content stays plain. [Before/after captures](artifacts/mockmeai-architecture/README.md)
 include desktop and phone views.
+
+## Private-beta and security configuration
+
+`MOCKMEAI_INVITED_EMAILS` is the server-only exact-email invitation list. Without
+it, only the configured admin can practice. An authenticated but uninvited account
+gets `/not-invited`; candidate APIs deny it before model work. Set the list in each
+intended runtime environment, then deploy. Google Audience test users and Vercel
+protection are independent controls. See [authentication](docs/authentication.md)
+for the Google branding checklist and callback configuration.
+
+[Privacy policy](/privacy) and [terms](/terms) explain local history, temporary
+server state, AI processing and deletion requests. Error logs retain scrubbed
+owned code locations, not messages or raw stacks. All routes have security headers;
+page scripts use per-request CSP nonces. Excalidraw's dynamic style attributes,
+font loading and font-subsetting WebAssembly are explicitly bounded exceptions.
+
+Run `npm run test:e2e` after installing Chromium with `npx playwright install chromium`.
+The smoke test creates isolated local Auth/model fixtures and a production build
+on port 3100, with no paid model calls. It covers private access, real drawing,
+chat, end, saved results and headers. CI installs Chromium with OS dependencies.
+Screenshots in `artifacts/` remain local and are not versioned. See CLAUDE.md for
+current dependency overrides and the remaining low-severity Mermaid/KaTeX notes.

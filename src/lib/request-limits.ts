@@ -3,7 +3,7 @@ import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import { currentCandidateId } from "@/lib/candidate-context";
 import {
-  isPrivateBeta,
+  usesSharedStore,
   redisNamespace,
   BetaUnavailableError,
 } from "@/lib/beta-config";
@@ -29,7 +29,7 @@ export function requestIdentity(request: Request): string {
   const candidate = currentCandidateId();
   if (candidate) {
     const secret = process.env.INTERVIEW_RESUME_SECRET;
-    if (isPrivateBeta() && !secret) throw new BetaUnavailableError();
+    if (usesSharedStore() && !secret) throw new BetaUnavailableError();
     return createHmac("sha256", secret ?? "local-development")
       .update(`candidate:${candidate}`)
       .digest("hex");
@@ -90,12 +90,12 @@ export async function checkRequestLimit(
     kind === "start" &&
     process.env.NODE_ENV === "development" &&
     process.env.VERCEL !== "1" &&
-    !isPrivateBeta() &&
+    !usesSharedStore() &&
     process.env.INTELIPREP_DEV_START_LIMITS !== "on"
   )
     return 0;
   const windows = requestLimitWindows(request, kind);
-  if (isPrivateBeta()) {
+  if (usesSharedStore()) {
     const result = await redisCommand([
       "EVAL",
       LIMIT_SCRIPT,

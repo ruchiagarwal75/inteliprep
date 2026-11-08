@@ -11,7 +11,7 @@ service. Account counts come directly from `auth.users`.
    configured locally in `.env.local`; no owner identity is hardcoded in the app.
    Missing/invalid configuration denies access. Never put it in a `NEXT_PUBLIC_`
    variable or use editable user metadata as an admin role.
-2. Set `SUPABASE_CONNECTION_STRING` to the project's session-pooler Postgres URI.
+2. Keep `SUPABASE_CONNECTION_STRING` as the operator-only migration URI. Configure the restricted `SUPABASE_REPORTING_CONNECTION_STRING` for the web app as described below. Use the project's session-pooler Postgres URI.
    URL-encode the database password and quote the complete value in `.env.local`.
    The bundled public Supabase CA verifies TLS and the pooler hostname. The Node
    client uses a maximum of two connections and disables prepared statements.
@@ -20,7 +20,7 @@ service. Account counts come directly from `auth.users`.
    again. It never deletes or changes existing interview/account data. It does not
    alter Supabase's migration-history tables. If managing migrations through the
    Supabase CLI, apply the same file there instead; do not apply it twice.
-4. Add the same server-only settings to the intended Vercel environment and deploy.
+4. Add `ADMIN_USER_ID` and the restricted `SUPABASE_REPORTING_CONNECTION_STRING` to the intended Vercel environment and deploy. Do not add the operator migration URI.
    Local `.env.local` changes do not configure Vercel. Optional `ADMIN_TEST_USER_IDS`
    is a comma-separated list of test-account UUIDs.
 5. Sign in normally, then visit `/admin`. Admin sign-in returns only to the fixed
@@ -171,3 +171,36 @@ can count a person again; blocked storage and failed requests can miss visits.
 There are no IP records, browsing trails, referrers, heartbeats or session replay.
 Nothing before tracking started is backfilled. Missing database data is displayed
 as unavailable, not zero.
+
+## Restricted runtime database role
+
+The web app uses **only** `SUPABASE_REPORTING_CONNECTION_STRING`. It never falls
+back to `SUPABASE_CONNECTION_STRING`, which is reserved for operator migrations.
+Do not configure the privileged migration URI in Vercel runtime environments.
+
+1. With the operator URI in local `.env.local`, run `npm run db:admin` to create
+   `mockmeai_reporting` and its restricted grants/policies.
+2. Run `node scripts/configure-reporting.mjs` once. It generates a random role
+   password and writes the session-pooler URI to `.env.local` without printing it.
+   It preserves the project suffix in the pooler username, changing
+   `postgres.<project-ref>` to `mockmeai_reporting.<project-ref>`. It refuses to
+   rotate a connection already configured locally. No password is in a migration.
+3. Run `node scripts/verify-reporting-role.mjs`. It verifies reporting reads and
+   writes, rejects secret Auth reads, unrelated table access, deletes and schema
+   creation, and rolls back its test writes.
+4. Set the restricted URI as sensitive server-only
+   `SUPABASE_REPORTING_CONNECTION_STRING` for Vercel Preview and Production.
+   Remove the old privileged URI from Vercel, then create new deployments. Keep
+   the migration URI only in your operator environment. Never paste either URI
+   into chat, commits or browser configuration.
+
+The role has schema USAGE and SELECT/INSERT/UPDATE on the private reporting
+tables, with role-specific RLS policies, no DELETE, no schema CREATE, no role
+management and no BYPASSRLS. Browser roles still have no reporting access.
+It receives SELECT privileges on only id/email/created_at of auth.users.
+Supabase controls USAGE of the managed auth schema, so app queries use the private
+`registered_users` view instead. This fixed three-column, owner-evaluated view
+preserves the existing anonymous/deleted-account filter without granting the role
+access to those status columns or Auth secrets. It is inaccessible to browser
+roles, SELECT-only for reporting and deliberately non-updatable. Do not expose it
+through the Data API or grant it public access.

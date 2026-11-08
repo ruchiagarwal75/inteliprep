@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { currentCandidateId } from "@/lib/candidate-context";
 import type { InterviewSelection } from "@/lib/interview-selection";
 import {
-  isPrivateBeta,
+  usesSharedStore,
   redisNamespace,
   BetaUnavailableError,
 } from "@/lib/beta-config";
@@ -38,7 +38,7 @@ return 0`;
 const recordKey = (id: string) => `${redisNamespace()}:session:${id}`;
 
 export async function publishNewSession(id: string): Promise<void> {
-  if (!isPrivateBeta()) return;
+  if (!usesSharedStore()) return;
   if (!currentCandidateId())
     throw new InterviewSessionError("Please sign in to continue.", 401);
   const state = interviewSessionState();
@@ -63,7 +63,7 @@ export async function openSharedSession(
   selection: InterviewSelection,
   token?: string,
 ) {
-  if (!isPrivateBeta())
+  if (!usesSharedStore())
     return {
       persist: async () => {},
       rollback: async () => {},

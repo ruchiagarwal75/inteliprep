@@ -1,8 +1,10 @@
+import { LegalLinks } from "@/components/legal-links";
 import { redirect } from "next/navigation";
 import { GoogleSignIn } from "@/components/google-sign-in";
 import { candidateIdentity } from "@/lib/candidate-auth";
 import { supabaseServer } from "@/lib/supabase-server";
 import { CandidateAuthError } from "@/lib/supabase-config";
+import { CandidateInviteError } from "@/lib/candidate-invites";
 
 import { Brand } from "@/components/brand";
 import { BRAND } from "@/lib/brand";
@@ -26,8 +28,9 @@ export default async function SignInPage({
       if (error && (!error.status || error.status >= 500))
         throw new CandidateAuthError(503);
       id = error || data.user?.is_anonymous ? undefined : data.user?.id;
-    } else id = await candidateIdentity();
+    } else id = await candidateIdentity({ requireInvite: true });
   } catch (cause) {
+    if (cause instanceof CandidateInviteError) redirect("/not-invited");
     if (!(cause instanceof CandidateAuthError) && !returnTo) throw cause;
     unavailable = true;
   }
@@ -62,6 +65,7 @@ export default async function SignInPage({
           Your interview history stays in this browser, separately for each
           account.
         </p>
+        <LegalLinks />
       </div>
     </main>
   );

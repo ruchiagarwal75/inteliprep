@@ -20,15 +20,15 @@ private server rubric. The default is the simple scaling exercise at Mid-level.
 
 ## Stack
 
-| Layer     | Choice                                       |
-| --------- | -------------------------------------------- |
-| Framework | Next.js 16 (App Router) on React 19          |
-| Language  | TypeScript, `strict` mode                    |
-| Styling   | Tailwind CSS v4 (via `@tailwindcss/postcss`) |
-| Lint      | ESLint 9 flat config (`eslint-config-next`)  |
-| Format    | Prettier + `prettier-plugin-tailwindcss`     |
-| Tests     | Vitest (Node environment)                    |
-| Hosting   | Vercel protected Preview (beta preparation)  |
+| Layer     | Choice                                                         |
+| --------- | -------------------------------------------------------------- |
+| Framework | Next.js 16 (App Router) on React 19                            |
+| Language  | TypeScript, `strict` mode                                      |
+| Styling   | Shared CSS tokens and scoped CSS; Tailwind utilities for admin |
+| Lint      | ESLint 9 flat config (`eslint-config-next`)                    |
+| Format    | Prettier + `prettier-plugin-tailwindcss`                       |
+| Tests     | Vitest (Node environment)                                      |
+| Hosting   | Vercel protected Preview (beta preparation)                    |
 
 Excalidraw, the OpenAI SDK, Zod and pinned Supabase clients are installed.
 Supabase Auth handles Google sign-in; cloud interview history remains a later milestone.
@@ -255,9 +255,8 @@ Conventions:
   opaque checkpoint after a successful stage commit. The token is accepted only
   after successful EOF. Plain-text API clients retain existing behavior. Resume
   and chat/end can restore server stages from tokens after process loss. Ended
-  tokens verify the original frozen evidence hash. Checkpoints derive a key from
-  `INTERVIEW_RESUME_SECRET` or `OPENAI_KEY`; keep a stable dedicated secret to
-  survive provider-key rotation. No rubric or credentials enter browser tokens.
+  tokens verify the original frozen evidence hash. Checkpoints derive a key only from
+  `INTERVIEW_RESUME_SECRET`; keep it stable across deployments. No rubric or credentials enter browser tokens.
   Saved scorecards open without a grading request. Clearing site data removes
   browser saves; they do not sync across devices or origins. Supabase Google sign-in isolates candidate accounts;
   cloud interview history remains a later increment.
@@ -268,9 +267,7 @@ Conventions:
 
 - `AGENTS.md` is generated and rewritten by `next dev`; commit its changes
   alongside your work rather than reverting them.
-- `npm audit` reports 5 high findings, all from `braces` inside
-  `eslint-config-next`. Dev-only, and the only "fix" downgrades ESLint config to
-  v14. Left as is deliberately.
+- See the dependency-security notes below for the current audited versions.
 
 @AGENTS.md
 
@@ -302,3 +299,65 @@ areas unassessed; freehand/image uncertainty remains with the visual grader. Set
 questions consider configured facts supplied in the same reply. The style panel
 starts collapsed behind Styles / Hide styles, and the first native editor snapshot
 normalizes the saved baseline without reporting an edit.
+
+## Styling rules
+
+Use `src/app/theme.css` for shared palette, spacing, radii, buttons and paper-card
+primitives. Practice pages use `practice-primary`, `practice-secondary` and
+`paper-card`/`practice-surface`; do not create a competing palette or card system.
+New component/page styles use CSS Modules. Existing global page CSS is legacy,
+scoped beneath page/component classes; migrate it only when relevant, not in a
+wholesale rewrite. Admin retains Tailwind utilities mapped to the same theme
+variables. Keep its new styles in that system rather than adding global selectors.
+
+## Deployment names and compatibility
+
+`usesSharedStore()` selects Redis-backed coordination on deployed instances,
+including Production. It does not describe audience or invitation policy.
+`MOCKMEAI_INVITED_EMAILS` is a server-only exact-email private-beta allowlist;
+missing configuration permits only `ADMIN_USER_ID`. New authenticated users can
+have an Auth record without being invited to interview APIs.
+
+Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and
+`inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;
+renaming them would sign users out or abandon live sessions. Resume encryption
+uses only `INTERVIEW_RESUME_SECRET`, with a named stable fallback for local
+`NODE_ENV=development` only. Never use a provider key for encryption.
+
+## Browser verification and evidence
+
+`npm run test:e2e` runs a production build in `.next-e2e`, a local HTTPS Auth/model
+fixture and Chromium. It uses synthetic accounts and model replies and cannot
+reach production reporting or Redis. There is no application auth bypass.
+The normal `.next` output and port 3000 are left alone. Tests use port 3100.
+Screenshots under `artifacts/` stay on disk but are intentionally untracked;
+verification traces and browser output are also ignored. Public guide images and
+fonts are application assets and remain tracked.
+
+## Runtime database and diagnostics
+
+Only `SUPABASE_REPORTING_CONNECTION_STRING` is used by the app. Keep the privileged
+`SUPABASE_CONNECTION_STRING` for operator migrations only. See docs/admin.md for
+the restricted role, private three-column user projection and permission checks.
+Server error logs may include only owned relative code filenames and line/column
+numbers, not messages, arguments, raw stacks, request bodies or credentials.
+Server source maps are enabled; browser source maps are not exposed. An owner can
+request `/api/admin/overview?diagnostic=throw` in Preview to verify scrubbed failure
+logging. Production ignores that diagnostic parameter. No external tracker is added.
+
+## Dependency security (November 2026)
+
+Keep Next.js and eslint-config-next pinned together at 16.4.5 or newer. CI runs
+`npm audit --omit=dev --audit-level=high` before checks/build/browser smoke tests.
+Weekly Dependabot covers npm and GitHub Actions; action references are commit-pinned.
+Excalidraw stays at 0.18.1. Do not run `npm audit fix --force` or downgrade it.
+Overrides pin nanoid 3 consumers to 3.3.20, nanoid 4/5 consumers to 5.1.16 and
+lodash-es to 4.18.1. Browser tests must pass when those overrides change.
+
+The remaining four low audit entries are one transitive KaTeX trust-restriction
+advisory propagated through Mermaid, mermaid-to-excalidraw and Excalidraw. It
+requires an existing prototype-pollution condition; this app does not provide a
+Mermaid import flow as a practice feature. These are accepted pending an upstream
+compatible update, not silently ignored: audit still reports them, CI still fails
+for any high/critical finding, and Dependabot will surface releases. Recheck the
+whiteboard and export after an upstream Excalidraw update. No force-fix is allowed.

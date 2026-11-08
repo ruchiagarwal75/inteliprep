@@ -1,3 +1,4 @@
+import { logServerEvent } from "@/lib/server-events";
 import "server-only";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
@@ -20,12 +21,14 @@ export function adminRead(handler: (request: Request) => Promise<unknown>) {
             ? 400
             : 503;
       if (status === 503)
-        console.error(
-          JSON.stringify({
-            event: "admin_read_failure",
+        logServerEvent(
+          {
+            event: "framework_failure",
             requestId,
-            timestamp: new Date().toISOString(),
-          }),
+            route: new URL(request.url).pathname,
+            status: 503,
+          },
+          cause,
         );
       return Response.json(
         {

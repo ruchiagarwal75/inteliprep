@@ -19,6 +19,26 @@ const checkpoint: SessionCheckpoint = {
 };
 
 describe("opaque server resume checkpoints", () => {
+  it.each(["production", "test"])(
+    "fails closed without a dedicated secret in %s",
+    (environment) => {
+      vi.stubEnv("NODE_ENV", environment);
+      vi.stubEnv("INTERVIEW_RESUME_SECRET", "");
+      vi.stubEnv("OPENAI_KEY", "a-provider-key-is-not-a-resume-secret");
+      expect(() => sealSession(checkpoint)).toThrow("INTERVIEW_RESUME_SECRET");
+    },
+  );
+  it("uses a stable local development constant only on a local development server", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VERCEL", "");
+    vi.stubEnv("INTELIPREP_ENV", "");
+    vi.stubEnv("INTERVIEW_RESUME_SECRET", "");
+    const token = sealSession(checkpoint);
+    vi.stubEnv("OPENAI_KEY", "rotated-provider-key");
+    expect(unsealSession(token)).toEqual(checkpoint);
+    vi.stubEnv("VERCEL", "1");
+    expect(() => unsealSession(token)).toThrow("INTERVIEW_RESUME_SECRET");
+  });
   it("round-trips authenticated progress without exposing readable coverage or credentials", () => {
     const token = sealSession(checkpoint);
     expect(unsealSession(token)).toEqual(checkpoint);

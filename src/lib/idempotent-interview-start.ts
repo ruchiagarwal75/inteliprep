@@ -9,7 +9,7 @@ import type { InterviewDuration } from "@/lib/interview-timer";
 import type { ProblemDefinition } from "@/lib/problems";
 import { createInterviewStart } from "@/lib/problems";
 import {
-  isPrivateBeta,
+  usesSharedStore,
   redisNamespace,
   BetaUnavailableError,
 } from "@/lib/beta-config";
@@ -90,7 +90,7 @@ export async function idempotentInterviewStart(
 ): Promise<Result> {
   const selection = JSON.stringify([problem.id, level, duration]);
   const key = `${redisNamespace()}:start:${requestIdentity(request)}:${requestId}`;
-  if (!isPrivateBeta()) {
+  if (!usesSharedStore()) {
     for (const [k, entry] of local)
       if (entry.expiresAt <= Date.now()) local.delete(k);
     const previous = local.get(key);

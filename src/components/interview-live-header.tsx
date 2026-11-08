@@ -31,7 +31,7 @@ export function InterviewLiveHeader({
   save: () => Promise<void>;
 }) {
   return (
-    <header className="live-header grid shrink-0 grid-cols-[1fr_auto] items-center gap-2 rounded-lg border px-3 py-2 min-[900px]:grid-cols-3">
+    <header className="live-header paper-card grid shrink-0 grid-cols-[1fr_auto] items-center gap-2 rounded-lg border px-3 py-2 min-[900px]:grid-cols-3">
       <div className="live-identity">
         <Brand />
         <div className="min-w-0">

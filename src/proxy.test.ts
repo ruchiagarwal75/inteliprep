@@ -57,6 +57,10 @@ describe("authentication cookie refresh", () => {
   });
   it("matches every interview/auth resource but leaves static assets and public health alone", () => {
     for (const path of [
+      "/",
+      "/privacy",
+      "/terms",
+      "/not-invited",
       "/interview",
       "/sign-in",
       "/auth/callback",
@@ -84,5 +88,19 @@ describe("authentication cookie refresh", () => {
           url: `https://beta.example${path}`,
         }),
       ).toBe(false);
+  });
+  it("uses a fresh page nonce without refreshing Auth on public pages", async () => {
+    const first = await proxy(new NextRequest("https://beta.example/"));
+    const second = await proxy(new NextRequest("https://beta.example/privacy"));
+    expect(first.headers.get("content-security-policy")).toContain(
+      "'strict-dynamic'",
+    );
+    expect(first.headers.get("content-security-policy")).not.toBe(
+      second.headers.get("content-security-policy"),
+    );
+    expect(
+      first.headers.get("x-middleware-request-content-security-policy"),
+    ).toBe(first.headers.get("content-security-policy"));
+    expect(refreshed).not.toHaveBeenCalled();
   });
 });

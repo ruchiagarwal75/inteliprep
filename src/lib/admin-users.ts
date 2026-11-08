@@ -14,7 +14,7 @@ export async function adminUsers(query: ReturnType<typeof adminQuery>) {
       AdminUser[]
     >`select u.id,u.email,u.created_at::text as "signupAt",activity.last_at::text as "lastActivityAt",activity.count as "interviewCount",
       u.created_at >= (select started_at from interview_admin.reporting_state) as "historyComplete"
-      from auth.users u left join lateral (
+      from interview_admin.registered_users u left join lateral (
         select (select max(at) from (
           select last_activity_at as at from interview_admin.interviews where user_id=u.id and ${recordScope(query.includeExcluded)}
           union all select occurred_at as at from interview_admin.failures where user_id=u.id and operation='start' and ${recordScope(query.includeExcluded)}
@@ -24,7 +24,7 @@ export async function adminUsers(query: ReturnType<typeof adminQuery>) {
       where ${filter} order by u.created_at desc,u.id limit ${ADMIN_PAGE_SIZE} offset ${(query.page - 1) * ADMIN_PAGE_SIZE}`,
     sql<
       { count: number }[]
-    >`select count(*)::int as count from auth.users u where ${filter}`,
+    >`select count(*)::int as count from interview_admin.registered_users u where ${filter}`,
   ]);
   return {
     users: rows,

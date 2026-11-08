@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   assertBetaReady,
-  isPrivateBeta,
+  usesSharedStore,
   missingBetaSettings,
   redisNamespace,
 } from "@/lib/beta-config";
@@ -44,7 +44,7 @@ describe("beta configuration", () => {
   it("keeps local builds usable without deployment credentials", () => {
     vi.stubEnv("VERCEL", "");
     vi.stubEnv("INTELIPREP_ENV", "");
-    expect(isPrivateBeta()).toBe(false);
+    expect(usesSharedStore()).toBe(false);
     expect(() => assertBetaReady()).not.toThrow();
   });
   it("fails closed in Vercel and reports names only", () => {

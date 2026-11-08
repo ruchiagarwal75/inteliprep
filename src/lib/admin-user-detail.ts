@@ -17,7 +17,7 @@ export async function adminUserDetail(
     scope = recordScope(includeExcluded);
   const users = await sql<
     { id: string; email: string | null; signupAt: string }[]
-  >`select u.id,u.email,u.created_at::text as "signupAt" from auth.users u where u.id=${id} and ${userScope(includeExcluded)}`;
+  >`select u.id,u.email,u.created_at::text as "signupAt" from interview_admin.registered_users u where u.id=${id} and ${userScope(includeExcluded)}`;
   const user = users[0];
   if (!user) return undefined;
   const [interviews, counts] = await Promise.all([

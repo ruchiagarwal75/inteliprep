@@ -13,6 +13,18 @@ const post = (body: unknown) =>
 afterEach(() => vi.unstubAllEnvs());
 
 describe("POST /api/interview/start", () => {
+  it("rejects a production-like non-admin test session before creation", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("INTELIPREP_ALLOW_TEST_INTERVIEWS", "0");
+    vi.stubEnv("ADMIN_USER_ID", "99999999-9999-4999-8999-999999999999");
+    const response = await post({
+      problemId: "url-shortener",
+      level: "mid",
+      durationMinutes: 1,
+    });
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain("One-minute interviews");
+  });
   it("starts the simple scaling exercise with its own question and no solution hints", async () => {
     const response = await post({
       problemId: "single-server-scaling",

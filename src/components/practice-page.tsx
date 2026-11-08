@@ -1,8 +1,10 @@
+import { LegalLinks } from "@/components/legal-links";
 import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import { HomeMascot } from "@/components/mascot-moments";
 import { redirect } from "next/navigation";
 import { candidateIdentity } from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
+import { CandidateInviteError } from "@/lib/candidate-invites";
 import { listProblems, getProblem } from "@/lib/problems";
 import { CandidateWorkspace } from "@/components/candidate-workspace";
 import Link from "next/link";
@@ -18,8 +20,9 @@ export async function PracticePage({
 }) {
   let userId: string | undefined;
   try {
-    userId = await candidateIdentity();
+    userId = await candidateIdentity({ requireInvite: true });
   } catch (cause) {
+    if (cause instanceof CandidateInviteError) redirect("/not-invited");
     if (!(cause instanceof CandidateAuthError)) throw cause;
     return (
       <main className="p-6" role="alert">
@@ -55,6 +58,7 @@ export async function PracticePage({
           <p className="practice-note">
             Your practice history is saved in this browser.
           </p>
+          <LegalLinks />
         </div>
       </main>
     );

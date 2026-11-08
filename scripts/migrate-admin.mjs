@@ -42,6 +42,15 @@ try {
       import.meta.url,
     );
     await tx.unsafe(readFileSync(fileURLToPath(viewers), "utf8"));
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261108003142_reporting_least_privilege.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
     console.log(
       "Private reporting and visitor-count schema are ready. Existing interviews were preserved.",
     );

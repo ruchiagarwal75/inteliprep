@@ -14,18 +14,21 @@ export class ReportingUnavailableError extends Error {
 }
 export function reportingConfigured() {
   return (
-    Boolean(process.env.SUPABASE_CONNECTION_STRING) &&
+    Boolean(process.env.SUPABASE_REPORTING_CONNECTION_STRING) &&
     process.env.NODE_ENV !== "test"
   );
 }
 export function reportingDb() {
-  if (!process.env.SUPABASE_CONNECTION_STRING)
+  if (!process.env.SUPABASE_REPORTING_CONNECTION_STRING)
     throw new ReportingUnavailableError();
-  if (client && connectionString !== process.env.SUPABASE_CONNECTION_STRING) {
+  if (
+    client &&
+    connectionString !== process.env.SUPABASE_REPORTING_CONNECTION_STRING
+  ) {
     void client.end({ timeout: 1 }).catch(() => {});
     client = undefined;
   }
-  connectionString = process.env.SUPABASE_CONNECTION_STRING;
+  connectionString = process.env.SUPABASE_REPORTING_CONNECTION_STRING;
   client ??= postgres(connectionString, {
     prepare: false,
     ssl: {

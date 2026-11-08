@@ -30,7 +30,7 @@ export async function adminOverview(
     >`select started_at as "startedAt",now(),now()-interval '7 days' as since from interview_admin.reporting_state`,
     sql<
       { total: number; newSignups: number }[]
-    >`select count(*)::int as total,count(*) filter(where u.created_at>=now()-interval '7 days')::int as "newSignups" from auth.users u where ${userScope(includeExcluded)}`,
+    >`select count(*)::int as total,count(*) filter(where u.created_at>=now()-interval '7 days')::int as "newSignups" from interview_admin.registered_users u where ${userScope(includeExcluded)}`,
     sql<
       AdminOverview["interviews"][]
     >`select count(*) filter(where status<>'failed')::int as started,
@@ -54,14 +54,14 @@ export async function adminOverview(
     sql<
       AdminOverview["activity"]
     >`select i.id as "interviewId",i.user_id as "userId",u.email,i.problem_id as "problemId",event.name as event,event.at::text
-      from (select * from interview_admin.interviews where ${scope}) i left join auth.users u on u.id=i.user_id
+      from (select * from interview_admin.interviews where ${scope}) i left join interview_admin.registered_users u on u.id=i.user_id
       cross join lateral (values ('Interview started',case when i.coverage='full' then i.started_at end),('First candidate response',i.first_response_at),('Design presented',i.design_presented_at),
         ('Interview '||i.status,case when i.status in ('completed','exited') then i.ended_at end),('Feedback generated',i.feedback_generated_at),('Feedback failed',i.feedback_failed_at)) event(name,at)
       where event.at is not null order by event.at desc,i.id limit 20`,
     sql<
       AdminFailure[]
     >`select f.id,f.interview_id as "interviewId",f.user_id as "userId",u.email,f.request_id as "requestId",f.reference_id as "referenceId",f.operation,f.category,f.occurred_at::text as "occurredAt",f.source
-      from (select * from interview_admin.failures where ${scope} order by occurred_at desc limit 20) f left join auth.users u on u.id=f.user_id order by f.occurred_at desc`,
+      from (select * from interview_admin.failures where ${scope} order by occurred_at desc limit 20) f left join interview_admin.registered_users u on u.id=f.user_id order by f.occurred_at desc`,
   ]);
   const startedAt = state[0]?.startedAt;
   if (!startedAt || !users[0] || !interviews[0] || !cost[0])

@@ -5,6 +5,9 @@ import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
 
+// Request-specific CSP nonces cannot be embedded in statically generated HTML.
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

@@ -9,7 +9,8 @@ export class BetaUnavailableError extends Error {
   }
 }
 
-export function isPrivateBeta(): boolean {
+/** Deployed instances coordinate through Redis, including Production. */
+export function usesSharedStore(): boolean {
   return process.env.VERCEL === "1" || process.env.INTELIPREP_ENV === "beta";
 }
 
@@ -39,10 +40,11 @@ export function missingBetaSettings(): string[] {
 }
 
 export function assertBetaReady(): void {
-  if (isPrivateBeta() && missingBetaSettings().length)
+  if (usesSharedStore() && missingBetaSettings().length)
     throw new BetaUnavailableError();
 }
 
+// The legacy InteliPrep prefix is a persistence identifier. Renaming it drops live state.
 export function redisNamespace(): string {
   return `inteliprep:v1:${process.env.VERCEL_ENV ?? process.env.INTELIPREP_ENV ?? "local"}`;
 }

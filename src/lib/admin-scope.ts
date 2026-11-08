@@ -7,5 +7,5 @@ export function recordScope(includeExcluded: boolean) {
 }
 export function userScope(includeExcluded: boolean) {
   const sql = reportingDb();
-  return sql`not u.is_anonymous and u.deleted_at is null and (${includeExcluded} or u.id <> all(string_to_array(${excludedUserIds().join(",")},',')::uuid[]))`;
+  return sql`(${includeExcluded} or u.id <> all(string_to_array(${excludedUserIds().join(",")},',')::uuid[]))`;
 }

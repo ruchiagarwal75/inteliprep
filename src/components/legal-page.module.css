@@ -1,0 +1,22 @@
+.content {
+  max-width: 760px;
+  margin: var(--space-4) auto;
+}
+.content h1 {
+  font-family: var(--font-display), serif;
+  font-size: 2rem;
+}
+.content h2 {
+  margin-top: var(--space-4);
+  font-family: var(--font-display), serif;
+  font-size: 1.4rem;
+}
+.content p,
+.content li {
+  line-height: 1.7;
+  margin-top: var(--space-2);
+}
+.content a {
+  color: var(--teal-deep);
+  text-decoration: underline;
+}

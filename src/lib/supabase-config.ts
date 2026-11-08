@@ -39,6 +39,7 @@ export function requireSupabaseConfiguration() {
 /** Host-only SDK cookies; HTTPS is mandatory on deployed builds. */
 export function authCookieOptions() {
   return {
+    // Legacy persisted name: changing it signs out existing candidates.
     name: "inteliprep-auth",
     path: "/",
     sameSite: "lax" as const,

@@ -3,6 +3,10 @@ import { randomUUID } from "node:crypto";
 import { supabaseServer } from "@/lib/supabase-server";
 import { authFailureKind } from "@/lib/auth-failure";
 import { logServerEvent } from "@/lib/server-events";
+import {
+  CandidateInviteError,
+  requireCandidateInvite,
+} from "@/lib/candidate-invites";
 
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
@@ -10,13 +14,22 @@ export async function GET(request: Request) {
   const returnTo = params.get("next") === "/admin" ? "/admin" : "/interview";
   const requestId = randomUUID();
   let success = false;
+  let invited = true;
   let cause: unknown;
   if (code) {
     try {
       const client = await supabaseServer(true);
-      const { error } = await client.auth.exchangeCodeForSession(code);
+      const { data, error } = await client.auth.exchangeCodeForSession(code);
       success = !error;
       cause = error;
+      if (success && data?.user) {
+        try {
+          requireCandidateInvite(data.user.id, data.user.email);
+        } catch (failure) {
+          if (!(failure instanceof CandidateInviteError)) throw failure;
+          invited = false;
+        }
+      }
     } catch (error) {
       cause = error;
     }
@@ -38,7 +51,9 @@ export async function GET(request: Request) {
   const response = NextResponse.redirect(
     new URL(
       success
-        ? returnTo
+        ? invited
+          ? returnTo
+          : "/not-invited"
         : failure === "connection"
           ? "/sign-in?error=connection"
           : "/sign-in?error=1",

@@ -38,7 +38,7 @@ export function Whiteboard({
     <section
       aria-label="Whiteboard"
       data-read-only={readOnly}
-      className="whiteboard-panel flex h-full min-h-0 flex-col overflow-hidden"
+      className="whiteboard-panel paper-card flex h-full min-h-0 flex-col overflow-hidden"
     >
       <header className="whiteboard-heading">
         <h2 className="text-sm font-medium">

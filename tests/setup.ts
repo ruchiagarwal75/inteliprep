@@ -19,6 +19,9 @@ vi.mock("@/lib/candidate-context", async (original) => {
 process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_test_fixture";
+process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS = "1";
+process.env.INTERVIEW_RESUME_SECRET =
+  "test-only-stable-dedicated-resume-secret";
 
 // Each test starts with fresh local quotas; individual tests can exercise exhaustion.
 beforeEach(() => {

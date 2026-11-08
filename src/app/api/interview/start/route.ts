@@ -1,4 +1,5 @@
 import { trackInterview } from "@/lib/interview-tracking";
+import { requireTestInterviewAccess } from "@/lib/test-interview-access";
 import { setInterviewReference } from "@/lib/reporting-context";
 import { interviewStartRequestSchema } from "@/lib/interview-selection";
 import { getProblem } from "@/lib/problems";
@@ -21,6 +22,7 @@ async function start(request: Request): Promise<Response> {
       },
       { status: 400 },
     );
+  await requireTestInterviewAccess(parsed.data.durationMinutes);
   const problem = getProblem(parsed.data.problemId);
   if (!problem)
     return Response.json(

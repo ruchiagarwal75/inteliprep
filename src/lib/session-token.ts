@@ -35,18 +35,22 @@ export const sessionCheckpointSchema = interviewSelectionSchema.extend({
     .optional(),
 });
 export type SessionCheckpoint = z.infer<typeof sessionCheckpointSchema>;
-const state = globalThis as typeof globalThis & {
-  inteliprepResumeKey?: string;
-};
 const CONTEXT = "inteliprep/browser-resume/v1";
+const LOCAL_DEVELOPMENT_RESUME_SECRET =
+  "mockmeai-local-development-resume-secret-not-for-deployment";
 
 function key() {
-  // A dedicated secret can decouple checkpoints from provider-key rotation.
-  // No provider key or private stage criteria are included in the token.
   const secret =
     process.env.INTERVIEW_RESUME_SECRET ||
-    process.env.OPENAI_KEY ||
-    (state.inteliprepResumeKey ??= randomBytes(32).toString("hex"));
+    (process.env.NODE_ENV === "development" &&
+    process.env.VERCEL !== "1" &&
+    process.env.INTELIPREP_ENV !== "beta"
+      ? LOCAL_DEVELOPMENT_RESUME_SECRET
+      : undefined);
+  if (!secret)
+    throw new Error(
+      "INTERVIEW_RESUME_SECRET is required outside local development",
+    );
   return createHash("sha256").update(CONTEXT).update(secret).digest();
 }
 

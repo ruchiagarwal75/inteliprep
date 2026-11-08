@@ -68,8 +68,9 @@ export default async function AdminPage({
         />
       ) : (
         <p role="alert" className="rounded border p-4">
-          Overview unavailable. Check SUPABASE_CONNECTION_STRING, the reporting
-          migration, and server logs. This does not mean zero activity.
+          Overview unavailable. Check SUPABASE_REPORTING_CONNECTION_STRING, the
+          reporting migration, and server logs. This does not mean zero
+          activity.
         </p>
       )}
       {users.status === "fulfilled" ? (

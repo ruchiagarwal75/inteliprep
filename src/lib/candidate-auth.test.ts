@@ -31,10 +31,12 @@ describe("verified candidate identity", () => {
     expect(authCookieOptions().secure).toBe(false);
   });
   it("uses the verified subject, ignoring editable metadata", async () => {
+    vi.stubEnv("MOCKMEAI_INVITED_EMAILS", "invited@example.test");
     claims.mockResolvedValue({
       data: {
         claims: {
           sub: "11111111-1111-4111-8111-111111111111",
+          email: "invited@example.test",
           user_metadata: { ownerUserId: "another-user" },
         },
       },

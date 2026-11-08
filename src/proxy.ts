@@ -1,14 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { pageContentSecurityPolicy } from "@/lib/security-headers";
 import {
   authCookieOptions,
   supabaseConfiguration,
 } from "@/lib/supabase-config";
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const policy = pageContentSecurityPolicy(nonce);
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("Content-Security-Policy", policy);
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
   const config = supabaseConfiguration();
-  if (config) {
+  if (
+    config &&
+    /^\/(?:interview|admin|sign-in|auth|api\/(?:admin|interview|chat))(?:\/|$)/u.test(
+      request.nextUrl.pathname,
+    )
+  ) {
     const client = createServerClient(config.url, config.key, {
       global: {
         fetch: (input, init) =>
@@ -25,7 +35,10 @@ export async function proxy(request: NextRequest) {
         setAll(changes, headers) {
           for (const { name, value } of changes)
             request.cookies.set(name, value);
-          response = NextResponse.next({ request });
+          requestHeaders.set("cookie", request.cookies.toString());
+          response = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
           for (const { name, value, options } of changes)
             response.cookies.set(name, value, options);
           for (const [name, value] of Object.entries(headers ?? {}))
@@ -41,17 +54,15 @@ export async function proxy(request: NextRequest) {
     }
   }
   response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("Content-Security-Policy", policy);
   return response;
 }
 
 export const config = {
   matcher: [
-    "/interview/:path*",
-    "/admin/:path*",
     "/api/admin/:path*",
-    "/sign-in/:path*",
-    "/auth/:path*",
     "/api/interview/:path*",
     "/api/chat",
+    "/((?!api/|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|fonts/|practice-guide/).*)",
   ],
 };

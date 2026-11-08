@@ -1,3 +1,4 @@
+import { serverErrorFrames } from "@/lib/server-error-frames";
 import "server-only";
 import { APIError } from "openai";
 import {
@@ -44,12 +45,15 @@ type Event = {
   reasoningTokens?: number;
 };
 
-/** A strict allowlist: never serialize errors, messages, stacks, headers or request bodies. */
+/** A strict allowlist: never serialize messages, raw stacks, headers or request bodies. */
 export function logServerEvent(event: Event, cause?: unknown): void {
   const record = {
     timestamp: new Date().toISOString(),
     ...reportingContext(),
     ...event,
+    ...(event.event.includes("failure")
+      ? { errorFrames: serverErrorFrames(cause) }
+      : {}),
     ...(cause instanceof APIError ? { providerStatus: cause.status } : {}),
     ...(cause instanceof Error
       ? { errorType: safeErrorType(cause.constructor.name) }

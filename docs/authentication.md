@@ -12,7 +12,7 @@ The InteliPrep Supabase project is `bjqjocrfsiprlvnitfuo`. Its Google provider c
 https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback
 ```
 
-1. In the Google Cloud project, configure the consent screen for InteliPrep with
+1. In the Google Cloud project, configure the consent screen for MockMeAI with
    External audience. During testing, add the test accounts under Audience.
 2. Configure only the basic sign-in scopes: `openid`, email, and profile.
 3. Create an OAuth client of type Web application. Add the Supabase callback above
@@ -44,9 +44,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
 
 Use a modern `sb_publishable_...` key. It is intended for browser use; never use a
-service-role or `sb_secret_...` key here. No privileged Supabase key, custom user
-table, interview table, SQL policy, or webhook is needed for this browser-local
-milestone. Install the pinned versions with `npm ci`. Restart local development
+service-role or `sb_secret_...` key here. The browser only uses the publishable key. Private reporting credentials and the invitation list stay server-only. Install the pinned versions with `npm ci`. Restart local development
 and create a new build in each affected environment after changing public variables.
 
 Keep `INTERVIEW_RESUME_SECRET`: Supabase login and interview progress tokens have
@@ -130,3 +128,51 @@ into logs or support messages.
 References: [Supabase Google sign-in](https://supabase.com/docs/guides/auth/social-sign-in/auth-google),
 [Next.js cookie sessions](https://supabase.com/docs/guides/auth/server-side/creating-a-client),
 [redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
+
+
+## Private-beta invitations
+
+Set server-only `MOCKMEAI_INVITED_EMAILS` to a comma-separated list of exact Google
+account emails. Comparisons ignore case and surrounding spaces; domains and
+wildcards are not supported. With no list, only the account identified by
+`ADMIN_USER_ID` can practice. The admin ID comes from verified Auth, never editable
+profile metadata. Every candidate API enforces this check before interview/model
+work. Uninvited accounts see `/not-invited` and can sign out to switch accounts.
+Google may still create an Auth account during OAuth; the account alone does not
+grant app access. Vercel deployment protection remains a separate outer gate.
+
+## Google console rebrand checklist (operator action)
+
+These settings are outside the repository. In the Google Cloud console, select
+**the project containing the OAuth client already used by this Supabase project**.
+Do not create or replace the client, secret or callback during a branding change.
+
+1. Open **Google Auth Platform → Branding** (or APIs & Services → OAuth consent
+   screen in the older navigation).
+2. Set **App name** to **MockMeAI**. Select a support email you monitor and keep
+   the developer-contact email current.
+3. Upload the existing MockMeAI square logo from `src/app/apple-icon.png` (also
+   served at `https://mockmeai.com/apple-icon.png`). Google accepts PNG/JPG/BMP,
+   under 1 MB, and recommends 120 × 120. Do not upload the SVG logo.
+4. Under **App domain**, set:
+   - Homepage: `https://mockmeai.com`
+   - Privacy policy: `https://mockmeai.com/privacy`
+   - Terms of service: `https://mockmeai.com/terms`
+5. Under **Authorized domains**, add `mockmeai.com` and complete ownership
+   verification if Google requests it. Keep the Supabase domain required by the
+   existing callback configuration.
+6. Under **Clients**, edit the existing Web application client. Include
+   `https://mockmeai.com` in Authorized JavaScript origins. Preserve the redirect
+   URI `https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback` exactly.
+7. Under **Audience**, keep External and Testing during private beta, with the
+   intended test accounts. The Google test list and the app invitation list are
+   separate controls. Keep Data Access limited to openid/email/profile.
+8. Save. If Google requires branding verification, submit the updated branding.
+   Google controls when the new name/logo appears. Before a public production
+   verification, reviewers must be able to reach the homepage and policy links;
+   coordinate that with the deliberate end of deployment-level beta protection.
+9. Test a fresh Google sign-in, confirm the displayed branding and return to
+   MockMeAI, and verify an invited account can start while an uninvited account
+   sees the invitation notice.
+
+Reference: [Google's OAuth branding settings](https://support.google.com/cloud/answer/15549049).

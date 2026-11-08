@@ -1,4 +1,5 @@
 "use client";
+import { LegalLinks } from "@/components/legal-links";
 import { HomeMascot } from "@/components/mascot-moments";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -175,6 +176,7 @@ export function PracticeHome({
         <p className="practice-note">
           Your practice history is saved in this browser.
         </p>
+        <LegalLinks />
         <InterviewDialog
           open={Boolean(confirm)}
           title={

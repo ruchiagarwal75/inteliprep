@@ -1,13 +1,13 @@
 import "server-only";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { APIError } from "openai";
-import { isPrivateBeta } from "@/lib/beta-config";
+import { usesSharedStore } from "@/lib/beta-config";
 import { logServerEvent } from "@/lib/server-events";
 
 const faults = new AsyncLocalStorage<{ injected: boolean }>();
 const enabled = () =>
   process.env.NODE_ENV === "development" &&
-  !isPrivateBeta() &&
+  !usesSharedStore() &&
   process.env.INTELIPREP_TEST_MODEL_503_ONCE === "1";
 
 /** A server-configured, local-development-only fault, isolated to each chat request. */

@@ -4,6 +4,7 @@ import { setReportingUser } from "@/lib/reporting-context";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import { withCandidateIdentity } from "@/lib/candidate-context";
 import { CandidateAuthError } from "@/lib/supabase-config";
+import { CandidateInviteError } from "@/lib/candidate-invites";
 import { assertBetaReady, BetaUnavailableError } from "@/lib/beta-config";
 import { checkRequestLimit, type RequestKind } from "@/lib/request-limits";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
@@ -124,6 +125,7 @@ export function withApiRequest(
         const status =
           cause instanceof ApiRequestError ||
           cause instanceof CandidateAuthError ||
+          cause instanceof CandidateInviteError ||
           cause instanceof InterviewSessionError
             ? cause.status
             : cause instanceof BetaUnavailableError
@@ -133,6 +135,9 @@ export function withApiRequest(
           {
             code:
               authError ??
+              (cause instanceof CandidateInviteError
+                ? "INVITE_REQUIRED"
+                : undefined) ??
               (cause instanceof InterviewSessionError ? cause.code : undefined),
             error:
               status === 500 || !(cause instanceof Error)
