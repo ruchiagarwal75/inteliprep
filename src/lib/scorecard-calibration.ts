@@ -1,5 +1,9 @@
 import type { Scorecard } from "@/lib/scorecard";
 import type { InterviewTiming } from "@/lib/interview-timer";
+import {
+  scoringEligibility,
+  scoringElapsedSeconds,
+} from "@/lib/scoring-eligibility";
 
 /** Observations need diagnostic reasoning; supplied traffic targets are not a diagnosis. */
 export function calibrateBottleneckScore(card: Scorecard): Scorecard {
@@ -52,18 +56,12 @@ export function withSessionContext(
   if (!timing) return card;
 
   const allowedSeconds = timing.durationMinutes * 60;
-  const elapsedSeconds = Math.max(
-    0,
-    Math.min(
-      allowedSeconds,
-      Math.round(
-        (Date.parse(card.endedAt) - Date.parse(timing.startedAt)) / 1000,
-      ),
-    ),
-  );
-  const limited =
-    elapsedSeconds < allowedSeconds / 3 ||
-    (answeredStageCount !== undefined && answeredStageCount < 2);
+  const elapsedSeconds = scoringElapsedSeconds(timing, card.endedAt);
+  const limited = !scoringEligibility(
+    timing.durationMinutes,
+    elapsedSeconds,
+    answeredStageCount,
+  ).eligible;
   return {
     ...card,
     areas: limited
