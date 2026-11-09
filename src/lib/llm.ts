@@ -1,3 +1,4 @@
+import { resumePendingQuestion } from "@/lib/pending-question-reply";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import { hasAsk, invitesDrawing } from "@/lib/open-question";
 import { selectReviewProbe } from "@/lib/review-probes";
@@ -324,10 +325,14 @@ export async function* streamInterviewerReply(
   if (
     interview?.openQuestions?.length &&
     !interview.reviewQuestion &&
+    !requestedReviewTopic(args[0]) &&
     interview.progress?.step === "review" &&
     isFactualQuestion(args[0].findLast((m) => m.role === "user")?.content ?? "")
-  )
-    reply = `${withoutQuestions(reply).trim()}\n\n${interview.openQuestions[0].question}`;
+  ) {
+    const pending = interview.openQuestions[0];
+    interview.continuedQuestionId = pending.id;
+    reply = `${withoutQuestions(reply).trim()}\n\n${resumePendingQuestion(pending, args[0])}`;
+  }
   if (interview && invitesDrawing(reply)) {
     // Canonical wording also makes the client and next server turn recognize the handoff.
     if (!reply.includes(interview.problem.drawingPolicy.invitation))

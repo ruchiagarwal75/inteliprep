@@ -106,3 +106,25 @@ publication in metadata DB, what happens when the client retries completion?”
 Three real-model runs (URL shortener, notifications, file storage) all asked
 one specific question and never listed components. The other two asked about
 immediate Cassandra reads and duplicate jobs entering the queue.
+
+### 10. Resume questions without verbatim repetition
+
+The structured response identifies the pending question it continues. The server
+verifies that identity, rejects repeated wording, retains its queue entry rather
+than adding a duplicate, and preserves a short evidence-backed acknowledgement.
+Side-question paths also use a nonrepeating continuation. Invalid generations
+get a topic-specific walkthrough instruction without another paid model call.
+
+A real-model test exposed another cause of dropped acknowledgements: the model
+returned a candidate quote ID where the old validator expected literal text.
+The server now resolves only IDs belonging to the latest verified candidate
+message; arbitrary or older IDs cannot support an acknowledgement.
+
+Candidate detour: “The Redis cache will use a five-minute TTL so popular redirects
+avoid Cassandra reads.”
+
+Before: “How would you allocate distinct counter values in your Cassandra-based
+design?” This was identical to the outstanding question, with no acknowledgement.
+
+After: “The Redis cache reduces repeated reads. When two API instances create
+links concurrently, what prevents them from receiving the same counter value?”

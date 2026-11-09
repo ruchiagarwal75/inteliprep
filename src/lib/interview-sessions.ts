@@ -95,6 +95,7 @@ export function acquireInterviewSession(
       resolvedQuestion = false,
       metadata?: {
         resolvedQuestionIds: string[];
+        continuedQuestionId?: string;
         topicId?: string;
         stageId: string;
         diagramComponents: string[];
@@ -110,14 +111,15 @@ export function acquireInterviewSession(
         const remaining = metadata.resetQuestions
           ? []
           : unresolvedQuestions(previous, metadata.resolvedQuestionIds);
-        const queue = paused
-          ? remaining
-          : enqueueQuestion(
-              remaining,
-              reply,
-              (session.transcript?.messages.length ?? 1) - 1,
-              metadata.topicId,
-            );
+        const queue =
+          paused || remaining.some((q) => q.id === metadata.continuedQuestionId)
+            ? remaining
+            : enqueueQuestion(
+                remaining,
+                reply,
+                (session.transcript?.messages.length ?? 1) - 1,
+                metadata.topicId,
+              );
         session.openQuestions = queue;
         session.openQuestion = queue[0]?.question;
         session.pendingDiagramComponents = metadata.diagramComponents;

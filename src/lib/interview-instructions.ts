@@ -27,6 +27,7 @@ export type InterviewContext = {
   openQuestions?: PendingQuestion[];
   diagramQuestion?: string;
   answeredQuestionIds?: string[];
+  continuedQuestionId?: string;
   diagramUpdates?: string[];
   selectedTopic?: string;
   allowedFollowUps?: { id: string; question: string }[];
