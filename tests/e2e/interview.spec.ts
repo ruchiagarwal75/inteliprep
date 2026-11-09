@@ -151,6 +151,14 @@ for (const durationMinutes of [45, 60]) {
     );
     expect(
       (
+        await context.request.post("/api/admin/invites/email", {
+          headers: { origin: "http://localhost:3100" },
+          data: { notificationId: "11111111-1111-4111-8111-111111111111" },
+        })
+      ).status(),
+    ).toBe(403);
+    expect(
+      (
         await context.request.post("/api/admin/invites", {
           headers: { origin: "http://localhost:3100" },
           data: { email: "browser-smoke@example.invalid", approved: true },

@@ -10,3 +10,4 @@ export const betaInviteChange = z.strictObject({
   email: betaInviteEmail,
   approved: z.boolean(),
 });
+export const betaEmailRetry = z.strictObject({ notificationId: z.uuid() });

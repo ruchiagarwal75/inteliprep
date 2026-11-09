@@ -40,7 +40,8 @@ have RLS and no browser table grants; the invitation exception is described belo
 2. Newly registered accounts appear under **Awaiting approval**, newest first.
    Click **Approve** beside the account. The entry moves into Invitations as
    approved. Alternatively, enter a Google email under **Invite by email** before
-   the person signs in. No email is sent automatically.
+   the person signs in. A new approval sends a notification from
+   `MockMeAI <hello@mockmeai.com>` through Resend.
 3. They can refresh or sign in. **Revoke** withdraws access on their next protected
    request without deleting their account or saved interviews.
 
@@ -54,6 +55,47 @@ create duplicate signup records. Accounts with an existing invitation, including
 an explicit revocation, do not reappear as pending. The configured admin is excluded
 because their access is automatic. Search covers both lists, which have separate
 pagination controls. Existing approvals, accounts and saved interviews remain intact.
+
+### Approval emails
+
+Verify `mockmeai.com` in Resend and add a **sending-only** `RESEND_API_KEY` to
+`.env.local` for local work and Vercel **Production** for the deployed app.
+The key is server-only. The verified sender is `hello@mockmeai.com`; no mailbox
+or Supabase Auth SMTP change is required for these outgoing notifications.
+Sending does not change the Google OAuth test-user list.
+
+Run `npm run db:admin` before deploying this version. The additive
+`20261109011503_beta_approval_emails.sql` migration creates a private outbox.
+Approval and its notification record commit in one transaction. Only an actual
+transition to approved queues an email. A repeated Approve request, refresh,
+revocation or page read does not create another notification. Existing approved
+accounts remain unchanged and are not automatically emailed. Re-approval after
+revocation creates a new approval notification.
+
+The Access page shows the email status beside the invitation. **Sent to email
+provider** means Resend accepted the request, not proof of inbox delivery. Check
+Resend for delivery/bounce details. Failed/pending sends offer **Retry email**;
+the access grant stays valid. Retry accepts only a notification UUID and uses
+fresh owner authentication, same-origin checks and the stored recipient/template.
+No public send-email endpoint is added.
+
+The outbox freezes sender, recipient, subject and body so retries submit exactly
+the same request with an idempotency key tied to the notification UUID. A 30-second
+database lease blocks parallel sends and permits recovery after an interrupted
+request. Resend deduplicates for 24 hours, so API retries stop after 23 hours from
+the first attempt to avoid duplicates after that window. Older unconfirmed
+attempts say **Delivery unconfirmed** and require checking Resend. There is no
+background retry worker or delivery webhook in this MVP; refresh the Access page
+and retry there. Revoked/superseded notifications cannot be retried; an email
+already accepted cannot be recalled.
+
+Only the restricted runtime role can read/write outbox rows. Browser candidate
+roles have no grants, and RLS is enabled. The database stores message IDs,
+timestamps, bounded failure categories and debugging references; logs contain
+references/categories only, never recipient addresses, API keys or email bodies.
+The approval email contains no interview answers or drawings. Unit/API tests
+stub sending, and the opt-in live database test rolls back its fixtures without
+sending email.
 
 Candidates call the no-argument `is_beta_invited()` RPC with their existing Auth
 session. This SECURITY INVOKER function returns only their own membership boolean.

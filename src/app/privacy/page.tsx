@@ -21,6 +21,12 @@ export default function PrivacyPage() {
         by which admin that status changed. Approvals control access to practice
         interviews and can be withdrawn without deleting your saved history.
       </p>
+      <p>
+        When access is approved, we send your email address and an approval
+        notification to Resend for email delivery. Our private database keeps
+        the notification, delivery-attempt status and a debugging reference.
+        These emails do not include interview answers or drawings.
+      </p>
       <h2>Interview processing</h2>
       <p>
         The server uses Redis for the verified transcript, interview progress,

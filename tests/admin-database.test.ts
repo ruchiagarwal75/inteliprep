@@ -17,8 +17,15 @@ import {
 } from "@/lib/admin-invites";
 import { elapsedInterviewTime } from "@/lib/reporting-duration";
 import { withReportingContext } from "@/lib/reporting-context";
+import { deliverApprovalEmail } from "@/lib/approval-email-delivery";
+import { ApprovalEmailError } from "@/lib/approval-email";
 const harness = vi.hoisted(() => ({
   sql: undefined as ReturnType<typeof postgres> | undefined,
+  send: vi.fn(),
+}));
+vi.mock("@/lib/approval-email", async (original) => ({
+  ...(await original<typeof import("@/lib/approval-email")>()),
+  sendApprovalEmail: harness.send,
 }));
 vi.mock("@/lib/reporting-db", () => ({
   reportingConfigured: () => true,
@@ -52,7 +59,14 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
     const rollback = Symbol("rollback test fixtures");
     try {
       await sql.begin(async (tx) => {
-        harness.sql = tx as unknown as ReturnType<typeof postgres>;
+        harness.send.mockResolvedValue("provider-email-fixture");
+        harness.sql = new Proxy(tx, {
+          get(target, key) {
+            return key === "begin"
+              ? target.savepoint.bind(target)
+              : Reflect.get(target, key);
+          },
+        }) as unknown as ReturnType<typeof postgres>;
         const baseline = await adminOverview();
         const userId = randomUUID();
         await tx`insert into auth.users (id,aud,role,email,created_at,updated_at,is_anonymous) values (${userId},'authenticated','authenticated',${"admin-test-" + userId + "@example.invalid"},now(),now(),false)`;
@@ -62,7 +76,18 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
         expect(awaiting.pendingTotal).toBe(1);
         expect(awaiting.pending[0]).toMatchObject({ id: userId, email });
         expect(awaiting.total).toBe(0);
-        await setBetaInvite({ email: email.toUpperCase(), approved: true });
+        const firstApproval = await setBetaInvite({
+          email: email.toUpperCase(),
+          approved: true,
+        });
+        expect(firstApproval.notification?.status).toBe("sent");
+        const originalNotificationId = firstApproval.notification?.id;
+        expect(harness.send).toHaveBeenCalledTimes(1);
+        await setBetaInvite({ email, approved: true });
+        expect(harness.send).toHaveBeenCalledTimes(1);
+        const outbox =
+          await tx`select count(*)::int as count from interview_admin.beta_approval_emails where email=${email}`;
+        expect(outbox[0].count).toBe(1);
         const approved = await adminInvites(search);
         expect(approved.pendingTotal).toBe(0);
         expect(approved.invites).toHaveLength(1);
@@ -71,6 +96,25 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
         const revoked = await adminInvites(search);
         expect(revoked.pendingTotal).toBe(0);
         expect(revoked.invites[0].approved).toBe(false);
+        if (!originalNotificationId)
+          throw Error("Missing fixture notification");
+        expect(await deliverApprovalEmail(originalNotificationId)).toBeNull();
+        harness.send.mockRejectedValueOnce(
+          new ApprovalEmailError("provider_unavailable", 503),
+        );
+        const failedEmail = await setBetaInvite({ email, approved: true });
+        expect(failedEmail.invite.approved).toBe(true);
+        expect(failedEmail.notification?.status).toBe("failed");
+        const retryId = failedEmail.notification?.id;
+        if (!retryId) throw Error("Missing retry fixture");
+        expect(retryId).not.toBe(originalNotificationId);
+        expect((await deliverApprovalEmail(retryId))?.status).toBe("sent");
+        expect(harness.send).toHaveBeenCalledTimes(3);
+        await deliverApprovalEmail(retryId);
+        expect(harness.send).toHaveBeenCalledTimes(3);
+        const old =
+          await tx`select status from interview_admin.beta_approval_emails where id=${originalNotificationId}`;
+        expect(old[0].status).toBe("sent");
         const owner =
           await tx`select email from interview_admin.registered_users where id=${adminId}`;
         if (owner[0]?.email) {

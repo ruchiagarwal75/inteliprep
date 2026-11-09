@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { adminInvites } from "@/lib/admin-invites";
-import { AdminTime } from "@/components/admin-format";
 import { AdminPendingAccounts } from "@/components/admin-pending-accounts";
+import { AdminInvitationsTable } from "@/components/admin-invitations-table";
+import type { ApprovalEmailState } from "@/lib/approval-email-state";
 
 export function AdminInvitesPanel({
   data,
@@ -20,19 +21,25 @@ export function AdminInvitesPanel({
   const lock = useRef(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  async function change(address: string, approved: boolean) {
+  async function submit(
+    input: { email: string; approved: boolean } | { notificationId: string },
+  ) {
     if (lock.current) return;
     lock.current = true;
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/invites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: address, approved }),
-        signal: AbortSignal.timeout(15000),
-      });
+      const retry = "notificationId" in input;
+      const response = await fetch(
+        `/api/admin/invites${retry ? "/email" : ""}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+          signal: AbortSignal.timeout(30000),
+        },
+      );
       if (!response.ok) {
         setError(
           response.status === 401 || response.status === 403
@@ -43,10 +50,24 @@ export function AdminInvitesPanel({
         );
         return;
       }
+      const result = (await response.json()) as {
+        notification?: ApprovalEmailState | null;
+      };
+      const prefix =
+        "email" in input
+          ? `${input.approved ? "Approved" : "Revoked"} access for ${input.email.trim().toLowerCase()}. `
+          : "";
       setNotice(
-        `${approved ? "Approved" : "Revoked"} access for ${address.trim().toLowerCase()}.`,
+        prefix +
+          (result.notification?.status === "sent"
+            ? "Approval email sent to the email provider."
+            : result.notification
+              ? "Email delivery is not confirmed. Check its status below; access remains approved."
+              : retry
+                ? "No current approval email is available to send."
+                : ""),
       );
-      if (approved) setEmail("");
+      if ("approved" in input && input.approved) setEmail("");
       router.refresh();
     } catch {
       setError(
@@ -56,6 +77,9 @@ export function AdminInvitesPanel({
       lock.current = false;
       setBusy(false);
     }
+  }
+  function change(address: string, approved: boolean) {
+    return submit({ email: address, approved });
   }
   function approve(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -120,54 +144,21 @@ export function AdminInvitesPanel({
         </button>
       </form>
       <p className="text-sm">
-        This grants app access. It does not send an email or change Google OAuth
-        test-user or Vercel protection settings.
+        New approvals send an email from hello@mockmeai.com. If delivery fails,
+        access stays approved and you can retry the email below. Existing
+        approvals are not emailed automatically.
       </p>
       <h3 className="text-lg font-semibold">Invitations</h3>
       <p>
         {data.total} {data.total === 1 ? "invitation" : "invitations"} matching
         these filters
       </p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <caption className="sr-only">
-            Google email invitations and current beta access
-          </caption>
-          <thead>
-            <tr>
-              {["Email", "Access", "Updated (UTC)", "Action"].map((label) => (
-                <th scope="col" className="border-b p-3" key={label}>
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.invites.map((invite) => (
-              <tr key={invite.email}>
-                <td className="border-b p-3">{invite.email}</td>
-                <td className="border-b p-3">
-                  {invite.approved ? "Approved" : "Revoked"}
-                </td>
-                <td className="border-b p-3">
-                  <AdminTime value={invite.updatedAt} />
-                </td>
-                <td className="border-b p-3">
-                  <button
-                    type="button"
-                    disabled={busy}
-                    className="practice-secondary"
-                    aria-label={`${invite.approved ? "Revoke" : "Approve"} access for ${invite.email}`}
-                    onClick={() => void change(invite.email, !invite.approved)}
-                  >
-                    {invite.approved ? "Revoke" : "Approve"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <AdminInvitationsTable
+        invites={data.invites}
+        busy={busy}
+        onChange={(address, approved) => void change(address, approved)}
+        onRetry={(notificationId) => void submit({ notificationId })}
+      />
       {!data.invites.length && <p>No invitations match these filters.</p>}
       <nav aria-label="Invitation pages" className="flex items-center gap-4">
         {data.page > 1 && (

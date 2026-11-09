@@ -60,6 +60,15 @@ try {
         "utf8",
       ),
     );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109011503_beta_approval_emails.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
     // One-way compatibility import only. Existing rows (including revocations) win.
     const legacy = [
       ...new Set(
