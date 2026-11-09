@@ -1,17 +1,19 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, expect, it, vi } from "vitest";
-import { diagramUpdateClause } from "@/lib/pending-diagram-components";
+import { diagramComponentList } from "@/lib/diagram-component-copy";
 import { candidateDisplayName } from "@/lib/candidate-display-name";
 import { InterviewDurationPicker } from "@/components/interview-duration-picker";
 import { InterviewStage } from "@/components/interview-stage";
 import { PracticeSkeleton } from "@/components/practice-skeleton";
 afterEach(() => vi.unstubAllEnvs());
 it("formats diagram component lists with articles and a conjunction", () => {
-  expect(diagramUpdateClause(["unlabeled rectangle", "Database"])).toBe(
-    'I see an unlabeled box and a component labeled "Database" on your diagram.',
+  expect(diagramComponentList(["unlabeled rectangle", "Database"])).toBe(
+    'an unlabeled box and a component labeled "Database"',
   );
-  expect(diagramUpdateClause(["API\n service", "Cache", "Database"])).toContain(
+  expect(
+    diagramComponentList(["API\n service", "Cache", "Database"]),
+  ).toContain(
     '"API service", a component labeled "Cache", and a component labeled "Database"',
   );
 });

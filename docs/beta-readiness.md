@@ -87,3 +87,22 @@ average and peak QPS for each workflow, and explain your assumptions.”
 Staff likewise supplies 10 million links/day, 1 billion redirects/day and the
 10x peak factor without doing the arithmetic. Mid still provides its worked
 estimate when asked. Each level was exercised against the real model.
+
+### 9. Natural diagram discussion
+
+Removed the server-added inventory from `llm.ts` and its unused helper. The
+shared and structured discussion prompts now ask about one consequential path
+or risk, referring to diagram names naturally. Explicit “what can you see?”
+requests still receive a factual readback.
+
+Before, file storage: “I see a component labeled \"metadata DB\" and a component
+labeled \"object storage\" on your diagram. If the upload API stops after writing
+the bytes to object storage but before updating the metadata DB, what happens
+when the client retries completion?”
+
+After: “If the upload API stops after the bytes reach object storage but before
+publication in metadata DB, what happens when the client retries completion?”
+
+Three real-model runs (URL shortener, notifications, file storage) all asked
+one specific question and never listed components. The other two asked about
+immediate Cassandra reads and duplicate jobs entering the queue.

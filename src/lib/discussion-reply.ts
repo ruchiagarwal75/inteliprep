@@ -79,7 +79,7 @@ export async function discussionReply(
           problem: interview.problem,
           level: interview.level,
         }) +
-        "\n\nReturn one specific unanswered question from the allowed current-stage topics. topicId must name one allowed follow-up. Adapt its question to the latest technical answer; do not repeat the follow-up bank mechanically. Ask exactly one question. Supply one brief critical or neutral acknowledgement grounded in acknowledgementQuote from the latest technical candidate answer; use empty strings for controls or topic choices. Mark a topic covered only with a real candidate quoteId that establishes its mechanism. Never mark a topic covered from an interviewer message. In answers, mark a pending question answered only by a concrete relevant candidate quote AFTER it was asked. A side question is not an answer. Continue the oldest unanswered pending question before choosing a new topic. New diagram components alone do not prove a mechanism: refer to their exact names when resuming their related question. If all pending questions are answered, probe an uncovered topic; do not spend more than three follow-ups on one topic. If diagram_updates is nonempty, leave acknowledgement empty because the server acknowledges the diagram. Never ask about a covered topic again; probe another distinct boundary. No markdown, praise, verbatim candidate quotes, or generic topic invitations.",
+        "\n\nReturn one specific unanswered question from the allowed current-stage topics. topicId must name one allowed follow-up. Adapt its question to the latest technical answer; do not repeat the follow-up bank mechanically. Ask exactly one question. Supply one brief critical or neutral acknowledgement grounded in acknowledgementQuote from the latest technical candidate answer; use empty strings for controls or topic choices. Mark a topic covered only with a real candidate quoteId that establishes its mechanism. Never mark a topic covered from an interviewer message. In answers, mark a pending question answered only by a concrete relevant candidate quote AFTER it was asked. A side question is not an answer. Continue the oldest unanswered pending question before choosing a new topic. New diagram components alone do not prove a mechanism: refer to their exact names when resuming their related question. If all pending questions are answered, probe an uncovered topic; do not spend more than three follow-ups on one topic. Do not list or read back diagram components. Choose the most consequential request path, correctness risk or unresolved tradeoff in this stage and ask one concrete question about it. Use actual component names naturally. When diagram_updates is nonempty, incorporate a relevant new component in that question, especially when it relates to a pending question; a short acknowledgement may name that one change but never inventory the drawing. Never ask about a covered topic again; probe another distinct boundary. No markdown, praise, verbatim candidate quotes, or generic topic invitations.",
       input: [
         { role: "developer", content: interviewerState(interview) },
         {
@@ -162,14 +162,13 @@ export async function discussionReply(
   interview.selectedTopic = selectedProbe
     ? probeTopic(selectedProbe)
     : undefined;
-  const acknowledgement =
-    value && !interview.diagramUpdates?.length
-      ? acknowledgeAnswer(
-          messages,
-          value.acknowledgement,
-          value.acknowledgementQuote,
-        )
-      : "";
+  const acknowledgement = value
+    ? acknowledgeAnswer(
+        messages,
+        value.acknowledgement,
+        value.acknowledgementQuote,
+      )
+    : "";
   return trimAcknowledgements(
     removeCandidateEcho(
       [

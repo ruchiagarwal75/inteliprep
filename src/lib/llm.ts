@@ -29,7 +29,6 @@ import { requestedReviewTopic } from "@/lib/review-probes";
 import { boundedModelMessages } from "@/lib/model-budget";
 import { olderTurnSummary } from "@/lib/model-budget";
 import { interviewerState } from "@/lib/interviewer-state";
-import { diagramUpdateClause } from "@/lib/pending-diagram-components";
 import { discussionReply } from "@/lib/discussion-reply";
 import { boundedModelRequest } from "@/lib/model-request";
 import { isOffTopicRequest, DESIGN_REDIRECT } from "@/lib/off-topic";
@@ -322,8 +321,6 @@ export async function* streamInterviewerReply(
   for await (const part of rawInterviewerReply(...args)) reply += part;
   const interview = args[5];
   reply = trimAcknowledgements(reply);
-  if (interview?.diagramUpdates?.length)
-    reply = `${diagramUpdateClause(interview.diagramUpdates)} ${reply}`;
   if (
     interview?.openQuestions?.length &&
     !interview.reviewQuestion &&
