@@ -47,6 +47,10 @@ export default function PrivacyPage() {
       </p>
       <h2>Operational reporting and first visits</h2>
       <p>
+        Feedback you send is saved with your account and only the MockMeAI admin
+        can see it.
+      </p>
+      <p>
         Our private admin database records account signup information, interview
         milestones, elapsed duration and outcome, selected feedback summaries,
         failure reference IDs, model token usage and estimated cost. It does not

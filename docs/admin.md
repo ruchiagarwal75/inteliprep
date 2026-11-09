@@ -350,3 +350,38 @@ preserves the existing anonymous/deleted-account filter without granting the rol
 access to those status columns or Auth secrets. It is inaccessible to browser
 roles, SELECT-only for reporting and deliberately non-updatable. Do not expose it
 through the Data API or grant it public access.
+# Practice feedback
+
+Candidates can answer or skip a short survey on results, including interviews
+that are too short to score, or use **Send feedback** in their account menu.
+Feedback never enters model requests or diagnostic logs and never gates scoring.
+`POST /api/feedback` uses candidate authentication, current invitation checks,
+same-origin enforcement, a 4 KB strict JSON boundary, and per-account limits of
+5/minute, 30/hour and 60/day. Comments are trimmed and limited to 2,000 characters.
+The byte limit also applies to multibyte text.
+
+Run `npm run db:admin` with operator credentials to install the additive
+`20261109194452_practice_feedback.sql` migration. Existing interviews and
+scorecard feedback are unchanged. Only the restricted reporting role has access
+to the new RLS-protected table. Candidates must own the persisted interview to
+submit its survey. Repeated submissions update the existing user/interview row;
+account-menu submissions have no interview and remain independent entries.
+Send/Skip dismissal is stored server-side and cached under an account-scoped
+localStorage key, without storing the comment there.
+
+Read feedback at `/admin/feedback`. Summary counts and the 20-entry pages use the
+current environment, email/comment search and exclusion filters. Answered and
+skipped totals count interview-end records only; menu entries are shown
+separately. Choice counts include all non-skipped submissions. The totals do not
+measure all completed interviews or people who never submitted the card. A
+second answer replaces the first, without changing its original creation date.
+Practice feedback also appears alongside interviews under `/admin/users/[id]`.
+The page and direct read API re-check the configured admin identity. Comments
+are rendered as plain text. No feedback is emailed or sent to an AI provider.
+
+Browser CI now starts a temporary PostgreSQL cluster with synthetic accounts,
+strict TLS and the actual reporting-role grants. It exercises feedback ownership,
+upserts, skips, rendering, search and admin denial without production credentials.
+`SUPABASE_REPORTING_CA_FILE` optionally supplies a trusted CA for this isolated
+database; the default remains the checked-in Supabase root. TLS verification is
+always enabled. The temporary cluster is removed when the runner shuts down.

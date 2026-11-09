@@ -3,6 +3,7 @@ import { elapsedInterviewTime } from "@/lib/reporting-duration";
 import { formatInterviewTime } from "@/lib/interview-timer";
 import { getProblem } from "@/lib/problems";
 import { AdminCost, AdminTime } from "@/components/admin-format";
+import { AdminPracticeFeedbackDetail } from "@/components/admin-practice-feedback-detail";
 export function AdminInterviewDetail({ item }: { item: AdminInterview }) {
   const duration = elapsedInterviewTime(item);
   return (
@@ -102,6 +103,9 @@ export function AdminInterviewDetail({ item }: { item: AdminInterview }) {
           No stored feedback available. Interview status is independent of
           feedback generation.
         </p>
+      )}
+      {item.practiceFeedback && (
+        <AdminPracticeFeedbackDetail feedback={item.practiceFeedback} />
       )}
     </article>
   );

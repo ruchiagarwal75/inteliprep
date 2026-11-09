@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { InterviewFeedbackCard } from "@/components/interview-feedback-card";
 import { ScorecardLoading } from "@/components/scorecard-loading";
 import { ResultsMascot } from "@/components/mascot-moments";
 import { useRef, useState } from "react";
@@ -136,6 +137,12 @@ export function InterviewResults({
           ))}
         </div>
       </header>
+      {interview?.sessionId && (
+        <InterviewFeedbackCard
+          key={interview.sessionId}
+          interviewId={interview.sessionId}
+        />
+      )}
       <div
         id={`results-${tab}`}
         role="tabpanel"

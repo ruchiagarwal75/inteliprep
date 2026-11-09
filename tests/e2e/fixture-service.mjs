@@ -5,6 +5,10 @@ import { readFileSync } from "node:fs";
 export const fixtureOrigin = "https://127.0.0.1:4444";
 const jwtSecret = "mockmeai-ci-only-auth-fixture-not-a-production-key";
 const accounts = {
+  admin: {
+    id: "99999999-9999-4999-8999-999999999999",
+    email: "owner@example.invalid",
+  },
   invited: {
     id: "11111111-1111-4111-8111-111111111111",
     email: "browser-smoke@example.invalid",

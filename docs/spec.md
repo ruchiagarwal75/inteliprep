@@ -1109,3 +1109,24 @@ An unavailable database fails closed with 503. The verified configured admin
 retains access independently. The migration imports any legacy environment list
 without overwriting existing rows or revocations. Google OAuth testing and Vercel
 deployment protection remain separate admission gates.
+# Beta practice feedback (November 2026)
+
+Results include an optional survey independent of scorecard generation, including
+empty and short interviews. It records interview experience, willingness to
+practice again, an optional 2,000-character comment, or a skip. Send and Skip
+briefly show Thanks and permanently dismiss that interview's card via a
+server record plus an account-scoped local dismissal cache. The account menu
+offers the same form for independent written feedback at any time.
+
+`POST /api/feedback` is candidate/invite protected with a strict 4 KB body and
+5/minute, 30/hour, 60/day limits. It verifies interview ownership in the private
+reporting database. A user/interview unique constraint makes repeat sends an
+update; null interview IDs represent independent menu messages. `GET /api/feedback`
+returns only the signed-in owner's handled boolean for a validated interview ID,
+using a separate read quota. No comments enter model requests or server logs.
+
+The private `interview_admin.feedback` table has RLS and reporting-service grants
+only. `/admin/feedback` offers environment-scoped counts, email/comment search,
+exclusion filters and 20-entry pagination. User detail shows the survey beside
+the corresponding interview. Both page entry and data functions re-check admin
+authorization. This additive feature does not change saved sessions or grading.

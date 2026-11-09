@@ -1,7 +1,8 @@
 import { spawn, execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { startFixtureService, fixtureOrigin } from "./fixture-service.mjs";
+import { startReportingFixture } from "./reporting-fixture.mjs";
 
 // Isolated infrastructure doubles. No production auth bypass or real credentials.
 const dir = resolve(".playwright-e2e");
@@ -42,7 +43,9 @@ execFileSync(
   ],
   { stdio: "ignore" },
 );
+chmodSync(key, 0o600);
 const fixture = await startFixtureService(key, cert);
+const reporting = await startReportingFixture(key, cert);
 const env = {
   ...process.env,
   NODE_ENV: "production",
@@ -62,11 +65,12 @@ const env = {
   OPENAI_INTERVIEW_REASONING_EFFORT: "low",
   OPENAI_SCORECARD_REASONING_EFFORT: "high",
   SUPABASE_CONNECTION_STRING: "",
-  SUPABASE_REPORTING_CONNECTION_STRING: "",
+  SUPABASE_REPORTING_CONNECTION_STRING: reporting.connection,
+  SUPABASE_REPORTING_CA_FILE: cert,
   RESEND_API_KEY: "",
   VISITOR_IP_HASH_SECRET: "",
   VERCEL: "",
-  VERCEL_ENV: "",
+  VERCEL_ENV: "test",
   INTELIPREP_ENV: "",
   UPSTASH_REDIS_REST_URL: "",
   UPSTASH_REDIS_REST_TOKEN: "",
@@ -74,12 +78,13 @@ const env = {
   KV_REST_API_TOKEN: "",
 };
 let child;
-function stop() {
+async function stop() {
   child?.kill("SIGTERM");
   fixture.close();
+  await reporting.stop();
 }
-process.on("SIGTERM", stop);
-process.on("SIGINT", stop);
+process.on("SIGTERM", () => void stop());
+process.on("SIGINT", () => void stop());
 function next(args) {
   return new Promise((resolve, reject) => {
     child = spawn(
@@ -101,5 +106,5 @@ try {
 } catch {
   if (!child?.killed) process.exitCode = 1;
 } finally {
-  stop();
+  await stop();
 }

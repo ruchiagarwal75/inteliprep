@@ -22,12 +22,15 @@ export default async function AdminLayout({
           <h1 className="mt-2 text-xl font-semibold">Private admin</h1>
           <p className="text-sm">Private · timestamps in UTC</p>
         </div>
-        <nav className="flex gap-4">
+        <nav className="flex flex-wrap gap-4">
           <Link className="underline" href="/admin">
             Overview
           </Link>
           <Link className="underline" href="/admin/access">
             Access
+          </Link>
+          <Link className="underline" href="/admin/feedback">
+            Feedback
           </Link>
           <Link className="underline" href="/">
             Back to practice

@@ -1,4 +1,6 @@
 import { expect, test, type BrowserContext } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+const screenshots = "artifacts/beta-feedback";
 const fixture = "https://127.0.0.1:4444";
 test("automated browsing does not generate visitor events", async ({
   page,
@@ -163,6 +165,44 @@ for (const durationMinutes of [45, 60]) {
     await expect(
       page.getByRole("button", { name: "Retry scorecard", exact: true }),
     ).toHaveCount(0);
+    const feedback = page.getByRole("region", {
+      name: "Interview feedback",
+      exact: true,
+    });
+    await expect(feedback).toBeVisible();
+    await expect(
+      feedback.getByRole("button", { name: "Send", exact: true }),
+    ).toBeDisabled();
+    if (durationMinutes === 45) {
+      await feedback
+        .getByRole("button", { name: "Loved it", exact: true })
+        .click();
+      await expect(
+        feedback.getByRole("button", { name: "Loved it", exact: true }),
+      ).toHaveAttribute("aria-pressed", "true");
+      await feedback.getByRole("button", { name: "Yes", exact: true }).click();
+      await feedback
+        .getByLabel("Anything else you want to tell us? (optional)")
+        .fill(
+          "The whiteboard helped me explain my design. <script>plain text only</script>",
+        );
+      mkdirSync(screenshots, { recursive: true });
+      await feedback.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${screenshots}/feedback-desktop.png` });
+      await page.setViewportSize({ width: 520, height: 1000 });
+      await feedback.scrollIntoViewIfNeeded();
+      await page.screenshot({ path: `${screenshots}/feedback-narrow.png` });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await feedback.getByRole("button", { name: "Send", exact: true }).click();
+    } else
+      await feedback.getByRole("button", { name: "Skip", exact: true }).click();
+    await expect(feedback.getByRole("status")).toHaveText("Thanks!");
+    await expect(feedback).toHaveCount(0);
     await page.getByRole("tab", { name: "Transcript", exact: true }).click();
     await expect(page.getByText(answer, { exact: true })).toBeVisible();
     await page.reload();
@@ -172,6 +212,26 @@ for (const durationMinutes of [45, 60]) {
     await expect(
       page.getByRole("heading", { name: "Interview scorecard", exact: true }),
     ).toBeVisible();
+    await expect(feedback).toHaveCount(0);
+    // Server persistence still suppresses the card if browser dismissal data is cleared.
+    await page.evaluate(() => {
+      for (const key of Object.keys(localStorage))
+        if (key.startsWith("mockmeai:feedback:")) localStorage.removeItem(key);
+    });
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Interview results", exact: true }),
+    ).toBeVisible();
+    await expect
+      .poll(async () =>
+        (
+          await context.request.get(
+            `/api/feedback?interviewId=${opened.sessionId}`,
+          )
+        ).json(),
+      )
+      .toEqual({ handled: true });
+    await expect(feedback).toHaveCount(0);
     expect(starts).toBe(1);
     expect(errors).toEqual([]);
     const stats = await (
@@ -192,6 +252,11 @@ for (const durationMinutes of [45, 60]) {
     expect((await context.request.get("/api/admin/invites")).status()).toBe(
       403,
     );
+    expect((await context.request.get("/api/admin/feedback")).status()).toBe(
+      403,
+    );
+    const deniedPage = await page.goto("/admin/feedback");
+    expect(deniedPage?.status()).toBe(404);
     expect(
       (
         await context.request.post("/api/admin/invites/email", {
@@ -210,6 +275,68 @@ for (const durationMinutes of [45, 60]) {
     ).toBe(403);
   });
 }
+test("admin sees answered and skipped feedback; menu feedback stays independent", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "admin");
+  await page.goto("/admin/feedback");
+  await expect(
+    page.getByRole("heading", { name: "Feedback", exact: true }),
+  ).toBeVisible();
+  const data = await (await context.request.get("/api/admin/feedback")).json();
+  expect(data.counts).toMatchObject({
+    answered: 1,
+    skipped: 1,
+    loved: 1,
+    yes: 1,
+  });
+  await expect(
+    page.getByText(
+      "The whiteboard helped me explain my design. <script>plain text only</script>",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("Skipped", { exact: true })).toBeVisible();
+  mkdirSync(screenshots, { recursive: true });
+  await page.screenshot({
+    path: `${screenshots}/admin-feedback.png`,
+    fullPage: true,
+  });
+  const answered = data.entries.find(
+    (entry: { skipped: boolean }) => !entry.skipped,
+  );
+  await page.goto(`/admin/users/${answered.userId}`);
+  await expect(
+    page.getByRole("region", { name: "Practice feedback", exact: true }),
+  ).toHaveCount(2);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Your profile", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Send feedback", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Send feedback",
+    exact: true,
+  });
+  await dialog
+    .getByLabel("Anything else you want to tell us? (optional)")
+    .fill("Menu-only feedback from owner");
+  await dialog.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(dialog.getByRole("status")).toHaveText("Thanks!");
+  await expect(dialog).toHaveCount(0);
+  const filtered = await (
+    await context.request.get("/api/admin/feedback?search=Menu-only")
+  ).json();
+  expect(filtered.total).toBe(0);
+  const included = await (
+    await context.request.get(
+      "/api/admin/feedback?includeExcluded=1&search=Menu-only",
+    )
+  ).json();
+  expect(included.total).toBe(1);
+  expect(included.entries[0].source).toBe("menu");
+});
 test("database approval and revocation take effect with the same signed-in session", async ({
   page,
   context,
@@ -242,6 +369,58 @@ test("database approval and revocation take effect with the same signed-in sessi
   await page.goto("/interview/new");
   await expect(
     page.getByRole("heading", { name: "You're not invited yet", exact: true }),
+  ).toBeVisible();
+});
+test("empty interview feedback is skippable while its scorecard is still generating", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/interview\/[a-f0-9-]+$/);
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/interview/end", async (route) => {
+    const response = await route.fetch();
+    await gate;
+    await route.fulfill({ response });
+  });
+  try {
+    await page
+      .getByRole("button", { name: "End interview", exact: true })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "End interview", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/results$/);
+    const feedback = page.getByRole("region", {
+      name: "Interview feedback",
+      exact: true,
+    });
+    await expect(feedback).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Generating your scorecard…",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await feedback.getByRole("button", { name: "Skip", exact: true }).click();
+    await expect(feedback.getByRole("status")).toHaveText("Thanks!");
+    await expect(feedback).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(
+    page.getByText(
+      "You ended before giving a technical answer. Retry to get feedback.",
+      { exact: true },
+    ),
   ).toBeVisible();
 });
 test("uninvited and signed-out users cannot start, and policies are linked", async ({

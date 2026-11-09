@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { PracticeFeedbackRecord } from "@/lib/practice-feedback";
 export const adminFeedbackSchema = z.object({
   summary: z.string(),
   signal: z.string(),
@@ -24,6 +25,7 @@ export type AdminInterview = {
   designPresentedAt: string | null;
   feedbackStatus: string;
   feedback: z.infer<typeof adminFeedbackSchema> | null;
+  practiceFeedback?: PracticeFeedbackRecord | null;
   coverage: string;
   isTest: boolean;
   cost: CostSummary;

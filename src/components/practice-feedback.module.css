@@ -1,0 +1,92 @@
+.card {
+  padding: var(--space-3);
+  margin: var(--space-3) auto;
+  border: 1px solid var(--paper-line);
+  max-width: 760px;
+  width: 100%;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  color: var(--ink);
+}
+.form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-2);
+  min-width: 0;
+}
+.form legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: var(--space-1);
+}
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.choice {
+  border: 1px solid var(--control-line);
+  border-radius: var(--corner-small);
+  padding: 10px 16px;
+  background: var(--cream-raised);
+  color: var(--ink);
+  min-height: 44px;
+  font: inherit;
+  cursor: pointer;
+}
+.choice[aria-pressed="true"] {
+  background: var(--teal);
+  color: var(--white);
+  border-color: var(--teal);
+}
+.form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--control-line);
+  border-radius: var(--corner-small);
+  background: var(--cream-raised);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+.form label {
+  font-weight: 500;
+}
+.limit {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+.skip {
+  background: none;
+  color: var(--teal-deep);
+  text-decoration: underline;
+  padding: 12px 8px;
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+}
+.form :focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 3px;
+}
+.form :disabled {
+  cursor: not-allowed;
+}
+.error {
+  color: var(--danger);
+}
+.thanks {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--ink);
+}
