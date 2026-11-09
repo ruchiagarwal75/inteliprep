@@ -18,13 +18,21 @@ import {
 } from "@/lib/interview-selection";
 import { phasesSchema, publicPhase } from "@/lib/phase-config";
 import { initializeTranscript } from "@/lib/interview-transcript";
+import { questionAtEnd } from "@/lib/open-question";
 import {
   createInterviewSession,
   interviewSessionCheckpoint,
 } from "@/lib/interview-sessions";
 
 const levelConfig = z.object({
-  openingMessage: z.string().min(1).max(8_000),
+  openingMessage: z
+    .string()
+    .min(1)
+    .max(8_000)
+    .refine(
+      (value) => Boolean(questionAtEnd(value)),
+      "An opening needs a closing clarification question",
+    ),
   expectations: z.string().min(1),
   scaleHints: z.array(z.string().min(1)).min(1),
 });
@@ -127,10 +135,12 @@ export function createInterviewStart(
   durationMinutes: InterviewDuration = 45,
 ): InterviewStart {
   const selection = { problemId: problem.id, level };
+  const openingQuestion = questionAtEnd(problem.levels[level].openingMessage);
+  if (!openingQuestion) throw new Error("Missing configured opening question");
   const sessionId = createInterviewSession(selection, durationMinutes);
   initializeTranscript(sessionId, {
     role: "assistant",
-    content: problem.levels[level].openingMessage,
+    content: openingQuestion,
   });
   const checkpoint = interviewSessionCheckpoint(sessionId, selection);
   return {
@@ -143,7 +153,7 @@ export function createInterviewStart(
     phase: publicPhase(problem.phases, 0),
     openingMessage: {
       role: "assistant",
-      content: problem.levels[level].openingMessage,
+      content: openingQuestion,
     },
   };
 }

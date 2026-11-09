@@ -1130,3 +1130,10 @@ only. `/admin/feedback` offers environment-scoped counts, email/comment search,
 exclusion filters and 20-entry pagination. User detail shows the survey beside
 the corresponding interview. Both page entry and data functions re-check admin
 authorization. This additive feature does not change saved sessions or grading.
+# Beta readiness: configured opening questions
+
+New interview transcripts begin with only the selected problem and level's
+closing clarification question. The full configured brief stays on the Brief
+page and pinned problem panel. Shared setup facts come from that trusted brief
+and factual interviewer replies; they do not award candidate evidence. Legacy
+saved openings display their own closing question without rewriting stored chat.
