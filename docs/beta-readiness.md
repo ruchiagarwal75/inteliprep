@@ -62,3 +62,28 @@ only when an assessed card is actually visible; a too-short result is excluded.
 Retries and refreshes use unique milestone keys. Tracking failure cannot block
 the interview. Historical values for the three new milestones are unavailable;
 the dashboard shows when their recording began.
+
+## Priority 2: real-model verification
+
+These are synthetic conversations run locally through `streamInterviewerReply`
+against the configured `gpt-6.1-terra` provider, not browser-fixture replies.
+Rubrics, workload values and scoring weights remain unchanged.
+
+### 8. Candidate estimation at Senior and Staff
+
+Prompt-only change in `src/lib/interview-instructions.ts`, with level-specific
+regression tests. Mid receives the same guidance as before.
+
+Candidate: “What QPS should I design for, and can you explain the arithmetic?”
+
+Before, Senior: “A day has 86,400 seconds, so that’s about 12 create requests per
+second and 1,157 redirects per second on average. Design for peaks up to 10 times
+the average: roughly 116 creates and 11,574 redirects per second.”
+
+After, Senior: “Assume 1 million new links and 100 million redirects per day, with
+peak traffic up to ten times the daily average. Use those inputs to estimate
+average and peak QPS for each workflow, and explain your assumptions.”
+
+Staff likewise supplies 10 million links/day, 1 billion redirects/day and the
+10x peak factor without doing the arithmetic. Mid still provides its worked
+estimate when asked. Each level was exercised against the real model.
