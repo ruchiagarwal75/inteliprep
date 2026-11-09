@@ -237,8 +237,8 @@ admin/test exclusion filter; if two known visitors are the owner and one candida
 the default account count can correctly be one. Registered accounts remain a
 separate metric. Earlier unrecorded visits are unavailable.
 
-Historical browser counts remain available under **Unverified browser records**.
-They are not presented as unique people: signed-out QA, deployment screenshots,
+The dashboard no longer displays historical browser-ID counts. Their persisted
+records remain intact for compatibility. Signed-out QA, deployment screenshots,
 automation and different browser profiles can inflate them. Existing anonymous
 records cannot be retrospectively identified or reliably removed as tests.
 No records are deleted or manually adjusted to an assumed number of people.

@@ -29,18 +29,6 @@ export function AdminVisitorsPanel({ data }: { data: AdminVisitors }) {
         Accounts are identified from verified sign-in and counted once across
         browsers. Admin/test accounts follow the exclusion filter above.
       </p>
-      <details className="mt-3">
-        <summary className="cursor-pointer underline">
-          Unverified browser records
-        </summary>
-        <p className="mt-2 text-sm">
-          {data.total} browser IDs recorded, including {data.anonymousBrowsers}{" "}
-          anonymous IDs. {data.newLast7Days} first appeared in the last 7 days.
-          These are not unique people. Historical records may include automated
-          checks, signed-out testing and the same person in multiple browsers.
-          They cannot be reliably converted into a count of people.
-        </p>
-      </details>
     </section>
   );
 }
