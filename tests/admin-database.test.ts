@@ -19,6 +19,8 @@ import { elapsedInterviewTime } from "@/lib/reporting-duration";
 import { withReportingContext } from "@/lib/reporting-context";
 import { deliverApprovalEmail } from "@/lib/approval-email-delivery";
 import { ApprovalEmailError } from "@/lib/approval-email";
+import { trackAppViewer } from "@/lib/viewer-tracking";
+import { adminVisitors } from "@/lib/admin-visitors";
 const harness = vi.hoisted(() => ({
   sql: undefined as ReturnType<typeof postgres> | undefined,
   send: vi.fn(),
@@ -306,6 +308,35 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
           (await adminUsers({ search: userId, page: 1, includeExcluded: true }))
             .total,
         ).toBe(1);
+        const visitsBefore = await adminVisitors(true);
+        const browserA = randomUUID(),
+          browserB = randomUUID(),
+          secondUser = randomUUID();
+        await tx`insert into auth.users (id,aud,role,email,created_at,updated_at,is_anonymous)
+          values (${secondUser},'authenticated','authenticated',${"viewer-test-" + secondUser + "@example.invalid"},now(),now(),false)`;
+        await trackAppViewer(browserA, undefined, false);
+        expect((await adminVisitors(true)).anonymousBrowsers).toBe(
+          visitsBefore.anonymousBrowsers + 1,
+        );
+        await trackAppViewer(browserA, userId, false);
+        await trackAppViewer(browserB, userId, false);
+        await trackAppViewer(browserB, userId, false);
+        expect((await adminVisitors(true)).identifiedAccounts).toBe(
+          visitsBefore.identifiedAccounts + 1,
+        );
+        await trackAppViewer(browserA, secondUser, false);
+        const visitsAfter = await adminVisitors(true);
+        expect(visitsAfter.identifiedAccounts).toBe(
+          visitsBefore.identifiedAccounts + 2,
+        );
+        expect(visitsAfter.total).toBe(visitsBefore.total + 2);
+        expect(visitsAfter.anonymousBrowsers).toBe(
+          visitsBefore.anonymousBrowsers,
+        );
+        const visitorPrivileges =
+          await tx`select has_table_privilege('anon','interview_admin.app_visitor_accounts','select') as anon,
+          has_table_privilege('authenticated','interview_admin.app_visitor_accounts','select') as candidate`;
+        expect(visitorPrivileges[0]).toEqual({ anon: false, candidate: false });
         const privileges =
           await tx`select has_table_privilege('anon','interview_admin.interviews','select') as anon,has_table_privilege('authenticated','interview_admin.interviews','select') as candidate`;
         expect(privileges[0]).toEqual({ anon: false, candidate: false });
@@ -328,5 +359,5 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
       await sql.end({ timeout: 2 });
     }
   },
-  30_000,
+  45_000,
 );

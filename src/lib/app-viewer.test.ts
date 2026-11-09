@@ -3,6 +3,7 @@ import {
   appViewerId,
   APP_VIEWER_STORAGE_KEY,
   isViewerEntry,
+  existingAppViewerId,
 } from "@/lib/app-viewer";
 it("keeps the same browser identity across refreshes without touching interview storage", () => {
   const values = new Map<string, string>();
@@ -16,6 +17,10 @@ it("keeps the same browser identity across refreshes without touching interview 
   expect(appViewerId(storage, () => id)).toBe(id);
   expect(appViewerId(storage, () => crypto.randomUUID())).toBe(id);
   expect([...values.keys()]).toEqual([APP_VIEWER_STORAGE_KEY]);
+});
+it("does not create a new browser record when only linking a returning signed-in account", () => {
+  const getItem = () => null;
+  expect(existingAppViewerId({ getItem })).toBeUndefined();
 });
 it("skips tracking rather than making a new visitor on every load when storage is blocked", () => {
   const storage = {

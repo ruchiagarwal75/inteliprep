@@ -27,4 +27,10 @@ export async function trackAppViewer(
  on conflict (environment,visitor_hash) do update set
  user_id=coalesce(existing.user_id,excluded.user_id),is_test=existing.is_test or excluded.is_test
  where (existing.user_id is null and excluded.user_id is not null) or (not existing.is_test and excluded.is_test)`;
+  // A separate account key handles multiple browsers and shared-browser account changes.
+  if (userId)
+    await sql`insert into interview_admin.app_visitor_accounts as existing (environment,user_id,is_test)
+      values (${environment},${userId},${isTest})
+      on conflict (environment,user_id) do update set is_test=existing.is_test or excluded.is_test
+      where not existing.is_test and excluded.is_test`;
 }

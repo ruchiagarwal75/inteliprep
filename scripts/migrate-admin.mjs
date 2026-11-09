@@ -69,6 +69,15 @@ try {
         "utf8",
       ),
     );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109180853_identified_app_visitors.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
     // One-way compatibility import only. Existing rows (including revocations) win.
     const legacy = [
       ...new Set(

@@ -328,6 +328,13 @@ uses only `INTERVIEW_RESUME_SECRET`, with a named stable fallback for local
 
 ## Browser verification and evidence
 
+Before opening Production in an automated or shared QA browser, block
+`/api/monitoring/viewer` or set `mockmeai:exclude-analytics=1` in that browser's
+localStorage. Signed-out testing otherwise creates unverified browser records.
+The admin dashboard's confirmed reach metric counts verified account IDs;
+anonymous browser IDs are not unique people. Never edit historical counts to
+an assumed number of visitors.
+
 `npm run test:e2e` runs a production build in `.next-e2e`, a local HTTPS Auth/model
 fixture and Chromium. It uses synthetic accounts and model replies and cannot
 reach production reporting or Redis. There is no application auth bypass.

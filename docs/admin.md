@@ -229,10 +229,19 @@ alerts, custom charting, PostHog, or Sentry.
 
 ## First-visit metric
 
-The New app visitors (browsers) panel reports distinct first-party browsers since
-tracking began, plus first visits in the trailing seven days. It is separate from
-registered users and uses the existing environment and admin/test exclusion filter.
-Local/development visits are test activity. Earlier visits are unavailable.
+The **App reach** panel prominently reports identified signed-in accounts and
+accounts with their first recorded visit in the trailing seven days. A verified
+Supabase account is counted once per environment, across browsers and devices.
+This measures accounts, not guaranteed distinct people. It uses the existing
+admin/test exclusion filter; if two known visitors are the owner and one candidate,
+the default account count can correctly be one. Registered accounts remain a
+separate metric. Earlier unrecorded visits are unavailable.
+
+Historical browser counts remain available under **Unverified browser records**.
+They are not presented as unique people: signed-out QA, deployment screenshots,
+automation and different browser profiles can inflate them. Existing anonymous
+records cannot be retrospectively identified or reliably removed as tests.
+No records are deleted or manually adjusted to an assumed number of people.
 
 The additive `20261107221500_app_viewer_reporting.sql` migration creates the private
 `interview_admin.app_viewers` table. Run `npm run db:admin` in each target database;
@@ -242,10 +251,28 @@ No additional environment variables or external services are needed.
 A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its
 SHA-256 hash, environment, first-seen server timestamp, exclusion flag and optional
 verified account reference are persisted. Refreshes and retries cannot increase
-the count or reset first-seen time. Signing in can link a browser to an admin/test
+the browser count or reset first-seen time. The tracker resends its existing
+browser ID on initial authenticated sessions and sign-in events, including on
+the not-invited or admin page. Identity always comes from verified server claims,
+never the browser request. Signing in can link a browser to an admin/test
 account and exclude it retroactively. The public write-only endpoint is same-origin,
 size-bounded and rate-limited; `/api/admin/visitors` uses the existing owner check.
 Reporting remains best effort and never blocks interviews.
+
+The additive `20261109180853_identified_app_visitors.sql` migration adds the private
+`app_visitor_accounts` table, keyed by environment and verified account ID. It
+imports only existing identified account links, retaining their earliest recorded
+visit, and preserves every old browser record. Run `npm run db:admin` before deploying.
+Separate account records also count multiple accounts using the same browser.
+
+Known bot/headless/screenshot user agents are ignored by the endpoint; the client
+also skips webdriver-controlled browsers. These are measurement filters, not
+proof of humanity or a security boundary. No raw user agents or IPs are stored.
+For QA using a regular shared browser, set
+`localStorage.setItem("mockmeai:exclude-analytics", "1")` before navigating to app
+entry pages. Remove that one key to resume tracking. It does not alter account
+access, saved interviews or drafts. Production smoke tests must opt out or block
+the tracking request; isolated CI clears the reporting connection entirely.
 
 This measures browsers, not exact people. Clearing storage or switching browsers
 can count a person again; blocked storage and failed requests can miss visits.

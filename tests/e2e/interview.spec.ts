@@ -1,5 +1,48 @@
 import { expect, test, type BrowserContext } from "@playwright/test";
 const fixture = "https://127.0.0.1:4444";
+test("automated browsing does not generate visitor events", async ({
+  page,
+}) => {
+  const events: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/monitoring/viewer")
+      events.push(request.url());
+  });
+  await page.goto("/");
+  await page.getByRole("link", { name: "Start practice", exact: true }).click();
+  await expect(page).toHaveURL(/\/sign-in/);
+  expect(events).toEqual([]);
+});
+test("sign-in links the same anonymous browser on a non-entry page", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    userAgent: "Mozilla/5.0 Chrome/131.0.0.0 Safari/537.36",
+  });
+  try {
+    await context.addInitScript(() =>
+      Object.defineProperty(navigator, "webdriver", { get: () => false }),
+    );
+    const page = await context.newPage();
+    const events: { visitorId: string }[] = [];
+    await page.route("**/api/monitoring/viewer", async (route) => {
+      events.push(route.request().postDataJSON());
+      await route.fulfill({ status: 204 });
+    });
+    await page.goto("http://localhost:3100/");
+    await expect.poll(() => events.length).toBeGreaterThanOrEqual(1);
+    const browserId = events[0].visitorId;
+    await signIn(context);
+    await page.goto("http://localhost:3100/not-invited");
+    await expect.poll(() => events.length).toBeGreaterThanOrEqual(2);
+    expect(events.every((event) => event.visitorId === browserId)).toBe(true);
+    expect(
+      events.every((event) => Object.keys(event).join() === "visitorId"),
+    ).toBe(true);
+  } finally {
+    await context.close();
+  }
+});
 async function signIn(context: BrowserContext, account = "invited") {
   const response = await context.request.get(
     `${fixture}/fixture/session?account=${account}`,

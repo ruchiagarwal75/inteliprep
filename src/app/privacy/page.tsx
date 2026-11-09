@@ -58,9 +58,13 @@ export default function PrivacyPage() {
         A first-party random ID in localStorage lets us count a browser&apos;s
         first visit. We store a hash of that ID, its first-visit time,
         environment, an admin/test exclusion flag and an account reference when
-        you are signed in. We do not store page trails or IP addresses for this
-        metric. Another browser or cleared storage can count again. There is no
-        session replay or third-party analytics integration.
+        you are signed in. We also record each verified account&apos;s first
+        visit once per environment, so multiple browsers do not inflate the
+        account count. Known automated clients are excluded using browser
+        automation signals and request user-agent checks; user-agent strings are
+        not stored. We do not store page trails or IP addresses for this metric.
+        Another browser or cleared storage can count again. There is no session
+        replay or third-party analytics integration.
       </p>
       <p>
         Server logs contain limited diagnostic metadata such as request IDs,

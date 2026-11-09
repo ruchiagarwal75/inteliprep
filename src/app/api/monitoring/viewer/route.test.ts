@@ -32,6 +32,16 @@ beforeEach(() => {
   mocks.track.mockResolvedValue(undefined);
 });
 afterEach(() => vi.resetAllMocks());
+it.each(["vercel-screenshot/1.0", "HeadlessChrome/130.0.0.0", "Googlebot/2.1"])(
+  "does not count known automated requests (%s)",
+  async (agent) => {
+    const input = request();
+    input.headers.set("user-agent", agent);
+    expect((await POST(input)).status).toBe(204);
+    expect(mocks.track).not.toHaveBeenCalled();
+    expect(mocks.identity).not.toHaveBeenCalled();
+  },
+);
 it("accepts an anonymous first visit and derives the optional account identity on the server", async () => {
   expect((await POST(request())).status).toBe(204);
   expect(mocks.track).toHaveBeenCalledWith(id, undefined, false);
