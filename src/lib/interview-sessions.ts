@@ -1,4 +1,5 @@
 import "server-only";
+import { interviewWrapUpSeconds } from "@/lib/interview-timer";
 import type { InterviewSelection } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import type { Scorecard } from "@/lib/scorecard";
@@ -158,7 +159,7 @@ export function acquireInterviewSession(
           !(
             state.phaseIndex === 4 &&
             Date.parse(lease.timing.deadlineAt) - Date.now() <=
-              (lease.timing.durationMinutes / 45) * 480_000
+              interviewWrapUpSeconds(lease.timing.durationMinutes) * 1000
           ))
       )
         throw new Error("Interview stages may advance only one step");

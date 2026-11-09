@@ -16,109 +16,149 @@ async function signIn(context: BrowserContext, account = "invited") {
     },
   ]);
 }
-test("private interview from brief through saved results, with no external model calls", async ({
-  page,
-  context,
-}) => {
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await signIn(context);
-  await page.addInitScript(() =>
-    localStorage.setItem("mockmeai:show-mascot", "false"),
-  );
-  await page.goto("/interview/new");
-  await expect(
-    page.getByRole("heading", { name: "Your practice brief" }),
-  ).toBeVisible();
-  await expect(page.getByLabel("Duration").locator("option")).toHaveText([
-    "45 minutes",
-  ]);
-  let starts = 0;
-  page.on("request", (request) => {
-    if (
-      request.url().endsWith("/api/interview/start") &&
-      request.method() === "POST"
-    )
-      starts++;
+for (const durationMinutes of [45, 60]) {
+  test(`${durationMinutes}-minute interview from brief through saved results, with no external model calls`, async ({
+    page,
+    context,
+  }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await signIn(context);
+    await page.addInitScript(() =>
+      localStorage.setItem("mockmeai:show-mascot", "false"),
+    );
+    await page.goto("/interview/new");
+    await expect(
+      page.getByRole("heading", { name: "Your practice brief" }),
+    ).toBeVisible();
+    await expect(page.getByLabel("Duration").locator("option")).toHaveText([
+      "45 minutes",
+      "1 hour",
+    ]);
+    await page.getByLabel("Duration").selectOption(String(durationMinutes));
+    let starts = 0;
+    page.on("request", (request) => {
+      if (
+        request.url().endsWith("/api/interview/start") &&
+        request.method() === "POST"
+      )
+        starts++;
+    });
+    const startResponse = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("/api/interview/start") &&
+        r.request().method() === "POST",
+    );
+    await page
+      .getByRole("button", { name: "Start interview", exact: true })
+      .click();
+    const opened = await (await startResponse).json();
+    expect(opened.timing.durationMinutes).toBe(durationMinutes);
+    expect(
+      Date.parse(opened.timing.deadlineAt) -
+        Date.parse(opened.timing.startedAt),
+    ).toBe(durationMinutes * 60000);
+    await expect(page).toHaveURL(/\/interview\/[a-f0-9-]+$/);
+    await expect(page.getByRole("timer")).toBeVisible();
+    await expect(page.locator(".excalidraw canvas").first()).toBeVisible();
+    const canvas = await page
+      .locator(".excalidraw canvas")
+      .first()
+      .boundingBox();
+    if (!canvas) throw new Error("Whiteboard canvas has no bounds");
+    await page.mouse.click(canvas.x + 180, canvas.y + 140);
+    await page.keyboard.press("r");
+    await page.mouse.move(canvas.x + 180, canvas.y + 140);
+    await page.mouse.down();
+    await page.mouse.move(canvas.x + 320, canvas.y + 240, { steps: 8 });
+    await page.mouse.up();
+    await page.keyboard.press("Escape");
+    const answer =
+      "I would measure CPU utilization and database query latency under a load test before changing capacity.";
+    await page
+      .getByRole("textbox", { name: "Message", exact: true })
+      .fill(answer);
+    const reply = page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/chat") &&
+        response.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    expect((await reply).ok()).toBe(true);
+    await expect(
+      page.getByRole("button", { name: "End interview", exact: true }),
+    ).toBeEnabled();
+    if (durationMinutes === 60) {
+      await expect(
+        page.getByRole("status").filter({ hasText: "✓ Saved" }),
+      ).toBeVisible();
+      const resume = page.waitForResponse(
+        (r) =>
+          r.url().endsWith("/api/interview/resume") &&
+          r.request().method() === "POST",
+      );
+      await page.reload();
+      expect((await (await resume).json()).timing).toEqual(opened.timing);
+      await expect(page.getByText(answer, { exact: true })).toBeVisible();
+      const [minutes, seconds] = (await page.getByRole("timer").innerText())
+        .split(":")
+        .map(Number);
+      expect(minutes * 60 + seconds).toBeLessThanOrEqual(3600);
+      expect(minutes * 60 + seconds).toBeGreaterThan(3540);
+    }
+    await page
+      .getByRole("button", { name: "End interview", exact: true })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "End interview", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/results$/);
+    await expect(
+      page.getByRole("heading", { name: "Interview scorecard", exact: true }),
+    ).toBeVisible({ timeout: 25000 });
+    await expect(
+      page.getByRole("button", { name: "Retry scorecard", exact: true }),
+    ).toHaveCount(0);
+    await page.getByRole("tab", { name: "Transcript", exact: true }).click();
+    await expect(page.getByText(answer, { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Interview results", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Interview scorecard", exact: true }),
+    ).toBeVisible();
+    expect(starts).toBe(1);
+    expect(errors).toEqual([]);
+    const stats = await (
+      await context.request.get(fixture + "/fixture/stats")
+    ).json();
+    expect(stats.modelCalls).toBeGreaterThan(0);
+    const denied = await context.request.post("/api/interview/start", {
+      data: {
+        problemId: "single-server-scaling",
+        level: "mid",
+        durationMinutes: 1,
+      },
+    });
+    expect(denied.status()).toBe(400);
+    expect((await context.request.get("/api/admin/visitors")).status()).toBe(
+      403,
+    );
+    expect((await context.request.get("/api/admin/invites")).status()).toBe(
+      403,
+    );
+    expect(
+      (
+        await context.request.post("/api/admin/invites", {
+          headers: { origin: "http://localhost:3100" },
+          data: { email: "browser-smoke@example.invalid", approved: true },
+        })
+      ).status(),
+    ).toBe(403);
   });
-  await page
-    .getByRole("button", { name: "Start interview", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/interview\/[a-f0-9-]+$/);
-  await expect(page.getByRole("timer")).toBeVisible();
-  await expect(page.locator(".excalidraw canvas").first()).toBeVisible();
-  const canvas = await page.locator(".excalidraw canvas").first().boundingBox();
-  if (!canvas) throw new Error("Whiteboard canvas has no bounds");
-  await page.mouse.click(canvas.x + 180, canvas.y + 140);
-  await page.keyboard.press("r");
-  await page.mouse.move(canvas.x + 180, canvas.y + 140);
-  await page.mouse.down();
-  await page.mouse.move(canvas.x + 320, canvas.y + 240, { steps: 8 });
-  await page.mouse.up();
-  await page.keyboard.press("Escape");
-  const answer =
-    "I would measure CPU utilization and database query latency under a load test before changing capacity.";
-  await page
-    .getByRole("textbox", { name: "Message", exact: true })
-    .fill(answer);
-  const reply = page.waitForResponse(
-    (response) =>
-      response.url().endsWith("/api/chat") &&
-      response.request().method() === "POST",
-  );
-  await page.getByRole("button", { name: "Send", exact: true }).click();
-  expect((await reply).ok()).toBe(true);
-  await expect(
-    page.getByRole("button", { name: "End interview", exact: true }),
-  ).toBeEnabled();
-  await page
-    .getByRole("button", { name: "End interview", exact: true })
-    .click();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "End interview", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/results$/);
-  await expect(
-    page.getByRole("heading", { name: "Interview scorecard", exact: true }),
-  ).toBeVisible({ timeout: 25000 });
-  await expect(
-    page.getByRole("button", { name: "Retry scorecard", exact: true }),
-  ).toHaveCount(0);
-  await page.getByRole("tab", { name: "Transcript", exact: true }).click();
-  await expect(page.getByText(answer, { exact: true })).toBeVisible();
-  await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Interview results", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Interview scorecard", exact: true }),
-  ).toBeVisible();
-  expect(starts).toBe(1);
-  expect(errors).toEqual([]);
-  const stats = await (
-    await context.request.get(fixture + "/fixture/stats")
-  ).json();
-  expect(stats.modelCalls).toBeGreaterThan(0);
-  const denied = await context.request.post("/api/interview/start", {
-    data: {
-      problemId: "single-server-scaling",
-      level: "mid",
-      durationMinutes: 1,
-    },
-  });
-  expect(denied.status()).toBe(400);
-  expect((await context.request.get("/api/admin/visitors")).status()).toBe(403);
-  expect((await context.request.get("/api/admin/invites")).status()).toBe(403);
-  expect(
-    (
-      await context.request.post("/api/admin/invites", {
-        headers: { origin: "http://localhost:3100" },
-        data: { email: "browser-smoke@example.invalid", approved: true },
-      })
-    ).status(),
-  ).toBe(403);
-});
+}
 test("database approval and revocation take effect with the same signed-in session", async ({
   page,
   context,

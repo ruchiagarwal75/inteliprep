@@ -1,4 +1,7 @@
-import type { InterviewTiming } from "@/lib/interview-timer";
+import {
+  interviewWrapUpSeconds,
+  type InterviewTiming,
+} from "@/lib/interview-timer";
 export type StageClock = {
   timing: InterviewTiming;
   enteredAt: string;
@@ -21,7 +24,8 @@ export function stageTimeGate(
   const now = clock.now ?? Date.now();
   const scale = clock.timing.durationMinutes / 45;
   const remaining = Date.parse(clock.timing.deadlineAt) - now;
-  if (remaining <= 8 * 60_000 * scale) return { advance: false, wrap: true };
+  if (remaining <= interviewWrapUpSeconds(clock.timing.durationMinutes) * 1000)
+    return { advance: false, wrap: true };
   if (index >= 3) return { advance: false, wrap: false };
   if (index === 1) return { advance: complete, wrap: false };
   const elapsed = Math.max(0, now - Date.parse(clock.enteredAt));

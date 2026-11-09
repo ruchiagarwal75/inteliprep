@@ -491,13 +491,21 @@ before an asynchronous save commits can lose the latest unsaved changes.
 
 **Interview timer (current)**
 
-Before starting, the candidate selects 45 minutes (default) or 1 minute (test).
-`POST /api/interview/start` accepts optional `durationMinutes` restricted to those
-two values. The server creates `timing: { startedAt, deadlineAt, durationMinutes }`
+Before starting, the candidate selects 45 minutes (default) or 1 hour. A guarded
+1-minute option is available only for development/admin testing.
+`POST /api/interview/start` accepts optional `durationMinutes` of 45 or 60, plus
+the server-authorized test value 1. The server creates `timing: { startedAt, deadlineAt, durationMinutes }`
 and returns a clock-calibration timestamp (`serverTime`). Client-supplied start
 times or deadlines are ignored. The deadline is included in the encrypted resume
 checkpoint and stored with the interview in IndexedDB. Every completed chat
 checkpoint retains the original deadline.
+
+Stage timing scales from the 45-minute baseline. The shared client/server wrap-up
+window is 8 minutes for a 45-minute session and 10 minutes 40 seconds for a one-hour
+session. Scoring retains the one-third-duration evidence threshold (20 minutes
+and at least two answered stages for a one-hour interview). One-minute tests remain
+excluded from regular usage totals; one-hour sessions are ordinary interviews.
+Existing saved attempts retain their original timing and require no migration.
 
 The visible countdown recomputes the difference between that fixed deadline and
 server-aligned wall time. It does not decrement a tick counter, so delayed callbacks,

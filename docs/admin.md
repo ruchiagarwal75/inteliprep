@@ -37,8 +37,10 @@ have RLS and no browser table grants; the invitation exception is described belo
 ## Approving beta users
 
 1. Sign in with the configured admin account and open `/admin/access`.
-2. Enter the person's Google email and choose **Approve access**. They do not need
-   to have signed in yet. No email is sent automatically.
+2. Newly registered accounts appear under **Awaiting approval**, newest first.
+   Click **Approve** beside the account. The entry moves into Invitations as
+   approved. Alternatively, enter a Google email under **Invite by email** before
+   the person signs in. No email is sent automatically.
 3. They can refresh or sign in. **Revoke** withdraws access on their next protected
    request without deleting their account or saved interviews.
 
@@ -46,6 +48,12 @@ The private `interview_admin.beta_invites` table stores one normalized email per
 row, approval state, server timestamps and the admin who last changed that state.
 Retries preserve the original creation time and do not create duplicate rows.
 The configured admin always has access independently of the table.
+
+The pending list reads the existing registered-account projection; it does not
+create duplicate signup records. Accounts with an existing invitation, including
+an explicit revocation, do not reappear as pending. The configured admin is excluded
+because their access is automatic. Search covers both lists, which have separate
+pagination controls. Existing approvals, accounts and saved interviews remain intact.
 
 Candidates call the no-argument `is_beta_invited()` RPC with their existing Auth
 session. This SECURITY INVOKER function returns only their own membership boolean.

@@ -10,6 +10,11 @@ import { explicitlyExitInterview } from "@/lib/interview-exit";
 import { adminOverview } from "@/lib/admin-overview";
 import { adminUsers } from "@/lib/admin-users";
 import { adminUserDetail } from "@/lib/admin-user-detail";
+import {
+  adminInvites,
+  adminInviteQuery,
+  setBetaInvite,
+} from "@/lib/admin-invites";
 import { elapsedInterviewTime } from "@/lib/reporting-duration";
 import { withReportingContext } from "@/lib/reporting-context";
 const harness = vi.hoisted(() => ({
@@ -32,6 +37,9 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
     process.loadEnvFile(".env.local");
     const connection = process.env.SUPABASE_CONNECTION_STRING;
     if (!connection) throw new Error("Live database configuration is missing");
+    const adminId = process.env.ADMIN_USER_ID;
+    if (!adminId)
+      throw new Error("Live admin identity configuration is missing");
     const sql = postgres(connection, {
       prepare: false,
       max: 1,
@@ -48,6 +56,31 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
         const baseline = await adminOverview();
         const userId = randomUUID();
         await tx`insert into auth.users (id,aud,role,email,created_at,updated_at,is_anonymous) values (${userId},'authenticated','authenticated',${"admin-test-" + userId + "@example.invalid"},now(),now(),false)`;
+        const email = "admin-test-" + userId + "@example.invalid";
+        const search = adminInviteQuery(new URLSearchParams({ search: email }));
+        const awaiting = await adminInvites(search);
+        expect(awaiting.pendingTotal).toBe(1);
+        expect(awaiting.pending[0]).toMatchObject({ id: userId, email });
+        expect(awaiting.total).toBe(0);
+        await setBetaInvite({ email: email.toUpperCase(), approved: true });
+        const approved = await adminInvites(search);
+        expect(approved.pendingTotal).toBe(0);
+        expect(approved.invites).toHaveLength(1);
+        expect(approved.invites[0].approved).toBe(true);
+        await setBetaInvite({ email, approved: false });
+        const revoked = await adminInvites(search);
+        expect(revoked.pendingTotal).toBe(0);
+        expect(revoked.invites[0].approved).toBe(false);
+        const owner =
+          await tx`select email from interview_admin.registered_users where id=${adminId}`;
+        if (owner[0]?.email) {
+          const own = await adminInvites(
+            adminInviteQuery(new URLSearchParams({ search: owner[0].email })),
+          );
+          expect(own.pending.some((account) => account.id === adminId)).toBe(
+            false,
+          );
+        }
         const context = { requestId: randomUUID(), route: "/api/chat", userId };
         const start = Date.now() - 1_200_000;
         const iso = (offset: number) =>

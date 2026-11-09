@@ -11,7 +11,8 @@ vi.mock("@/lib/admin-auth", async (original) => ({
   ...(await original<typeof import("@/lib/admin-auth")>()),
   requireAdminIdentity: verify,
 }));
-vi.mock("@/lib/admin-invites", () => ({
+vi.mock("@/lib/admin-invites", async (original) => ({
+  ...(await original<typeof import("@/lib/admin-invites")>()),
   adminInvites: list,
   setBetaInvite: save,
 }));
@@ -22,6 +23,16 @@ beforeEach(() => {
   }));
 });
 afterEach(() => vi.resetAllMocks());
+it("validates pending-account pagination before reading user data", async () => {
+  expect(
+    (
+      await GET(
+        new Request("https://mockmeai.test/api/admin/invites?pendingPage=0"),
+      )
+    ).status,
+  ).toBe(400);
+  expect(list).not.toHaveBeenCalled();
+});
 function request(
   body: unknown,
   origin: string | null = "https://mockmeai.test",

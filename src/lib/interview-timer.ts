@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-export const interviewDurationSchema = z.union([z.literal(1), z.literal(45)]);
+export const interviewDurationSchema = z.union([
+  z.literal(1),
+  z.literal(45),
+  z.literal(60),
+]);
 export type InterviewDuration = z.infer<typeof interviewDurationSchema>;
 export const interviewTimingSchema = z
   .object({
@@ -15,6 +19,13 @@ export const interviewTimingSchema = z
     { message: "Invalid interview deadline" },
   );
 export type InterviewTiming = z.infer<typeof interviewTimingSchema>;
+
+/** The client and server use the same wrap-up window, scaled from 8 of 45 minutes. */
+export function interviewWrapUpSeconds(
+  durationMinutes: InterviewDuration,
+): number {
+  return (durationMinutes / 45) * 480;
+}
 
 export function createInterviewTiming(
   durationMinutes: InterviewDuration = 45,

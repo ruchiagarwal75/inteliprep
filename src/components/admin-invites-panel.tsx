@@ -5,6 +5,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { adminInvites } from "@/lib/admin-invites";
 import { AdminTime } from "@/components/admin-format";
+import { AdminPendingAccounts } from "@/components/admin-pending-accounts";
 
 export function AdminInvitesPanel({
   data,
@@ -61,7 +62,7 @@ export function AdminInvitesPanel({
     void change(email, true);
   }
   const pageUrl = (page: number) =>
-    `/admin/access?${new URLSearchParams({ search, page: String(page) })}`;
+    `/admin/access?${new URLSearchParams({ search, page: String(page), pendingPage: String(data.pendingPage) })}`;
   return (
     <section className="space-y-5" aria-label="Beta access">
       <h2 className="text-xl font-semibold">Beta access</h2>
@@ -70,6 +71,36 @@ export function AdminInvitesPanel({
         Changes apply to their next protected request without a redeploy. Your
         configured admin account always has access.
       </p>
+      <form action="/admin/access" className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          Search accounts and invitations
+          <input
+            name="search"
+            defaultValue={search}
+            maxLength={120}
+            className="rounded border p-2"
+          />
+        </label>
+        <button className="practice-secondary">Search</button>
+      </form>
+      {error && (
+        <p role="alert" className="rounded border p-3">
+          {error}
+        </p>
+      )}
+      {notice && <p role="status">{notice}</p>}
+      <AdminPendingAccounts
+        accounts={data.pending}
+        total={data.pendingTotal}
+        page={data.pendingPage}
+        pageSize={data.pageSize}
+        search={search}
+        invitePage={data.page}
+        busy={busy}
+        onApprove={(address) => void change(address, true)}
+        onRefresh={() => router.refresh()}
+      />
+      <h3 className="text-lg font-semibold">Invite by email</h3>
       <form onSubmit={approve} className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
           Google account email
@@ -92,24 +123,7 @@ export function AdminInvitesPanel({
         This grants app access. It does not send an email or change Google OAuth
         test-user or Vercel protection settings.
       </p>
-      {error && (
-        <p role="alert" className="rounded border p-3">
-          {error}
-        </p>
-      )}
-      {notice && <p role="status">{notice}</p>}
-      <form action="/admin/access" className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1">
-          Search invitations
-          <input
-            name="search"
-            defaultValue={search}
-            maxLength={120}
-            className="rounded border p-2"
-          />
-        </label>
-        <button className="practice-secondary">Search</button>
-      </form>
+      <h3 className="text-lg font-semibold">Invitations</h3>
       <p>
         {data.total} {data.total === 1 ? "invitation" : "invitations"} matching
         these filters

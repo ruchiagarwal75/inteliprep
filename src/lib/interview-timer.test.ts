@@ -3,6 +3,7 @@ import {
   createInterviewTiming,
   formatInterviewTime,
   interviewTimingSchema,
+  interviewWrapUpSeconds,
   remainingInterviewSeconds,
   serverClockOffset,
   shouldAutoEndInterview,
@@ -11,12 +12,15 @@ import { interviewStartRequestSchema } from "@/lib/interview-selection";
 
 const now = Date.parse("2026-10-12T20:00:00.000Z");
 describe("interview deadline and countdown", () => {
-  it.each([1, 45] as const)("creates a fixed %i-minute deadline", (minutes) => {
-    const timing = createInterviewTiming(minutes, now);
-    expect(interviewTimingSchema.parse(timing)).toEqual(timing);
-    expect(Date.parse(timing.deadlineAt) - now).toBe(minutes * 60_000);
-    expect(remainingInterviewSeconds(timing, now)).toBe(minutes * 60);
-  });
+  it.each([1, 45, 60] as const)(
+    "creates a fixed %i-minute deadline",
+    (minutes) => {
+      const timing = createInterviewTiming(minutes, now);
+      expect(interviewTimingSchema.parse(timing)).toEqual(timing);
+      expect(Date.parse(timing.deadlineAt) - now).toBe(minutes * 60_000);
+      expect(remainingInterviewSeconds(timing, now)).toBe(minutes * 60);
+    },
+  );
   it("defaults new interviews to 45 minutes and accepts the explicit 1-minute test mode", () => {
     const selection = { problemId: "single-server-scaling", level: "mid" };
     expect(interviewStartRequestSchema.parse(selection).durationMinutes).toBe(
@@ -26,7 +30,11 @@ describe("interview deadline and countdown", () => {
       interviewStartRequestSchema.parse({ ...selection, durationMinutes: 1 })
         .durationMinutes,
     ).toBe(1);
-    for (const durationMinutes of [0, 2, 46, "1", Infinity])
+    expect(
+      interviewStartRequestSchema.parse({ ...selection, durationMinutes: 60 })
+        .durationMinutes,
+    ).toBe(60);
+    for (const durationMinutes of [0, 2, 46, 59, 61, "1", "60", Infinity])
       expect(
         interviewStartRequestSchema.safeParse({ ...selection, durationMinutes })
           .success,
@@ -69,11 +77,16 @@ describe("interview deadline and countdown", () => {
   });
   it.each([
     [2700, "45:00"],
+    [3600, "60:00"],
     [60, "01:00"],
     [59, "00:59"],
     [0, "00:00"],
   ])("formats %i seconds as %s", (seconds, formatted) => {
     expect(formatInterviewTime(seconds)).toBe(formatted);
+  });
+  it("scales the same wrap-up window for client and server", () => {
+    expect(interviewWrapUpSeconds(45)).toBe(480);
+    expect(interviewWrapUpSeconds(60)).toBe(640);
   });
   it("rejects inconsistent, malformed, or unsupported deadline data", () => {
     const timing = createInterviewTiming(1, now);

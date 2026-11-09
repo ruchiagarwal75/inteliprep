@@ -61,6 +61,10 @@ npm run dev
 
 Open [localhost:3000](http://localhost:3000). Home shows browser-local history; Start practice opens the brief before the timer starts.
 
+On the Brief, choose **45 minutes** (default) or **1 hour**. The server fixes the
+deadline when you start, and refresh/resume preserves it. Stage timing and the
+scorecard's minimum evidence window scale with the selected duration.
+
 Interview URLs are `/interview/<id>` and results are `/interview/<id>/results`. Old `?session=` links still work. Set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` before starting the dev server to show the 1-minute test option. History shows the three most recent attempts for each account, with View all revealing the rest. Every saved attempt remains independently readable and editable in IndexedDB; no history view or automatic cleanup deletes them. Signing out keeps browser history. The legacy anonymous `inteliprep` database stays separate from `inteliprep:account:<id>` to avoid assigning anonymous evidence to the wrong account; an explicit import policy is future work.
 Local development uses bounded in-memory request limits and session state;
 start quotas are skipped locally unless `INTELIPREP_DEV_START_LIMITS=on`.

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { adminPageAccess } from "@/lib/admin-page-access";
-import { adminInvites } from "@/lib/admin-invites";
-import { adminQuery } from "@/lib/admin-query";
+import { adminInvites, adminInviteQuery } from "@/lib/admin-invites";
 import { AdminInvitesPanel } from "@/components/admin-invites-panel";
 
 export default async function AdminAccessPage({
@@ -12,11 +11,11 @@ export default async function AdminAccessPage({
   await adminPageAccess();
   const params = await searchParams;
   const search = new URLSearchParams();
-  for (const key of ["search", "page"])
+  for (const key of ["search", "page", "pendingPage"])
     if (typeof params[key] === "string") search.set(key, params[key]);
   let query;
   try {
-    query = adminQuery(search);
+    query = adminInviteQuery(search);
   } catch {
     return (
       <p role="alert">
