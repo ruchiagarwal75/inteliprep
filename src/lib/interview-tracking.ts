@@ -46,9 +46,10 @@ export async function trackInterview(
   await safeReporting(async () => {
     const sql = reportingDb();
     await sql`insert into interview_admin.interviews as existing
-      (id,user_id,environment,is_test,coverage,problem_id,level,status,started_at,deadline_at,last_activity_at,ended_at,first_response_at,design_presented_at,feedback_status,feedback_generated_at,feedback)
-      values (${saved.id},${saved.ownerUserId ?? null},${reportingEnvironment()},${saved.timing?.durationMinutes === 1},${options.started ? "full" : "partial"},${saved.problemId},${saved.level},${saved.ending ? "completed" : "unfinished"},${saved.timing?.startedAt ?? null},${saved.timing?.deadlineAt ?? null},${activityAt ?? null},${saved.ending?.endedAt ?? null},${firstAt},${designAt},${card ? "generated" : options.grading ? "pending" : "none"},${card ? now : null},${feedback ? sql.json(feedback) : null})
+      (id,user_id,environment,is_test,coverage,problem_id,level,status,started_at,deadline_at,last_activity_at,ended_at,first_response_at,design_presented_at,feedback_status,feedback_generated_at,feedback,not_scored_reason)
+      values (${saved.id},${saved.ownerUserId ?? null},${reportingEnvironment()},${saved.timing?.durationMinutes === 1},${options.started ? "full" : "partial"},${saved.problemId},${saved.level},${saved.ending ? "completed" : "unfinished"},${saved.timing?.startedAt ?? null},${saved.timing?.deadlineAt ?? null},${activityAt ?? null},${saved.ending?.endedAt ?? null},${firstAt},${designAt},${card ? "generated" : options.grading ? "pending" : "none"},${card ? now : null},${feedback ? sql.json(feedback) : null},${card?.notScoredReason ?? null})
       on conflict (id) do update set
+        not_scored_reason=coalesce(existing.not_scored_reason,excluded.not_scored_reason),
         started_at=coalesce(existing.started_at,excluded.started_at),
         deadline_at=coalesce(existing.deadline_at,excluded.deadline_at),
         last_activity_at=greatest(existing.last_activity_at,excluded.last_activity_at),

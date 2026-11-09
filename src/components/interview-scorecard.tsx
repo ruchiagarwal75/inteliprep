@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { SCORE_LABELS, SIGNAL_LABELS, type Scorecard } from "@/lib/scorecard";
 import type { Scene } from "@/lib/scene";
 import { ScorecardEvidence } from "@/components/scorecard-evidence";
+import { ShortInterviewResult } from "@/components/short-interview-result";
 
 export function InterviewScorecard({
   scorecard,
@@ -13,6 +14,8 @@ export function InterviewScorecard({
   scene?: Scene;
   children?: ReactNode;
 }) {
+  if (scorecard.notScoredReason)
+    return <ShortInterviewResult scorecard={scorecard} />;
   const consistency = scorecard.diagramConsistency?.map((f) => f.text) ?? [
     ...new Set(
       scorecard.areas.flatMap((a) =>

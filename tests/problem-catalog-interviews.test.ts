@@ -35,6 +35,7 @@ async function* reply() {
   yield { type: "response.completed" };
 }
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
   vi.stubEnv("OPENAI_MODEL", "test-model");
   vi.stubEnv("OPENAI_KEY", "catalog-test-key");
   mocks.create
@@ -59,7 +60,10 @@ beforeEach(() => {
       return reply();
     });
 });
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
+});
 
 describe("new catalog interview wiring with scripted provider responses", () => {
   it.each(
@@ -192,6 +196,11 @@ describe("new catalog interview wiring with scripted provider responses", () => 
         messages,
         scene,
       };
+      // This fixture exercises grading, so it must meet the real time gate too.
+      vi.setSystemTime(
+        Date.parse(started.timing?.startedAt ?? new Date().toISOString()) +
+          30000,
+      );
       const response = await endInterview(request(ending));
       expect(response.status).toBe(200);
       const result = interviewEndResponseSchema.parse(await response.json());
@@ -201,11 +210,11 @@ describe("new catalog interview wiring with scripted provider responses", () => 
       );
       expect(
         result.scorecard.areas.every(
-          (area) => area.score === null && area.evidence.length,
+          (area) => area.score !== null && area.evidence.length,
         ),
       ).toBe(true);
-      expect(result.scorecard.session?.limited).toBe(true);
-      expect(result.scorecard.signal).toBe("insufficient_evidence");
+      expect(result.scorecard.session?.limited).toBe(false);
+      expect(result.scorecard.notScoredReason).toBeUndefined();
       expect(JSON.stringify(result)).not.toContain(problem.rubric[0].strong);
       const calls = mocks.create.mock.calls.length;
       const repeated = await endInterview(request(ending));

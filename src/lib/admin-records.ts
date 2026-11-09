@@ -24,6 +24,7 @@ export type AdminInterview = {
   firstResponseAt: string | null;
   designPresentedAt: string | null;
   feedbackStatus: string;
+  notScoredReason?: string | null;
   feedback: z.infer<typeof adminFeedbackSchema> | null;
   practiceFeedback?: PracticeFeedbackRecord | null;
   coverage: string;
@@ -77,6 +78,7 @@ export type AdminOverview = {
     exited: number;
     averageSeconds: number | null;
     timedCompleted: number;
+    tooShort?: number;
   };
   cost: CostSummary;
   activity: {

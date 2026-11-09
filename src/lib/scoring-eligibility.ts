@@ -1,7 +1,7 @@
 import type { InterviewDuration, InterviewTiming } from "@/lib/interview-timer";
 export const MIN_SCORED_STAGES = 2;
 
-export function scoringThresholdSeconds(durationMinutes: InterviewDuration) {
+export function scoringThresholdSeconds(durationMinutes: number) {
   return (durationMinutes * 60) / 3;
 }
 export function scoringEligibility(

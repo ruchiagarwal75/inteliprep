@@ -97,6 +97,15 @@ try {
       ),
     );
     // One-way compatibility import only. Existing rows (including revocations) win.
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109230144_short_interview_scoring.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
     const legacy = [
       ...new Set(
         (process.env.MOCKMEAI_INVITED_EMAILS ?? "")

@@ -21,6 +21,12 @@ import { boundedModelRequest } from "@/lib/model-request";
 import { auditDiagram } from "@/lib/diagram-audit";
 import { GradingOutputError, gradingFailureKind } from "@/lib/grading-failure";
 import { logServerEvent } from "@/lib/server-events";
+import type { InterviewTiming } from "@/lib/interview-timer";
+import {
+  scoringEligibility,
+  scoringElapsedSeconds,
+} from "@/lib/scoring-eligibility";
+import { shortInterviewScorecard } from "@/lib/short-interview-scorecard";
 
 const GRADING_INSTRUCTIONS = [
   "Compare the final diagram with the full transcript and supplied diagram_consistency audit. Respect later corrections: a resolved PostgreSQL/Cassandra conflict is a clarified design choice, not an unresolved gap. Account for described components missing from the board, including a load balancer. The server displays the audit once in its own section: never repeat generic diagram-consistency boilerplate in each area's rationale. The text graph is the source of truth; the image is supporting evidence.",
@@ -48,8 +54,24 @@ export async function gradeInterview(
   snapshot: InterviewEndSnapshot,
   endedAt: string,
   signal?: AbortSignal,
+  session?: { timing?: InterviewTiming; answeredStageCount?: number },
 ) {
   signal?.throwIfAborted();
+  if (session?.timing) {
+    const gate = scoringEligibility(
+      session.timing.durationMinutes,
+      scoringElapsedSeconds(session.timing, endedAt),
+      session.answeredStageCount,
+    );
+    if (!gate.eligible)
+      return shortInterviewScorecard(
+        problem,
+        level,
+        endedAt,
+        gate.timeReady ? "insufficient_stages" : "too_short",
+        hasCandidateAnswer(snapshot),
+      );
+  }
   if (!hasCandidateAnswer(snapshot))
     return emptyInterviewScorecard(
       problem,

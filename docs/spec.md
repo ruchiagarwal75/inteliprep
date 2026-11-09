@@ -1137,3 +1137,12 @@ closing clarification question. The full configured brief stays on the Brief
 page and pinned problem panel. Shared setup facts come from that trusted brief
 and factual interviewer replies; they do not award candidate evidence. Legacy
 saved openings display their own closing question without rewriting stored chat.
+# Beta readiness: scoring eligibility
+
+The scorer and early-end warning share one rule: one third of the configured
+duration and technical answers in two stages. The server checks eligibility
+before any grading provider call. Ineligible sessions get a deterministic,
+neutral result with elapsed time, the rule and a link back to the Brief. They
+have no model judgments or area scores. New results persist `notScoredReason`
+and reporting stores `not_scored_reason`; old saved scorecards remain readable
+and historical outcomes are not backfilled.

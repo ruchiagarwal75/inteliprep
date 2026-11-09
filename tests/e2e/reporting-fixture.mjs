@@ -55,6 +55,7 @@ export async function startReportingFixture(key, cert) {
       "20261106214658_interview_admin_reporting.sql",
       "20261108003142_reporting_least_privilege.sql",
       "20261109194452_practice_feedback.sql",
+      "20261109230144_short_interview_scoring.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),

@@ -160,7 +160,7 @@ for (const durationMinutes of [45, 60]) {
       .click();
     await expect(page).toHaveURL(/\/results$/);
     await expect(
-      page.getByRole("heading", { name: "Interview scorecard", exact: true }),
+      page.getByRole("heading", { name: "Too short to score", exact: true }),
     ).toBeVisible({ timeout: 25000 });
     await expect(
       page.getByRole("button", { name: "Retry scorecard", exact: true }),
@@ -210,7 +210,7 @@ for (const durationMinutes of [45, 60]) {
       page.getByRole("heading", { name: "Interview results", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Interview scorecard", exact: true }),
+      page.getByRole("heading", { name: "Too short to score", exact: true }),
     ).toBeVisible();
     await expect(feedback).toHaveCount(0);
     // Server persistence still suppresses the card if browser dismissal data is cleared.
