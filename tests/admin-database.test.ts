@@ -22,6 +22,7 @@ import { ApprovalEmailError } from "@/lib/approval-email";
 import { trackAppViewer } from "@/lib/viewer-tracking";
 import { adminVisitors } from "@/lib/admin-visitors";
 import { recordIpVisitor, ipVisitorMetrics } from "@/lib/ip-visitor-tracking";
+vi.hoisted(() => vi.resetModules());
 const harness = vi.hoisted(() => ({
   sql: undefined as ReturnType<typeof postgres> | undefined,
   send: vi.fn(),

@@ -33,6 +33,7 @@ function session(account) {
     { alg: "HS256", typ: "JWT" },
     {
       sub: user.id,
+      session_id: user.id,
       email: user.email,
       aud: "authenticated",
       role: "authenticated",

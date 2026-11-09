@@ -469,3 +469,38 @@ test("uninvited and signed-out users cannot start, and policies are linked", asy
     ).toBeVisible();
   }
 });
+test("beta funnel shows persisted per-user activity and denies non-admin access", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  expect((await context.request.get("/api/admin/funnel")).status()).toBe(403);
+  expect((await page.goto("/admin/funnel"))?.status()).toBe(404);
+  await signIn(context, "admin");
+  await page.goto("/admin/funnel?search=browser-smoke");
+  await expect(
+    page.getByRole("heading", { name: "Beta funnel", exact: true }),
+  ).toBeVisible();
+  const data = await (
+    await context.request.get("/api/admin/funnel?search=browser-smoke")
+  ).json();
+  expect(data.counts).toMatchObject({
+    signed_in: 1,
+    started: 1,
+    finished: 1,
+    sent_feedback: 1,
+    second_started: 1,
+    score_threshold_passed: 0,
+    scorecard_opened: 0,
+  });
+  expect(data.users[0]).toMatchObject({
+    started: 3,
+    finished: 3,
+    second_started: 1,
+  });
+  mkdirSync(screenshots, { recursive: true });
+  await page.screenshot({
+    path: `${screenshots}/admin-funnel.png`,
+    fullPage: true,
+  });
+});

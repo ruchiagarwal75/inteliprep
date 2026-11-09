@@ -4,6 +4,7 @@ import type { SharedSessionRecord } from "@/lib/shared-session-record";
 import { reportingDb } from "@/lib/reporting-db";
 import { reportingEnvironment } from "@/lib/admin-config";
 import { safeReporting } from "@/lib/reporting-write";
+import { recordScoringThreshold } from "@/lib/beta-funnel-tracking";
 
 export type InterviewActivity = {
   firstResponse?: boolean;
@@ -61,6 +62,7 @@ export async function trackInterview(
         feedback_generated_at=coalesce(existing.feedback_generated_at,excluded.feedback_generated_at),
         feedback=coalesce(existing.feedback,excluded.feedback)
       where existing.user_id=excluded.user_id`;
+    await recordScoringThreshold(record, activityAt ?? null);
   });
 }
 

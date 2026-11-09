@@ -47,6 +47,11 @@ export default function PrivacyPage() {
       </p>
       <h2>Operational reporting and first visits</h2>
       <p>
+        We record sign-in sessions, verified interview milestones and whether
+        you open a scorecard to understand where beta testers stop. These
+        records do not contain interview answers.
+      </p>
+      <p>
         Feedback you send is saved with your account and only the MockMeAI admin
         can see it.
       </p>

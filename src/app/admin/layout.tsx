@@ -32,6 +32,9 @@ export default async function AdminLayout({
           <Link className="underline" href="/admin/feedback">
             Feedback
           </Link>
+          <Link className="underline" href="/admin/funnel">
+            Beta funnel
+          </Link>
           <Link className="underline" href="/">
             Back to practice
           </Link>

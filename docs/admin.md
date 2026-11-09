@@ -385,3 +385,13 @@ upserts, skips, rendering, search and admin denial without production credential
 `SUPABASE_REPORTING_CA_FILE` optionally supplies a trusted CA for this isolated
 database; the default remains the checked-in Supabase root. TLS verification is
 always enabled. The temporary cluster is removed when the runner shuts down.
+# Beta funnel
+
+Open `/admin/funnel` to filter all seven beta milestones by inclusive UTC calendar
+dates and email, with per-user counts and admin/test exclusions. Counts use
+persisted server records. Only the three missing milestones have a new private,
+RLS-protected `beta_funnel_events` table. Signed-in Auth sessions, interview
+eligibility and visible assessed scorecards are idempotent; the other steps reuse
+existing interviews and non-skipped feedback. New-milestone history starts at
+`reporting_state.beta_funnel_since` and is not backfilled. See
+[beta readiness](beta-readiness.md#beta-funnel-definitions) for the exact definitions.

@@ -43,3 +43,22 @@ No console settings or environment variables were changed for this work.
    sign-in to check the displayed name and logo.
 
 More detail: [authentication setup](authentication.md#google-console-rebrand-checklist-operator-action).
+
+## Beta funnel definitions
+
+`/admin/funnel` shows seven milestones for an inclusive UTC date range, with
+search, pagination, per-user counts and the existing admin/test exclusion.
+Top counts are distinct users reaching each step in the period, not a signup
+cohort. Per-user rows count persisted occurrences. The second-interview step
+uses the user's second recorded eligible start across history, then applies
+the selected date range to that milestone.
+
+Starts, completions, non-skipped feedback and second starts reuse the existing
+interview and feedback tables. Only sign-in sessions, verified scoring eligibility
+and scorecard opens add events. Sign-in events use a hash of the verified Auth
+session ID, never an access token. Eligibility uses server timing and answered
+stages on the next meaningful server action. Viewing the scorecard is counted
+only when an assessed card is actually visible; a too-short result is excluded.
+Retries and refreshes use unique milestone keys. Tracking failure cannot block
+the interview. Historical values for the three new milestones are unavailable;
+the dashboard shows when their recording began.
