@@ -21,6 +21,7 @@ import { deliverApprovalEmail } from "@/lib/approval-email-delivery";
 import { ApprovalEmailError } from "@/lib/approval-email";
 import { trackAppViewer } from "@/lib/viewer-tracking";
 import { adminVisitors } from "@/lib/admin-visitors";
+import { recordIpVisitor, ipVisitorMetrics } from "@/lib/ip-visitor-tracking";
 const harness = vi.hoisted(() => ({
   sql: undefined as ReturnType<typeof postgres> | undefined,
   send: vi.fn(),
@@ -337,6 +338,73 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
           await tx`select has_table_privilege('anon','interview_admin.app_visitor_accounts','select') as anon,
           has_table_privilege('authenticated','interview_admin.app_visitor_accounts','select') as candidate`;
         expect(visitorPrivileges[0]).toEqual({ anon: false, candidate: false });
+        vi.stubEnv("VERCEL", "1");
+        vi.stubEnv(
+          "VISITOR_IP_HASH_SECRET",
+          "live-fixture-only-ip-key-".repeat(2),
+        );
+        const ipBefore = await ipVisitorMetrics(true);
+        const ipDefaultBefore = await ipVisitorMetrics(false);
+        if (ipBefore.status !== "ready")
+          throw Error("IP fixture schema unavailable");
+        if (ipDefaultBefore.status !== "ready")
+          throw Error("IP fixture configuration unavailable");
+        const ipA = randomUUID().replaceAll("-", "").repeat(2);
+        const ipB = randomUUID().replaceAll("-", "").repeat(2);
+        await recordIpVisitor(ipA, false);
+        await recordIpVisitor(ipA, false);
+        await recordIpVisitor(ipA, true);
+        await recordIpVisitor(ipB, true);
+        const ipAfter = await ipVisitorMetrics(true);
+        if (ipAfter.status !== "ready")
+          throw Error("Missing IP fixture metrics");
+        expect(ipAfter.total).toBe(ipBefore.total + 2);
+        const excludedIp = await ipVisitorMetrics(false);
+        if (excludedIp.status !== "ready")
+          throw Error("Missing IP exclusion metrics");
+        expect(excludedIp.total).toBe(ipDefaultBefore.total + 1);
+        const [flags] =
+          await tx`select count(distinct ip_hash)::int as count from interview_admin.app_ip_visitors
+          where ip_hash in (${ipA},${ipB}) and not is_test`;
+        expect(flags.count).toBe(1);
+        await tx`update interview_admin.app_ip_visitors set first_seen_at=now()-interval '10 days',last_seen_at=now()-interval '8 days' where ip_hash=${ipA}`;
+        const expiredIp = await ipVisitorMetrics(true);
+        if (expiredIp.status !== "ready")
+          throw Error("Missing recent IP metrics");
+        expect(expiredIp.last7Days).toBe(ipAfter.last7Days - 1);
+        await recordIpVisitor(ipA, false);
+        const [timing] =
+          await tx`select first_seen_at<now()-interval '9 days' as preserved,
+          last_seen_at>=now()-interval '1 minute' as updated from interview_admin.app_ip_visitors where ip_hash=${ipA} and not is_test`;
+        expect(timing).toEqual({ preserved: true, updated: true });
+        const [ipPrivileges] =
+          await tx`select has_table_privilege('anon','interview_admin.app_ip_visitors','select') as anon,
+          has_table_privilege('authenticated','interview_admin.app_ip_visitors','select') as candidate`;
+        expect(ipPrivileges).toEqual({ anon: false, candidate: false });
+        // Exercise the actual collection path, including sign-out and shared IPs.
+        vi.stubEnv("VERCEL_ENV", "ip-flow-" + randomUUID());
+        vi.stubEnv("ADMIN_TEST_USER_IDS", "");
+        const ownerBrowser = randomUUID(),
+          sharedIp = randomUUID().replaceAll("-", "").repeat(2);
+        await trackAppViewer(ownerBrowser, adminId, false, sharedIp);
+        await trackAppViewer(ownerBrowser, undefined, false, sharedIp);
+        expect(await ipVisitorMetrics(false)).toMatchObject({
+          status: "ready",
+          total: 0,
+        });
+        expect(await ipVisitorMetrics(true)).toMatchObject({
+          status: "ready",
+          total: 1,
+        });
+        await trackAppViewer(randomUUID(), userId, false, sharedIp);
+        expect(await ipVisitorMetrics(false)).toMatchObject({
+          status: "ready",
+          total: 1,
+        });
+        expect(await ipVisitorMetrics(true)).toMatchObject({
+          status: "ready",
+          total: 1,
+        });
         const privileges =
           await tx`select has_table_privilege('anon','interview_admin.interviews','select') as anon,has_table_privilege('authenticated','interview_admin.interviews','select') as candidate`;
         expect(privileges[0]).toEqual({ anon: false, candidate: false });
@@ -359,5 +427,5 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
       await sql.end({ timeout: 2 });
     }
   },
-  45_000,
+  60_000,
 );

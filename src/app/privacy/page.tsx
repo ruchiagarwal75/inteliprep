@@ -62,9 +62,19 @@ export default function PrivacyPage() {
         visit once per environment, so multiple browsers do not inflate the
         account count. Known automated clients are excluded using browser
         automation signals and request user-agent checks; user-agent strings are
-        not stored. We do not store page trails or IP addresses for this metric.
-        Another browser or cleared storage can count again. There is no session
-        replay or third-party analytics integration.
+        not stored. Another browser or cleared storage can count again in the
+        browser records. There is no session replay or third-party analytics
+        integration.
+      </p>
+      <p>
+        For a separate connection-count comparison, the server reads the IP
+        address supplied by Vercel and stores a keyed hash of it, first and most
+        recent visit times, environment and a test-activity flag. Raw IP
+        addresses are not stored or intentionally logged by this app. The
+        comparison does not prove how many people visited. These pseudonymous
+        records remain until the operator removes them, like other operational
+        reporting. We do not store browsing trails or device fingerprints for
+        this comparison.
       </p>
       <p>
         Server logs contain limited diagnostic metadata such as request IDs,

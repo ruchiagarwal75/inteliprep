@@ -276,9 +276,47 @@ the tracking request; isolated CI clears the reporting connection entirely.
 
 This measures browsers, not exact people. Clearing storage or switching browsers
 can count a person again; blocked storage and failed requests can miss visits.
-There are no IP records, browsing trails, referrers, heartbeats or session replay.
+There are no raw IP records, browsing trails, referrers, heartbeats or session replay.
 Nothing before tracking started is backfilled. Missing database data is displayed
 as unavailable, not zero.
+
+## IP-address comparison
+
+The dashboard also shows distinct **IP addresses** across all newly recorded visits
+and addresses seen in the last seven days. The recent window uses last-seen time,
+so returning addresses are included. This is a comparison of connections, not a
+count of people or a conversion rate: Wi-Fi/NAT can combine people, and changing
+networks/VPNs can split one person. The account metric still measures identified
+accounts. Prior browser IDs cannot be backfilled into this comparison.
+
+Run `npm run db:admin` to apply the additive
+`20261109184934_ip_visitor_comparison.sql` migration. No old records are changed.
+Generate a dedicated `VISITOR_IP_HASH_SECRET` once with `openssl rand -hex 32` and
+configure it as a server-only sensitive **Production** variable in Vercel. Keep it
+stable; rotating it changes the pseudonyms and prevents cross-key deduplication.
+Do not reuse the resume secret or provider keys. Localhost does not supply a
+trusted platform IP and shows the comparison as unavailable. Missing configuration
+or a failed IP query shows unavailable, while an enabled empty dataset shows zero
+and “No eligible IP visits recorded yet.” Account counts remain available if only
+the IP comparison fails.
+
+The server reads only Vercel's `x-vercel-forwarded-for` when `VERCEL=1`, validates
+and canonicalizes IPv4/IPv6, and computes an HMAC-SHA256 pseudonym. Arbitrary
+client IP fields and forwarded headers outside Vercel are not accepted. The raw
+address is never put in application logs, SQL, browser responses or reporting.
+The private RLS-protected table stores only environment, hash, first/last server
+timestamps and an admin/test classification. No account ID or device fingerprint
+is stored in this table. Records remain until operator removal; the hash is
+pseudonymous, not a claim of fully anonymous data.
+
+Known automation is skipped before recording. Admin/test events are classified
+from verified identity/local testing; an existing excluded browser also stays
+excluded after sign-out. Separate classified rows allow an ordinary visitor to
+share an admin's public IP without disappearing from the default comparison.
+Including admin/test activity counts each address only once across both groups.
+Signed-out testing in an unidentified browser can still count, so QA must opt out.
+First/last timestamps are server-owned and repeat visits preserve the original
+first-seen value. No periodic heartbeat or additional tracking requests are added.
 
 ## Restricted runtime database role
 

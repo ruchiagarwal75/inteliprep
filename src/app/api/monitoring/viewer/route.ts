@@ -7,6 +7,7 @@ import { deferReporting } from "@/lib/reporting-write";
 import { trackAppViewer } from "@/lib/viewer-tracking";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
 import { isAutomatedViewer } from "@/lib/viewer-automation";
+import { requestVisitorIpHash } from "@/lib/visitor-ip";
 export const runtime = "nodejs";
 const input = z.object({ visitorId: z.uuid() }).strict();
 
@@ -41,8 +42,9 @@ export async function POST(request: Request) {
         const local = ["localhost", "127.0.0.1", "[::1]"].includes(
           url.hostname,
         );
+        const ipHash = requestVisitorIpHash(request);
         deferReporting(() =>
-          trackAppViewer(parsed.data.visitorId, userId, local),
+          trackAppViewer(parsed.data.visitorId, userId, local, ipHash),
         );
         response = new Response(null, { status: 204, headers });
       }

@@ -2,6 +2,8 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { reportingDb } from "@/lib/reporting-db";
 import { excludedUserIds, reportingEnvironment } from "@/lib/admin-config";
+import { recordIpVisitor } from "@/lib/ip-visitor-tracking";
+import { logServerEvent } from "@/lib/server-events";
 
 export function viewerHash(id: string) {
   return createHash("sha256")
@@ -9,11 +11,12 @@ export function viewerHash(id: string) {
     .digest("hex");
 }
 
-/** Called through the existing best-effort reporting adapter. No page paths or IPs are persisted. */
+/** Best-effort reporting. No page paths or raw IPs are persisted. */
 export async function trackAppViewer(
   visitorId: string,
   userId: string | undefined,
   local: boolean,
+  ipHash?: string,
 ) {
   const environment = reportingEnvironment();
   const isTest =
@@ -22,15 +25,41 @@ export async function trackAppViewer(
     environment === "test" ||
     Boolean(userId && excludedUserIds().includes(userId));
   const sql = reportingDb();
-  await sql`insert into interview_admin.app_viewers as existing (environment,visitor_hash,user_id,is_test)
- values (${environment},${viewerHash(visitorId)},${userId ?? null},${isTest})
+  const hash = viewerHash(visitorId);
+  const [written] = await sql<
+    { isTest: boolean }[]
+  >`insert into interview_admin.app_viewers as existing (environment,visitor_hash,user_id,is_test)
+ values (${environment},${hash},${userId ?? null},${isTest})
  on conflict (environment,visitor_hash) do update set
  user_id=coalesce(existing.user_id,excluded.user_id),is_test=existing.is_test or excluded.is_test
- where (existing.user_id is null and excluded.user_id is not null) or (not existing.is_test and excluded.is_test)`;
+ where (existing.user_id is null and excluded.user_id is not null) or (not existing.is_test and excluded.is_test)
+ returning is_test as "isTest"`;
   // A separate account key handles multiple browsers and shared-browser account changes.
   if (userId)
     await sql`insert into interview_admin.app_visitor_accounts as existing (environment,user_id,is_test)
       values (${environment},${userId},${isTest})
       on conflict (environment,user_id) do update set is_test=existing.is_test or excluded.is_test
       where not existing.is_test and excluded.is_test`;
+  if (ipHash) {
+    // Retain a known QA/admin-browser exclusion after sign-out, without hiding
+    // another browser/person merely because they share the same public IP.
+    try {
+      const [stored] = written
+        ? [written]
+        : await sql<{ isTest: boolean }[]>`
+        select is_test as "isTest" from interview_admin.app_viewers
+        where environment=${environment} and visitor_hash=${hash}`;
+      await recordIpVisitor(ipHash, isTest || Boolean(stored?.isTest));
+    } catch (cause) {
+      // An optional comparison failure must not disable account/interview reporting.
+      logServerEvent(
+        {
+          event: "framework_failure",
+          route: "/api/monitoring/viewer",
+          kind: "ip_comparison_write",
+        },
+        cause,
+      );
+    }
+  }
 }

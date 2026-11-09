@@ -1,5 +1,6 @@
 import type { AdminVisitors } from "@/lib/admin-visitors";
 import { AdminTime } from "@/components/admin-format";
+import { AdminIpVisitors } from "@/components/admin-ip-visitors";
 export function AdminVisitorsPanel({ data }: { data: AdminVisitors }) {
   return (
     <section aria-label="App reach" className="rounded-lg border p-4">
@@ -29,6 +30,7 @@ export function AdminVisitorsPanel({ data }: { data: AdminVisitors }) {
         Accounts are identified from verified sign-in and counted once across
         browsers. Admin/test accounts follow the exclusion filter above.
       </p>
+      <AdminIpVisitors data={data.ipComparison} />
     </section>
   );
 }
