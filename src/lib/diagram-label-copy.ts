@@ -1,4 +1,4 @@
-/** Quote a scene label when the sentence has not already supplied an article. */
+/** Quote a scene label without changing its original spelling. */
 export function quoteDiagramLabels(text: string, supplied: readonly string[]) {
   const labels = [
     ...new Set(
@@ -24,7 +24,7 @@ export function quoteDiagramLabels(text: string, supplied: readonly string[]) {
   );
   return text.replace(pattern, (matched: string, offset: number) => {
     const before = text.slice(0, offset);
-    if (/(?:["“‘'`]|\b(?:the|a|an|your)\s+)$/iu.test(before)) return matched;
+    if (/["“‘'`]$/u.test(before)) return matched;
     return JSON.stringify(
       labels.find(
         (label) => label.toLocaleLowerCase() === matched.toLocaleLowerCase(),

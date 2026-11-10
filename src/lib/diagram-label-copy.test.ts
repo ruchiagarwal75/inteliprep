@@ -17,11 +17,29 @@ it("preserves articles, existing quotes and the longer overlapping label", () =>
       ["cache", "Redis cache", "Link store"],
     ),
   ).toBe(
-    'The Redis cache reads from "Link store". What does "Redis cache" retain?',
+    'The "Redis cache" reads from "Link store". What does "Redis cache" retain?',
   );
 });
 it("treats punctuation in untrusted labels as literal text", () => {
   expect(quoteDiagramLabels("What reaches API (v2)?", ["API (v2)"])).toBe(
     'What reaches "API (v2)"?',
   );
+});
+
+it("quotes capitalized labels even after an article and preserves acronyms", () => {
+  expect(
+    quoteDiagramLabels(
+      "How does the Redis cache call your Link store through an API?",
+      ["Redis cache", "Link store", "API"],
+    ),
+  ).toBe('How does the "Redis cache" call your "Link store" through an "API"?');
+});
+it("does not match labels inside other words or add double quotes", () => {
+  expect(
+    quoteDiagramLabels('The "API" uses a cacheable key in the Redis cache.', [
+      "API",
+      "cache",
+      "Redis cache",
+    ]),
+  ).toBe('The "API" uses a cacheable key in the "Redis cache".');
 });

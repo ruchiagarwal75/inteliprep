@@ -30,9 +30,17 @@ export function disclosedGenaiFacts(
     messages.some(
       (message) =>
         message.role === "assistant" &&
-        message.content.includes(fact.answers[level]),
+        factText(message.content).includes(factText(fact.answers[level])),
     ),
   );
+}
+/** Presentation quotes and wrapping do not change a disclosed requirement. */
+function factText(text: string) {
+  return text
+    .replace(/["“”]/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .toLocaleLowerCase();
 }
 /** Suggestions remain unavailable until a Mid candidate has actually attempted the assumption. */
 export function genaiAssumptionReply(
