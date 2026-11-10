@@ -156,3 +156,35 @@ describe("streamInterviewerReply", () => {
     },
   );
 });
+
+it("does not prepend a component inventory to a specific diagram probe", async () => {
+  const problem = getProblem("url-shortener");
+  if (!problem) throw Error("Missing problem");
+  const question =
+    "How does ZooKeeper allocate an ID before the API writes to Cassandra?";
+  const context = {
+    problem,
+    level: "senior" as const,
+    phase: problem.phases[2],
+    progress: {
+      step: "review" as const,
+      candidateTurns: 2,
+      discussionTurnLimit: 3,
+    },
+    reviewQuestion: question,
+    diagramUpdates: ["Client", "API", "ZooKeeper", "Cassandra"],
+  };
+  let reply = "";
+  for await (const part of streamInterviewerReply(
+    [{ role: "user", source: "control", content: "I've finished explaining." }],
+    "Nodes: Client, API, ZooKeeper, Cassandra",
+    "Added: ZooKeeper",
+    undefined,
+    undefined,
+    context,
+  ))
+    reply += part;
+  expect(reply).toBe(question);
+  expect(reply).not.toContain("component labeled");
+  expect(mocks.create).not.toHaveBeenCalled();
+});

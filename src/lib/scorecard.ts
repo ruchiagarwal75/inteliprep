@@ -81,6 +81,7 @@ export type GradingAssessment = z.infer<typeof gradingAssessmentSchema>;
 /** Public feedback only: private rubric definitions and prompts stay on the server. */
 export const scorecardSchema = z.object({
   ...interviewSelectionSchema.shape,
+  notScoredReason: z.enum(["too_short", "insufficient_stages"]).optional(),
   problemTitle: z.string().min(1),
   endedAt: z.iso.datetime(),
   diagramConsistency: z

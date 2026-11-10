@@ -1,6 +1,7 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase-server";
 import { CandidateAuthError } from "@/lib/supabase-config";
+import { observeSignedIn } from "@/lib/beta-funnel-tracking";
 import {
   CandidateInviteError,
   requireCandidateInvite,
@@ -29,8 +30,9 @@ export async function candidateIdentity(options?: {
       /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)
         ? id
         : undefined;
+    if (verified) observeSignedIn(verified, data?.claims.session_id);
     if (verified && options?.requireInvite)
-      requireCandidateInvite(verified, data?.claims.email);
+      await requireCandidateInvite(verified, data?.claims.email, client);
     return verified;
   } catch (cause) {
     if (

@@ -1,6 +1,14 @@
 "use client";
 
 import { InterviewDialog } from "@/components/interview-dialog";
+import {
+  formatInterviewTime,
+  type InterviewDuration,
+} from "@/lib/interview-timer";
+import {
+  scoringEligibility,
+  MIN_SCORED_STAGES,
+} from "@/lib/scoring-eligibility";
 
 export function EndInterviewConfirmation({
   open,
@@ -10,6 +18,7 @@ export function EndInterviewConfirmation({
   switchTo,
   withoutScoring = false,
   remainingSeconds,
+  durationMinutes,
 }: {
   open: boolean;
   draft: string;
@@ -18,7 +27,17 @@ export function EndInterviewConfirmation({
   switchTo?: "new" | "problem";
   withoutScoring?: boolean;
   remainingSeconds?: number;
+  durationMinutes?: InterviewDuration;
 }) {
+  const elapsed =
+    durationMinutes !== undefined && remainingSeconds !== undefined
+      ? Math.max(0, durationMinutes * 60 - remainingSeconds)
+      : undefined;
+  const gate =
+    durationMinutes !== undefined && elapsed !== undefined
+      ? scoringEligibility(durationMinutes, elapsed)
+      : undefined;
+  const early = !withoutScoring && gate && !gate.timeReady;
   return (
     <InterviewDialog
       open={open}
@@ -33,6 +52,14 @@ export function EndInterviewConfirmation({
       }
       onClose={onCancel}
     >
+      {early && elapsed !== undefined && (
+        <p role="note" className="scorecard-note">
+          You&apos;re at {formatInterviewTime(elapsed)}. Interviews shorter than{" "}
+          {formatInterviewTime(gate.minimumSeconds)} don&apos;t get a score.
+          Scoring also needs technical answers in {MIN_SCORED_STAGES} stages.
+          End anyway?
+        </p>
+      )}
       {remainingSeconds !== undefined && remainingSeconds > 0 && (
         <p className="practice-muted">
           You still have {Math.ceil(remainingSeconds / 60)}{" "}
@@ -51,14 +78,18 @@ export function EndInterviewConfirmation({
         </>
       )}
       <div className="mt-5 flex flex-wrap gap-2">
-        <button type="button" onClick={onCancel} className="practice-secondary">
+        <button
+          type="button"
+          onClick={onCancel}
+          className={early ? "practice-primary" : "practice-secondary"}
+        >
           Keep going
         </button>
         {draft.trim() && !withoutScoring && (
           <button
             type="button"
             onClick={() => onConfirm(true)}
-            className="practice-primary"
+            className={early ? "practice-secondary" : "practice-primary"}
           >
             {switchTo
               ? "Include answer, end, and continue"
@@ -69,7 +100,7 @@ export function EndInterviewConfirmation({
           type="button"
           onClick={() => onConfirm(false)}
           className={
-            draft.trim() && !withoutScoring
+            early || (draft.trim() && !withoutScoring)
               ? "practice-secondary"
               : "practice-primary"
           }

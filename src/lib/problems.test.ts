@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createInterviewStart, getProblem, listProblems } from "@/lib/problems";
 import { interviewLevelSchema } from "@/lib/interview-selection";
+import { interviewerChatText } from "@/lib/chat-display";
+import { sharedRequirementCriteria } from "@/lib/configured-clarifications";
 
 describe("problem registry", () => {
   it("resolves known problems but never falls back from an unknown id", () => {
@@ -43,20 +45,51 @@ describe("problem registry", () => {
     catalog[0].levels.pop();
     expect(listProblems()[0].levels).toHaveLength(3);
   });
-  it("starts each level with a configured problem brief and one clarification question without returning private configuration", () => {
+  it("starts all eight problems at all three levels with only their configured closing question", () => {
     for (const { problemId } of listProblems()) {
       const problem = getProblem(problemId);
       if (!problem) throw new Error("Missing problem config");
       for (const level of interviewLevelSchema.options) {
+        const closingQuestion = problem.levels[level].openingMessage
+          .trim()
+          .split("\n")
+          .at(-1);
         const result = createInterviewStart(problem, level);
         expect(result).toMatchObject({
           problemId,
           level,
           openingMessage: {
             role: "assistant",
-            content: problem.levels[level].openingMessage,
+            content: closingQuestion,
           },
         });
+        expect(
+          interviewerChatText(
+            result.openingMessage.content,
+            result.openingMessage.content,
+          ),
+        ).toBe(closingQuestion);
+        expect(
+          interviewerChatText(
+            problem.levels[level].openingMessage,
+            problem.levels[level].openingMessage,
+          ),
+        ).toBe(closingQuestion);
+        if (problemId !== "single-server-scaling")
+          expect(result.openingMessage.content).not.toContain(
+            "before changing",
+          );
+        expect(result.openingMessage.content).not.toContain("\n");
+        expect(
+          sharedRequirementCriteria(problem, level, [result.openingMessage]),
+        ).toEqual(
+          sharedRequirementCriteria(problem, level, [
+            {
+              role: "assistant",
+              content: problem.levels[level].openingMessage,
+            },
+          ]),
+        );
         expect(result.sessionId).toMatch(/^[0-9a-f-]{36}$/);
         expect(result.phase).toEqual({
           id: problem.phases[0].id,

@@ -44,7 +44,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 ```
 
 Use a modern `sb_publishable_...` key. It is intended for browser use; never use a
-service-role or `sb_secret_...` key here. The browser only uses the publishable key. Private reporting credentials and the invitation list stay server-only. Install the pinned versions with `npm ci`. Restart local development
+service-role or `sb_secret_...` key here. The browser only uses the publishable key. Reporting credentials stay server-only and invitation records stay in the database. Install the pinned versions with `npm ci`. Restart local development
 and create a new build in each affected environment after changing public variables.
 
 Keep `INTERVIEW_RESUME_SECRET`: Supabase login and interview progress tokens have
@@ -132,12 +132,18 @@ References: [Supabase Google sign-in](https://supabase.com/docs/guides/auth/soci
 
 ## Private-beta invitations
 
-Set server-only `MOCKMEAI_INVITED_EMAILS` to a comma-separated list of exact Google
-account emails. Comparisons ignore case and surrounding spaces; domains and
-wildcards are not supported. With no list, only the account identified by
-`ADMIN_USER_ID` can practice. The admin ID comes from verified Auth, never editable
-profile metadata. Every candidate API enforces this check before interview/model
-work. Uninvited accounts see `/not-invited` and can sign out to switch accounts.
+Sign in as the configured admin, open `/admin/access`, enter an exact Google
+account email and choose **Approve access**. Changes apply on the next protected
+request without redeploying. Use **Revoke** to withdraw access. No invitation email
+is sent automatically. The database stores normalized exact emails, without domain
+or wildcard matches. The configured `ADMIN_USER_ID` always has access through
+verified Auth, never editable profile metadata. Every candidate API checks current
+database membership before interview/model work. Uninvited accounts see
+`/not-invited` and can sign out to switch accounts. A database outage returns
+unavailable, never permission to practice or an app-login-expired marker.
+Run `npm run db:admin` before deploying. It imports a legacy local
+`MOCKMEAI_INVITED_EMAILS` list without overriding any existing row, including
+revocations. Runtime checks do not read that variable. See [admin access](admin.md).
 Google may still create an Auth account during OAuth; the account alone does not
 grant app access. Vercel deployment protection remains a separate outer gate.
 

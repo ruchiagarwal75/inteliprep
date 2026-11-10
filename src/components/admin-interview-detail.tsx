@@ -3,6 +3,7 @@ import { elapsedInterviewTime } from "@/lib/reporting-duration";
 import { formatInterviewTime } from "@/lib/interview-timer";
 import { getProblem } from "@/lib/problems";
 import { AdminCost, AdminTime } from "@/components/admin-format";
+import { AdminPracticeFeedbackDetail } from "@/components/admin-practice-feedback-detail";
 export function AdminInterviewDetail({ item }: { item: AdminInterview }) {
   const duration = elapsedInterviewTime(item);
   return (
@@ -16,6 +17,15 @@ export function AdminInterviewDetail({ item }: { item: AdminInterview }) {
         {item.isTest && " · Test session"}
       </p>
       <p className="text-xs break-all">Interview ID: {item.id}</p>
+      {item.notScoredReason && (
+        <p>
+          Scoring:{" "}
+          {item.notScoredReason === "too_short"
+            ? "Too short to score"
+            : "Not enough answered stages"}
+          . No model grading requested.
+        </p>
+      )}
       <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <dt className="font-medium">Started (UTC)</dt>
@@ -102,6 +112,9 @@ export function AdminInterviewDetail({ item }: { item: AdminInterview }) {
           No stored feedback available. Interview status is independent of
           feedback generation.
         </p>
+      )}
+      {item.practiceFeedback && (
+        <AdminPracticeFeedbackDetail feedback={item.practiceFeedback} />
       )}
     </article>
   );

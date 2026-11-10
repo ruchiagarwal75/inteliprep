@@ -53,6 +53,7 @@ export function InterviewLiveHeader({
             ended={false}
             expired={expired}
             testMode={interview.timing.durationMinutes === 1}
+            durationMinutes={interview.timing.durationMinutes}
           />
         )}
         {!ended && (

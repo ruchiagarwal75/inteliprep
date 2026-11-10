@@ -1,3 +1,4 @@
+import { resumePendingQuestion } from "@/lib/pending-question-reply";
 import "server-only";
 import type { ChatRequest } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
@@ -231,6 +232,8 @@ export async function prepareInterviewTurn(
       openQuestions: lease.openQuestions,
       diagramQuestion: modern ? mismatch : undefined,
       answeredQuestionIds: [],
+      continuedQuestionId:
+        visibility && !paused ? lease.openQuestions[0]?.id : undefined,
       diagramUpdates:
         !paused && latest?.action === "review" ? diagramComponents : [],
       listening: isListeningContinuation(
@@ -242,7 +245,7 @@ export async function prepareInterviewTurn(
         (visibility
           ? paused || !lease.openQuestions[0]
             ? visibility
-            : `${withoutQuestions(visibility).trim()}\n\n${lease.openQuestions[0].question}`
+            : `${withoutQuestions(visibility).trim()}\n\n${resumePendingQuestion(lease.openQuestions[0], request.messages)}`
           : undefined) ??
         (!modern ? mismatch : undefined) ??
         (!modern && resumedQuestion
@@ -313,6 +316,7 @@ export async function prepareInterviewTurn(
               completedPlan.state.phaseIndex > 0),
           {
             resolvedQuestionIds: context.answeredQuestionIds ?? [],
+            continuedQuestionId: context.continuedQuestionId,
             topicId: context.selectedTopic,
             stageId: nextPhase.id,
             diagramComponents:

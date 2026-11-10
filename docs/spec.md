@@ -491,13 +491,21 @@ before an asynchronous save commits can lose the latest unsaved changes.
 
 **Interview timer (current)**
 
-Before starting, the candidate selects 45 minutes (default) or 1 minute (test).
-`POST /api/interview/start` accepts optional `durationMinutes` restricted to those
-two values. The server creates `timing: { startedAt, deadlineAt, durationMinutes }`
+Before starting, the candidate selects 45 minutes (default) or 1 hour. A guarded
+1-minute option is available only for development/admin testing.
+`POST /api/interview/start` accepts optional `durationMinutes` of 45 or 60, plus
+the server-authorized test value 1. The server creates `timing: { startedAt, deadlineAt, durationMinutes }`
 and returns a clock-calibration timestamp (`serverTime`). Client-supplied start
 times or deadlines are ignored. The deadline is included in the encrypted resume
 checkpoint and stored with the interview in IndexedDB. Every completed chat
 checkpoint retains the original deadline.
+
+Stage timing scales from the 45-minute baseline. The shared client/server wrap-up
+window is 8 minutes for a 45-minute session and 10 minutes 40 seconds for a one-hour
+session. Scoring retains the one-third-duration evidence threshold (20 minutes
+and at least two answered stages for a one-hour interview). One-minute tests remain
+excluded from regular usage totals; one-hour sessions are ordinary interviews.
+Existing saved attempts retain their original timing and require no migration.
 
 The visible countdown recomputes the difference between that fixed deadline and
 server-aligned wall time. It does not decrement a tick counter, so delayed callbacks,
@@ -1081,3 +1089,60 @@ Start action and house-icon stage preview. No phases or timer rules change.
 Server waiting and browser-history initialization use skeletons. The unused
 local OPTIONS pre-warm was removed from startup; actual interview creation,
 auth checks, quotas, routes, stored records and grading are unchanged.
+
+### Database-managed beta access (November 7)
+
+Exact Google emails and approval state live in the private
+`interview_admin.beta_invites` table. `/admin/access` lets the freshly verified
+configured owner approve or revoke an email. Writes are same-origin, size-bounded,
+strictly validated POSTs, using the existing restricted runtime database role.
+The email primary key and upsert preserve one row and the original creation time.
+Reporting remains read-only; no saved interview is changed by an access update.
+
+Candidate pages and APIs await the current database decision after verifying Auth.
+The existing Auth client calls `is_beta_invited()`, a no-argument SECURITY INVOKER
+function returning only the caller's own RLS-protected membership boolean.
+Authenticated users can read only their own invitation's email/approval columns;
+they cannot edit invitations or read reporting/audit fields. Anonymous execution
+is denied. No permission cache or environment-list fallback delays revocation.
+An unavailable database fails closed with 503. The verified configured admin
+retains access independently. The migration imports any legacy environment list
+without overwriting existing rows or revocations. Google OAuth testing and Vercel
+deployment protection remain separate admission gates.
+# Beta practice feedback (November 2026)
+
+Results include an optional survey independent of scorecard generation, including
+empty and short interviews. It records interview experience, willingness to
+practice again, an optional 2,000-character comment, or a skip. Send and Skip
+briefly show Thanks and permanently dismiss that interview's card via a
+server record plus an account-scoped local dismissal cache. The account menu
+offers the same form for independent written feedback at any time.
+
+`POST /api/feedback` is candidate/invite protected with a strict 4 KB body and
+5/minute, 30/hour, 60/day limits. It verifies interview ownership in the private
+reporting database. A user/interview unique constraint makes repeat sends an
+update; null interview IDs represent independent menu messages. `GET /api/feedback`
+returns only the signed-in owner's handled boolean for a validated interview ID,
+using a separate read quota. No comments enter model requests or server logs.
+
+The private `interview_admin.feedback` table has RLS and reporting-service grants
+only. `/admin/feedback` offers environment-scoped counts, email/comment search,
+exclusion filters and 20-entry pagination. User detail shows the survey beside
+the corresponding interview. Both page entry and data functions re-check admin
+authorization. This additive feature does not change saved sessions or grading.
+# Beta readiness: configured opening questions
+
+New interview transcripts begin with only the selected problem and level's
+closing clarification question. The full configured brief stays on the Brief
+page and pinned problem panel. Shared setup facts come from that trusted brief
+and factual interviewer replies; they do not award candidate evidence. Legacy
+saved openings display their own closing question without rewriting stored chat.
+# Beta readiness: scoring eligibility
+
+The scorer and early-end warning share one rule: one third of the configured
+duration and technical answers in two stages. The server checks eligibility
+before any grading provider call. Ineligible sessions get a deterministic,
+neutral result with elapsed time, the rule and a link back to the Brief. They
+have no model judgments or area scores. New results persist `notScoredReason`
+and reporting stores `not_scored_reason`; old saved scorecards remain readable
+and historical outcomes are not backfilled.

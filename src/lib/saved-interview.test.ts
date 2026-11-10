@@ -5,6 +5,7 @@ import {
   updateSavedInterview,
 } from "@/lib/saved-interview";
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
+import { createInterviewTiming } from "@/lib/interview-timer";
 import {
   rectangleFixture,
   whiteboardFixture,
@@ -35,20 +36,26 @@ describe("browser session snapshots", () => {
     saved.scorecard.endedAt = "2026-10-12T10:04:00.000Z";
     expect(savedInterviewSummary(saved).elapsedSeconds).toBe(240);
   });
-  it("caps timed fallback durations at their deadline, including saves made hours later", () => {
-    const saved = savedFixture();
-    const start = "2026-10-12T10:00:00.000Z";
-    saved.interview.timing = {
-      startedAt: start,
-      deadlineAt: "2026-10-12T10:01:00.000Z",
-      durationMinutes: 1,
-    };
-    saved.updatedAt = "2026-10-12T15:12:15.000Z";
-    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(60);
-    saved.hasEnded = true;
-    saved.endedAt = "2026-10-12T10:00:30.000Z";
-    expect(savedInterviewSummary(saved).elapsedSeconds).toBe(30);
-  });
+  it.each([1, 45, 60] as const)(
+    "round-trips a %i-minute save and caps its duration at the original deadline",
+    (minutes) => {
+      const saved = savedFixture();
+      const start = "2026-10-12T10:00:00.000Z";
+      saved.interview.timing = createInterviewTiming(
+        minutes,
+        Date.parse(start),
+      );
+      expect(
+        savedInterviewSchema.parse(JSON.parse(JSON.stringify(saved))).interview
+          .timing,
+      ).toEqual(saved.interview.timing);
+      saved.updatedAt = "2026-10-12T15:12:15.000Z";
+      expect(savedInterviewSummary(saved).elapsedSeconds).toBe(minutes * 60);
+      saved.hasEnded = true;
+      saved.endedAt = "2026-10-12T10:00:30.000Z";
+      expect(savedInterviewSummary(saved).elapsedSeconds).toBe(30);
+    },
+  );
   it("aligns browser fallback timestamps with the server clock instead of counting clock drift as time used", () => {
     const saved = savedFixture();
     saved.interview.timing = {

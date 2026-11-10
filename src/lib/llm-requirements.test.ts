@@ -138,9 +138,9 @@ it("never tells a candidate to draw while still holding the clarify minimum", as
     coveredCriteria: [0, 1, 2],
     mayInviteDrawing: false,
   });
-  expect(displayed).toContain("Start drawing");
+  expect(displayed).not.toContain("Start drawing");
   expect(displayed).not.toContain("Ready to explain");
-  expect(displayed).not.toContain("?");
+  expect(displayed).toMatch(/\?$/u);
 });
 
 it("canonicalizes the browser-observed handoff and never re-appends answered latency goals", async () => {
@@ -210,5 +210,56 @@ it("does not repeat an answered configured question if the coverage assessor is 
   ))
     displayed += chunk;
   expect(displayed).not.toContain(question);
-  expect(displayed).toContain("Start drawing");
+  expect(displayed).not.toContain("Start drawing");
+  expect(displayed).toMatch(/\?$/u);
 });
+
+it("ends five factual clarification turns with a conversational question", async () => {
+  const p = getProblem("url-shortener");
+  if (!p) throw Error("Missing problem");
+  const interview = {
+    ...context,
+    problem: p,
+    phase: p.phases[0],
+    coveredCriteria: [0, 1, 2],
+    mayInviteDrawing: false,
+  };
+  for (const text of [
+    "Is a visitor required to sign in?",
+    "How long should a link remain usable?",
+    "Are custom aliases required?",
+    "Should a new link work immediately?",
+    "Can click analytics lag?",
+  ]) {
+    mocks.create.mockImplementation(async function* () {
+      yield {
+        type: "response.output_text.delta",
+        delta:
+          "The configured behavior applies. You can use it in your requirements.",
+      };
+      yield { type: "response.completed" };
+    });
+    const displayed = await reply(text, interview);
+    expect(displayed).toMatch(/\?$/u);
+    expect(displayed).not.toContain("Please review your requirements");
+    expect(displayed).not.toContain("choose Start drawing");
+  }
+});
+it.each(["senior", "staff"] as const)(
+  "asks %s to estimate on the configured fast path too",
+  async (level) => {
+    const p = getProblem("url-shortener");
+    if (!p) throw Error("Missing problem");
+    const displayed = await reply("What QPS should I design for?", {
+      ...context,
+      problem: p,
+      phase: p.phases[0],
+      level,
+      coveredCriteria: [0, 1, 2],
+      mayInviteDrawing: false,
+    });
+    expect(displayed).toContain(p.clarifications[0].answers[level]);
+    expect(displayed).toContain("estimate from those inputs?");
+    expect(mocks.create).not.toHaveBeenCalled();
+  },
+);

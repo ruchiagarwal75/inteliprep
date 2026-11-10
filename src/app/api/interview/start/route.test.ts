@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/interview/start/route";
 import { interviewStartSchema } from "@/lib/interview-selection";
+import { getProblem } from "@/lib/problems";
 
 const post = (body: unknown) =>
   POST(
@@ -33,7 +34,7 @@ describe("POST /api/interview/start", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.problemId).toBe("single-server-scaling");
-    expect(body.openingMessage.content).toContain("one server");
+    expect(body.openingMessage.content).not.toContain("\n");
     expect(body.openingMessage.content).toContain(
       "What requirements or constraints",
     );
@@ -66,7 +67,12 @@ describe("POST /api/interview/start", () => {
         "sessionId",
         "timing",
       ]);
-      expect(body.openingMessage.content).toContain("URL shortener");
+      expect(body.openingMessage.content).toBe(
+        getProblem("url-shortener")
+          ?.levels[level as "mid" | "senior" | "staff"].openingMessage.trim()
+          .split("\n")
+          .at(-1),
+      );
       expect(body.openingMessage.content).not.toContain("Use this instead");
     },
   );

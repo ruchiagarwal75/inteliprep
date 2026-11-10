@@ -51,6 +51,84 @@ try {
         "utf8",
       ),
     );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261108050628_beta_invitations.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109011503_beta_approval_emails.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109180853_identified_app_visitors.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109184934_ip_visitor_comparison.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109194452_practice_feedback.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    // One-way compatibility import only. Existing rows (including revocations) win.
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109230144_short_interview_scoring.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261109231409_beta_funnel.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    const legacy = [
+      ...new Set(
+        (process.env.MOCKMEAI_INVITED_EMAILS ?? "")
+          .split(/[,\n]/u)
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    ];
+    for (const email of legacy) {
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email))
+        throw new Error("Invalid legacy invitation email");
+      await tx`insert into interview_admin.beta_invites (email,approved) values (${email},true)
+        on conflict (email) do nothing`;
+    }
     console.log(
       "Private reporting and visitor-count schema are ready. Existing interviews were preserved.",
     );
