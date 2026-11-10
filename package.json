@@ -28,7 +28,7 @@
     "openai": "^7.51.0",
     "postgres": "4.1.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react-dom": "19.3.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
