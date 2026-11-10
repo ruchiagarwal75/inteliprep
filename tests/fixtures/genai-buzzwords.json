@@ -1,0 +1,254 @@
+[
+  {
+    "problemId": "enterprise-rag-assistant",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What workload, freshness, permission and latency constraints are you designing for, and what do they imply?"
+      },
+      {
+        "role": "user",
+        "content": "I would use the stated Senior workload and goals: 20,000 employees, 5M documents and 100K questions a day, with 15-minute edits, five-minute revokes and the two-cent target. The standard cloud architecture should be fine."
+      },
+      {
+        "role": "assistant",
+        "content": "How do documents become searchable and how will edits and deletes propagate?"
+      },
+      {
+        "role": "user",
+        "content": "Connectors, chunking, embeddings, incremental indexing and hybrid search are the components I would use. They are standard best practices."
+      },
+      {
+        "role": "assistant",
+        "content": "How do retrieval results turn into a grounded answer, and what happens with weak evidence?"
+      },
+      {
+        "role": "user",
+        "content": "A reranker, context builder, LLM, citations and an LLM judge will give us good grounded answers. I would rely on those components to do their jobs."
+      },
+      {
+        "role": "assistant",
+        "content": "What happens when the vector index or model service fails, and how do replicas recover?"
+      },
+      {
+        "role": "user",
+        "content": "Replication, retries, circuit breakers and high availability will handle failures. I would use the default settings."
+      },
+      {
+        "role": "assistant",
+        "content": "How will you measure cost per question and trace a bad answer?"
+      },
+      {
+        "role": "user",
+        "content": "Caching, observability and a cost dashboard will keep cost under control. The dashboard should tell us what we need."
+      },
+      {
+        "role": "assistant",
+        "content": "Which retrieval and answer metrics will you evaluate before shipping a change?"
+      },
+      {
+        "role": "user",
+        "content": "I would use an LLM judge and an eval dashboard with human feedback. We can check whether the results look good."
+      },
+      {
+        "role": "assistant",
+        "content": "How does a revocation take effect within five minutes, how are cache keys scoped, and how do you handle malicious retrieved instructions?"
+      },
+      {
+        "role": "user",
+        "content": "ACL filters, cache invalidation and guardrails will handle those security concerns. I would follow the usual defaults."
+      }
+    ],
+    "nodes": [
+      "Employee",
+      "Connectors",
+      "Chunking and embeddings",
+      "Hybrid search",
+      "ACL filter",
+      "Reranker",
+      "Context builder",
+      "LLM",
+      "Cache",
+      "LLM judge and guardrails"
+    ],
+    "edges": [
+      [0, 4],
+      [1, 2],
+      [2, 3],
+      [4, 3],
+      [3, 5],
+      [5, 6],
+      [6, 7],
+      [7, 8],
+      [7, 9]
+    ]
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What workload, token and GPU capacity do you need at Senior?"
+      },
+      {
+        "role": "user",
+        "content": "I would use the stated 20M daily users and 15 messages each, three-times peak, 2,000 input tokens and 400 output tokens. We have GPUs and can scale them, so capacity should work."
+      },
+      {
+        "role": "assistant",
+        "content": "How will you store conversation history and keep context bounded?"
+      },
+      {
+        "role": "user",
+        "content": "A chat service, conversation store, context builder, summarization and prompt caching are the right components. Those are standard choices."
+      },
+      {
+        "role": "assistant",
+        "content": "How do batching, KV cache and stream recovery work in your design?"
+      },
+      {
+        "role": "user",
+        "content": "We will use continuous batching, a KV cache, SSE and idempotency keys. Those mechanisms should handle concurrency and reconnects."
+      },
+      {
+        "role": "assistant",
+        "content": "What happens when GPUs are full or a node dies midway through an answer?"
+      },
+      {
+        "role": "user",
+        "content": "Queues, retries, autoscaling and replicas are standard reliability patterns. I would use their defaults to handle those cases."
+      },
+      {
+        "role": "assistant",
+        "content": "How will tier routing, cost per message and model rollout work?"
+      },
+      {
+        "role": "user",
+        "content": "A large/small model router, tier limits, cost dashboards and canary rollout will handle cost and releases. Paid users can have higher priority."
+      },
+      {
+        "role": "assistant",
+        "content": "Which quality and safety metrics determine whether a new model can ship?"
+      },
+      {
+        "role": "user",
+        "content": "I would use an LLM judge, A/B testing and a quality dashboard. If outputs look good we can ship."
+      },
+      {
+        "role": "assistant",
+        "content": "How do input/output moderation and ownership checks work without violating first-token latency?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation, output guardrails, authentication and permissions should make the system safe. We will use standard middleware."
+      }
+    ],
+    "nodes": [
+      "Client",
+      "Gateway",
+      "Chat service",
+      "Conversation store",
+      "Context builder",
+      "Moderation and guardrails",
+      "Inference router",
+      "GPU cluster and KV cache",
+      "Queue",
+      "LLM judge"
+    ],
+    "edges": [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [2, 4],
+      [4, 5],
+      [5, 6],
+      [6, 7],
+      [6, 8],
+      [7, 9]
+    ]
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What scope, task limits and mistake constraints matter for this agent?"
+      },
+      {
+        "role": "user",
+        "content": "I would design for the stated 20,000 employees, 50K tasks a day, six steps on average, a 30-step cap and a 60-second target. Wrong emails are serious, so we should use best practices."
+      },
+      {
+        "role": "assistant",
+        "content": "How does the agent loop choose and validate tools, and when does it stop?"
+      },
+      {
+        "role": "user",
+        "content": "A planner, agent runner, tool registry and tool executor form the loop. I would add loop detection and a step limit."
+      },
+      {
+        "role": "assistant",
+        "content": "How do checkpoints and idempotency avoid duplicate emails after an ambiguous timeout?"
+      },
+      {
+        "role": "user",
+        "content": "Durable state, checkpoints, retries and idempotency keys are the standard solution. I would rely on those primitives to prevent duplication."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you investigate a wrong action from yesterday?"
+      },
+      {
+        "role": "user",
+        "content": "Audit logs, tracing and replay will let us debug the task. We should log useful events."
+      },
+      {
+        "role": "assistant",
+        "content": "What latency budget and cost per task do you expect?"
+      },
+      {
+        "role": "user",
+        "content": "We will have latency monitoring, token budgets and a cost dashboard. Those should keep tasks fast and affordable."
+      },
+      {
+        "role": "assistant",
+        "content": "What mocked-tool scenarios and metrics gate a new model or prompt?"
+      },
+      {
+        "role": "user",
+        "content": "I would use an LLM judge, mocked tools and an eval suite. We can inspect outputs and see whether they look right."
+      },
+      {
+        "role": "assistant",
+        "content": "What exactly does the approval show, whose credentials execute the action, and what if retrieved content tries to authorize a write?"
+      },
+      {
+        "role": "user",
+        "content": "Scoped tokens, delegated permissions, human approval and guardrails will protect writes. I would use the normal security defaults."
+      }
+    ],
+    "nodes": [
+      "Employee and approval UI",
+      "Agent runner",
+      "Planner",
+      "Tool registry",
+      "Tool executor",
+      "Scoped tokens and guardrails",
+      "Durable task store",
+      "Email and search tools",
+      "Audit log",
+      "LLM judge and mocked tools"
+    ],
+    "edges": [
+      [0, 1],
+      [1, 2],
+      [1, 3],
+      [1, 4],
+      [4, 5],
+      [1, 6],
+      [4, 7],
+      [4, 8],
+      [1, 9]
+    ]
+  }
+]
