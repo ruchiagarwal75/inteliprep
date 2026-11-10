@@ -1,4 +1,5 @@
 "use client";
+import { useBriefPreferences } from "@/components/use-brief-preferences";
 import { Brand } from "@/components/brand";
 import { PracticeSkeleton } from "@/components/practice-skeleton";
 
@@ -56,17 +57,12 @@ export function InterviewWorkspace({
     open: library.open,
     reset: library.reset,
   });
-  const setChoice = starter.setChoice;
-  useEffect(() => {
-    if (view !== "brief" || library.opened) return;
-    const selected = new URLSearchParams(window.location.search).get("problem");
-    if (selected && problems.some((p) => p.problemId === selected))
-      setChoice((c) => ({
-        ...c,
-        problemId: selected,
-        durationMinutes: 45,
-      }));
-  }, [view, library.opened, problems, setChoice]);
+  const setBriefChoice = useBriefPreferences(
+    view === "brief" && library.ready,
+    problems,
+    library.entries,
+    starter.setChoice,
+  );
   useEffect(() => {
     if (!library.opened) return;
     const href =
@@ -113,7 +109,13 @@ export function InterviewWorkspace({
       />
     );
   if (view === "brief")
-    return <InterviewBrief problems={problems} starter={starter} />;
+    return (
+      <InterviewBrief
+        problems={problems}
+        starter={starter}
+        onChoice={setBriefChoice}
+      />
+    );
   if (!library.opened)
     return sessionId ? (
       <main className="p-6">
@@ -123,7 +125,11 @@ export function InterviewWorkspace({
         </p>
       </main>
     ) : (
-      <InterviewBrief problems={problems} starter={starter} />
+      <InterviewBrief
+        problems={problems}
+        starter={starter}
+        onChoice={setBriefChoice}
+      />
     );
   return (
     <InterviewSessionWorkspace

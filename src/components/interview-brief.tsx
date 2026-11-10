@@ -14,9 +14,11 @@ import { PracticeStepper } from "@/components/practice-stepper";
 export function InterviewBrief({
   problems,
   starter,
+  onChoice,
 }: {
   problems: ProblemSummary[];
   starter: ReturnType<typeof useInterviewStarter>;
+  onChoice: (choice: ReturnType<typeof useInterviewStarter>["choice"]) => void;
 }) {
   const errorRef = useRef<HTMLParagraphElement>(null);
   const hasError = Boolean(starter.error);
@@ -45,7 +47,7 @@ export function InterviewBrief({
               hasEnded={false}
               disabled={false}
               choice={starter.choice}
-              onChoice={starter.setChoice}
+              onChoice={onChoice}
               onStart={() => void starter.start()}
               onNew={() => {}}
               onChangeProblem={() => {}}

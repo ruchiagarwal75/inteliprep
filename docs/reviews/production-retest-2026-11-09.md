@@ -134,3 +134,17 @@ Confirmed cause: the desktop header used an intrinsic `auto` center column, so
 stage-name length changed both outer columns. It now reserves 220px for the stage
 and fixed grid slots for the timer and controls. Browser geometry checks cover all
 five labels at 1280px and 1440px. No whiteboard sizing or scaling was changed.
+
+## 8. Brief defaults
+
+The brief previously initialized every workspace to the first problem at Mid-level.
+It now uses an account-scoped last-picked level, with the latest attempt as a legacy
+fallback. The latest stored scorecard suggestion supplies the next problem; an
+explicit Retry/Try link still wins. Without a scorecard, an ended attempt advances
+to the next catalog entry. Durations still default to 45 minutes. Preference/storage
+failures never prevent starting, and delayed reads cannot overwrite a user's choice.
+No saved interview is changed or deleted. Unit and browser checks cover the defaults.
+
+The Brief guide also replaces “The interviewer listens until you choose Done
+explaining.” with “The interviewer waits while you type your explanation.”
+This completes the item 2 copy sweep without changing the guide artwork.

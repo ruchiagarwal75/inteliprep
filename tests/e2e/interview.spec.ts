@@ -689,3 +689,44 @@ test("timer position is stable across all five stage names on laptops", async ({
     expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(1);
   }
 });
+
+test("the brief remembers level and defaults to the suggested next problem", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "admin");
+  await page.goto("/interview/new");
+  await page
+    .getByRole("combobox", { name: "Problem", exact: true })
+    .selectOption("url-shortener");
+  await page
+    .getByRole("combobox", { name: "Difficulty", exact: true })
+    .selectOption("senior");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(page.getByRole("timer")).toBeVisible();
+  await page
+    .getByRole("button", { name: "End interview", exact: true })
+    .click();
+  const grading = page.waitForResponse(
+    (r) =>
+      r.url().endsWith("/api/interview/end") && r.request().method() === "POST",
+  );
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "End interview", exact: true })
+    .click();
+  const result = await (await grading).json();
+  await expect(
+    page.getByRole("heading", { name: "Too short to score", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "MockMeAI home", exact: true }).click();
+  await page.getByRole("link", { name: "Start practice", exact: true }).click();
+  await expect(
+    page.getByRole("combobox", { name: "Difficulty", exact: true }),
+  ).toHaveValue("senior");
+  await expect(
+    page.getByRole("combobox", { name: "Problem", exact: true }),
+  ).toHaveValue(result.scorecard.nextPractice.problemId);
+});

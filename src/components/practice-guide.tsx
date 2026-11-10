@@ -10,7 +10,7 @@ const steps = [
   {
     id: "explain",
     title: "Explain",
-    text: "The interviewer listens until you choose Done explaining.",
+    text: "The interviewer waits while you type your explanation.",
     width: 440,
     height: 110,
   },
