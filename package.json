@@ -25,7 +25,7 @@
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.119.0",
     "next": "16.4.5",
-    "openai": "^7.27.0",
+    "openai": "^7.51.0",
     "postgres": "4.1.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
