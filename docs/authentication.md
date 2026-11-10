@@ -210,3 +210,39 @@ The not-invited page defaults that checkbox on. Removal affects only the verifie
 account's browser database and its draft/dismissal copies. Other accounts and the
 old unassigned `inteliprep` database are retained. An account-scoped local
 invalidation marker prevents an already-open tab from restoring the removed data.
+
+## Allow the beta preview to return from Google sign-in
+
+The app builds its Supabase `redirectTo` from the current browser origin plus
+`/auth/callback`. Its callback handler then redirects to a fixed path on that
+same origin. No code or environment variable change is needed for the stable
+beta hostname.
+
+1. Open the [IntelliPrep Supabase project's URL Configuration](https://supabase.com/dashboard/project/bjqjocrfsiprlvnitfuo/auth/url-configuration).
+2. Under **Authentication → URL Configuration**, keep **Site URL** set to
+   `https://mockmeai.com`. This remains the production default.
+3. Under **Redirect URLs**, choose **Add URL** and add this exact URL:
+
+   ```text
+   https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/auth/callback
+   ```
+
+4. Save. Keep the existing production and localhost callback entries.
+5. Start a fresh sign-in from the [stable beta preview](https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/sign-in).
+   Confirm the callback returns to that same beta hostname. Do not reuse an old
+   OAuth callback URL or authorization code.
+
+Use the stable branch URL when testing. If you deliberately test a deployment's
+unique hostname instead, add that hostname's exact `/auth/callback` URL as well.
+Avoid a broad wildcard across unrelated previews. Admin sign-in adds
+`?next=/admin`; if testing that flow on the preview, allow its exact callback
+variant too.
+
+The Google Cloud OAuth client's redirect URI remains
+`https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback`. Do not replace it with
+the app's beta callback: Google returns to Supabase, then Supabase returns to the
+app. Vercel deployment protection is a separate gate; this allowlist does not
+remove it or grant an account an app invitation. No dashboard settings were
+changed while documenting these steps.
+
+Reference: [Supabase redirect URL configuration](https://supabase.com/docs/guides/auth/redirect-urls).
