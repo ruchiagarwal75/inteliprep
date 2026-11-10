@@ -249,3 +249,30 @@ After:
 > Could you walk through that estimate again, showing the units at each step?
 
 <!-- end-retest-live-10 -->
+
+## 11. Standalone requirement questions
+
+The URL-shortener's configured goal question contained “for the discussed traffic”
+regardless of prior messages. Rendering now uses “for this service”. Answer detection
+recognizes both the old and new forms, so earlier saved conversations stay compatible.
+The regression begins with a sign-in question and no traffic discussion.
+
+<!-- retest-live-11 -->
+
+## Live reply comparison: item 11
+
+### 11-sign-in-first
+
+Before:
+
+> No, short links are public and visitors don't need to sign in.
+>
+> What redirect latency and availability goals would you target for the discussed traffic?
+
+After:
+
+> No, links are public and visitors don't need to sign in.
+>
+> What redirect latency and availability goals would you target for this service?
+
+<!-- end-retest-live-11 -->

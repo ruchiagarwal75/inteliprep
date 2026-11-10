@@ -15,8 +15,16 @@ export function pendingRequirementsQuestion(
   const missing = interview.phase.completionCriteria.findIndex(
     (_, index) => !interview.coveredCriteria?.includes(index),
   );
-  const question = interview.phase.clarificationQuestions?.[missing];
-  return repliedToOpenQuestion(messages, question) ? undefined : question;
+  const configured = interview.phase.clarificationQuestions?.[missing];
+  // This question may be asked before any workload has been established.
+  const question = configured?.replace(
+    /for the discussed traffic/giu,
+    "for this service",
+  );
+  return repliedToOpenQuestion(messages, configured) ||
+    repliedToOpenQuestion(messages, question)
+    ? undefined
+    : question;
 }
 
 /** A bare acknowledgement needs confirmation, rather than a design follow-up. */
