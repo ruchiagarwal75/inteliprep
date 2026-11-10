@@ -370,3 +370,21 @@ Mermaid import flow as a practice feature. These are accepted pending an upstrea
 compatible update, not silently ignored: audit still reports them, CI still fails
 for any high/critical finding, and Dependabot will surface releases. Recheck the
 whiteboard and export after an upstream Excalidraw update. No force-fix is allowed.
+
+## Whiteboard assets and local-history deletion
+
+`predev` and `prebuild` generate `public/fonts/excalidraw/` from the lockfile-pinned
+Excalidraw package via `scripts/copy-whiteboard-fonts.mjs`. The isolated browser
+fixture runs that script before its direct Next build. Keep generated fonts out
+of Git; deploy builds include them in public assets. Configure
+`EXCALIDRAW_ASSET_PATH` before every editor/export dynamic import. CSP must not
+permit `esm.sh` for fonts or connections. The scoped Webpack/Turbopack loader
+also replaces the pinned library's unconditional CDN fallback with the same local
+base. Merely setting the asset path leaves a remote FontFace source that browsers
+validate against CSP. The loader fails closed if that initializer changes; review
+it when upgrading Excalidraw. Never patch the global FontFace constructor.
+
+Never clear history implicitly during sign-out, account changes or history
+rendering. Only the explicit sign-out removal choice may delete that account's
+browser database. Preserve the unknown-owner legacy database. History generation
+markers invalidate old-tab writes and draft journals during removal.

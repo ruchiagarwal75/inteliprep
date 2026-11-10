@@ -45,9 +45,13 @@ test("sign-in links the same anonymous browser on a non-entry page", async ({
     await context.close();
   }
 });
-async function signIn(context: BrowserContext, account = "invited") {
+async function signIn(
+  context: BrowserContext,
+  account = "invited",
+  provider = "google",
+) {
   const response = await context.request.get(
-    `${fixture}/fixture/session?account=${account}`,
+    `${fixture}/fixture/session?account=${account}&provider=${provider}`,
   );
   const session = await response.json();
   await context.addCookies([
@@ -804,4 +808,89 @@ test("an explained design can return from drawing and finish without a new walkt
   await expect(
     page.getByRole("button", { name: "Pause to draw", exact: true }),
   ).toBeVisible();
+});
+
+test("an invited email from a non-Google provider is denied by the real invitation SQL", async ({
+  page,
+  context,
+}) => {
+  await context.request.post(`${fixture}/fixture/invitation`, {
+    data: { account: "uninvited", approved: true },
+  });
+  try {
+    await signIn(context, "uninvited", "email");
+    await page.goto("/interview/new");
+    await expect(page).toHaveURL(/not-invited/u);
+    await expect(
+      page.getByRole("heading", { name: "You're not invited yet" }),
+    ).toBeVisible();
+    const denied = await context.request.post("/api/interview/start", {
+      data: {},
+    });
+    expect(denied.status()).toBe(403);
+    await expect(
+      page.getByRole("checkbox", {
+        name: "Also remove my practice history from this browser",
+      }),
+    ).toBeChecked();
+  } finally {
+    await context.request.post(`${fixture}/fixture/invitation`, {
+      data: { account: "uninvited", approved: false },
+    });
+  }
+});
+test("whiteboard fonts are self-hosted and sign-out removes history only when requested", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "signout");
+  const requests: string[] = [];
+  const errors: string[] = [];
+  page.on("request", (request) => requests.push(request.url()));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  const whiteboard = page.locator(".excalidraw");
+  await expect(whiteboard.locator("canvas").first()).toBeVisible();
+  const bounds = await whiteboard.locator("canvas").first().boundingBox();
+  if (!bounds) throw Error("No whiteboard");
+  await page.mouse.click(bounds.x + 80, bounds.y + 130);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("t");
+  await page.mouse.click(
+    bounds.x + bounds.width / 2,
+    bounds.y + bounds.height / 2,
+  );
+  await page.keyboard.type("Redis cache");
+  await page.keyboard.press("Escape");
+  await expect
+    .poll(() =>
+      requests.some(
+        (url) => url.includes("/fonts/excalidraw/") && url.endsWith(".woff2"),
+      ),
+    )
+    .toBe(true);
+  expect(requests.some((url) => url.includes("esm.sh"))).toBe(false);
+  expect(
+    errors.filter((text) => /content security policy/iu.test(text)),
+  ).toEqual([]);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Your profile" }).click();
+  const remove = page.getByRole("checkbox", {
+    name: "Also remove my practice history from this browser",
+  });
+  await expect(remove).not.toBeChecked();
+  await remove.check();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL(/sign-in/u);
+  const names = await page.evaluate(async () =>
+    (await indexedDB.databases()).map((db) => db.name),
+  );
+  expect(names).not.toContain(
+    "inteliprep:account:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  );
 });

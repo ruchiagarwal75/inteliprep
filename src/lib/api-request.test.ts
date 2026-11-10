@@ -115,3 +115,18 @@ describe("API boundary", () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 });
+
+it.each(["start", "end", "chat"] as const)(
+  "revalidates the user online only at lifecycle boundaries (%s)",
+  async (kind) => {
+    const auth = vi.mocked(requireCandidateIdentity);
+    auth.mockClear();
+    await withApiRequest(
+      kind,
+      "/api/test",
+      async () => Response.json({ ok: true }),
+      { deferLimit: true },
+    )(request("{}"));
+    expect(auth).toHaveBeenCalledWith({ revalidateUser: kind !== "chat" });
+  },
+);

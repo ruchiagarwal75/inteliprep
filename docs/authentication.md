@@ -182,3 +182,31 @@ Do not create or replace the client, secret or callback during a branding change
    sees the invitation notice.
 
 Reference: [Google's OAuth branding settings](https://support.google.com/cloud/answer/15549049).
+
+## November security follow-up
+
+Invitation membership now also requires the verified JWT's immutable
+`app_metadata.provider` to equal `google`. Editable profile metadata cannot grant
+access. The independently authorized admin bypass is unchanged. Install the
+additive Google-only migration with `npm run db:admin` before releasing the code.
+Existing invitations, interviews and saved history are preserved.
+
+Operator checklist: Supabase Dashboard, IntelliPrep, Authentication, Sign In /
+Providers. Keep Google enabled. Disable Email/password, Phone, Anonymous sign-ins
+and every other provider. Save and test both an invited Google account and an
+uninvited account. These are dashboard steps; no provider, credential or JWT
+expiry setting was changed by this patch.
+
+We chose an online `getUser()` check for interview start and end operations, in
+addition to verified claims and the current invitation check. Freeze/explicit exit
+use the same end boundary. An Auth outage remains 503, not signed out. Chat and
+resume still validate claims and current invitations on every request; invite
+revocation remains the immediate access-withdrawal control. This adds the fresh
+account check to low-frequency lifecycle actions without an Auth round trip on
+every model turn. See [Supabase's server-side Auth guidance](https://supabase.com/docs/guides/auth/server-side/advanced-guide).
+
+Sign-out keeps local history by default and offers an explicit removal checkbox.
+The not-invited page defaults that checkbox on. Removal affects only the verified
+account's browser database and its draft/dismissal copies. Other accounts and the
+old unassigned `inteliprep` database are retained. An account-scoped local
+invalidation marker prevents an already-open tab from restoring the removed data.

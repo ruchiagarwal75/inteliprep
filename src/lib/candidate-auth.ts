@@ -10,6 +10,7 @@ import {
 /** Verify the signature; never authorize using getSession() or user_metadata. */
 export async function candidateIdentity(options?: {
   requireInvite?: boolean;
+  revalidateUser?: boolean;
 }): Promise<string | undefined> {
   const client = await supabaseServer();
   try {
@@ -30,6 +31,19 @@ export async function candidateIdentity(options?: {
       /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)
         ? id
         : undefined;
+    if (verified && options?.revalidateUser) {
+      const { data: fresh, error: invalid } = await client.auth.getUser();
+      if (invalid) {
+        if (
+          invalid.status === undefined ||
+          invalid.status === 0 ||
+          invalid.status >= 500
+        )
+          throw new CandidateAuthError(503);
+        return;
+      }
+      if (fresh.user?.id !== verified || fresh.user.is_anonymous) return;
+    }
     if (verified) observeSignedIn(verified, data?.claims.session_id);
     if (verified && options?.requireInvite)
       await requireCandidateInvite(verified, data?.claims.email, client);
@@ -44,8 +58,10 @@ export async function candidateIdentity(options?: {
   }
 }
 
-export async function requireCandidateIdentity(): Promise<string> {
-  const id = await candidateIdentity({ requireInvite: true });
+export async function requireCandidateIdentity(options?: {
+  revalidateUser?: boolean;
+}): Promise<string> {
+  const id = await candidateIdentity({ ...options, requireInvite: true });
   if (!id) throw new CandidateAuthError();
   return id;
 }

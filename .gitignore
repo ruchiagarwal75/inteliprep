@@ -49,3 +49,6 @@ supabase/.temp/
 
 # Local verification evidence, never part of the application bundle.
 /artifacts/
+
+# Generated from the pinned Excalidraw package before dev/build.
+/public/fonts/excalidraw/

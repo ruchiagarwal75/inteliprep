@@ -22,9 +22,7 @@ it("requires the server nonce for scripts and restricts network origins in produ
   expect(script).toContain("'nonce-random-request-nonce'");
   expect(script).not.toContain("'unsafe-inline'");
   expect(script).not.toContain("'unsafe-eval'");
-  expect(policy).toContain(
-    "connect-src 'self' https://auth.example.test https://esm.sh",
-  );
+  expect(policy).toContain("connect-src 'self' https://auth.example.test");
   expect(policy).toContain("frame-src 'none'");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "not-an-origin; connect-src *");
   expect(pageContentSecurityPolicy("n")).not.toContain("connect-src *");

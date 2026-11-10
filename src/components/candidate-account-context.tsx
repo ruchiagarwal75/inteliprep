@@ -8,7 +8,7 @@ export type CandidateAccount = {
   profile?: { name?: string; email?: string; nameIsCustom?: boolean };
   storage: InterviewStorage;
   request: typeof fetch;
-  signOut: () => Promise<void>;
+  signOut: (removeHistory?: boolean) => Promise<void>;
 };
 export const CandidateAccountContext = createContext<
   CandidateAccount | undefined

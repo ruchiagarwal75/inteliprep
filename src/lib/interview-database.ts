@@ -1,3 +1,4 @@
+import { historyGeneration } from "@/lib/practice-history-generation";
 import { BRAND } from "@/lib/brand";
 export class InterviewStorageInactiveError extends Error {
   constructor() {
@@ -52,6 +53,11 @@ export function createInterviewDatabase(userId: string) {
     throw new Error("A valid account is required for browser storage.");
   const name = `inteliprep:account:${userId}`;
   let active = true;
+  const generation = historyGeneration(userId);
+  const available = () =>
+    active &&
+    !generation.startsWith("removing:") &&
+    generation === historyGeneration(userId);
   const pending = new Set<IDBTransaction>();
   async function transaction<T>(
     mode: IDBTransactionMode,
@@ -61,9 +67,9 @@ export function createInterviewDatabase(userId: string) {
       fail: (error: Error) => void,
     ) => void,
   ): Promise<T> {
-    if (!active) throw new InterviewStorageInactiveError();
+    if (!available()) throw new InterviewStorageInactiveError();
     const db = await openDatabase(name);
-    if (!active) {
+    if (!available()) {
       db.close();
       throw new InterviewStorageInactiveError();
     }
@@ -82,7 +88,7 @@ export function createInterviewDatabase(userId: string) {
         db.close();
         reject(
           failure ??
-            (!active ? new InterviewStorageInactiveError() : tx.error) ??
+            (!available() ? new InterviewStorageInactiveError() : tx.error) ??
             new Error(
               "Browser save failed. Check your storage settings and free disk space.",
             ),

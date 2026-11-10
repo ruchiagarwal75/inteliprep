@@ -47,6 +47,10 @@ export async function startReportingFixture(key, cert) {
   );
   try {
     await operator.unsafe(`create role anon; create role authenticated; create schema auth;
+      create function auth.jwt() returns jsonb language sql stable as $$select nullif(current_setting('request.jwt.claims',true),'')::jsonb$$;
+      create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;
+      grant usage on schema auth to authenticated;
+      grant execute on function auth.jwt(),auth.uid() to authenticated;
       create table auth.users(id uuid primary key,email text,created_at timestamptz default now(),is_anonymous boolean default false,deleted_at timestamptz);
       `);
     for (const account of Object.values(fixtureAccounts))
@@ -57,23 +61,39 @@ export async function startReportingFixture(key, cert) {
       "20261109194452_practice_feedback.sql",
       "20261109230144_short_interview_scoring.sql",
       "20261109231409_beta_funnel.sql",
+      "20261108050628_beta_invitations.sql",
+      "20261110072257_google_only_beta_invitations.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
       );
+    for (const [name, account] of Object.entries(fixtureAccounts))
+      await operator`insert into interview_admin.beta_invites(email,approved) values (${account.email},${name !== "uninvited"})`;
     await operator.unsafe(
       "alter role mockmeai_reporting password 'ci-only-reporting-fixture'",
     );
   } catch (cause) {
     await pg.stop();
     throw cause;
-  } finally {
-    await operator.end({ timeout: 1 });
   }
   let stopping;
   return {
     connection:
       "postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres",
-    stop: () => (stopping ??= pg.stop()),
+    isInvited: async (user) =>
+      operator.begin(async (tx) => {
+        await tx.unsafe("set local role authenticated");
+        await tx`select set_config('request.jwt.claims',${JSON.stringify({ sub: user.id, email: user.email, app_metadata: user.app_metadata })},true)`;
+        const [row] = await tx`select public.is_beta_invited() as approved`;
+        return row.approved;
+      }),
+    setInvite: async (account, approved) => {
+      await operator`update interview_admin.beta_invites set approved=${approved} where email=${account.email}`;
+    },
+    stop: () =>
+      (stopping ??= (async () => {
+        await operator.end({ timeout: 1 });
+        await pg.stop();
+      })()),
   };
 }

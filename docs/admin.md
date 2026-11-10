@@ -395,3 +395,18 @@ eligibility and visible assessed scorecards are idempotent; the other steps reus
 existing interviews and non-skipped feedback. New-milestone history starts at
 `reporting_state.beta_funnel_since` and is not backfilled. See
 [beta readiness](beta-readiness.md#beta-funnel-definitions) for the exact definitions.
+
+## Owner account protection
+
+The admin identity remains one verified Google account. In Google Account,
+Security, How you sign in to Google, enable a passkey or 2-Step Verification and
+keep recovery methods current. This is an owner action, not an app setting.
+Never share the account or recovery codes with a testing agent.
+
+Anonymous visitor ingestion has a shared UTC-day budget of 2,000 new browser
+identifiers and a separate 2,000 new IP-comparison identifiers. Existing records
+may still be updated, and verified account reporting continues when the anonymous
+browser budget is full. Reservations are atomic in Redis; a failed insert can
+consume a reservation conservatively. The per-network endpoint limit is 50 per
+day. IPv6 anonymous quotas share a /64, while the optional IP comparison retains
+full-address keyed hashes. These protections do not identify unique people.

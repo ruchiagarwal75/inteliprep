@@ -90,7 +90,11 @@ export function withApiRequest(
         assertBetaReady();
         failureStage = "identity_or_invite";
         const candidateId =
-          kind === "clientError" ? undefined : await requireCandidateIdentity();
+          kind === "clientError"
+            ? undefined
+            : await requireCandidateIdentity({
+                revalidateUser: kind === "start" || kind === "end",
+              });
         setReportingUser(candidateId);
         const expectedAccount = request.headers.get("X-Interview-Account");
         if (expectedAccount && candidateId !== expectedAccount) {

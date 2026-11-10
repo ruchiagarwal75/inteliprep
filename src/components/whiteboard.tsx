@@ -1,12 +1,16 @@
 "use client";
 
+import { configureWhiteboardAssets } from "@/lib/whiteboard-assets";
 import dynamic from "next/dynamic";
 import { useRef } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import "@excalidraw/excalidraw/index.css";
 
 const Excalidraw = dynamic(
-  () => import("@excalidraw/excalidraw").then((module) => module.Excalidraw),
+  () => {
+    configureWhiteboardAssets();
+    return import("@excalidraw/excalidraw").then((module) => module.Excalidraw);
+  },
   {
     ssr: false,
     loading: () => (

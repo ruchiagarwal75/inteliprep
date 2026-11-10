@@ -6,6 +6,8 @@
     "node": "24.x"
   },
   "scripts": {
+    "predev": "node scripts/copy-whiteboard-fonts.mjs",
+    "prebuild": "node scripts/copy-whiteboard-fonts.mjs",
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",

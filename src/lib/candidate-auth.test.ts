@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.hoisted(() => vi.resetModules());
 vi.unmock("@/lib/candidate-auth");
 const claims = vi.hoisted(() => vi.fn());
+const getUser = vi.hoisted(() => vi.fn());
 const rpc = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/supabase-server", () => ({
-  supabaseServer: async () => ({ auth: { getClaims: claims }, rpc }),
+  supabaseServer: async () => ({ auth: { getClaims: claims, getUser }, rpc }),
 }));
 import {
   candidateIdentity,
@@ -17,6 +18,7 @@ import {
 
 beforeEach(() => rpc.mockResolvedValue({ data: true, error: null }));
 afterEach(() => {
+  getUser.mockReset();
   claims.mockReset();
   rpc.mockReset();
   vi.unstubAllEnvs();
@@ -110,4 +112,28 @@ describe("verified candidate identity", () => {
       expect(supabaseConfiguration()).toBeUndefined();
     }
   });
+});
+
+it("revalidates lifecycle boundaries online and distinguishes rejected sessions from service failure", async () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  claims.mockResolvedValue({
+    data: { claims: { sub: id, email: "invited@example.test" } },
+    error: null,
+  });
+  getUser.mockResolvedValueOnce({ data: { user: { id } }, error: null });
+  expect(await requireCandidateIdentity({ revalidateUser: true })).toBe(id);
+  getUser.mockResolvedValueOnce({
+    data: { user: null },
+    error: { status: 401 },
+  });
+  await expect(
+    requireCandidateIdentity({ revalidateUser: true }),
+  ).rejects.toMatchObject({ status: 401 });
+  getUser.mockResolvedValueOnce({
+    data: { user: null },
+    error: { status: 503 },
+  });
+  await expect(
+    requireCandidateIdentity({ revalidateUser: true }),
+  ).rejects.toMatchObject({ status: 503 });
 });

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { clearPracticeHistory } from "@/lib/clear-practice-history";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { createCandidateBrowserScope } from "@/lib/candidate-browser-scope";
@@ -21,6 +22,7 @@ export function CandidateWorkspace({
   view?: "home" | "brief" | "interview" | "results";
   sessionId?: string;
 }) {
+  const removeHistoryRequested = useRef(false);
   const [visible, setVisible] = useState(true);
   const [profile, setProfile] = useState<CandidateAccount["profile"]>();
   const [signOutFailed, setSignOutFailed] = useState(false);
@@ -90,12 +92,15 @@ export function CandidateWorkspace({
       profile,
       storage: scope.storage,
       request: scope.request,
-      async signOut() {
+      async signOut(removeHistory = false) {
+        removeHistoryRequested.current ||= removeHistory;
         // Local state disappears immediately, including while a model reply is pending.
         scope.deactivate();
         setVisible(false);
         setSignOutFailed(false);
         try {
+          if (removeHistoryRequested.current)
+            await clearPracticeHistory(userId);
           const response = await fetch("/auth/sign-out", {
             method: "POST",
             signal: AbortSignal.timeout(12_000),
@@ -119,7 +124,11 @@ export function CandidateWorkspace({
       <main className="p-6" role={signOutFailed ? "alert" : "status"}>
         {signOutFailed ? (
           <>
-            <p>Sign-out couldn’t be completed. Your workspace is hidden.</p>
+            <p>
+              Sign-out couldn’t be completed. Your workspace is hidden. If you
+              chose to remove history, close other MockMeAI tabs before
+              retrying.
+            </p>
             <button
               type="button"
               className="mt-3 underline"

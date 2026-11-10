@@ -1,5 +1,11 @@
 import { afterEach, expect, it, vi } from "vitest";
-const { query } = vi.hoisted(() => ({ query: vi.fn(async () => []) }));
+const { query, budget } = vi.hoisted(() => ({
+  query: vi.fn<
+    (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>
+  >(async () => []),
+  budget: vi.fn(async () => true),
+}));
+vi.mock("@/lib/viewer-row-budget", () => ({ reserveViewerRow: budget }));
 vi.mock("@/lib/reporting-db", () => ({ reportingDb: () => query }));
 import { trackAppViewer, viewerHash } from "@/lib/viewer-tracking";
 afterEach(() => {
@@ -35,4 +41,21 @@ it("uses a stable pseudonym and separates admin, development, and ordinary produ
   expect(query.mock.calls.at(-1)?.at(-1)).toBe(true);
   await trackAppViewer(viewer, undefined, true);
   expect(query.mock.calls.at(-1)?.at(-1)).toBe(true);
+});
+
+it("skips new browser rows when the shared budget is exhausted but retains verified account reporting", async () => {
+  budget.mockResolvedValueOnce(false);
+  query.mockClear();
+  await trackAppViewer(viewer, "11111111-1111-4111-8111-111111111111", false);
+  const statements = query.mock.calls.map((call) => String(call[0]));
+  expect(
+    statements.some((text) =>
+      text.includes("insert into interview_admin.app_viewers"),
+    ),
+  ).toBe(false);
+  expect(
+    statements.some((text) =>
+      text.includes("insert into interview_admin.app_visitor_accounts"),
+    ),
+  ).toBe(true);
 });

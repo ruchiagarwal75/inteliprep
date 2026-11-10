@@ -174,3 +174,18 @@
   opacity: 1;
   cursor: not-allowed;
 }
+
+.history-removal-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-width: 28ch;
+  margin-block: 8px;
+}
+.history-removal-choice input {
+  flex: none;
+  margin-top: 4px;
+  accent-color: var(--teal);
+}

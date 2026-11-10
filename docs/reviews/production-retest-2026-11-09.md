@@ -168,9 +168,12 @@ CI exposed test-data coupling: new browser scenarios shared the original account
 three-start minute window. Each scenario now uses a separate synthetic account;
 production limits are unchanged. The multi-request catalog integration test has
 a 15-second cold-run budget instead of five seconds. No app/model timeout changed.
-The local machine reported CPU_Speed_Limit 22%, so subsequent full check/build
-validation uses the existing GitHub Actions job, with targeted and real-model
-checks locally. Each item's CI must pass before moving on; Production stays on main.
+The local machine reported CPU_Speed_Limit 22%, so full check/build validation
+for items 9 through 12 used the existing GitHub Actions job, alongside targeted
+and real-model checks locally. Once local performance recovered, full local
+check/build runs resumed for items 13 through 16. Each item’s check/build passed
+before the next implementation item. The final full CI/browser run gates release
+from main.
 
 <!-- retest-live-9 -->
 
@@ -363,3 +366,194 @@ readiness booleans remain in allowlisted server logs. Provider-specific error
 codes are replaced with INTERVIEWER_UNAVAILABLE, preserving status/retry behavior
 and request IDs. Unit tests cover generic provider responses and health payloads;
 the browser suite checks headers on the public, brief and API paths.
+
+## 16. Remaining November 7 audit
+
+The original review is committed separately before applying its follow-up fixes.
+All existing sessions remain in place. The optional future sign-out removal path
+was tested only with synthetic accounts.
+
+| Audit item | Resolution |
+| --- | --- |
+| 1. Invitation provider | Additive SECURITY INVOKER migration also requires immutable Google provider metadata. Real PostgreSQL/RLS browser fixture rejects an approved non-Google account. Owner must disable other providers in Supabase. |
+| 2. Public viewer writes | Atomic shared daily reservations cap new browser rows at 2,000 and new IP-comparison rows at 2,000. Existing updates and verified account reporting continue. Anonymous viewer limit is 50/day. |
+| 3. Local history | Optional account-scoped removal on sign-out, checked initially only on not-invited. Late writes and journals are invalidated; other accounts and unknown-owner legacy history remain. |
+| 4. Session freshness | Chose online getUser on start/end, including end/freeze/exit boundaries. Chat/resume keep claims plus current invitation checks. No JWT settings changed. |
+| 5. Third-party fonts | Build-generated, pinned self-hosted Excalidraw fonts and asset path for editor/export. Removed esm.sh from both CSP destinations. |
+| 6. IPv6 quotas | Canonical anonymous /64 identity, with IPv4-mapped addresses sharing the IPv4 quota. Identified account quotas and full-IP comparison semantics unchanged. |
+| 7. Framework header | Already fixed in retest item 15. |
+| 8. Public health details | Already fixed in retest item 15. |
+| 9. Google owner security | Documented passkey/2-Step Verification checklist; owner must complete it. |
+| 10. Dependencies | Retained accepted low KaTeX/Excalidraw warnings and weekly Dependabot. No force-fix or downgrade. Current audit results are recorded in final validation. |
+
+No secret or Vercel environment changes were made. The source migration is
+additive; no older migration or history record is deleted. The intermittent
+whiteboard sizing issue and rate-limiter answer depth remain outside this work.
+
+### Audit verification and remaining operator actions
+
+The additive Google-only function was installed in the app database and verified
+as SECURITY INVOKER with its provider predicate in place. Real isolated PostgreSQL
+with authenticated RLS also accepted Google and rejected Email for the same
+approved account. The Supabase connector’s advisor tools were unavailable in this
+session; existing RLS, invoker status and grants were checked directly instead.
+No interview or invitation row was deleted.
+
+The font browser check initially caught the pinned library's unconditional CDN
+fallback, despite a correct local asset path. A scoped, fail-closed bundler loader
+now makes that fallback local too. The production browser check passed with local
+font requests, no esm.sh requests, no CSP violations, and account-only sign-out
+removal. No font artwork or library source on disk was modified.
+
+The production dependency audit reports four accepted low KaTeX-chain warnings,
+zero moderate/high/critical. The full audit adds seven development-only moderate
+warnings, left to weekly Dependabot. No force-fix was used.
+
+Owner actions remain: disable every Supabase sign-in provider except Google, and
+enable a passkey or 2-Step Verification for the Google admin account. No credentials,
+provider-console settings or Vercel environment variables were changed.
+
+### Real-model comparison method
+
+Before/after scripts used the existing local model configuration
+(gpt-6.1-terra with low reasoning) without changing it. Item 12 is intentionally a
+server-owned quiet response while explaining, so its before/after comparison makes
+no model call. Its actual Draw/Explain/Done cycle is also covered in Chromium.
+Items 13 and 14 did not reproduce their reported weak baseline in the synthetic
+conversation; deterministic grammar tests and explicit reliability guidance were
+added, with the real replies retained above. Historical 503 causes remain unknown
+for the expired log window; the exact retrieval steps and new diagnostics are in
+item 3. The storage lifecycle failure was reproduced and fixed.
+
+## Changed files
+
+- `.github/dependabot.yml`
+- `.gitignore`
+- `CLAUDE.md`
+- `docs/admin.md`
+- `docs/authentication.md`
+- `docs/deployment.md`
+- `docs/reviews/production-retest-2026-11-09.md`
+- `docs/reviews/security-audit-2026-11-07.md`
+- `next.config.ts`
+- `package.json`
+- `scripts/copy-whiteboard-fonts.mjs`
+- `scripts/excalidraw-fonts-loader.cjs`
+- `scripts/migrate-admin.mjs`
+- `src/app/api/chat/route.test.ts`
+- `src/app/api/health/route.test.ts`
+- `src/app/api/health/route.ts`
+- `src/app/api/monitoring/viewer/route.test.ts`
+- `src/app/api/monitoring/viewer/route.ts`
+- `src/app/interview.css`
+- `src/app/not-invited/page.tsx`
+- `src/app/privacy/page.tsx`
+- `src/app/theme.css`
+- `src/components/candidate-account-context.tsx`
+- `src/components/candidate-sign-out.tsx`
+- `src/components/candidate-workspace.tsx`
+- `src/components/chat-panel.tsx`
+- `src/components/end-interview-confirmation.tsx`
+- `src/components/interview-brief.tsx`
+- `src/components/interview-live-header.tsx`
+- `src/components/interview-pacing.test.ts`
+- `src/components/interview-pacing.tsx`
+- `src/components/interview-results-order.test.ts`
+- `src/components/interview-results.tsx`
+- `src/components/interview-scorecard.tsx`
+- `src/components/interview-spec-ui.test.ts`
+- `src/components/interview-timer.tsx`
+- `src/components/interview-workspace.tsx`
+- `src/components/invite-sign-out.tsx`
+- `src/components/mascot-moments.tsx`
+- `src/components/practice-feedback-form.tsx`
+- `src/components/practice-guide.tsx`
+- `src/components/practice-hero.tsx`
+- `src/components/scorecard-evidence.tsx`
+- `src/components/scorecard-review.test.ts`
+- `src/components/scoring-warning.test.ts`
+- `src/components/short-interview-result.test.ts`
+- `src/components/short-interview-result.tsx`
+- `src/components/use-brief-preferences.ts`
+- `src/components/use-interview-autosave.ts`
+- `src/components/whiteboard.tsx`
+- `src/lib/api-request.test.ts`
+- `src/lib/api-request.ts`
+- `src/lib/brief-preferences.test.ts`
+- `src/lib/brief-preferences.ts`
+- `src/lib/candidate-auth.test.ts`
+- `src/lib/candidate-auth.ts`
+- `src/lib/candidate-browser-scope.test.ts`
+- `src/lib/chat-api-error.test.ts`
+- `src/lib/chat-api-error.ts`
+- `src/lib/chat-display.ts`
+- `src/lib/clarification-continuation.test.ts`
+- `src/lib/clarification-continuation.ts`
+- `src/lib/clarification-repeat.test.ts`
+- `src/lib/clear-practice-history.test.ts`
+- `src/lib/clear-practice-history.ts`
+- `src/lib/close-interview.ts`
+- `src/lib/diagram-label-copy.test.ts`
+- `src/lib/diagram-label-copy.ts`
+- `src/lib/draft-journal.ts`
+- `src/lib/drawing-reply.ts`
+- `src/lib/explanation-history.test.ts`
+- `src/lib/interview-database.ts`
+- `src/lib/interview-grading.test.ts`
+- `src/lib/interview-instructions.ts`
+- `src/lib/interview-progress.ts`
+- `src/lib/interview-turn.ts`
+- `src/lib/interviewer-input.ts`
+- `src/lib/ip-address.test.ts`
+- `src/lib/ip-address.ts`
+- `src/lib/ip-visitor-tracking.ts`
+- `src/lib/llm-handoff.test.ts`
+- `src/lib/llm.ts`
+- `src/lib/open-question.ts`
+- `src/lib/practice-history-generation.ts`
+- `src/lib/question-memory.test.ts`
+- `src/lib/question-memory.ts`
+- `src/lib/reconnect-interview.test.ts`
+- `src/lib/reconnect-interview.ts`
+- `src/lib/request-limits.ts`
+- `src/lib/requirements-reply.test.ts`
+- `src/lib/requirements-reply.ts`
+- `src/lib/scorecard-calibration.ts`
+- `src/lib/scoring-copy.test.ts`
+- `src/lib/scoring-copy.ts`
+- `src/lib/security-headers.test.ts`
+- `src/lib/security-headers.ts`
+- `src/lib/server-events.ts`
+- `src/lib/viewer-row-budget.test.ts`
+- `src/lib/viewer-row-budget.ts`
+- `src/lib/viewer-tracking.test.ts`
+- `src/lib/viewer-tracking.ts`
+- `src/lib/visitor-ip.ts`
+- `src/lib/whiteboard-assets.ts`
+- `src/lib/whiteboard-image.ts`
+- `supabase/migrations/20261110072257_google_only_beta_invitations.sql`
+- `tests/e2e/fixture-accounts.mjs`
+- `tests/e2e/fixture-service.mjs`
+- `tests/e2e/interview.spec.ts`
+- `tests/e2e/reporting-fixture.mjs`
+- `tests/e2e/server.mjs`
+- `tests/problem-catalog-interviews.test.ts`
+- `tests/provider-auth-failure.test.ts`
+- `tests/whiteboard-fonts-loader.test.ts`
+
+## Final local verification
+
+`npm run check` passed with 1,309 tests passing and two pre-existing skipped tests.
+`npm run build` passed. All 20 production-build Chromium tests passed, including
+both 45/60-minute flows, feedback ownership/admin access, visible chat Retry,
+active deadline with an unsent draft, expired server transcript, stable timer,
+remembered picker, drawing-update cycle, Google-only invitation SQL, local fonts
+and explicit account-only history removal. Existing browser sizing checks also
+passed; no sizing implementation was changed. Preview/CI verification gates the
+subsequent fast-forward to main.
+
+The additional development/Turbopack font-and-sign-out browser check passed too.
+It caught a non-matching initial loader glob; a scoped module-path condition now
+applies the same transform in development. The check uses isolated synthetic
+Auth/database services, with a longer assertion wait for cold dev compilation.
+No application timeout was changed.

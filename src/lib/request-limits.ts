@@ -1,6 +1,6 @@
 import "server-only";
 import { createHmac } from "node:crypto";
-import { isIP } from "node:net";
+import { anonymousIpNetwork } from "@/lib/ip-address";
 import { currentCandidateId } from "@/lib/candidate-context";
 import {
   usesSharedStore,
@@ -15,7 +15,7 @@ export const REQUEST_LIMITS = {
   end: [5, 20, 40],
   resume: [60, 1_000, 3_000],
   clientError: [30, 300, 1_000],
-  viewer: [60, 1_000, 10_000],
+  viewer: [20, 50, 50],
   feedback: [5, 30, 60],
 } as const;
 export type RequestKind = keyof typeof REQUEST_LIMITS;
@@ -37,10 +37,11 @@ export function requestIdentity(request: Request): string {
   }
   if (process.env.VERCEL !== "1") return "local";
   const ip = request.headers.get("x-vercel-forwarded-for")?.trim();
-  if (!ip || !isIP(ip)) throw new BetaUnavailableError();
+  const network = ip && anonymousIpNetwork(ip);
+  if (!network) throw new BetaUnavailableError();
   const secret = process.env.INTERVIEW_RESUME_SECRET;
   if (!secret) throw new BetaUnavailableError();
-  return createHmac("sha256", secret).update(ip).digest("hex");
+  return createHmac("sha256", secret).update(network).digest("hex");
 }
 
 // Check all windows before incrementing, atomically across server instances.

@@ -1,3 +1,4 @@
+import { reserveViewerRow } from "@/lib/viewer-row-budget";
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { reportingDb } from "@/lib/reporting-db";
@@ -18,6 +19,9 @@ export async function recordIpVisitor(hash: string, isTest: boolean) {
   if (!/^[a-f0-9]{64}$/u.test(hash))
     throw new Error("Invalid IP comparison identifier");
   const sql = reportingDb();
+  const [known] =
+    await sql`select 1 from interview_admin.app_ip_visitors where environment=${reportingEnvironment()} and ip_hash=${hash} and is_test=${isTest}`;
+  if (!known && !(await reserveViewerRow("ip", `${hash}:${isTest}`))) return;
   await sql`insert into interview_admin.app_ip_visitors as existing (environment,ip_hash,is_test)
     values (${reportingEnvironment()},${hash},${isTest})
     on conflict (environment,ip_hash,is_test) do update

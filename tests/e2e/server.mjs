@@ -44,8 +44,8 @@ execFileSync(
   { stdio: "ignore" },
 );
 chmodSync(key, 0o600);
-const fixture = await startFixtureService(key, cert);
 const reporting = await startReportingFixture(key, cert);
+const fixture = await startFixtureService(key, cert, reporting);
 const env = {
   ...process.env,
   NODE_ENV: "production",
@@ -101,6 +101,7 @@ function next(args) {
   });
 }
 try {
+  execFileSync(process.execPath, ["scripts/copy-whiteboard-fonts.mjs"]);
   await next(["build", "--webpack"]);
   await next(["start", "--hostname", "127.0.0.1", "--port", "3100"]);
 } catch {

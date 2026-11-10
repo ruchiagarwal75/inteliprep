@@ -13,8 +13,10 @@ export default function PrivacyPage() {
         basic profile. Authentication cookies keep you signed in. Full saved
         interviews, whiteboard drawings, chat, feedback and unsent drafts are
         stored in this browser in an account-specific IndexedDB database.
-        Signing out keeps that history on this device. It does not sync across
-        devices.
+        Signing out keeps that history unless you select “Also remove my
+        practice history from this browser”. On the not-invited page, removal is
+        selected by default. Removal clears only this account’s saved interviews
+        and draft copies on this browser. History does not sync across devices.
       </p>
       <p>
         We store your invited Google email, beta approval status, and when and

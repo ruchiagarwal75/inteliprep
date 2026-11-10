@@ -5,13 +5,13 @@ import { readFileSync } from "node:fs";
 
 export const fixtureOrigin = "https://127.0.0.1:4444";
 const jwtSecret = "mockmeai-ci-only-auth-fixture-not-a-production-key";
-function session(account) {
+function session(account, provider = "google") {
   const user = {
     ...account,
     aud: "authenticated",
     role: "authenticated",
     created_at: new Date().toISOString(),
-    app_metadata: { provider: "google", providers: ["google"] },
+    app_metadata: { provider, providers: [provider] },
     user_metadata: { full_name: "Browser Smoke" },
     is_anonymous: false,
   };
@@ -28,6 +28,7 @@ function session(account) {
       iat: now,
       exp: now + 3600,
       is_anonymous: false,
+      app_metadata: user.app_metadata,
     },
   ]
     .map((value) => Buffer.from(JSON.stringify(value)).toString("base64url"))
@@ -59,7 +60,7 @@ function authenticatedUser(header) {
     const account = Object.values(accounts).find(
       (value) => value.id === data.sub,
     );
-    if (account) return session(account).user;
+    if (account) return session(account, data.app_metadata?.provider).user;
   } catch {
     /* Invalid fixture tokens are rejected just like an external Auth service. */
   }
@@ -73,13 +74,8 @@ function inputData(body) {
       : (content?.find((value) => value.type === "input_text")?.text ?? "{}"),
   );
 }
-export function startFixtureService(key, cert) {
+export function startFixtureService(key, cert, reporting) {
   let modelCalls = 0;
-  const approved = new Set(
-    Object.values(accounts)
-      .filter((account) => account.id !== accounts.uninvited.id)
-      .map((account) => account.id),
-  );
   const service = createServer(
     { key: readFileSync(key), cert: readFileSync(cert) },
     async (req, res) => {
@@ -102,6 +98,7 @@ export function startFixtureService(key, cert) {
           200,
           session(
             accounts[url.searchParams.get("account")] ?? accounts.invited,
+            url.searchParams.get("provider") ?? "google",
           ),
         );
       if (url.pathname === "/fixture/stats") return json(200, { modelCalls });
@@ -112,8 +109,7 @@ export function startFixtureService(key, cert) {
         const account = accounts[body.account];
         if (!account || typeof body.approved !== "boolean")
           return json(400, {});
-        if (body.approved) approved.add(account.id);
-        else approved.delete(account.id);
+        await reporting.setInvite(account, body.approved);
         return json(200, { updated: true });
       }
       if (url.pathname === "/auth/v1/user") {
@@ -130,7 +126,7 @@ export function startFixtureService(key, cert) {
       if (url.pathname === "/rest/v1/rpc/is_beta_invited") {
         const user = authenticatedUser(req.headers.authorization);
         if (!user) return json(401, { message: "Invalid fixture session" });
-        return json(200, approved.has(user.id));
+        return json(200, await reporting.isInvited(user));
       }
       if (url.pathname !== "/v1/responses")
         return json(404, { error: "Unknown fixture request" });

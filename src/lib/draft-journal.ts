@@ -1,3 +1,4 @@
+import { historyGeneration } from "@/lib/practice-history-generation";
 import { boundedChatDraft } from "@/lib/chat-draft";
 type Store = Pick<Storage, "getItem" | "setItem">;
 /** A synchronous, tab-local journal protects the debounce/unload window. IndexedDB remains the history store. */
@@ -37,10 +38,25 @@ export function browserDraftJournal(userId: string, sessionId?: string) {
       tab = crypto.randomUUID();
       sessionStorage.setItem("inteliprep:draft-tab", tab);
     }
-    return draftJournal(
+    const generation = historyGeneration(userId);
+    const journal = draftJournal(
       localStorage,
       `inteliprep:draft:${userId}:${sessionId}:${tab}`,
     );
+    return {
+      read: (fallback: string, savedAt?: number) =>
+        !generation.startsWith("removing:") &&
+        generation === historyGeneration(userId)
+          ? journal.read(fallback, savedAt)
+          : "",
+      write: (text: string) => {
+        if (
+          !generation.startsWith("removing:") &&
+          generation === historyGeneration(userId)
+        )
+          journal.write(text);
+      },
+    };
   } catch {
     return;
   }

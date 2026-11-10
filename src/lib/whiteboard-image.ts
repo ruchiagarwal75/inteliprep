@@ -1,3 +1,4 @@
+import { configureWhiteboardAssets } from "@/lib/whiteboard-assets";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import {
   diagramImageSchema,
@@ -10,6 +11,7 @@ import {
 export async function exportWhiteboardImage(
   scene: WhiteboardScene,
 ): Promise<string> {
+  configureWhiteboardAssets();
   const { exportToBlob } = await import("@excalidraw/excalidraw");
   if (typeof document !== "undefined" && document.fonts)
     await document.fonts.ready;

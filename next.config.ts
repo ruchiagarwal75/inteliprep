@@ -1,8 +1,25 @@
+import { resolve } from "node:path";
 import type { NextConfig } from "next";
 import { securityHeaders } from "./src/lib/security-headers";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.js$/u,
+      include: resolve("node_modules/@excalidraw/excalidraw/dist"),
+      use: [resolve("scripts/excalidraw-fonts-loader.cjs")],
+    });
+    return config;
+  },
+  turbopack: {
+    rules: {
+      "*.js": {
+        condition: { path: /@excalidraw\/excalidraw\/dist\/(?:dev|prod)\//u },
+        loaders: ["./scripts/excalidraw-fonts-loader.cjs"],
+      },
+    },
+  },
   // Test builds have their own output; this flag never bypasses authentication.
   distDir: process.env.MOCKMEAI_E2E_BUILD === "1" ? ".next-e2e" : ".next",
   typescript: {

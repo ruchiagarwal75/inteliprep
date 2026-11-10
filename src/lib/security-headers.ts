@@ -30,8 +30,8 @@ export function pageContentSecurityPolicy(nonce: string) {
     // React/Excalidraw require dynamic style attributes. Scripts still require a nonce.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
-    "font-src 'self' data: https://esm.sh",
-    `connect-src 'self' ${authOrigin} https://esm.sh${dev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
+    "font-src 'self' data:",
+    `connect-src 'self' ${authOrigin}${dev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
     "worker-src 'self' blob:",
     "frame-src 'none'",
     "media-src 'none'",
