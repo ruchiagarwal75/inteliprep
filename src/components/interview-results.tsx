@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { InterviewFeedbackCard } from "@/components/interview-feedback-card";
+import { ScorecardViewTracker } from "@/components/scorecard-view-tracker";
 import { ScorecardLoading } from "@/components/scorecard-loading";
 import { ResultsMascot } from "@/components/mascot-moments";
 import { useRef, useState } from "react";
@@ -61,6 +63,12 @@ export function InterviewResults({
     `/interview/new?problem=${encodeURIComponent(problem ?? interview?.problemId ?? "single-server-scaling")}`;
   return (
     <div className="interview-results">
+      {tab === "scorecard" &&
+        scorecard &&
+        !scorecard.notScoredReason &&
+        interview?.sessionId && (
+          <ScorecardViewTracker interviewId={interview.sessionId} />
+        )}
       <ResultsMascot scorecard={scorecard} ready={!busy && !closed} />
       <header className="results-heading">
         <h2 className="results-title">Interview results</h2>
@@ -136,6 +144,12 @@ export function InterviewResults({
           ))}
         </div>
       </header>
+      {interview?.sessionId && (
+        <InterviewFeedbackCard
+          key={interview.sessionId}
+          interviewId={interview.sessionId}
+        />
+      )}
       <div
         id={`results-${tab}`}
         role="tabpanel"

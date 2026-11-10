@@ -6,6 +6,7 @@ export function withDiagramConsistency(
   card: Scorecard,
   snapshot: InterviewEndSnapshot,
 ): Scorecard {
+  if (card.notScoredReason) return card;
   return {
     ...card,
     diagramConsistency: auditDiagram(snapshot),

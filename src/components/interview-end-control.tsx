@@ -104,6 +104,7 @@ export function InterviewEndControl({
         switchTo={leaveAction}
         draft={draft}
         remainingSeconds={remainingSeconds}
+        durationMinutes={interview?.timing?.durationMinutes}
         onCancel={() => {
           setConfirmEnd(false);
           onCancelLeave();

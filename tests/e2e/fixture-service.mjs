@@ -5,6 +5,10 @@ import { readFileSync } from "node:fs";
 export const fixtureOrigin = "https://127.0.0.1:4444";
 const jwtSecret = "mockmeai-ci-only-auth-fixture-not-a-production-key";
 const accounts = {
+  admin: {
+    id: "99999999-9999-4999-8999-999999999999",
+    email: "owner@example.invalid",
+  },
   invited: {
     id: "11111111-1111-4111-8111-111111111111",
     email: "browser-smoke@example.invalid",
@@ -29,6 +33,7 @@ function session(account) {
     { alg: "HS256", typ: "JWT" },
     {
       sub: user.id,
+      session_id: user.id,
       email: user.email,
       aud: "authenticated",
       role: "authenticated",
@@ -83,6 +88,7 @@ function inputData(body) {
 }
 export function startFixtureService(key, cert) {
   let modelCalls = 0;
+  const approved = new Set([accounts.invited.id]);
   const service = createServer(
     { key: readFileSync(key), cert: readFileSync(cert) },
     async (req, res) => {
@@ -108,6 +114,17 @@ export function startFixtureService(key, cert) {
           ),
         );
       if (url.pathname === "/fixture/stats") return json(200, { modelCalls });
+      if (url.pathname === "/fixture/invitation" && req.method === "POST") {
+        let raw = "";
+        for await (const chunk of req) raw += chunk;
+        const body = JSON.parse(raw);
+        const account = accounts[body.account];
+        if (!account || typeof body.approved !== "boolean")
+          return json(400, {});
+        if (body.approved) approved.add(account.id);
+        else approved.delete(account.id);
+        return json(200, { updated: true });
+      }
       if (url.pathname === "/auth/v1/user") {
         const user = authenticatedUser(req.headers.authorization);
         return json(
@@ -118,6 +135,11 @@ export function startFixtureService(key, cert) {
       if (url.pathname === "/auth/v1/logout") {
         res.writeHead(204).end();
         return;
+      }
+      if (url.pathname === "/rest/v1/rpc/is_beta_invited") {
+        const user = authenticatedUser(req.headers.authorization);
+        if (!user) return json(401, { message: "Invalid fixture session" });
+        return json(200, approved.has(user.id));
       }
       if (url.pathname !== "/v1/responses")
         return json(404, { error: "Unknown fixture request" });

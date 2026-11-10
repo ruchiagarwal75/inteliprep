@@ -34,7 +34,8 @@ export function reportingDb() {
     ssl: {
       rejectUnauthorized: true,
       ca: readFileSync(
-        join(process.cwd(), "certificates/supabase-root-2021.crt"),
+        process.env.SUPABASE_REPORTING_CA_FILE ??
+          join(process.cwd(), "certificates/supabase-root-2021.crt"),
         "utf8",
       ),
     },

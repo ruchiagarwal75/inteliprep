@@ -1,6 +1,7 @@
 # Private admin MVP
 
-`/admin` is a read-only operational dashboard. It uses Supabase Postgres and the
+`/admin` has read-only reporting and an owner-only beta-access editor at
+`/admin/access`. It uses Supabase Postgres and the
 existing structured server logs; it adds no external analytics or monitoring
 service. Account counts come directly from `auth.users`.
 
@@ -26,11 +27,91 @@ service. Account counts come directly from `auth.users`.
 5. Sign in normally, then visit `/admin`. Admin sign-in returns only to the fixed
    same-origin admin route. APIs return 401/403 rather than redirecting.
 
-Every page and data-read API independently checks the owner against a freshly
+Every page and admin API independently checks the owner against a freshly
 verified `auth.getUser()` response. Dashboard/API responses are private and
-uncached. Only GET admin APIs exist. The `interview_admin` schema is not exposed to
-browser roles: its tables have RLS enabled, no browser policies, and no schema or
-table grants for `anon` or `authenticated`. Its credentials remain server-only.
+uncached. Invitation updates require same-origin POSTs, JSON with a 1 KB size limit,
+and strict email/boolean validation. Reporting APIs remain GET-only. The
+`interview_admin` schema is not exposed through the Data API. Reporting tables
+have RLS and no browser table grants; the invitation exception is described below.
+
+## Approving beta users
+
+1. Sign in with the configured admin account and open `/admin/access`.
+2. Newly registered accounts appear under **Awaiting approval**, newest first.
+   Click **Approve** beside the account. The entry moves into Invitations as
+   approved. Alternatively, enter a Google email under **Invite by email** before
+   the person signs in. A new approval sends a notification from
+   `MockMeAI <hello@mockmeai.com>` through Resend.
+3. They can refresh or sign in. **Revoke** withdraws access on their next protected
+   request without deleting their account or saved interviews.
+
+The private `interview_admin.beta_invites` table stores one normalized email per
+row, approval state, server timestamps and the admin who last changed that state.
+Retries preserve the original creation time and do not create duplicate rows.
+The configured admin always has access independently of the table.
+
+The pending list reads the existing registered-account projection; it does not
+create duplicate signup records. Accounts with an existing invitation, including
+an explicit revocation, do not reappear as pending. The configured admin is excluded
+because their access is automatic. Search covers both lists, which have separate
+pagination controls. Existing approvals, accounts and saved interviews remain intact.
+
+### Approval emails
+
+Verify `mockmeai.com` in Resend and add a **sending-only** `RESEND_API_KEY` to
+`.env.local` for local work and Vercel **Production** for the deployed app.
+The key is server-only. The verified sender is `hello@mockmeai.com`; no mailbox
+or Supabase Auth SMTP change is required for these outgoing notifications.
+Sending does not change the Google OAuth test-user list.
+
+Run `npm run db:admin` before deploying this version. The additive
+`20261109011503_beta_approval_emails.sql` migration creates a private outbox.
+Approval and its notification record commit in one transaction. Only an actual
+transition to approved queues an email. A repeated Approve request, refresh,
+revocation or page read does not create another notification. Existing approved
+accounts remain unchanged and are not automatically emailed. Re-approval after
+revocation creates a new approval notification.
+
+The Access page shows the email status beside the invitation. **Sent to email
+provider** means Resend accepted the request, not proof of inbox delivery. Check
+Resend for delivery/bounce details. Failed/pending sends offer **Retry email**;
+the access grant stays valid. Retry accepts only a notification UUID and uses
+fresh owner authentication, same-origin checks and the stored recipient/template.
+No public send-email endpoint is added.
+
+The outbox freezes sender, recipient, subject and body so retries submit exactly
+the same request with an idempotency key tied to the notification UUID. A 30-second
+database lease blocks parallel sends and permits recovery after an interrupted
+request. Resend deduplicates for 24 hours, so API retries stop after 23 hours from
+the first attempt to avoid duplicates after that window. Older unconfirmed
+attempts say **Delivery unconfirmed** and require checking Resend. There is no
+background retry worker or delivery webhook in this MVP; refresh the Access page
+and retry there. Revoked/superseded notifications cannot be retried; an email
+already accepted cannot be recalled.
+
+Only the restricted runtime role can read/write outbox rows. Browser candidate
+roles have no grants, and RLS is enabled. The database stores message IDs,
+timestamps, bounded failure categories and debugging references; logs contain
+references/categories only, never recipient addresses, API keys or email bodies.
+The approval email contains no interview answers or drawings. Unit/API tests
+stub sending, and the opt-in live database test rolls back its fixtures without
+sending email.
+
+Candidates call the no-argument `is_beta_invited()` RPC with their existing Auth
+session. This SECURITY INVOKER function returns only their own membership boolean.
+Authenticated roles have schema USAGE and SELECT on only the invitation email and
+approval columns, restricted by an own-verified-JWT-email RLS policy. They cannot
+read another email, audit metadata or reporting tables, or insert/update invitations.
+Anonymous users cannot call the function. Admin writes use the existing restricted
+runtime database role. No service-role key is added.
+
+Run `npm run db:admin` before deploying. It imports a locally configured legacy
+`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including
+revocations, win. Remove the old variable after import. Runtime checks never read it.
+For another environment with legacy invitees, import its emails before retiring
+its list. Verify permissions with `node scripts/verify-beta-invites.mjs`; all test
+writes roll back. Approvals share the existing database across environments using
+that project. Google OAuth test users and Vercel protection remain separate gates.
 
 ## Definitions and coverage
 
@@ -148,10 +229,19 @@ alerts, custom charting, PostHog, or Sentry.
 
 ## First-visit metric
 
-The New app visitors (browsers) panel reports distinct first-party browsers since
-tracking began, plus first visits in the trailing seven days. It is separate from
-registered users and uses the existing environment and admin/test exclusion filter.
-Local/development visits are test activity. Earlier visits are unavailable.
+The **App reach** panel prominently reports identified signed-in accounts and
+accounts with their first recorded visit in the trailing seven days. A verified
+Supabase account is counted once per environment, across browsers and devices.
+This measures accounts, not guaranteed distinct people. It uses the existing
+admin/test exclusion filter; if two known visitors are the owner and one candidate,
+the default account count can correctly be one. Registered accounts remain a
+separate metric. Earlier unrecorded visits are unavailable.
+
+The dashboard no longer displays historical browser-ID counts. Their persisted
+records remain intact for compatibility. Signed-out QA, deployment screenshots,
+automation and different browser profiles can inflate them. Existing anonymous
+records cannot be retrospectively identified or reliably removed as tests.
+No records are deleted or manually adjusted to an assumed number of people.
 
 The additive `20261107221500_app_viewer_reporting.sql` migration creates the private
 `interview_admin.app_viewers` table. Run `npm run db:admin` in each target database;
@@ -161,16 +251,72 @@ No additional environment variables or external services are needed.
 A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its
 SHA-256 hash, environment, first-seen server timestamp, exclusion flag and optional
 verified account reference are persisted. Refreshes and retries cannot increase
-the count or reset first-seen time. Signing in can link a browser to an admin/test
+the browser count or reset first-seen time. The tracker resends its existing
+browser ID on initial authenticated sessions and sign-in events, including on
+the not-invited or admin page. Identity always comes from verified server claims,
+never the browser request. Signing in can link a browser to an admin/test
 account and exclude it retroactively. The public write-only endpoint is same-origin,
 size-bounded and rate-limited; `/api/admin/visitors` uses the existing owner check.
 Reporting remains best effort and never blocks interviews.
 
+The additive `20261109180853_identified_app_visitors.sql` migration adds the private
+`app_visitor_accounts` table, keyed by environment and verified account ID. It
+imports only existing identified account links, retaining their earliest recorded
+visit, and preserves every old browser record. Run `npm run db:admin` before deploying.
+Separate account records also count multiple accounts using the same browser.
+
+Known bot/headless/screenshot user agents are ignored by the endpoint; the client
+also skips webdriver-controlled browsers. These are measurement filters, not
+proof of humanity or a security boundary. No raw user agents or IPs are stored.
+For QA using a regular shared browser, set
+`localStorage.setItem("mockmeai:exclude-analytics", "1")` before navigating to app
+entry pages. Remove that one key to resume tracking. It does not alter account
+access, saved interviews or drafts. Production smoke tests must opt out or block
+the tracking request; isolated CI clears the reporting connection entirely.
+
 This measures browsers, not exact people. Clearing storage or switching browsers
 can count a person again; blocked storage and failed requests can miss visits.
-There are no IP records, browsing trails, referrers, heartbeats or session replay.
+There are no raw IP records, browsing trails, referrers, heartbeats or session replay.
 Nothing before tracking started is backfilled. Missing database data is displayed
 as unavailable, not zero.
+
+## IP-address comparison
+
+The dashboard also shows distinct **IP addresses** across all newly recorded visits
+and addresses seen in the last seven days. The recent window uses last-seen time,
+so returning addresses are included. This is a comparison of connections, not a
+count of people or a conversion rate: Wi-Fi/NAT can combine people, and changing
+networks/VPNs can split one person. The account metric still measures identified
+accounts. Prior browser IDs cannot be backfilled into this comparison.
+
+Run `npm run db:admin` to apply the additive
+`20261109184934_ip_visitor_comparison.sql` migration. No old records are changed.
+Generate a dedicated `VISITOR_IP_HASH_SECRET` once with `openssl rand -hex 32` and
+configure it as a server-only sensitive **Production** variable in Vercel. Keep it
+stable; rotating it changes the pseudonyms and prevents cross-key deduplication.
+Do not reuse the resume secret or provider keys. Localhost does not supply a
+trusted platform IP and shows the comparison as unavailable. Missing configuration
+or a failed IP query shows unavailable, while an enabled empty dataset shows zero
+and “No eligible IP visits recorded yet.” Account counts remain available if only
+the IP comparison fails.
+
+The server reads only Vercel's `x-vercel-forwarded-for` when `VERCEL=1`, validates
+and canonicalizes IPv4/IPv6, and computes an HMAC-SHA256 pseudonym. Arbitrary
+client IP fields and forwarded headers outside Vercel are not accepted. The raw
+address is never put in application logs, SQL, browser responses or reporting.
+The private RLS-protected table stores only environment, hash, first/last server
+timestamps and an admin/test classification. No account ID or device fingerprint
+is stored in this table. Records remain until operator removal; the hash is
+pseudonymous, not a claim of fully anonymous data.
+
+Known automation is skipped before recording. Admin/test events are classified
+from verified identity/local testing; an existing excluded browser also stays
+excluded after sign-out. Separate classified rows allow an ordinary visitor to
+share an admin's public IP without disappearing from the default comparison.
+Including admin/test activity counts each address only once across both groups.
+Signed-out testing in an unidentified browser can still count, so QA must opt out.
+First/last timestamps are server-owned and repeat visits preserve the original
+first-seen value. No periodic heartbeat or additional tracking requests are added.
 
 ## Restricted runtime database role
 
@@ -204,3 +350,48 @@ preserves the existing anonymous/deleted-account filter without granting the rol
 access to those status columns or Auth secrets. It is inaccessible to browser
 roles, SELECT-only for reporting and deliberately non-updatable. Do not expose it
 through the Data API or grant it public access.
+# Practice feedback
+
+Candidates can answer or skip a short survey on results, including interviews
+that are too short to score, or use **Send feedback** in their account menu.
+Feedback never enters model requests or diagnostic logs and never gates scoring.
+`POST /api/feedback` uses candidate authentication, current invitation checks,
+same-origin enforcement, a 4 KB strict JSON boundary, and per-account limits of
+5/minute, 30/hour and 60/day. Comments are trimmed and limited to 2,000 characters.
+The byte limit also applies to multibyte text.
+
+Run `npm run db:admin` with operator credentials to install the additive
+`20261109194452_practice_feedback.sql` migration. Existing interviews and
+scorecard feedback are unchanged. Only the restricted reporting role has access
+to the new RLS-protected table. Candidates must own the persisted interview to
+submit its survey. Repeated submissions update the existing user/interview row;
+account-menu submissions have no interview and remain independent entries.
+Send/Skip dismissal is stored server-side and cached under an account-scoped
+localStorage key, without storing the comment there.
+
+Read feedback at `/admin/feedback`. Summary counts and the 20-entry pages use the
+current environment, email/comment search and exclusion filters. Answered and
+skipped totals count interview-end records only; menu entries are shown
+separately. Choice counts include all non-skipped submissions. The totals do not
+measure all completed interviews or people who never submitted the card. A
+second answer replaces the first, without changing its original creation date.
+Practice feedback also appears alongside interviews under `/admin/users/[id]`.
+The page and direct read API re-check the configured admin identity. Comments
+are rendered as plain text. No feedback is emailed or sent to an AI provider.
+
+Browser CI now starts a temporary PostgreSQL cluster with synthetic accounts,
+strict TLS and the actual reporting-role grants. It exercises feedback ownership,
+upserts, skips, rendering, search and admin denial without production credentials.
+`SUPABASE_REPORTING_CA_FILE` optionally supplies a trusted CA for this isolated
+database; the default remains the checked-in Supabase root. TLS verification is
+always enabled. The temporary cluster is removed when the runner shuts down.
+# Beta funnel
+
+Open `/admin/funnel` to filter all seven beta milestones by inclusive UTC calendar
+dates and email, with per-user counts and admin/test exclusions. Counts use
+persisted server records. Only the three missing milestones have a new private,
+RLS-protected `beta_funnel_events` table. Signed-in Auth sessions, interview
+eligibility and visible assessed scorecards are idempotent; the other steps reuse
+existing interviews and non-skipped feedback. New-milestone history starts at
+`reporting_state.beta_funnel_since` and is not backfilled. See
+[beta readiness](beta-readiness.md#beta-funnel-definitions) for the exact definitions.

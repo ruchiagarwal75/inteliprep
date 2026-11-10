@@ -39,19 +39,44 @@ function forget(id: string) {
 }
 
 describe("server-issued interview deadlines", () => {
-  it("returns the selected duration and server time without trusting a supplied deadline", async () => {
+  it.each([1, 45, 60] as const)(
+    "returns the selected %i-minute duration and server time without trusting a supplied deadline",
+    async (durationMinutes) => {
+      const response = await start(
+        request({
+          ...selection,
+          durationMinutes,
+          timing: { deadlineAt: "2099-01-01T00:00:00.000Z" },
+        }),
+      );
+      const body = await response.json();
+      expect(response.status).toBe(200);
+      expect(body.serverTime).toBe(new Date(now).toISOString());
+      expect(Date.parse(body.timing.deadlineAt)).toBe(
+        now + durationMinutes * 60_000,
+      );
+      expect(unsealSession(body.resumeToken).timing).toEqual(body.timing);
+    },
+  );
+  it("retains a one-hour deadline on resume and expires after exactly one hour", async () => {
     const response = await start(
+      request({ ...selection, durationMinutes: 60 }),
+    );
+    const opened = await response.json();
+    vi.advanceTimersByTime(15 * 60_000);
+    const refreshed = await resume(
       request({
         ...selection,
-        durationMinutes: 1,
-        timing: { deadlineAt: "2099-01-01T00:00:00.000Z" },
+        sessionId: opened.sessionId,
+        resumeToken: opened.resumeToken,
       }),
     );
-    const body = await response.json();
-    expect(response.status).toBe(200);
-    expect(body.serverTime).toBe(new Date(now).toISOString());
-    expect(Date.parse(body.timing.deadlineAt)).toBe(now + 60_000);
-    expect(unsealSession(body.resumeToken).timing).toEqual(body.timing);
+    expect(refreshed.status).toBe(200);
+    expect((await refreshed.json()).timing).toEqual(opened.timing);
+    vi.advanceTimersByTime(45 * 60_000);
+    expect(() => acquireInterviewSession(opened.sessionId, selection)).toThrow(
+      "Time is up",
+    );
   });
   it("rejects unsupported duration options", async () => {
     expect(

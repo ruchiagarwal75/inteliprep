@@ -47,3 +47,16 @@ it("combines topic coverage with minimum/maximum time and skips minimums for tes
     }).advance,
   ).toBe(true);
 });
+it("scales one-hour stage minimums and forces wrap-up with 10:40 remaining", () => {
+  const hour = (minutes: number) => ({
+    timing: createInterviewTiming(60, start),
+    enteredAt: new Date(start).toISOString(),
+    now: start + minutes * 60_000,
+  });
+  expect(stageTimeGate(0, true, hour(3.9)).advance).toBe(false);
+  expect(stageTimeGate(0, true, hour(4)).advance).toBe(true);
+  expect(stageTimeGate(2, true, hour(10)).advance).toBe(false);
+  expect(stageTimeGate(2, true, hour(11)).advance).toBe(true);
+  expect(stageTimeGate(3, true, hour(49)).wrap).toBe(false);
+  expect(stageTimeGate(3, true, hour(49 + 1 / 3)).wrap).toBe(true);
+});

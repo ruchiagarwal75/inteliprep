@@ -16,6 +16,17 @@ export default function PrivacyPage() {
         Signing out keeps that history on this device. It does not sync across
         devices.
       </p>
+      <p>
+        We store your invited Google email, beta approval status, and when and
+        by which admin that status changed. Approvals control access to practice
+        interviews and can be withdrawn without deleting your saved history.
+      </p>
+      <p>
+        When access is approved, we send your email address and an approval
+        notification to Resend for email delivery. Our private database keeps
+        the notification, delivery-attempt status and a debugging reference.
+        These emails do not include interview answers or drawings.
+      </p>
       <h2>Interview processing</h2>
       <p>
         The server uses Redis for the verified transcript, interview progress,
@@ -36,6 +47,15 @@ export default function PrivacyPage() {
       </p>
       <h2>Operational reporting and first visits</h2>
       <p>
+        We record sign-in sessions, verified interview milestones and whether
+        you open a scorecard to understand where beta testers stop. These
+        records do not contain interview answers.
+      </p>
+      <p>
+        Feedback you send is saved with your account and only the MockMeAI admin
+        can see it.
+      </p>
+      <p>
         Our private admin database records account signup information, interview
         milestones, elapsed duration and outcome, selected feedback summaries,
         failure reference IDs, model token usage and estimated cost. It does not
@@ -47,9 +67,23 @@ export default function PrivacyPage() {
         A first-party random ID in localStorage lets us count a browser&apos;s
         first visit. We store a hash of that ID, its first-visit time,
         environment, an admin/test exclusion flag and an account reference when
-        you are signed in. We do not store page trails or IP addresses for this
-        metric. Another browser or cleared storage can count again. There is no
-        session replay or third-party analytics integration.
+        you are signed in. We also record each verified account&apos;s first
+        visit once per environment, so multiple browsers do not inflate the
+        account count. Known automated clients are excluded using browser
+        automation signals and request user-agent checks; user-agent strings are
+        not stored. Another browser or cleared storage can count again in the
+        browser records. There is no session replay or third-party analytics
+        integration.
+      </p>
+      <p>
+        For a separate connection-count comparison, the server reads the IP
+        address supplied by Vercel and stores a keyed hash of it, first and most
+        recent visit times, environment and a test-activity flag. Raw IP
+        addresses are not stored or intentionally logged by this app. The
+        comparison does not prove how many people visited. These pseudonymous
+        records remain until the operator removes them, like other operational
+        reporting. We do not store browsing trails or device fingerprints for
+        this comparison.
       </p>
       <p>
         Server logs contain limited diagnostic metadata such as request IDs,

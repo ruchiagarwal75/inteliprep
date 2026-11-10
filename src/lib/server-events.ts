@@ -29,6 +29,8 @@ type Event = {
     | "model_retry"
     | "model_test_fault"
     | "question_review_fallback"
+    | "approval_email_sent"
+    | "approval_email_failure"
     | "framework_failure"
     | "client_failure";
   requestId?: string;

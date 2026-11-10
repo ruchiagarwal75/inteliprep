@@ -1,16 +1,14 @@
 import { plainInterviewerText } from "@/lib/interviewer-reply-filter";
-import { invitesDrawing } from "@/lib/open-question";
+import { invitesDrawing, questionAtEnd } from "@/lib/open-question";
 import {
   DRAWING_WAIT_REPLY,
   EXPLANATION_WAIT_REPLY,
 } from "@/lib/drawing-reply";
 
-export const INTERVIEW_OPENER =
-  "Let's start with requirements. What would you want to know before changing anything?";
-
 /** Display-only: the verified transcript and grading evidence remain unchanged. */
 export function interviewerChatText(content: string, opening?: string) {
-  if (opening && content === opening) return INTERVIEW_OPENER;
+  if (opening && content === opening)
+    return (questionAtEnd(content) ?? content).replaceAll("—", ", ");
   if ([DRAWING_WAIT_REPLY, EXPLANATION_WAIT_REPLY].includes(content.trim()))
     return "";
   return plainInterviewerText(content)

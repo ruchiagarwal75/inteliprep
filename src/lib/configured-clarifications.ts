@@ -68,24 +68,24 @@ export function sharedRequirementCriteria(
   messages: ChatMessage[],
 ) {
   const criteria = new Set(problem.openingCriteria);
-  const sharedText = normalizeSharedFacts(
-    messages
+  const sharedMessages = [
+    problem.levels[level].openingMessage,
+    ...messages
       .filter((message) => message.role === "assistant")
-      .map((message) => message.content)
-      .join("\n"),
-  );
+      .map((message) => message.content),
+  ];
+  const sharedText = normalizeSharedFacts(sharedMessages.join("\n"));
   for (const entry of problem.clarifications) {
     if (
       (entry.sharedAnswerPatterns &&
         new RegExp(entry.sharedAnswerPatterns[level], "iu").test(sharedText)) ||
-      messages.some(
-        (message) =>
-          message.role === "assistant" &&
-          (message.content.includes(entry.answers[level]) ||
-            Boolean(
-              entry.sharedAnswerPattern &&
-              new RegExp(entry.sharedAnswerPattern, "iu").test(message.content),
-            )),
+      sharedMessages.some(
+        (content) =>
+          content.includes(entry.answers[level]) ||
+          Boolean(
+            entry.sharedAnswerPattern &&
+            new RegExp(entry.sharedAnswerPattern, "iu").test(content),
+          ),
       )
     )
       entry.coversCriteria.forEach((index) => criteria.add(index));

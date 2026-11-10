@@ -5,6 +5,7 @@ import type { InterviewStart } from "@/lib/interview-selection";
 import type { InterviewPhase } from "@/lib/interview-phase";
 import type { InterviewSaveUpdate } from "@/lib/saved-interview";
 import { interviewResumeResponseSchema } from "@/lib/interview-resume";
+import { interviewWrapUpSeconds } from "@/lib/interview-timer";
 export function useWrapUpDeadline(
   interview: InterviewStart | undefined,
   remaining: number,
@@ -20,7 +21,7 @@ export function useWrapUpDeadline(
       !interview?.timing ||
       interview.timing.durationMinutes === 1 ||
       busy ||
-      remaining > 480 ||
+      remaining > interviewWrapUpSeconds(interview.timing.durationMinutes) ||
       remaining <= 0 ||
       applied.current
     )

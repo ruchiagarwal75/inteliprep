@@ -24,7 +24,11 @@ it("shows old interviewer formatting as plain text while retaining the original 
 
 it("keeps pacing controls out of chat bubbles without changing their stored content", () => {
   const messages = [
-    { role: "assistant" as const, content: "Full configured problem brief." },
+    {
+      role: "assistant" as const,
+      content:
+        "Full configured problem brief.\n\nWhich requirements would you clarify first?",
+    },
     {
       role: "user" as const,
       content: "I'd like time to draw.",
@@ -47,7 +51,7 @@ it("keeps pacing controls out of chat bubbles without changing their stored cont
       openingMessage: messages[0].content,
     }),
   );
-  expect(html).toContain("Let&#x27;s start with requirements");
+  expect(html).toContain("Which requirements would you clarify first?");
   expect(html).toContain("The cache serves reads.");
   expect(html).toContain("MockMeAI interviewer");
   expect(html).not.toContain("Full configured problem brief");

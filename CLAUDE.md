@@ -314,9 +314,11 @@ variables. Keep its new styles in that system rather than adding global selector
 
 `usesSharedStore()` selects Redis-backed coordination on deployed instances,
 including Production. It does not describe audience or invitation policy.
-`MOCKMEAI_INVITED_EMAILS` is a server-only exact-email private-beta allowlist;
-missing configuration permits only `ADMIN_USER_ID`. New authenticated users can
-have an Auth record without being invited to interview APIs.
+Private-beta access lives in `interview_admin.beta_invites`, managed by the owner
+at `/admin/access`. Candidates use an own-email RLS-protected SECURITY INVOKER RPC;
+the admin remains independently authorized by verified `ADMIN_USER_ID`. The old
+`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database
+membership fails closed. New Auth records alone never grant interview access.
 
 Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and
 `inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;
@@ -325,6 +327,13 @@ uses only `INTERVIEW_RESUME_SECRET`, with a named stable fallback for local
 `NODE_ENV=development` only. Never use a provider key for encryption.
 
 ## Browser verification and evidence
+
+Before opening Production in an automated or shared QA browser, block
+`/api/monitoring/viewer` or set `mockmeai:exclude-analytics=1` in that browser's
+localStorage. Signed-out testing otherwise creates unverified browser records.
+The admin dashboard's confirmed reach metric counts verified account IDs;
+anonymous browser IDs are not unique people. Never edit historical counts to
+an assumed number of visitors.
 
 `npm run test:e2e` runs a production build in `.next-e2e`, a local HTTPS Auth/model
 fixture and Chromium. It uses synthetic accounts and model replies and cannot

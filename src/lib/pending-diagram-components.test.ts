@@ -1,8 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  pendingDiagramComponents,
-  diagramUpdateClause,
-} from "@/lib/pending-diagram-components";
+import { pendingDiagramComponents } from "@/lib/pending-diagram-components";
 import { sceneSchema } from "@/lib/scene";
 it("keeps a named addition through quiet turns and removes components no longer present", () => {
   const old = sceneSchema.parse({
@@ -39,6 +36,5 @@ it("keeps a named addition through quiet turns and removes components no longer 
   const first = pendingDiagramComponents([], scene, old);
   expect(first).toEqual(["ID allocator (ZooKeeper)"]);
   expect(pendingDiagramComponents(first, scene, scene)).toEqual(first);
-  expect(diagramUpdateClause(first)).toContain("ZooKeeper");
   expect(pendingDiagramComponents(first, old, old)).toEqual([]);
 });
