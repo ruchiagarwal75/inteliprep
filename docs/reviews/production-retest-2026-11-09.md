@@ -109,3 +109,11 @@ hides the live stage and timer, and offers a new interview. A single plain timeo
 message replaces the checkpoint error/retry dead end. Other recoverable outages do
 not trigger archival. Tests cover automatic expiry with a draft and reopening a
 missing server session without a model request.
+
+## 5. Plain scoring-rule copy
+
+The header, end confirmation and unscored outcome use minutes, calculated from the
+existing one-third threshold. The two-stage rule is described as explaining the
+design in at least two parts of the interview, with walkthrough/discussion examples.
+The end title no longer promises a scorecard. Internal AI-request language is removed.
+Tests cover 15 minutes for a 45-minute attempt and 20 minutes for an hour.

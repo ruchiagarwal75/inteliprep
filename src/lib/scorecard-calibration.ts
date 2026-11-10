@@ -1,3 +1,4 @@
+import { DESIGN_EXPLANATION_RULE } from "@/lib/scoring-copy";
 import type { Scorecard } from "@/lib/scorecard";
 import type { InterviewTiming } from "@/lib/interview-timer";
 import {
@@ -74,7 +75,7 @@ export function withSessionContext(
       allowedSeconds,
       limited,
       note: limited
-        ? "Scores show after you've used at least a third of the time and answered in two stages."
+        ? `Scores need at least a third of the interview time. ${DESIGN_EXPLANATION_RULE}`
         : "Area feedback reflects the evidence provided during this session. Unexplored areas remain unassessed.",
     },
   };

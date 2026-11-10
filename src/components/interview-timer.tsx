@@ -2,10 +2,11 @@ import {
   formatInterviewTime,
   type InterviewDuration,
 } from "@/lib/interview-timer";
+import { scoringEligibility } from "@/lib/scoring-eligibility";
 import {
-  scoringEligibility,
-  MIN_SCORED_STAGES,
-} from "@/lib/scoring-eligibility";
+  scoringMinimumInWords,
+  DESIGN_EXPLANATION_RULE,
+} from "@/lib/scoring-copy";
 
 export function InterviewTimer({
   remainingSeconds,
@@ -39,8 +40,8 @@ export function InterviewTimer({
       </span>
       {!ended && gate && !gate.timeReady && (
         <span className="w-full text-xs text-[var(--ink-muted)]">
-          Scoring starts at {formatInterviewTime(gate.minimumSeconds)} of
-          interview time, with technical answers in {MIN_SCORED_STAGES} stages.
+          Scores need at least {scoringMinimumInWords(durationMinutes ?? 45)}.{" "}
+          {DESIGN_EXPLANATION_RULE}
         </span>
       )}
       {!expired && !ended && remainingSeconds <= (testMode ? 15 : 300) && (

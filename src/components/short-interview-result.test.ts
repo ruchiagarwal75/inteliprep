@@ -15,8 +15,8 @@ it("shows time, rule and retry without a model summary or area judgments", () =>
     createElement(InterviewScorecard, { scorecard: card }),
   );
   expect(html).toContain("Too short to score");
-  expect(html).toContain("05:00");
-  expect(html).toContain("15:00");
+  expect(html).toContain("5 minutes");
+  expect(html).toContain("15 minutes");
   expect(html).toContain("Start a new interview");
   expect(html).not.toContain(card.summary);
   expect(html).not.toContain("Scores by area");

@@ -4,8 +4,16 @@ import { expect, it, vi } from "vitest";
 import { EndInterviewConfirmation } from "@/components/end-interview-confirmation";
 import { InterviewTimer } from "@/components/interview-timer";
 it.each([
-  { durationMinutes: 45 as const, remainingSeconds: 2400, threshold: "15:00" },
-  { durationMinutes: 60 as const, remainingSeconds: 3300, threshold: "20:00" },
+  {
+    durationMinutes: 45 as const,
+    remainingSeconds: 2400,
+    threshold: "15 minutes",
+  },
+  {
+    durationMinutes: 60 as const,
+    remainingSeconds: 3300,
+    threshold: "20 minutes",
+  },
 ])(
   "warns at five minutes using the scorer's threshold: $durationMinutes",
   (args) => {
@@ -18,9 +26,10 @@ it.each([
         ...args,
       }),
     );
-    expect(html).toContain("05:00");
+    expect(html).toContain("5 minutes in");
+    expect(html).toContain("End this interview?");
     expect(html).toContain(args.threshold);
-    expect(html).toContain("technical answers in 2 stages");
+    expect(html).toContain("Explain how your design works in at least 2 parts");
     expect(html).toMatch(/class="practice-primary">Keep going/);
     const timer = renderToStaticMarkup(
       createElement(InterviewTimer, {
@@ -30,7 +39,7 @@ it.each([
         testMode: false,
       }),
     );
-    expect(timer).toContain(`Scoring starts at ${args.threshold}`);
+    expect(timer).toContain(`Scores need at least ${args.threshold}`);
   },
 );
 it("stops the time warning after the threshold", () => {
@@ -55,5 +64,5 @@ it("stops the time warning after the threshold", () => {
       remainingSeconds: 1700,
     }),
   );
-  expect(timer).not.toContain("Scoring starts");
+  expect(timer).not.toContain("Scores need at least");
 });

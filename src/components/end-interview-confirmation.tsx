@@ -1,14 +1,13 @@
 "use client";
 
+import {
+  elapsedInWords,
+  scoringMinimumInWords,
+  DESIGN_EXPLANATION_RULE,
+} from "@/lib/scoring-copy";
 import { InterviewDialog } from "@/components/interview-dialog";
-import {
-  formatInterviewTime,
-  type InterviewDuration,
-} from "@/lib/interview-timer";
-import {
-  scoringEligibility,
-  MIN_SCORED_STAGES,
-} from "@/lib/scoring-eligibility";
+import { type InterviewDuration } from "@/lib/interview-timer";
+import { scoringEligibility } from "@/lib/scoring-eligibility";
 
 export function EndInterviewConfirmation({
   open,
@@ -48,16 +47,15 @@ export function EndInterviewConfirmation({
             ? "End this interview and start a 45-minute interview?"
             : switchTo === "problem"
               ? "End this interview before changing problems?"
-              : "End this interview and see your scorecard?"
+              : "End this interview?"
       }
       onClose={onCancel}
     >
       {early && elapsed !== undefined && (
         <p role="note" className="scorecard-note">
-          You&apos;re at {formatInterviewTime(elapsed)}. Interviews shorter than{" "}
-          {formatInterviewTime(gate.minimumSeconds)} don&apos;t get a score.
-          Scoring also needs technical answers in {MIN_SCORED_STAGES} stages.
-          End anyway?
+          You&apos;re {elapsedInWords(elapsed)} in. Interviews need at least{" "}
+          {scoringMinimumInWords(durationMinutes ?? 45)} to get a score.{" "}
+          {DESIGN_EXPLANATION_RULE} End anyway?
         </p>
       )}
       {remainingSeconds !== undefined && remainingSeconds > 0 && (

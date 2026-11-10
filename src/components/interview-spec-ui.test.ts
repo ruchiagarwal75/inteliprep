@@ -43,7 +43,7 @@ it("keeps end confirmation concise and preserves an optional unsent answer", () 
       onConfirm: vi.fn(),
     }),
   );
-  expect(html).toContain("End this interview and see your scorecard?");
+  expect(html).toContain("End this interview?");
   expect(html).toContain("Keep going");
   expect(html).toContain("My unsent answer");
   expect(html).toContain("Include answer and end");

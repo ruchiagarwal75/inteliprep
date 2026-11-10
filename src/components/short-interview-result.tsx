@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { Scorecard } from "@/lib/scorecard";
-import { formatInterviewTime } from "@/lib/interview-timer";
 import {
-  scoringThresholdSeconds,
-  MIN_SCORED_STAGES,
-} from "@/lib/scoring-eligibility";
+  elapsedInWords,
+  scoringMinimumInWords,
+  DESIGN_EXPLANATION_RULE,
+} from "@/lib/scoring-copy";
 export function ShortInterviewResult({ scorecard }: { scorecard: Scorecard }) {
   const session = scorecard.session;
   return (
@@ -16,19 +16,16 @@ export function ShortInterviewResult({ scorecard }: { scorecard: Scorecard }) {
       </h2>
       {session && (
         <p>
-          You practiced for {formatInterviewTime(session.elapsedSeconds)}.
-          Scores require at least{" "}
-          {formatInterviewTime(
-            scoringThresholdSeconds(session.allowedSeconds / 60),
-          )}{" "}
-          of interview time and technical answers in {MIN_SCORED_STAGES} stages.
+          You practiced for {elapsedInWords(session.elapsedSeconds)}. Interviews
+          need at least {scoringMinimumInWords(session.allowedSeconds / 60)} to
+          get a score. {DESIGN_EXPLANATION_RULE}
         </p>
       )}
       {scorecard.summary ===
         "You ended before giving a technical answer. Retry to get feedback." && (
         <p>{scorecard.summary}</p>
       )}
-      <p>Your transcript and drawing are saved. No AI grading was requested.</p>
+      <p>Your transcript and drawing are saved.</p>
       <Link
         className="practice-primary"
         href={`/interview/new?problem=${encodeURIComponent(scorecard.problemId)}`}
