@@ -46,7 +46,7 @@ export function InterviewLiveHeader({
           <InterviewStage phase={phase} ended={false} />
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-end gap-2 min-[900px]:col-start-3">
+      <div className="live-controls flex flex-wrap items-center justify-end gap-2 min-[900px]:col-start-3">
         {!ended && interview?.timing && (
           <InterviewTimer
             remainingSeconds={remainingSeconds}

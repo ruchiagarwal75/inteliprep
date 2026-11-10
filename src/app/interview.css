@@ -204,7 +204,15 @@ body:has(.interview-page) {
 }
 @media (min-width: 900px) {
   .live-header {
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 0.9fr) 220px minmax(0, 1.6fr);
+  }
+  .live-header .live-controls {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+  .live-header .live-controls > :first-child {
+    min-width: 0;
   }
   .live-identity {
     flex-wrap: wrap;

@@ -127,3 +127,10 @@ available for short attempts. The browser test checks the outcome precedes the f
 
 Existing saved scorecards also receive the plain scoring-rule wording at render
 time. Their stored content is retained unchanged.
+
+## 7. Stable header geometry
+
+Confirmed cause: the desktop header used an intrinsic `auto` center column, so
+stage-name length changed both outer columns. It now reserves 220px for the stage
+and fixed grid slots for the timer and controls. Browser geometry checks cover all
+five labels at 1280px and 1440px. No whiteboard sizing or scaling was changed.

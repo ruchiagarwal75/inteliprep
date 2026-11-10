@@ -651,3 +651,41 @@ test("an expired server transcript opens as an unscored saved record", async ({
   ).toHaveCount(0);
   expect(gradingCalls).toBe(0);
 });
+
+test("timer position is stable across all five stage names on laptops", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "admin");
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(page.getByRole("timer")).toBeVisible();
+  for (const width of [1280, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const positions: number[] = [];
+    for (const [index, name] of [
+      "Clarify requirements",
+      "Draw and explain",
+      "Core design",
+      "Scaling and reliability",
+      "Tradeoffs and wrap-up",
+    ].entries()) {
+      await page
+        .getByRole("region", { name: "Interview stage", exact: true })
+        .evaluate(
+          (node, { index, name }) => {
+            const spans = node.querySelectorAll("span");
+            spans[0].textContent = `Stage ${index + 1} of 5`;
+            spans[1].textContent = name;
+          },
+          { index, name },
+        );
+      const bounds = await page.getByRole("timer").boundingBox();
+      if (!bounds) throw Error("Timer missing");
+      positions.push(bounds.x);
+    }
+    expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(1);
+  }
+});
