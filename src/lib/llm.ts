@@ -1,3 +1,8 @@
+import {
+  clarificationEnding,
+  clarificationContinuation,
+  estimationAsk,
+} from "@/lib/clarification-continuation";
 import { resumePendingQuestion } from "@/lib/pending-question-reply";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import { hasAsk, invitesDrawing } from "@/lib/open-question";
@@ -92,6 +97,10 @@ async function* rawInterviewerReply(
       interview.level,
       latestCandidate.content,
     );
+  const estimateQuestion =
+    interview?.phase?.transition === "initial" && step === "discussion"
+      ? estimationAsk(messages, interview.level)
+      : undefined;
   const requirementsQuestion = pendingRequirementsQuestion(
     interview && clarification
       ? {
@@ -114,6 +123,7 @@ async function* rawInterviewerReply(
     yield clarification.text;
     if (step === "invite-drawing")
       yield `\n\n${interview.problem.drawingPolicy.invitation}`;
+    else if (estimateQuestion) yield `\n\n${estimateQuestion}`;
     else if (requirementsQuestion) yield `\n\n${requirementsQuestion}`;
     return;
   }
@@ -295,7 +305,8 @@ async function* rawInterviewerReply(
       afterReply.coveredCriteria?.length ===
         afterReply.phase.completionCriteria.length;
     if (reply) yield reply;
-    if (nextQuestion) yield `${reply ? "\n\n" : ""}${nextQuestion}`;
+    if (estimateQuestion) yield `${reply ? "\n\n" : ""}${estimateQuestion}`;
+    else if (nextQuestion) yield `${reply ? "\n\n" : ""}${nextQuestion}`;
     else if (
       (step === "invite-drawing" ||
         (justCompletedRequirements && interview?.mayInviteDrawing !== false)) &&
@@ -305,10 +316,7 @@ async function* rawInterviewerReply(
     else if (!reply && closing)
       yield "Thanks for walking through your design and its tradeoffs.";
     else if (!reply && clarifying && step === "discussion")
-      yield interview?.mayInviteDrawing !== false
-        ? (interview?.problem.drawingPolicy.invitation ??
-          "Please choose Start drawing when ready.")
-        : "Please review your requirements and choose Start drawing when you are ready.";
+      yield clarificationContinuation(messages, interview?.level ?? "mid");
     else if (!reply)
       yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
   }
@@ -340,26 +348,16 @@ export async function* streamInterviewerReply(
     yield reply;
     return;
   }
+  const ending = interview && clarificationEnding(reply, args[0], interview);
+  if (ending) reply += `\n\n${ending}`;
   yield reply;
   if (
     interview?.phase &&
+    interview.phase.transition !== "initial" &&
     !["drawing", "explaining"].includes(interview.progress?.step ?? "") &&
     !hasAsk(reply)
   ) {
     const probe = selectReviewProbe(interview.problem, args[0], interview);
-    if (interview.phase?.transition === "initial") {
-      const pending = pendingRequirementsQuestion(interview);
-      const unasked =
-        pending &&
-        !args[0].some(
-          (m) => m.role === "assistant" && m.content.includes(pending),
-        );
-      yield "\n\n" +
-        (unasked
-          ? pending
-          : "Please review your requirements and choose Start drawing when you are ready.");
-      return;
-    }
     yield "\n\n" +
       (probe?.question ??
         "Please explain one tradeoff in your design and how you would test it.");
