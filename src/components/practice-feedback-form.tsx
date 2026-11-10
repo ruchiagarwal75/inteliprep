@@ -127,7 +127,7 @@ export function PracticeFeedbackForm({
           ))}
         </div>
       </fieldset>
-      <label htmlFor={id}>Anything else you want to tell us? (optional)</label>
+      <label htmlFor={id}>Anything else you want to share? (optional)</label>
       <textarea
         id={id}
         value={comment}

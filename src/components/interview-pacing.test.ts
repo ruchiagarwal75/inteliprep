@@ -25,7 +25,7 @@ it("explains typed-explanation state and removes the hint once a drawing exists"
     onChoose: vi.fn(),
   };
   expect(renderToStaticMarkup(createElement(InterviewPacing, props))).toContain(
-    "send a message walking through your design",
+    "type a message describing your design",
   );
   expect(
     renderToStaticMarkup(

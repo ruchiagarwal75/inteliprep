@@ -29,3 +29,32 @@ with fresh checks before this request. The three remaining open updates against
 from the default branch, so new beta-targeted PRs follow the final main release.
 The deployment guide now describes the actual public Production sign-in/invite
 gate and protected Preview workflow.
+
+## 2. Typed-interview copy
+
+Changed these visible strings, preserving candidate quotes themselves:
+
+- Home headline: “Mock system design interviews, out loud, with a whiteboard.”
+  becomes “Mock system design interviews with a whiteboard and an AI interviewer.”
+- Home description: “Talk it through, sketch your approach, and leave with
+  something to build on.” becomes “Type your reasoning, sketch your design, and
+  get feedback on your approach.”
+- Pace status: “Explaining: the interviewer is listening” becomes “Explaining:
+  the interviewer is reading your messages”.
+- Initial explanation hint: “Explaining: send a message walking through your
+  design before finishing.” becomes “Explaining: type a message describing your
+  design before finishing.”
+- Evidence label: “You said:” becomes “You wrote:”. The quoted evidence is unchanged.
+- Feedback textbox: “Anything else you want to tell us? (optional)” becomes
+  “Anything else you want to share? (optional)”.
+- Waiting acknowledgement: “Go ahead with your explanation. I'll listen across
+  as many messages as you need. Choose Done explaining when you're ready for
+  questions.” becomes “Write your explanation across as many messages as you
+  need. Choose Done explaining when you're ready for questions.”
+- Quiet-turn acknowledgement: “I'm listening.” becomes “I'm reading your
+  explanation.” Protocol fields named `listening` are retained for compatibility.
+
+Shared interviewer instructions now explicitly describe typed messages.
+References to voice/video as an excluded feature of the chat-service design
+problem remain: those describe the exercise's scope, not an app input feature.
+Rubrics, problem workloads and scoring weights are unchanged.

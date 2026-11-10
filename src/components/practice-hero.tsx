@@ -23,12 +23,12 @@ export function PracticeHero({
         <h1 id="practice-title">
           {brief
             ? "Your practice brief"
-            : "Mock system design interviews, out loud, with a whiteboard."}
+            : "Mock system design interviews with a whiteboard and an AI interviewer."}
         </h1>
         <p className="practice-hero-description">
           {brief
             ? "Pick a problem and read it through. The timer starts when you click Start."
-            : "Talk it through, sketch your approach, and leave with something to build on."}
+            : "Type your reasoning, sketch your design, and get feedback on your approach."}
         </p>
         {children}
       </div>

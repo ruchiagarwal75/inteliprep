@@ -19,4 +19,4 @@ export const DRAWING_WAIT_REPLY =
   "Take your time with the whiteboard. I'll hold questions while you draw. Choose Ready to explain when you're ready.";
 
 export const EXPLANATION_WAIT_REPLY =
-  "Go ahead with your explanation. I'll listen across as many messages as you need. Choose Done explaining when you're ready for questions.";
+  "Write your explanation across as many messages as you need. Choose Done explaining when you're ready for questions.";

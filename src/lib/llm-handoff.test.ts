@@ -55,7 +55,7 @@ afterEach(() => vi.unstubAllEnvs());
 describe("drawing handoff streaming", () => {
   it("keeps an ongoing explanation quiet without repeating entry instructions", async () => {
     expect(await reply({ ...interview("explaining"), listening: true })).toBe(
-      "I'm listening.",
+      "I'm reading your explanation.",
     );
     expect(mocks.create).not.toHaveBeenCalled();
   });
@@ -174,7 +174,7 @@ describe("drawing handoff streaming", () => {
       yield { type: "response.completed" };
     });
     const displayed = await reply(interview("explaining"));
-    expect(displayed).toContain("Go ahead with your explanation");
+    expect(displayed).toContain("Write your explanation");
     expect(displayed).not.toContain("?");
     expect(mocks.create).not.toHaveBeenCalled();
   });

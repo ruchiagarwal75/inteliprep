@@ -35,8 +35,8 @@ export function InterviewPacing({
       <p id="pace-instruction" aria-live="polite">
         {action === "explain"
           ? hasExplanation
-            ? "Explaining: the interviewer is listening"
-            : "Explaining: send a message walking through your design before finishing."
+            ? "Explaining: the interviewer is reading your messages"
+            : "Explaining: type a message describing your design before finishing."
           : action === "draw"
             ? hasDrawing
               ? "Drawing: questions paused"

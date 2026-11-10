@@ -31,7 +31,7 @@ it("keeps one elapsed-time label and makes evidence available behind readable di
   expect(html).toContain("scorecard-overview");
   expect(html).toContain("score-bars");
   expect(html).toContain("Show evidence");
-  expect(html).toContain("You said:");
+  expect(html).toContain("You wrote:");
   expect(html).not.toContain("overflow-y-auto");
 });
 it("keeps provisional scores unnumbered and explains the evidence threshold plainly", () => {

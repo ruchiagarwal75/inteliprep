@@ -135,7 +135,7 @@ async function* rawInterviewerReply(
   ) {
     signal?.throwIfAborted();
     yield interview?.listening
-      ? "I'm listening."
+      ? "I'm reading your explanation."
       : step === "explaining"
         ? EXPLANATION_WAIT_REPLY
         : DRAWING_WAIT_REPLY;

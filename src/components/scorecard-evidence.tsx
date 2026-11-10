@@ -39,7 +39,7 @@ export function ScorecardEvidence({
           <li key={index} className="evidence-quote">
             {item.kind === "message" ? (
               <blockquote className="whitespace-pre-wrap">
-                You said: “{item.quote}”
+                You wrote: “{item.quote}”
               </blockquote>
             ) : (
               <p>Diagram reference: {label(item.elementId)}</p>

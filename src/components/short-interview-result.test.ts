@@ -21,5 +21,5 @@ it("shows time, rule and retry without a model summary or area judgments", () =>
   expect(html).not.toContain(card.summary);
   expect(html).not.toContain("Scores by area");
   expect(html).not.toContain("Strengths");
-  expect(html).not.toContain("You said:");
+  expect(html).not.toContain("You wrote:");
 });

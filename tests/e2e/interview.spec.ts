@@ -182,7 +182,7 @@ for (const durationMinutes of [45, 60]) {
       ).toHaveAttribute("aria-pressed", "true");
       await feedback.getByRole("button", { name: "Yes", exact: true }).click();
       await feedback
-        .getByLabel("Anything else you want to tell us? (optional)")
+        .getByLabel("Anything else you want to share? (optional)")
         .fill(
           "The whiteboard helped me explain my design. <script>plain text only</script>",
         );
@@ -320,7 +320,7 @@ test("admin sees answered and skipped feedback; menu feedback stays independent"
     exact: true,
   });
   await dialog
-    .getByLabel("Anything else you want to tell us? (optional)")
+    .getByLabel("Anything else you want to share? (optional)")
     .fill("Menu-only feedback from owner");
   await dialog.getByRole("button", { name: "Send", exact: true }).click();
   await expect(dialog.getByRole("status")).toHaveText("Thanks!");
