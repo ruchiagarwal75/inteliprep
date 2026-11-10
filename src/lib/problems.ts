@@ -30,6 +30,8 @@ import {
 
 import aiChatAssistant from "@/lib/problems/ai-chat-assistant.json";
 
+import toolUsingAiAgent from "@/lib/problems/tool-using-ai-agent.json";
+
 const problems: ProblemDefinition[] = [
   problemSchema.parse(singleServerScaling),
   problemSchema.parse(urlShortener),
@@ -41,6 +43,7 @@ const problems: ProblemDefinition[] = [
   problemSchema.parse(videoStreaming),
   problemSchema.parse(enterpriseRagAssistant),
   problemSchema.parse(aiChatAssistant),
+  problemSchema.parse(toolUsingAiAgent),
 ];
 
 export function getProblem(problemId: string): ProblemDefinition | undefined {

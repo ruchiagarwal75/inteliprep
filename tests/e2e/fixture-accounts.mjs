@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  genai: {
+    id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    email: "genai@example.invalid",
+  },
   admin: {
     id: "99999999-9999-4999-8999-999999999999",
     email: "owner@example.invalid",

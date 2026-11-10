@@ -129,6 +129,10 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 
 
 ```text
+/what else (?:should|do|can|would) (?:i|we) (?:know|clarify)|(?:all|remaining|other) (?:exercise |problem )?facts/iu
+```
+
+```text
 /\b(?:stuck|unsure|not sure|don't know|do not know|help me|need help)\b/iu
 ```
 
@@ -847,6 +851,33 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 - rubric assessment: `{"assessmentPattern":"\\b(add\\w*|scal\\w*|larger|two|balanc\\w*|cache|caching|replic\\w*|split\\w*|mov\\w*|vertical|horizontal|capacity|throughput|improv\\w*)\\b"}`
 - rubric assessment: `{"assessmentPattern":"\\b(availab\\w*|durab\\w*|preserv\\w*|correct\\w*|fail\\w*|crash\\w*|redundan\\w*|backup|migrat\\w*|rollout|rollback|continuit\\w*|lost|lose|keep.{0,40}working)\\b"}`
 - rubric assessment: `{"assessmentPattern":"\\b(load test|stress test|benchmark|verif\\w*|validat\\w*|before.{0,100}after|after.{0,100}before|check.{0,60}(?:result|improv|change|help\\w*|work\\w*)|(?:measur\\w*|monitor\\w*|metrics?).{0,80}(?:success|improv\\w*|after|compar\\w*|confirm\\w*)|(?:know|tell).{0,60}(?:help\\w*|work\\w*|improv\\w*))\\b"}`
+
+## Problem configuration: tool-using-ai-agent
+
+- rubric assessment: `{"assessmentPattern":"requirement|scope|tasks?|steps?|calls|tokens|budget|latency|60 seconds|permissions|incident"}`
+- rubric assessment: `{"assessmentPattern":"loop|planner|runner|tool|schema|step limit|maximum|detect|observe|registry"}`
+- rubric assessment: `{"assessmentPattern":"durab|persist|checkpoint|resume|recovery|idempot|timeout|retry|retries|duplicate|acknowledg"}`
+- rubric assessment: `{"assessmentPattern":"platform|registry|risk|review|audit|trace|tracing|logs|debug|replay|incident|selection|200"}`
+- rubric assessment: `{"assessmentPattern":"latency|cost|budget|tokens|60 seconds|deadline|background|long.running|rollout|model"}`
+- rubric assessment: `{"assessmentPattern":"eval|scenario|mock|test|success rate|wrong.action|metric|quality|rollout"}`
+- rubric assessment: `{"assessmentPattern":"scoped|permission|delegat|confirm|approval|recipient|domain|policy|untrusted|injection|safety|tenant|isolation|service account"}`
+- review probes: `{"topicPattern":"confirm|approval|recipient"}`
+- review probes: `{"topicPattern":"idempotenc|retry|timeout","requiresPattern":"tool|executor|email|retry"}`
+- review probes: `{"topicPattern":"injection|untrusted|safety"}`
+- review probes: `{"topicPattern":"permission|scoped|delegat","requiresPattern":"tool|executor|agent|runner"}`
+- review probes: `{"topicPattern":"loop|steps?|limits?","requiresPattern":"loop|runner|planner|orchestrator"}`
+- review probes: `{"topicPattern":"tool selection|select.{0,30}tools|registry|200","requiresPattern":"registry|tool"}`
+- review probes: `{"topicPattern":"audit|trace|debug|replay"}`
+- review probes: `{"topicPattern":"eval|mock|scenario|quality"}`
+- review probes: `{"topicPattern":"cost|latency|budget"}`
+- GenAI facts: `{"pattern":"how many.{0,20}(?:users|employees)|(?:user|employee) (?:count|scale)"}`
+- GenAI facts: `{"pattern":"tasks? per day|daily.{0,15}tasks|how (?:many|much).{0,20}(?:tasks|traffic)|peak"}`
+- GenAI facts: `{"pattern":"how many.{0,20}tools|which tools|what tools|read.only|write tools|integrations"}`
+- GenAI facts: `{"pattern":"steps per task|calls per task|model calls|how many.{0,20}steps|step limit|maximum.{0,15}steps|background|hours"}`
+- GenAI facts: `{"pattern":"latency|how (?:fast|long)|completion time|speed|sixty|60 seconds"}`
+- GenAI facts: `{"pattern":"tokens per task|tokens.{0,15}(?:task|budget)|token (?:count|budget)"}`
+- GenAI facts: `{"pattern":"acting as|whose permissions|delegat|service account|authorization|scopes|permissions"}`
+- GenAI facts: `{"pattern":"mistakes?|wrong (?:person|recipient)|undo|irreversible|serious incident|risk tolerance"}`
 
 ## Problem configuration: url-shortener
 

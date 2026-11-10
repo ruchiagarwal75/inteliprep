@@ -105,6 +105,9 @@ export function buildInterviewInstructions({
           }
         : {}),
       requirements_to_share_when_asked: problem.requirements,
+      ...(problem.genai
+        ? { available_fact_topics: problem.genai.facts.map((fact) => fact.id) }
+        : {}),
       scale_hints_to_share_when_asked:
         problem.track === "genai" ? [] : problem.levels[level].scaleHints,
       clarification_answers: (problem.track === "genai"

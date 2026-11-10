@@ -1,0 +1,355 @@
+{
+  "id": "tool-using-ai-agent",
+  "track": "genai",
+  "title": "Design an AI agent with tools",
+  "summary": "Design an AI agent for a company’s employees. An employee types a task such as \"Find last quarter’s on-call incidents for my team, summarize them, and email the summary to my manager.\" The agent searches internal tools, reads the results, drafts the output and takes actions for the user.",
+  "prompt": "Design an AI agent for a company’s employees. An employee types a task such as \"Find last quarter’s on-call incidents for my team, summarize them, and email the summary to my manager.\" The agent searches internal tools, reads the results, drafts the output and takes actions for the user.",
+  "requirements": [
+    "Design an AI agent for a company’s employees. An employee types a task such as \"Find last quarter’s on-call incidents for my team, summarize them, and email the summary to my manager.\" The agent searches internal tools, reads the results, drafts the output and takes actions for the user."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch your design, then choose Ready to explain when you're ready.",
+    "legacyInvitations": []
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Design an AI agent for a company’s employees. An employee types a task such as \"Find last quarter’s on-call incidents for my team, summarize them, and email the summary to my manager.\" The agent searches internal tools, reads the results, drafts the output and takes actions for the user.\n\nWhat would you clarify before starting your design?",
+      "expectations": "A clear agent loop, a tool interface, confirmation before sending, a step limit and basic logs.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Design an AI agent for a company’s employees. An employee types a task such as \"Find last quarter’s on-call incidents for my team, summarize them, and email the summary to my manager.\" The agent searches internal tools, reads the results, drafts the output and takes actions for the user.\n\nWhat would you clarify before starting your design?",
+      "expectations": "Delegated permissions, durable state with idempotent actions, prompt injection defenses, an evaluation suite with mocked tools, tracing, and latency and cost per task.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Design an AI agent for a company’s employees. An employee types a task such as \"Find last quarter’s on-call incidents for my team, summarize them, and email the summary to my manager.\" The agent searches internal tools, reads the results, drafts the output and takes actions for the user.\n\nWhat would you clarify before starting your design?",
+      "expectations": "All of Senior plus a tool platform for other teams with registry, risk tiers and review; selection among 200+ tools; tenant isolation; an organization-wide safety/audit policy; incident response for bad actions and model rollout.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    }
+  },
+  "openingCriteria": [0],
+  "clarifications": [],
+  "rubric": [
+    {
+      "area": "Requirements and task budgets",
+      "strong": "Clarifies the task workflow, permission and mistake constraints, average/maximum steps and task latency; uses the given scale without overemphasizing scale arithmetic.",
+      "assessmentPattern": "requirement|scope|tasks?|steps?|calls|tokens|budget|latency|60 seconds|permissions|incident"
+    },
+    {
+      "area": "Agent loop and tool contracts",
+      "strong": "Explains a bounded think/pick-tool/call/observe loop, tool schemas and read/write contracts; provides step limits and loop detection.",
+      "assessmentPattern": "loop|planner|runner|tool|schema|step limit|maximum|detect|observe|registry"
+    },
+    {
+      "area": "Durable execution and recovery",
+      "strong": "Persists steps and supports resume; uses idempotent actions and addresses timeouts and ambiguous tool outcomes rather than blindly retrying writes.",
+      "assessmentPattern": "durab|persist|checkpoint|resume|recovery|idempot|timeout|retry|retries|duplicate|acknowledg"
+    },
+    {
+      "area": "Tool platform and observability",
+      "strong": "Explains logs, tracing, audit and debugging/replay. Staff adds a reviewed, risk-tiered platform, selection at 200+ tools and incident response.",
+      "assessmentPattern": "platform|registry|risk|review|audit|trace|tracing|logs|debug|replay|incident|selection|200"
+    },
+    {
+      "area": "Latency and cost per task",
+      "strong": "Explains end-to-end latency and cost per task, including model steps and tool calls; at Staff handles short versus long-running work and model rollout tradeoffs.",
+      "assessmentPattern": "latency|cost|budget|tokens|60 seconds|deadline|background|long.running|rollout|model"
+    },
+    {
+      "area": "Evaluation and quality",
+      "strong": "Tests models/prompts using a scenario suite with mocked tools and task-success/wrong-action measures; Staff uses safe rollout checks.",
+      "assessmentPattern": "eval|scenario|mock|test|success rate|wrong.action|metric|quality|rollout"
+    },
+    {
+      "area": "Safety and security",
+      "strong": "Uses delegated scoped user permissions, confirmation with an exact action preview, recipient/domain policy and isolation; blocks writes caused only by retrieved instructions. Staff adds tenant isolation and organization-wide audit/safety policy.",
+      "assessmentPattern": "scoped|permission|delegat|confirm|approval|recipient|domain|policy|untrusted|injection|safety|tenant|isolation|service account"
+    }
+  ],
+  "followUps": [
+    "The agent is about to send an email. What does the employee see first?",
+    "A tool call times out and you retry. How does your design avoid sending the email twice?",
+    "An email the agent reads asks it to forward all messages elsewhere. What happens in your design?",
+    "Whose permissions does your tool executor use?",
+    "The agent keeps calling the same tool. How would your runner detect and stop that loop?",
+    "How would your design select tools when the registry grows to more than 200?",
+    "A user reports a wrong action from yesterday. How would you find out why it happened?",
+    "How would you test a new model or prompt before shipping it?",
+    "How would you measure latency and cost for one completed task?"
+  ],
+  "followUpStages": [2, 3, 3, 2, 3, 3, 3, 3, 4],
+  "reviewProbes": [
+    {
+      "id": "approval",
+      "areaIndex": 6,
+      "topic": "confirm|approval|recipient",
+      "topicPattern": "confirm|approval|recipient",
+      "question": "The agent is about to send an email. What does the employee see first?",
+      "stageIndex": 2
+    },
+    {
+      "id": "idempotency",
+      "areaIndex": 2,
+      "topic": "idempotenc|retry|timeout",
+      "topicPattern": "idempotenc|retry|timeout",
+      "question": "A tool call times out and you retry. How does your design avoid sending the email twice?",
+      "stageIndex": 3,
+      "requiresPattern": "tool|executor|email|retry"
+    },
+    {
+      "id": "injection",
+      "areaIndex": 6,
+      "topic": "injection|untrusted|safety",
+      "topicPattern": "injection|untrusted|safety",
+      "question": "An email the agent reads asks it to forward all messages elsewhere. What happens in your design?",
+      "stageIndex": 3
+    },
+    {
+      "id": "permissions",
+      "areaIndex": 6,
+      "topic": "permission|scoped|delegat",
+      "topicPattern": "permission|scoped|delegat",
+      "question": "Whose permissions does your tool executor use?",
+      "stageIndex": 2,
+      "requiresPattern": "tool|executor|agent|runner"
+    },
+    {
+      "id": "loop",
+      "areaIndex": 1,
+      "topic": "loop|steps?|limits?",
+      "topicPattern": "loop|steps?|limits?",
+      "question": "The agent keeps calling the same tool. How would your runner detect and stop that loop?",
+      "stageIndex": 3,
+      "requiresPattern": "loop|runner|planner|orchestrator"
+    },
+    {
+      "id": "tool-selection",
+      "areaIndex": 3,
+      "topic": "tools?|registry|selection",
+      "topicPattern": "tool selection|select.{0,30}tools|registry|200",
+      "question": "How would your design select tools when the registry grows to more than 200?",
+      "stageIndex": 3,
+      "requiresPattern": "registry|tool"
+    },
+    {
+      "id": "audit",
+      "areaIndex": 3,
+      "topic": "audit|trace|debug|replay",
+      "topicPattern": "audit|trace|debug|replay",
+      "question": "A user reports a wrong action from yesterday. How would you find out why it happened?",
+      "stageIndex": 3
+    },
+    {
+      "id": "evaluation",
+      "areaIndex": 5,
+      "topic": "eval|mock|scenario|quality",
+      "topicPattern": "eval|mock|scenario|quality",
+      "question": "How would you test a new model or prompt before shipping it?",
+      "stageIndex": 3
+    },
+    {
+      "id": "cost",
+      "areaIndex": 4,
+      "topic": "cost|latency|budget",
+      "topicPattern": "cost|latency|budget",
+      "question": "How would you measure latency and cost for one completed task?",
+      "stageIndex": 4
+    }
+  ],
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Clarify the scope, workload, goals and constraints before drawing.",
+      "completionCriteria": [
+        "Candidate establishes the required user workflow and scope.",
+        "Candidate clarifies workload and service goals, or explicitly states justified working assumptions.",
+        "Candidate clarifies safety, access or privacy constraints."
+      ],
+      "transition": "initial",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer. Shared facts are never proof of candidate reasoning.",
+      "clarificationQuestions": [
+        "What would you clarify about the user workflow?",
+        "Which workload or service goal would you clarify next?",
+        "What safety or access constraints would you clarify?"
+      ]
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate draw and explain their own architecture.",
+      "completionCriteria": [
+        "Candidate draws at least one component and explicitly finishes explaining."
+      ],
+      "transition": "drawing",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "core-design",
+      "title": "Core design",
+      "goal": "Explore the candidate’s own core request, data and action paths.",
+      "completionCriteria": [
+        "Candidate explains a coherent end-to-end path using their own components.",
+        "Candidate explains how their design maintains correctness and its trust boundaries.",
+        "Candidate explains an unresolved core failure boundary or tradeoff."
+      ],
+      "transition": "coverage",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "scaling-reliability",
+      "title": "Scaling and reliability",
+      "goal": "Explore the failure modes, quality checks, safety boundaries and costs of the candidate’s design.",
+      "completionCriteria": [
+        "Candidate explores failure and recovery of mechanisms they added.",
+        "Candidate explains how they would evaluate quality and safety before a change.",
+        "Candidate explains the latency, capacity and cost consequences of their choices."
+      ],
+      "transition": "coverage",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "tradeoffs-wrap-up",
+      "title": "Tradeoffs and wrap-up",
+      "goal": "Review the candidate’s evaluation plan, safety tradeoffs and cost priorities.",
+      "completionCriteria": [
+        "Candidate justifies a major tradeoff and a way to check the result."
+      ],
+      "transition": "wrap-up",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    }
+  ],
+  "gradingGuidance": [
+    "Use the provided level bar and candidate evidence. The expected design is a reference, not a mandatory vendor or component recipe.",
+    "Reference estimates are conditional on their example assumptions; accept justified representation, message-size and routing alternatives.",
+    "Identify demonstrated red flags with evidence; do not turn unasked missing evidence into a failure."
+  ],
+  "genai": {
+    "facts": [
+      {
+        "id": "users",
+        "pattern": "how many.{0,20}(?:users|employees)|(?:user|employee) (?:count|scale)",
+        "answers": {
+          "mid": "1,000 employees.",
+          "senior": "20,000 employees.",
+          "staff": "100,000 employees, and other teams build tools for the agent."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "tasks",
+        "pattern": "tasks? per day|daily.{0,15}tasks|how (?:many|much).{0,20}(?:tasks|traffic)|peak",
+        "answers": {
+          "mid": "2K tasks per day.",
+          "senior": "50K tasks per day, with peak traffic three times the average.",
+          "staff": "500K tasks per day, with peak traffic three times the average."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "tools",
+        "pattern": "how many.{0,20}tools|which tools|what tools|read.only|write tools|integrations",
+        "answers": {
+          "mid": "Three tools: search, read document and send email.",
+          "senior": "About 20 tools, including email, calendar, tickets, docs, chat and code search. Some are read-only and some write.",
+          "staff": "More than 200 tools built by other teams, plus third-party integrations."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "steps",
+        "pattern": "steps per task|calls per task|model calls|how many.{0,20}steps|step limit|maximum.{0,15}steps|background|hours",
+        "answers": {
+          "mid": "About six model calls per task on average, with a maximum of 30.",
+          "senior": "About six model calls per task on average, with a maximum of 30.",
+          "staff": "About six model calls per task on average, with a maximum of 30. Some tasks run for hours in the background."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "speed",
+        "pattern": "latency|how (?:fast|long)|completion time|speed|sixty|60 seconds",
+        "answers": {
+          "mid": "Most tasks should finish within 60 seconds.",
+          "senior": "Most tasks should finish within 60 seconds.",
+          "staff": "Most short tasks should finish within 60 seconds."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "tokens",
+        "pattern": "tokens per task|tokens.{0,15}(?:task|budget)|token (?:count|budget)",
+        "answers": {
+          "mid": "About 40K tokens total per task.",
+          "senior": "About 40K tokens total per task.",
+          "staff": "About 40K tokens total per task."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "permissions",
+        "pattern": "acting as|whose permissions|delegat|service account|authorization|scopes|permissions",
+        "answers": {
+          "mid": "The agent acts as the user, with only that user’s permissions.",
+          "senior": "The agent acts as the user, with only that user’s permissions.",
+          "staff": "The agent acts as the user, with only that user’s permissions."
+        },
+        "coversCriteria": [2]
+      },
+      {
+        "id": "mistakes",
+        "pattern": "mistakes?|wrong (?:person|recipient)|undo|irreversible|serious incident|risk tolerance",
+        "answers": {
+          "mid": "Sending an email to the wrong person is a serious incident.",
+          "senior": "Sending an email to the wrong person is a serious incident.",
+          "staff": "Sending an email to the wrong person is a serious incident, and actions in third-party tools cannot be undone."
+        },
+        "coversCriteria": [2]
+      }
+    ],
+    "estimateAnchors": {
+      "mid": [],
+      "senior": [
+        "50K tasks times six steps is 300K model calls/day, about 3.5/s on average and 10/s at peak.",
+        "50K tasks times 40K tokens is 2B tokens/day. Load is modest; correctness, safety and recovery are the hard parts."
+      ],
+      "staff": []
+    },
+    "expectedDesign": [
+      "A durable task runner executes think, pick tool, call and observe, with step limits and loop detection.",
+      "A tool registry holds schemas, read/write type, risk level and required scopes.",
+      "A tool executor uses the user’s delegated scoped token.",
+      "A policy layer requires confirmation before writes, checks recipients/domain rules and blocks writes triggered only by retrieved content. An approval UI shows the exact action.",
+      "Retries use idempotency keys and every step is persisted for resume.",
+      "Actions have audit logs, full tracing and replay. An offline scenario suite uses mocked tools."
+    ],
+    "redFlags": [
+      "Using a broad service account.",
+      "Sending or writing without confirmation.",
+      "No idempotency.",
+      "No step limit.",
+      "Treating tool output as instructions.",
+      "No way to debug a past action.",
+      "Relying on the model without evaluations."
+    ],
+    "assumptions": [],
+    "assumptionGuidance": [
+      "Unit prices and other numbers not explicitly supplied are candidate assumptions. Judge consistent reasoning rather than a particular provider or cost number."
+    ],
+    "interviewerGuidance": [
+      "Do not push the candidate on scale math in this problem. Correctness, safety and recovery are the main deep dives.",
+      "Do not suggest a service account, durable runner, approval mechanism or idempotency solution if the candidate has not proposed it. Ask about the consequence of their actual design."
+    ]
+  }
+}

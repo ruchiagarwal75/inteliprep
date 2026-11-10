@@ -18,62 +18,97 @@ Scripts directly select stages to exercise the whole discussion without waiting 
 
 ### enterprise-rag-assistant
 
-**mid:** 22 turns, including deterministic single-fact clarifications and real-model design discussion.
+**mid:** 23 turns, including deterministic single-fact clarifications and real-model design discussion.
 
-- Stage 3: You filter retrieval by the employee's permissions before fetching content. How does the Scoped answer cache avoid returning an answer after the employee loses access to one of its sources?
-- Stage 4: A per-user cache separates employees’ cached answers. After a permission sync reflects an employee’s lost access, what prevents their per-user cache from returning an answer based on that source?
-- Stage 4: The deny ledger handles revocations once they’re known to your system. What happens if an employee’s access is revoked at the source but the permission sync stream hasn’t received that change yet?
-- Stage 4: The replica fails closed when permission versions can't be confirmed. How would you use the Eval and tracing component to check whether a retrieval change improves answer quality before launch?
-- Stage 4: What evidence would you compare before releasing a retrieval change to decide whether answer quality has improved?
-- Stage 4: Your evaluation plan checks both answer quality and access leaks before release. If a retrieved document instructs the assistant to list salary files, how would your design handle that instruction?
-- Stage 4: How would the LLM distinguish a retrieved document’s instruction to list salary files from the employee’s actual request?
-- Stage 4: You enforce access controls outside the model. How much of your end-to-end latency budget would you allocate to the Reranker, and why?
-- Stage 5: Reducing context could lower model costs. How would you decide how much context to cut without hurting answer quality?
+- Stage 1: I can clarify one requirement at a time.
 
-**senior:** 23 turns, including deterministic single-fact clarifications and real-model design discussion.
+What safety or access constraints would you clarify?
+- Stage 3: You filter retrieval using the employee's permissions. Once a permission change has been synced, how does the Scoped answer cache avoid returning an answer that cites a document the employee can no longer access?
+- Stage 4: The cache is scoped per user. How would the per-user cache handle an existing answer after that user's access to a cited document is revoked and synced?
+- Stage 4: The deny ledger handles revocations once they reach your system. What could a user receive after access is revoked but before the permission sync stream delivers that change?
+- Stage 4: You fail closed when permission versions can't be confirmed. Before the sync stream delivers a revocation, how can you tell whether the permission version you have is still current?
+- Stage 4: How would you use "Eval and tracing" to determine whether a change improves retrieval and answer quality before launch?
+- Stage 4: The evaluation plan separates retrieval quality from answer quality and access checks. What does your reranking step add to the latency budget?
+- Stage 4: How would you detect a revocation that hasn't yet reached the permission sync stream?
+- Stage 4: You enforce access controls outside the model. How much of the under-five-second response target do you expect the Reranker to consume?
+- Stage 5: You could reduce cost by limiting the context sent to the model. How would you decide how much context to remove without losing important evidence?
 
+**senior:** 25 turns, including deterministic single-fact clarifications and real-model design discussion.
+
+- Stage 1: I can clarify one requirement at a time.
+
+What safety or access constraints would you clarify?
 - Stage 1: Could you redo that estimate, showing the units and assumptions at each step?
-- Stage 3: The retrieval filters enforce permissions before content reaches the model. How does the Scoped answer cache prevent a previously authorized answer from being returned after the employee loses access to a cited document?
-- Stage 4: A per-user cache separates entries by "Employee". With the per-user cache, what happens when that user's access to a cited document is revoked after the answer is cached?
-- Stage 4: Keyword search provides a degraded fallback. If the vector index fails while its replica is behind, how would promotion affect recently changed documents?
-- Stage 4: The replica is rejected when its freshness or permissions can't be confirmed. How would you use your test set to measure whether a change improves retrieval and answer quality before launch?
-- Stage 4: What measures would you compare on the test set to judge retrieval and answer quality before releasing a change?
-- Stage 4: The release gate checks both access leaks and quality regressions. If a retrieved document instructs the assistant to list salary files, how would your design prevent that instruction from controlling the answer?
-- Stage 4: How does your design keep an instruction embedded in a retrieved document from directing the assistant to list salary files?
-- Stage 4: You enforce access controls outside the model. How much of your two-second first-token budget would you allocate to the Reranker, and why?
-- Stage 5: Provider prices are unspecified, so you can choose and justify an assumption. How would you decide how much to reduce the context while checking that answer quality remains acceptable?
+- Stage 3: You filter retrieval results before sending content to the model. How does the Scoped answer cache prevent an employee from receiving a cached answer after their access to a cited document is revoked?
+- Stage 4: The cache is scoped per user, but that alone doesn't address revoked access. How would the per-user answer cache handle a request after that user's access to a cited document is revoked?
+- Stage 4: The keyword fallback provides a degraded path when vector search is unavailable. If the vector index replica takes over while it's behind on recent updates, how would that affect the answers employees receive?
+- Stage 4: The replica fails closed when freshness or permissions can't be verified. How would you use the Eval and tracing component to determine whether a retrieval change improves answer quality before launch?
+- Stage 4: What test cases and measurements would you use to compare the proposed retrieval change with the current system before launch?
+- Stage 4: The evaluation gates cover both answer quality and access leaks. What can happen between access being revoked and your next permission sync?
+- Stage 4: Before the permission sync observes a revocation, how does your design handle a request for the newly restricted content?
+- Stage 4: You enforce access controls outside the model. A document contains an instruction to list salary files. What does your design do with it?
+- Stage 5: Provider pricing is unspecified, so a justified assumption is fine. How would you decide how much to reduce the context while checking the impact on answer quality?
 
-**staff:** 22 turns, including deterministic single-fact clarifications and real-model design discussion.
+**staff:** 23 turns, including deterministic single-fact clarifications and real-model design discussion.
 
-- Stage 3: The retrieval filters restrict passages before they reach the model. How does the Scoped answer cache prevent an answer from being returned after the employee loses access to one of its sources?
-- Stage 4: The per-user cache separates employees' answers. How does the per-user cache handle an entry whose source access was revoked after it was cached?
-- Stage 4: The deny ledger covers revocations once it receives them. If the permission sync stream is delayed, how does your design meet the one-minute revocation requirement when it allows up to five minutes of staleness?
-- Stage 4: The replica fails closed when permission freshness can't be confirmed. How would you use "Eval and tracing" to decide whether a retrieval change is safe to launch?
-- Stage 4: What evidence from "Eval and tracing" would you require before launching a retrieval change?
-- Stage 4: Your launch gate includes access checks and quality regression tests. If a retrieved document instructs the assistant to list salary files, how does your design prevent that instruction from controlling the answer?
-- Stage 4: When a retrieved document tells the assistant to list salary files, how does your design keep that document's instructions from directing the LLM?
-- Stage 4: Access controls sit outside the model's trust boundary. How much of your first-token latency budget does the Reranker consume under peak load?
-- Stage 5: Provider prices and the current cost baseline haven't been specified. How would you decide how much to reduce the context while checking that answer quality remains acceptable?
+- Stage 1: I can clarify one requirement at a time.
+
+What safety or access constraints would you clarify?
+- Stage 3: Chunking is guided by a test set rather than a universal size. How would you use your test set to decide whether a chunking approach preserves enough context for questions about PDF tables?
+- Stage 4: The cache and replica introduce separate reliability concerns. Can an answer cached for one user reach another user in your design?
+- Stage 4: The cache is scoped by user and permission versions. What can happen between access being revoked and your next permission sync?
+- Stage 4: The cache fails closed when permission versions are uncertain. If a revocation hasn't yet reached the permission sync stream, how does your design prevent access beyond the one-minute limit?
+- Stage 4: How would you use "Eval and tracing" to decide whether a change improves both retrieval and answer quality before launch?
+- Stage 4: Your evaluation plan checks retrieval and answer quality separately before release. If the permission sync stream is delayed before it receives a revocation, how can your design detect that the user's access is no longer valid within one minute?
+- Stage 4: How does "Auth and permissions" verify access within the one-minute limit when the revocation hasn't reached the sync stream?
+- Stage 4: Access enforcement sits outside the model. A document contains an instruction to list salary files. What does your design do with it?
+- Stage 5: Provider prices are unspecified, so you can use a justified assumption. How would you decide how much to reduce context while checking that the cost savings don't compromise answer quality?
 
 The config tests check every fact at all three levels and public projections. Build verification scans browser chunks for private facts, anchors and rubric content.
 
 ### ai-chat-assistant
 
-**mid:** 14 turns, including deterministic single-fact clarifications and real-model design discussion.
+**mid:** 15 turns, including deterministic single-fact clarifications and real-model design discussion.
 
+- Stage 1: I can clarify one requirement at a time.
+
+What safety or access constraints would you clarify?
 - Stage 1: Could you redo that estimate, showing the units and assumptions at each step?
 
-**senior:** 22 turns, including deterministic single-fact clarifications and real-model design discussion.
+**senior:** 23 turns, including deterministic single-fact clarifications and real-model design discussion.
 
+- Stage 1: I can clarify one requirement at a time.
+
+What safety or access constraints would you clarify?
 - Stage 1: Could you redo that estimate, showing the units and assumptions at each step?
-- Stage 3: The gateway checks tier budgets before the chat service creates a turn. How do the token budgets in the gateway enforce the free tier's limit on large-model messages?
-- Stage 4: The bounded queue gives requests a place to wait when GPU capacity is unavailable. A GPU node dies while producing an answer. What does the user see?
-- Stage 4: The retry makes interrupted answers explicit. What happens if a worker completes a turn but loses its queue acknowledgement, so the same work is delivered again?
-- Stage 4: How would you use "Evaluation" to check a new model's answer quality and safety before rollout?
-- Stage 4: The evaluation plan compares quality and safety before and during rollout. If the queue delivers an already completed turn to another worker, how does your design prevent a duplicate answer or GPU work?
-- Stage 4: How does "Input and output moderation" affect the time until the user sees the first streamed token?
-- Stage 4: Moderation adds a buffering step before streamed output is released. What would make you stop or roll back your new-model rollout?
-- Stage 5: How would you choose a paid-tier limit that balances cost and user experience, and check whether that choice works?
+- Stage 3: The gateway checks tier budgets before requests reach the chat service. Why does your capacity or rate-limit plan use those units?
+- Stage 4: The queue and retries introduce a duplicate-work risk. Your GPUs are full and traffic keeps rising. What do you do in the next five minutes?
+- Stage 4: The bounded queue limits overload, and interrupted turns can be retried. What happens if a worker finishes a turn but loses its acknowledgement to the queue, causing the request to be delivered again?
+- Stage 4: How would you evaluate a new model's answer quality and safety before routing users to it?
+- Stage 4: Your evaluation plan compares a canary against a control. How does your moderation path affect time to the first streamed token?
+- Stage 4: How would the input and output moderation checks affect when the client receives its first token?
+- Stage 4: Moderation buffers output before release. What would make you stop or roll back your new-model rollout?
+- Stage 5: How would you decide whether the cost savings from routing free users to the small model justify any measured quality loss?
+
+The config tests check every fact at all three levels and public projections. Build verification scans browser chunks for private facts, anchors and rubric content.
+
+### tool-using-ai-agent
+
+**senior:** 19 turns, including deterministic single-fact clarifications and real-model design discussion.
+
+- Stage 1: I can clarify one requirement at a time.
+
+What safety or access constraints would you clarify?
+- Stage 3: The executor uses the employee’s scoped token. What does the employee see in the approval UI before an email is sent?
+- Stage 4: Retries and checkpoints introduce recovery behavior. A tool call times out and you retry. How does your design avoid sending the email twice?
+- Stage 4: Approval is tied to an immutable action payload. The agent keeps calling the same tool. How would your runner detect and stop that loop?
+- Stage 4: How would the Agent runner use its step count to handle repeated tool calls?
+- Stage 4: The runner stops repeated calls before the overall step limit. How would you test a new model or prompt before shipping it?
+- Stage 4: With mocked tools, how would you decide whether a new model or prompt is safe and effective enough to release?
+- Stage 4: The release gate checks wrong actions separately from task success. A user reports a wrong action from yesterday. How would you find out why it happened?
+- Stage 4: An email the agent reads asks it to forward all messages elsewhere. What happens in your design?
+- Stage 4: The policy separates retrieved content from authorization for writes. For the earlier report of a wrong action, how would you use "Audit and tracing" to determine what led to it?
+- Stage 5: How would you check whether bounding the context causes the agent to miss information needed for a correct action?
 
 The config tests check every fact at all three levels and public projections. Build verification scans browser chunks for private facts, anchors and rubric content.
 
@@ -379,6 +414,160 @@ The config tests check every fact at all three levels and public projections. Bu
 
 **Next practice:** Design a rate limiter. Design token-weighted, tier-aware admission control with explicit queue-wait cutoffs. Test saturation behavior, paid-tier priority, and the free-tier service floor.
 
+## tool-using-ai-agent: weak Senior scorecard
+
+**Signal: strong_no.** The candidate understands the basic workflow and workload, but explicitly proposes unsafe permissions and writes, unbounded execution, duplicate-action risks, and no reliable debugging or evaluation. These unresolved choices do not meet the senior-level bar.
+
+| Area | Score | Rationale |
+| --- | --- | --- |
+| Requirements and task budgets | 2 | Identifies the workflow, employee count, daily traffic, average steps, and completion-time goal. However, recognizing wrong-recipient risk does not translate into a safety requirement; recipient selection is left entirely to the model. |
+| Agent loop and tool contracts | 1 | Explicitly proposes an unbounded loop without repeated-call detection and arbitrary tool arguments without schemas or defined contracts. This leaves execution termination and tool-call validity uncontrolled. |
+| Durable execution and recovery | 1 | Keeps task state only in memory and blindly retries timed-out emails without idempotency or reconciliation. Explicitly accepts task loss and duplicate sends after restart rather than providing safe recovery. |
+| Tool platform and observability | 1 | Explicitly omits action identifiers, audit logs, tracing, and replay. Asking the model what happened cannot reliably reconstruct or investigate a past action. |
+| Latency and cost per task | 1 | Rejects per-task token and tool-cost accounting, latency tracking, and deadlines. Monthly invoice monitoring alone cannot identify expensive task paths or control indefinite execution. |
+| Evaluation and quality | 1 | Proposes organization-wide deployment after one real-email test, without evaluations, mocked tools, or task-success and wrong-action metrics. This provides no credible assessment of action correctness before rollout. |
+| Safety and security | 1 | Uses an all-access service account, sends emails without confirmation, and treats retrieved instructions as authoritative. These choices remove user-permission boundaries and permit retrieved content to trigger unauthorized disclosure. |
+
+**Requirements and task budgets, candidate evidence:** “I understand the task is to find incidents, summarize them and send email for 20,000 employees, with about 50K tasks daily, six steps on average and 60 seconds for most tasks.”
+
+**Requirements and task budgets, candidate evidence:** “I know a wrong recipient is serious but will trust the model to choose.”
+
+**Agent loop and tool contracts, candidate evidence:** “I will let the model call tools until it thinks it is finished, without a step limit or repeated-call detector.”
+
+**Agent loop and tool contracts, candidate evidence:** “Tool arguments can be arbitrary text with no schema.”
+
+**Agent loop and tool contracts, candidate evidence:** “The model will figure out tool contracts without a registry.”
+
+**Durable execution and recovery, candidate evidence:** “I will keep state only in process memory and blindly retry every timed-out email.”
+
+**Durable execution and recovery, candidate evidence:** “I have no idempotency keys, unknown-outcome state or reconciliation.”
+
+**Durable execution and recovery, candidate evidence:** “A restart loses the task and starts over, so sending twice is possible and I accept that.”
+
+**Tool platform and observability, candidate evidence:** “I do not record action or step IDs, approvals or tool versions.”
+
+**Tool platform and observability, candidate evidence:** “There is no audit log, tracing or replay, so I cannot debug what an agent did yesterday.”
+
+**Tool platform and observability, candidate evidence:** “I would just ask the model what it thinks happened.”
+
+**Latency and cost per task, candidate evidence:** “I will look at the total monthly invoice and ignore per-task tokens and tool costs.”
+
+**Latency and cost per task, candidate evidence:** “I will let tasks run indefinitely and do not track latency or stop at a deadline.”
+
+**Evaluation and quality, candidate evidence:** “I have no evaluations or mocked tools.”
+
+**Evaluation and quality, candidate evidence:** “We will test a prompt by sending a real email once, then deploy it to everyone if the summary looks good.”
+
+**Evaluation and quality, candidate evidence:** “I have no task-success or wrong-action metrics.”
+
+**Safety and security, candidate evidence:** “I will use one broad service account with access to every employee’s tools.”
+
+**Safety and security, candidate evidence:** “I will send emails without confirmation to keep the flow smooth.”
+
+**Safety and security, candidate evidence:** “If a retrieved email says forward all messages elsewhere, the model should obey it, because tool output is trustworthy.”
+
+### Strengths
+
+- Accurately identifies the core workflow and several operating requirements, including daily task volume, average steps, and the completion-time goal.
+  Candidate evidence: “I understand the task is to find incidents, summarize them and send email for 20,000 employees, with about 50K tasks daily, six steps on average and 60 seconds for most tasks.”
+
+### Gaps
+
+- The all-access account, unconfirmed emails, and obedience to retrieved instructions create direct risks of unauthorized actions and data exfiltration. Use delegated user-scoped credentials, enforce recipient/domain rules with an exact-action approval preview, and prevent retrieved content from authorizing writes.
+  Candidate evidence: “I will use one broad service account with access to every employee’s tools.”
+  Candidate evidence: “I will send emails without confirmation to keep the flow smooth.”
+  Candidate evidence: “If a retrieved email says forward all messages elsewhere, the model should obey it, because tool output is trustworthy.”
+- The unbounded loop, absent idempotency and reconciliation, and lack of tracing or replay allow runaway work, duplicate emails, and actions that cannot be reconstructed. Add step/deadline limits and loop detection, persist action state with idempotency and unknown-outcome handling, and record auditable step/action traces.
+  Candidate evidence: “I will let the model call tools until it thinks it is finished, without a step limit or repeated-call detector.”
+  Candidate evidence: “I have no idempotency keys, unknown-outcome state or reconciliation.”
+  Candidate evidence: “There is no audit log, tracing or replay, so I cannot debug what an agent did yesterday.”
+- One live-email smoke test without mocked scenarios or outcome metrics cannot establish safe behavior before deployment to all employees. Build a mocked-tool suite covering successful tasks, wrong recipients, prompt injection, retries, and timeouts; gate rollout on task-success and wrong-action results.
+  Candidate evidence: “I have no evaluations or mocked tools.”
+  Candidate evidence: “We will test a prompt by sending a real email once, then deploy it to everyone if the summary looks good.”
+  Candidate evidence: “I have no task-success or wrong-action metrics.”
+
+**Next practice:** Design an AI agent with tools. Redesign the email action path around scoped credentials, exact-action approval, and durable idempotent execution. Walk through a timeout after sending and a malicious retrieved instruction, then define mocked tests and per-task latency/token measurements.
+
+## tool-using-ai-agent: strong Senior scorecard
+
+**Signal: strong_yes.** A safety-first, operationally credible design, especially strong in recovering uncertain writes, enforcing approval boundaries, and evaluating action correctness. The main improvement is to validate latency and cost with a worked task budget rather than instrumentation alone.
+
+| Area | Score | Rationale |
+| --- | --- | --- |
+| Requirements and task budgets | 3 | Confirmed the workload, step and latency budgets, user-scoped permissions, and seriousness of wrong-recipient actions. Appropriately prioritized correctness, safety, and recovery over scaling arithmetic. |
+| Agent loop and tool contracts | 3 | Defined a persistent think/choose/call/observe loop with typed tool contracts, read/write classifications, risk levels, and required scopes. Explicit step accounting and repeated tool-and-argument detection provide concrete termination mechanisms. |
+| Durable execution and recovery | 4 | Distinguished ambiguous outcomes from ordinary failures, prohibited blind retries of irreversible writes, and restricted restart behavior to safe reads or reconciled writes. The proposed ambiguous-email scenario provides a concrete test of this recovery policy. |
+| Tool platform and observability | 3 | Specified detailed action-linked audit records and sanitized timing traces. Explained how to investigate a past action through recorded-state replay, including the approval, policy version, and tool arguments available at the time. |
+| Latency and cost per task | 3 | Separated model, tool, and approval latency; tracked token and tool costs; and proposed read deduplication and bounded context without weakening safety. These are concrete controls, but no worked task budget demonstrated feasibility against the completion goal. |
+| Evaluation and quality | 4 | Proposed a mocked-tool scenario suite covering both normal execution and consequential failure modes, with human-labeled actions and separate task-success and wrong-action metrics. Regression gating, canary monitoring, and rollback make the evaluation plan operationally actionable. |
+| Safety and security | 4 | Established executor-enforced delegated permissions and exact-action confirmation rather than trusting model discretion. Explicitly prevented retrieved content from authorizing writes, with recipient/domain validation and injection scenarios reinforcing that boundary. |
+
+**Requirements and task budgets, candidate evidence:** “At Senior there are 20,000 employees, 50K tasks daily, about six model calls and 40K tokens per task, with a 30-step maximum and most tasks finished in 60 seconds.”
+
+**Requirements and task budgets, candidate evidence:** “The agent acts only within the employee’s permissions, and a wrong recipient is a serious incident.”
+
+**Requirements and task budgets, candidate evidence:** “Correctness, safety and recovery matter more here than pushing scale math.”
+
+**Agent loop and tool contracts, candidate evidence:** “A durable task runner persists a task state machine around think, choose tool, call and observe.”
+
+**Agent loop and tool contracts, candidate evidence:** “The tool registry validates typed argument and result schemas and declares read or write behavior, risk level and required scopes.”
+
+**Agent loop and tool contracts, candidate evidence:** “Count every attempted model step against the 30-step limit, detect repeated tool-and-argument cycles and stop with a useful explanation.”
+
+**Durable execution and recovery, candidate evidence:** “An ambiguous email timeout triggers lookup by idempotency key or reconciliation; it must not blindly resend an irreversible write when the provider cannot deduplicate.”
+
+**Durable execution and recovery, candidate evidence:** “A restarted runner loads its last persisted step and only resumes a safe pending read or an explicitly reconciled write.”
+
+**Durable execution and recovery, candidate evidence:** “Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops.”
+
+**Tool platform and observability, candidate evidence:** “Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status.”
+
+**Tool platform and observability, candidate evidence:** “Structured traces record timings and sanitized identifiers, not broad tool secrets.”
+
+**Tool platform and observability, candidate evidence:** “To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision.”
+
+**Latency and cost per task, candidate evidence:** “Measure time per model step, tool call and approval wait separately and report latency per completed task; the normal path must fit the 60-second goal.”
+
+**Latency and cost per task, candidate evidence:** “Track actual input/output tokens, tool costs and total steps per task, applying chosen rates rather than inventing a provider price.”
+
+**Latency and cost per task, candidate evidence:** “Deduplicate repeated reads and bound context while preserving action evidence; reducing steps must not remove confirmation or policy checks.”
+
+**Evaluation and quality, candidate evidence:** “Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops.”
+
+**Evaluation and quality, candidate evidence:** “Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents.”
+
+**Evaluation and quality, candidate evidence:** “Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback.”
+
+**Safety and security, candidate evidence:** “The executor uses the user’s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable.”
+
+**Safety and security, candidate evidence:** “A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI.”
+
+**Safety and security, candidate evidence:** “Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction.”
+
+### Strengths
+
+- Recovery handles the difficult uncertain-success case: persist a stable action identity before execution, reconcile ambiguous writes, and resume only when execution is safe.
+  Candidate evidence: “Persist each intended action with a stable action ID and idempotency key before execution.”
+  Candidate evidence: “An ambiguous email timeout triggers lookup by idempotency key or reconciliation; it must not blindly resend an irreversible write when the provider cannot deduplicate.”
+  Candidate evidence: “A restarted runner loads its last persisted step and only resumes a safe pending read or an explicitly reconciled write.”
+- Approval is a meaningful authorization boundary: users see the exact outgoing action, changed payloads require fresh approval, and retrieved instructions cannot authorize sending.
+  Candidate evidence: “A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI.”
+  Candidate evidence: “Approval references the immutable action payload hash so changed arguments need fresh approval.”
+  Candidate evidence: “Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction.”
+- Quality is judged by action correctness rather than fluent output, using failure-focused scenarios, labeled acceptable actions, and guarded rollout.
+  Candidate evidence: “Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops.”
+  Candidate evidence: “Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents.”
+  Candidate evidence: “Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback.”
+
+### Gaps
+
+- Latency and cost have a measurement plan, but not a worked feasibility estimate. This leaves the normal path's ability to meet the completion goal unvalidated; budget model and tool time for a representative six-call task, state how approval waiting affects that budget, and estimate per-task cost using explicitly assumed rates.
+  Candidate evidence: “At Senior there are 20,000 employees, 50K tasks daily, about six model calls and 40K tokens per task, with a 30-step maximum and most tasks finished in 60 seconds.”
+  Candidate evidence: “Measure time per model step, tool call and approval wait separately and report latency per completed task; the normal path must fit the 60-second goal.”
+  Candidate evidence: “Track actual input/output tokens, tool costs and total steps per task, applying chosen rates rather than inventing a provider price.”
+
+**Next practice:** Design an enterprise RAG assistant. Build a worked end-to-end latency and token-cost budget for a representative request, then compare context sizing and model-routing alternatives while preserving quality and permission checks.
+
 ## Cost methodology
 
 Each interview artifact records real response usage (including cached input, cache writes when reported, reasoning within output, and any retried calls with available usage). Missing usage/pricing remains unavailable rather than zero. Costs use the app’s verified rate table: [official pricing](https://developers.openai.com/api/docs/pricing). Terra: $1 input / $0.05 cached / $1.25 cache write / $5 output per million tokens. Sol: $2 / $0.10 / $2.50 / $10 respectively. These are estimates, not invoices.
@@ -387,8 +576,9 @@ Compare one completed Senior scripted conversation plus its strong scorecard aga
 
 | Script | Turns | Calls | Input tokens | Output tokens | Estimated USD | Missing usage/cost |
 | --- | --- | --- | --- | --- | --- | --- |
-| enterprise-rag-assistant | 23 | 12 | 57,020 | 5,616 | $0.08765 | 0 |
-| ai-chat-assistant | 22 | 13 | 55,475 | 5,198 | $0.08444 | 0 |
+| enterprise-rag-assistant | 25 | 14 | 64,181 | 5,504 | $0.09780 | 0 |
+| ai-chat-assistant | 23 | 13 | 55,963 | 5,186 | $0.08907 | 0 |
+| tool-using-ai-agent | 19 | 11 | 54,424 | 4,602 | $0.07759 | 0 |
 | URL shortener baseline | 9 discussion turns | 10 | 47,869 | 4,766 | $0.07778 | 0 |
 
 No production deployment or main update is authorized for this change. Beta Preview is the review target. Existing saved interviews are untouched.
@@ -408,3 +598,103 @@ selection is unchanged. Before: “On redelivery after a lost acknowledgement, w
 does the worker check before starting inference for that turn?” After the
 candidate requested evaluation/moderation, the verified run asked those specific
 questions, recorded above.
+
+Undisclosed facts were incorrectly called “unspecified” in a general clarification.
+The GenAI prompt now distinguishes available-but-undisclosed fact topics from
+assumptions, without receiving their values. General requests return a neutral
+one-requirement-at-a-time continuation. Before: “The number of documents and
+sources is unspecified, so you can choose working assumptions.” After: “I can
+clarify one requirement at a time.” All six live cases check this regression.
+
+The first agent script supplied the complete safety/loop answer before asking
+for a probe. Its normal-flow script now introduces the design and leaves those
+mechanisms for the actual discussion. The independent strong grading transcript
+remains complete. The tests identify evaluation/safety questions by the server's
+verified selected rubric area, preserving scenario sentences for failure checks.
+
+## Verification
+
+- Full check: 1,391 passed, with two pre-existing skipped tests. TypeScript, lint
+  and formatting passed.
+- Production build passed; the browser-chunk privacy scan passed.
+- Six live conversation cases passed: RAG at Mid/Senior/Staff, chat at Senior,
+  the additional chat Mid provider-limit estimate, and agent at Senior.
+- All six weak/strong Senior scorecards completed on their first grading attempt.
+  Each strong design scored higher in all seven areas; all weak signals were
+  Strong no, while strong signals were Strong yes / Yes / Strong yes.
+- All 21 browser tests passed in the isolated production build. The new test
+  verifies 8 core + 3 GenAI picker entries, public brief privacy, a single start,
+  a two-part clarification returning only the first fact, normal end/results,
+  and no page errors. Desktop and 390px Brief screenshots are in ignored
+  artifacts/genai. Existing browser history was not touched.
+
+The Staff chat GPU anchor is interpreted as ordinary baseline peak capacity,
+before the separately specified three-times launch surge. No supplied numbers,
+original core rubrics or scoring weights were changed. No production deployment,
+main fast-forward, secret changes or dashboard configuration is part of this work.
+
+## Benchmark interpretation
+
+The mean of these three one-run Senior GenAI benchmarks is $0.08815, compared with $0.07778 for the URL-shortener benchmark (1.13 times). This includes the deliberate estimate checks and one strong grade per script. It is not a prediction of a 45-minute session bill. Local Terra replies and Sol grading were used; a different deployment model changes the cost.
+
+## Files changed
+
+- `CLAUDE.md`
+- `docs/interviewer-keywords.md`
+- `docs/problem-catalog.md`
+- `docs/reviews/genai-track-2026-11-10.md`
+- `docs/spec.md`
+- `package.json`
+- `scripts/check-private-problems.mjs`
+- `src/app/api/problems/route.test.ts`
+- `src/components/interview-setup.tsx`
+- `src/components/practice-page.tsx`
+- `src/lib/clarification-continuation.ts`
+- `src/lib/configured-clarifications.ts`
+- `src/lib/diagram-audit.ts`
+- `src/lib/diagram-review.ts`
+- `src/lib/discussion-reply.ts`
+- `src/lib/end-interview.ts`
+- `src/lib/fixtures/genai-engine-test.ts`
+- `src/lib/genai-catalog.test.ts`
+- `src/lib/genai-chat-assumptions.test.ts`
+- `src/lib/genai-components.ts`
+- `src/lib/genai-config.ts`
+- `src/lib/genai-engine.test.ts`
+- `src/lib/genai-estimate-detection.ts`
+- `src/lib/genai-estimation.ts`
+- `src/lib/genai-facts.ts`
+- `src/lib/genai-interviewer.ts`
+- `src/lib/genai-probes.test.ts`
+- `src/lib/genai-probes.ts`
+- `src/lib/interview-grading.ts`
+- `src/lib/interview-instructions.test.ts`
+- `src/lib/interview-instructions.ts`
+- `src/lib/interview-progress.ts`
+- `src/lib/interview-selection.ts`
+- `src/lib/interview-turn.ts`
+- `src/lib/interviewer-state.ts`
+- `src/lib/llm.ts`
+- `src/lib/off-topic.ts`
+- `src/lib/probe-topics.ts`
+- `src/lib/problem-definition.ts`
+- `src/lib/problems.test.ts`
+- `src/lib/problems.ts`
+- `src/lib/problems/ai-chat-assistant.json`
+- `src/lib/problems/enterprise-rag-assistant.json`
+- `src/lib/problems/tool-using-ai-agent.json`
+- `src/lib/review-probes.test.ts`
+- `src/lib/review-probes.ts`
+- `src/lib/scorecard-diagram.ts`
+- `tests/e2e/fixture-accounts.mjs`
+- `tests/e2e/genai.spec.ts`
+- `tests/fixtures/genai/ai-chat-assistant.json`
+- `tests/fixtures/genai/enterprise-rag-assistant.json`
+- `tests/fixtures/genai/tool-using-ai-agent.json`
+- `tests/live/genai-evaluation.live.ts`
+- `tests/live/genai-fixture.ts`
+- `tests/live/genai-grading.ts`
+- `tests/live/model-meter.ts`
+- `tests/live/observed-live.ts`
+- `tests/live/url-baseline.live.ts`
+- `vitest.genai.config.mts`

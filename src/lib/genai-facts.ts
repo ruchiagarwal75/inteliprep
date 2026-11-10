@@ -23,7 +23,15 @@ export function genaiFact(
         complete: true,
         coveredCriteria: fact.coversCriteria,
       }
-    : undefined;
+    : /what else (?:should|do|can|would) (?:i|we) (?:know|clarify)|(?:all|remaining|other) (?:exercise |problem )?facts/iu.test(
+          content,
+        )
+      ? {
+          text: "I can clarify one requirement at a time.",
+          complete: true,
+          coveredCriteria: [],
+        }
+      : undefined;
 }
 export function disclosedGenaiFacts(
   problem: ProblemDefinition,

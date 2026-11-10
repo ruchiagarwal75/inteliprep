@@ -6,7 +6,9 @@ import rag from "../../tests/fixtures/genai/enterprise-rag-assistant.json";
 
 import chat from "../../tests/fixtures/genai/ai-chat-assistant.json";
 
-const fixtures = [rag, chat];
+import agent from "../../tests/fixtures/genai/tool-using-ai-agent.json";
+
+const fixtures = [rag, chat, agent];
 describe.each(fixtures)("GenAI config $problemId", (fixture) => {
   const problem = getProblem(fixture.problemId);
   if (!problem?.genai) throw new Error("Missing private GenAI config");
@@ -69,3 +71,21 @@ describe.each(fixtures)("GenAI config $problemId", (fixture) => {
     });
   }
 });
+
+it.each(fixtures)(
+  "does not label undisclosed $problemId facts as unspecified",
+  (fixture) => {
+    const problem = getProblem(fixture.problemId);
+    if (!problem) throw new Error("Missing GenAI problem");
+    for (const level of ["mid", "senior", "staff"] as const) {
+      expect(genaiFact(problem, level, "What else should I know?")).toEqual({
+        text: "I can clarify one requirement at a time.",
+        complete: true,
+        coveredCriteria: [],
+      });
+      const instructions = buildInterviewInstructions({ problem, level });
+      expect(instructions).toContain("available_fact_topics");
+      expect(instructions).toContain("does not mean they are unspecified");
+    }
+  },
+);

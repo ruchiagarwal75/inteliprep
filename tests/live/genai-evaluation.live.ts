@@ -4,7 +4,7 @@ import { fixtureSchema, fixtureScene } from "./genai-fixture";
 import { calls, metered } from "./model-meter";
 import { getProblem } from "@/lib/problems";
 import { streamInterviewerReply } from "@/lib/llm";
-import { gradeInterview } from "@/lib/interview-grading";
+import { compareSeniorDesigns } from "./genai-grading";
 import { questionAtEnd } from "@/lib/open-question";
 import { questionMemory } from "@/lib/question-memory";
 import { graphToText } from "@/lib/scene-to-text";
@@ -52,6 +52,7 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
         reply: string;
         stage: number;
         durationMs: number;
+        area?: number;
       }[] = [];
       const memory = {
         askedQuestions: [] as string[],
@@ -84,14 +85,14 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
               .join(" ") +
             " " +
             fixture.strongNodes.join(" "),
-          diagramLabels: fixture.strongNodes,
+          diagramLabels: stage === 0 ? [] : fixture.strongNodes,
         };
         const started = Date.now();
         const reply = await metered(label, async () => {
           let text = "";
           for await (const delta of streamInterviewerReply(
             messages,
-            diagram,
+            stage === 0 ? "The current whiteboard is empty." : diagram,
             "No changes.",
             AbortSignal.timeout(60000),
             undefined,
@@ -101,7 +102,15 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
           return text;
         });
         messages.push({ role: "assistant", content: reply });
-        replies.push({ input, reply, stage, durationMs: Date.now() - started });
+        replies.push({
+          input,
+          reply,
+          stage,
+          durationMs: Date.now() - started,
+          area: problem.reviewProbes.find(
+            (p) => p.topic === context.selectedTopic,
+          )?.areaIndex,
+        });
         if (context.selectedTopic)
           memory.topicTurns[context.selectedTopic] =
             (memory.topicTurns[context.selectedTopic] ?? 0) + 1;
@@ -127,6 +136,12 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
         const fact = config.facts.find((f) => f.id === row.id);
         expect(combined).not.toContain(fact?.answers[level]);
       }
+      const noNewFacts = await turn("What else should I know?", 0);
+      expect(noNewFacts).not.toMatch(/unspecified|choose.*assumptions/iu);
+      for (const fact of config.facts.filter((f) => f.id !== selected[0].id))
+        expect(noNewFacts.replaceAll('"', "")).not.toContain(
+          fact.answers[level],
+        );
       for (const fact of fixture.facts.slice(1)) {
         const reply = await turn(fact.ask, 0);
         // The shared label grammar guard may quote a matching diagram name.
@@ -157,10 +172,15 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
         .filter((r) => r.stage > 0)
         .map((r) => questionAtEnd(r.reply) ?? "")
         .join("\n");
-      expect(discussion).toMatch(/eval|quality|measure|test|metric/iu);
-      expect(discussion).toMatch(
-        /permission|safety|moderation|injection|unauthor|confirm|approval|access|salary|retrieved.*instruction/iu,
-      );
+      for (const area of ["Evaluation and quality", "Safety and security"])
+        expect(
+          replies.some(
+            (r) =>
+              r.stage > 0 &&
+              r.area === problem.rubric.findIndex((a) => a.area === area),
+          ),
+          area,
+        ).toBe(true);
       // Keep the scenario sentence: "A GPU dies. What does the user see?"
       // loses its failure context if reduced to just the final question.
       const fullDiscussion = replies
@@ -174,47 +194,6 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
       );
     });
   }
-  it("grades the weak Senior design below the strong one and names demonstrated red flags", async () => {
-    const outputs = [];
-    for (const strength of ["weak", "strong"] as const) {
-      const messages: ChatMessage[] = fixture[strength].flatMap(
-        (content, i) => [
-          {
-            role: "assistant" as const,
-            content: `Please explain your approach to ${problem.rubric[i].area}.`,
-          },
-          { role: "user" as const, content },
-        ],
-      );
-      const snapshot = {
-        messages,
-        scene: fixtureScene(
-          strength === "strong" ? fixture.strongNodes : fixture.weakNodes,
-          strength === "strong" ? fixture.strongEdges : [],
-        ),
-      };
-      const label = `${problem.id}-${strength}-grade`;
-      const scorecard = await metered(label, () =>
-        gradeInterview(problem, "senior", snapshot, new Date().toISOString()),
-      );
-      writeFileSync(
-        `${root}/${label}.json`,
-        JSON.stringify(
-          { scorecard, calls: calls.filter((c) => c.label === label) },
-          null,
-          2,
-        ),
-      );
-      outputs.push(scorecard);
-    }
-    const [weak, strong] = outputs;
-    expect(["yes", "strong_yes"]).toContain(strong.signal);
-    expect(["strong_no", "no", "insufficient_evidence"]).toContain(weak.signal);
-    expect(weak.gaps.length).toBeGreaterThanOrEqual(2);
-    expect(
-      strong.areas.filter(
-        (a, i) => a.score !== null && a.score > (weak.areas[i].score ?? 0),
-      ).length,
-    ).toBeGreaterThan(strong.areas.length / 2);
-  });
+  it("grades the weak Senior design below the strong one and names demonstrated red flags", () =>
+    compareSeniorDesigns(fixture, problem, root));
 });
