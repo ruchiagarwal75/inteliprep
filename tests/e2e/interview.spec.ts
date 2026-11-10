@@ -559,3 +559,79 @@ test("an unavailable interviewer keeps the message and offers a working Retry re
   ).toBeEnabled();
   await expect(page).toHaveURL(/\/interview\/[a-f0-9-]+$/);
 });
+
+test("an active deadline ends automatically and keeps an unfinished draft unsent", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Message", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Message", exact: true })
+    .fill("My unfinished answer must stay unsent.");
+  await page.clock.install();
+  await page.clock.fastForward(46 * 60 * 1000);
+  await expect(page).toHaveURL(/\/results$/, { timeout: 15000 });
+  await expect(
+    page.getByRole("heading", { name: "Too short to score", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByText("Saved unsent draft (not included in scoring)", { exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("region", { name: "Chat", exact: true })
+      .getByText("My unfinished answer must stay unsent.", { exact: true }),
+  ).toBeVisible();
+});
+test("an expired server transcript opens as an unscored saved record", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Message", exact: true }),
+  ).toBeVisible();
+  await page.route("**/api/interview/resume", (route) =>
+    route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: "INTERVIEW_SESSION_EXPIRED",
+        error: "This interview has no verified server transcript.",
+      }),
+    }),
+  );
+  let gradingCalls = 0;
+  page.on("request", (request) => {
+    if (request.url().endsWith("/api/interview/end")) gradingCalls++;
+  });
+  await page.reload();
+  await expect(
+    page.getByText(
+      "This interview timed out while you were away, so it can’t be scored. Your chat and drawing are saved below.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.getByRole("timer")).toHaveCount(0);
+  await expect(
+    page.getByRole("region", { name: "Interview stage", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Start a new interview", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Retry scorecard", exact: true }),
+  ).toHaveCount(0);
+  expect(gradingCalls).toBe(0);
+});

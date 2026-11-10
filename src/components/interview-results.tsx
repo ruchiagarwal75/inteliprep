@@ -26,6 +26,7 @@ export function InterviewResults({
   closed,
   error,
   endedAt,
+  timedOut = false,
 }: {
   scorecard?: Scorecard;
   scene?: Scene;
@@ -37,6 +38,7 @@ export function InterviewResults({
   closed: boolean;
   error?: string;
   endedAt?: string;
+  timedOut?: boolean;
 }) {
   const [tab, setTab] = useState<"scorecard" | "transcript" | "diagram">(
     "scorecard",
@@ -80,14 +82,16 @@ export function InterviewResults({
         )}
         <nav className="flex flex-wrap gap-2" aria-label="Next practice">
           <Link className="practice-primary" href={brief()}>
-            Retry this problem
+            {timedOut ? "Start a new interview" : "Retry this problem"}
           </Link>
-          <Link
-            className="practice-secondary"
-            href={brief(scorecard?.nextPractice.problemId)}
-          >
-            Try suggested problem
-          </Link>
+          {!timedOut && (
+            <Link
+              className="practice-secondary"
+              href={brief(scorecard?.nextPractice.problemId)}
+            >
+              Try suggested problem
+            </Link>
+          )}
         </nav>
         <details className="results-stage-guide">
           <summary>Interview stages</summary>
@@ -164,12 +168,14 @@ export function InterviewResults({
           ) : (
             <div className="results-pending">
               <p role={error && !busy ? "alert" : "status"}>
-                {closed
-                  ? "Closed without scoring. Your transcript and diagram are saved."
-                  : busy
-                    ? "Generating your scorecard…"
-                    : (error ??
-                      "Your interview has ended. Generate its scorecard to see feedback.")}
+                {timedOut
+                  ? "This interview timed out while you were away, so it can’t be scored. Your chat and drawing are saved below."
+                  : closed
+                    ? "Closed without scoring. Your transcript and diagram are saved."
+                    : busy
+                      ? "Generating your scorecard…"
+                      : (error ??
+                        "Your interview has ended. Generate its scorecard to see feedback.")}
               </p>
               {!closed && !busy && (
                 <button

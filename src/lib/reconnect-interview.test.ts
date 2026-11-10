@@ -101,3 +101,28 @@ describe("reopening browser interviews", () => {
     expect(restored.hasEnded).toBe(false);
   });
 });
+
+it("archives a missing server transcript without submitting browser answers for grading", async () => {
+  const saved = { ...savedFixture(), draftText: "An unfinished answer" };
+  const request = vi
+    .fn()
+    .mockResolvedValue(
+      Response.json(
+        { code: "INTERVIEW_SESSION_EXPIRED", error: "No verified transcript" },
+        { status: 409 },
+      ),
+    );
+  const restored = await reconnectInterview(saved, request);
+  expect(restored).toMatchObject({
+    hasEnded: true,
+    closedWithoutScoring: true,
+    draftText: saved.draftText,
+    messages: saved.messages,
+    whiteboard: saved.whiteboard,
+    endedAt: saved.interview.timing?.deadlineAt,
+  });
+  expect(restored.endRequest).toBeUndefined();
+  expect(restored.scorecard).toBeUndefined();
+  expect(request).toHaveBeenCalledOnce();
+  expect(request.mock.calls[0][0]).toBe("/api/interview/resume");
+});

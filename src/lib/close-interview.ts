@@ -18,3 +18,15 @@ export function closedInterviewUpdate(
     gradingError: undefined,
   };
 }
+
+/** A missing server transcript is archived locally, never graded or marked as an explicit exit. */
+export function expiredInterviewUpdate(
+  messages: ChatMessage[],
+  draftText: string,
+  deadlineAt?: string,
+): InterviewSaveUpdate {
+  return {
+    ...closedInterviewUpdate(messages, draftText),
+    ...(deadlineAt ? { endedAt: deadlineAt } : {}),
+  };
+}

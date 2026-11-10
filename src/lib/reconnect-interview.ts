@@ -3,6 +3,7 @@ import { interviewResumeResponseSchema } from "@/lib/interview-resume";
 import { serverClockOffset } from "@/lib/interview-timer";
 import { interviewRecoveryFailure } from "@/lib/interview-recovery";
 import { reconcileTranscript } from "@/lib/transcript-reconciliation";
+import { expiredInterviewUpdate } from "@/lib/close-interview";
 import { responseRateLimit } from "@/lib/retry-after";
 
 /** Reopening a finished scorecard needs no provider or server request. */
@@ -21,7 +22,18 @@ export async function reconnectInterview(
   const limited = responseRateLimit(response);
   if (limited) throw limited;
   const recovery = interviewRecoveryFailure(response.status, body);
-  if (!response.ok && recovery) return { ...saved, recoveryFailure: recovery };
+  if (!response.ok && recovery)
+    return {
+      ...saved,
+      ...(recovery.code === "INTERVIEW_SESSION_EXPIRED"
+        ? expiredInterviewUpdate(
+            saved.messages,
+            saved.draftText,
+            saved.interview.timing?.deadlineAt,
+          )
+        : {}),
+      recoveryFailure: recovery,
+    };
   if (!response.ok)
     throw new Error(
       body &&

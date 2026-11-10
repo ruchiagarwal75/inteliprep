@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APIError } from "openai";
 import { getProblem } from "@/lib/problems";
+import { createInterviewTiming } from "@/lib/interview-timer";
 import { gradeInterview } from "@/lib/interview-grading";
 import { PNG_FIXTURE } from "@/lib/fixtures/whiteboard-test";
 import {
@@ -154,6 +155,22 @@ describe("separate end-of-interview grading", () => {
     expect(card.areas[2].score).toBeNull();
     expect(card.areas[4].score).toBeNull();
     expect(mocks.create).toHaveBeenCalledOnce();
+  });
+  it("grades verified technical evidence at the active interview deadline when eligible", async () => {
+    const timing = createInterviewTiming(
+      45,
+      Date.parse(endedAtFixture) - 45 * 60_000,
+    );
+    const card = await gradeInterview(
+      problem,
+      "mid",
+      gradingSnapshot,
+      timing.deadlineAt,
+      undefined,
+      { timing, answeredStageCount: 2 },
+    );
+    expect(mocks.create).toHaveBeenCalledOnce();
+    expect(card.notScoredReason).toBeUndefined();
   });
   it("does not invoke grading for either current or legacy button-only transcripts", async () => {
     for (const source of [undefined, "control"] as const) {

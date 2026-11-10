@@ -21,7 +21,8 @@ import {
   InterviewEndControl,
   InterviewEndNotices,
 } from "@/components/interview-end-control";
-import { ExpiredDraft } from "@/components/expired-draft";
+import { expiredInterviewUpdate } from "@/lib/close-interview";
+import type { InterviewRecoveryFailure } from "@/lib/interview-recovery";
 import { ChatReplyStatus } from "@/components/chat-reply-status";
 import { useInterviewClosure } from "@/components/use-interview-closure";
 import { InterviewRecoveryNotice } from "@/components/interview-recovery-notice";
@@ -43,9 +44,26 @@ export function ChatPanel(props: ChatPanelProps) {
     setRecoveredMessages(next);
     await props.onSave({ recoveredMessages: next });
   }
-  const [recoveryFailure, onRecoveryFailure] = useState(
+  const [recoveryFailure, setRecoveryFailure] = useState(
     props.restored?.recoveryFailure,
   );
+  const timedOut = recoveryFailure?.code === "INTERVIEW_SESSION_EXPIRED";
+  function onRecoveryFailure(failure: InterviewRecoveryFailure) {
+    setRecoveryFailure(failure);
+    if (failure.code !== "INTERVIEW_SESSION_EXPIRED") return;
+    props.onEndChange(true);
+    void props
+      .onSave({
+        ...expiredInterviewUpdate(
+          messages,
+          getDraft(),
+          interview?.timing?.deadlineAt,
+        ),
+        recoveryFailure: failure,
+      })
+      .then(() => props.onEndConfirmed(true))
+      .catch(() => {});
+  }
   const [transcriptConflict, setTranscriptConflict] = useState(
     props.restored?.transcriptConflict ?? false,
   );
@@ -112,11 +130,10 @@ export function ChatPanel(props: ChatPanelProps) {
         Boolean(recoveryFailure) ||
         closure.closed ||
         !interview ||
-        Boolean(input.trim()) ||
         Boolean(props.leaveAction),
     },
     async () => {
-      if (!getDraft().trim()) await ending.end();
+      await ending.end();
     },
   );
   const transcript = (
@@ -156,7 +173,8 @@ export function ChatPanel(props: ChatPanelProps) {
           }
         />
       )}
-      {props.endControlTarget &&
+      {!timedOut &&
+        props.endControlTarget &&
         createPortal(
           <InterviewEndControl
             {...props}
@@ -208,10 +226,12 @@ export function ChatPanel(props: ChatPanelProps) {
           void dismissRecovered(message);
         }}
       />
-      <InterviewRecoveryNotice
-        failure={recoveryFailure}
-        closed={closure.closed}
-      />
+      {!timedOut && (
+        <InterviewRecoveryNotice
+          failure={recoveryFailure}
+          closed={closure.closed}
+        />
+      )}
       <InterviewEndNotices
         error={
           closure.error ??
@@ -230,8 +250,9 @@ export function ChatPanel(props: ChatPanelProps) {
           messages={messages}
           retry={() => void ending.end()}
           busy={ending.isEnding}
-          closed={closure.closed}
-          error={ending.error}
+          closed={closure.closed || timedOut}
+          timedOut={timedOut}
+          error={timedOut ? undefined : ending.error}
           endedAt={ending.endedAt}
         />
       ) : (
@@ -255,18 +276,6 @@ export function ChatPanel(props: ChatPanelProps) {
           retryAt={pendingReply?.retryAt}
         />
       )}
-      {props.timeExpired &&
-        !hasEnded &&
-        !recoveryFailure &&
-        !syncRequired &&
-        input.trim() && (
-          <ExpiredDraft
-            draft={input}
-            busy={props.disabled || isStreaming || ending.isEnding}
-            onInclude={() => void ending.end(getDraft())}
-            onSkip={() => void ending.end()}
-          />
-        )}
       {hasEnded && input.trim() && (
         <details className="shrink-0 border-t p-3 text-xs">
           <summary className="cursor-pointer">

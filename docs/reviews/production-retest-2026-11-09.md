@@ -97,3 +97,15 @@ conflicts and actual storage errors continue to report. The browser regression
 asserts no storage reports through refresh, results and feedback persistence.
 A separate browser check injects a chat 503, verifies the visible error and Retry
 reply, and completes the retry without losing the candidate turn.
+
+## 4. Active expiry and abandoned-session recovery
+
+The active-expiry guard previously waited indefinitely when a draft was nonempty.
+It now ends automatically once an in-flight reply settles. Per the owner's choice,
+the draft stays saved and unsent; it never enters grading. Only server-verified
+submitted answers can be scored. An explicit missing-transcript response archives
+the browser copy without an exit or grading request, retains the draft/drawing/chat,
+hides the live stage and timer, and offers a new interview. A single plain timeout
+message replaces the checkpoint error/retry dead end. Other recoverable outages do
+not trigger archival. Tests cover automatic expiry with a draft and reopening a
+missing server session without a model request.
