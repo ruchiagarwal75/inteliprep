@@ -41,7 +41,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
     "eslint-config-prettier": "^10.1.8",
-    "fake-indexeddb": "^6.2.5",
+    "fake-indexeddb": "^6.2.7",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
