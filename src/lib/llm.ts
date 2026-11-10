@@ -1,3 +1,4 @@
+import { hasPriorExplanation } from "@/lib/open-question";
 import {
   clarificationEnding,
   clarificationContinuation,
@@ -30,6 +31,7 @@ import {
   withoutQuestions,
   DRAWING_WAIT_REPLY,
   EXPLANATION_WAIT_REPLY,
+  EXPLANATION_UPDATE_REPLY,
 } from "@/lib/drawing-reply";
 
 import { modelSettings } from "@/lib/model-settings";
@@ -137,11 +139,13 @@ async function* rawInterviewerReply(
     !isFactualQuestion(latestCandidate.content)
   ) {
     signal?.throwIfAborted();
-    yield interview?.listening
-      ? "I'm reading your explanation."
-      : step === "explaining"
-        ? EXPLANATION_WAIT_REPLY
-        : DRAWING_WAIT_REPLY;
+    yield step === "explaining" && hasPriorExplanation(messages)
+      ? EXPLANATION_UPDATE_REPLY
+      : interview?.listening
+        ? "I'm reading your explanation."
+        : step === "explaining"
+          ? EXPLANATION_WAIT_REPLY
+          : DRAWING_WAIT_REPLY;
     return;
   }
   if (focusedReview && interview && modernModel && !interview.reviewQuestion) {

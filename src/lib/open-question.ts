@@ -11,18 +11,40 @@ export function questionAtEnd(reply: string) {
   return text.slice(separator + 1).trim();
 }
 export function hasExplanation(messages: ChatMessage[]) {
-  const start = messages.findLastIndex(
+  const explicit = messages.some(
     (m) => m.role === "user" && m.action === "explain",
   );
-  return messages
-    .slice(start < 0 ? 0 : start)
-    .some(
+  if (!explicit)
+    return messages.some(
       (m) =>
         m.role === "user" &&
         m.source !== "control" &&
         (!m.action || m.action === "explain") &&
-        m.content.trim().length > 0,
+        !!m.content.trim(),
     );
+  let explaining = false;
+  for (const message of messages) {
+    if (message.role !== "user") continue;
+    if (message.action) explaining = message.action === "explain";
+    if (
+      explaining &&
+      message.source !== "control" &&
+      (!message.action || message.action === "explain") &&
+      message.content.trim()
+    )
+      return true;
+  }
+  return false;
+}
+export function hasPriorExplanation(messages: ChatMessage[]) {
+  const start = messages.findLastIndex(
+    (m) => m.role === "user" && m.action === "explain",
+  );
+  const earlier = messages.slice(0, Math.max(0, start));
+  return (
+    earlier.some((m) => m.role === "user" && m.action === "explain") &&
+    hasExplanation(earlier)
+  );
 }
 export function hasAsk(reply: string) {
   if (/[?？]\s*$/u.test(reply)) return true;

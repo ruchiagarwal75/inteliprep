@@ -4,7 +4,7 @@ import { InterviewMascot } from "@/components/interview-mascot";
 import { SlowReply } from "@/components/slow-reply";
 import { useAutomaticScorecard } from "@/components/use-automatic-scorecard";
 import { createPortal } from "react-dom";
-import { hasExplanation } from "@/lib/open-question";
+import { hasExplanation, hasPriorExplanation } from "@/lib/open-question";
 import { InterviewResults } from "@/components/interview-results";
 import { useState } from "react";
 import { ChatComposer } from "@/components/chat-composer";
@@ -292,6 +292,7 @@ export function ChatPanel(props: ChatPanelProps) {
             action={mode}
             hasDrawing={hasDrawing}
             hasExplanation={hasExplanation(messages)}
+            isUpdate={hasPriorExplanation(messages)}
             disabled={
               !interview ||
               isStreaming ||

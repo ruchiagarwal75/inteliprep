@@ -276,3 +276,32 @@ After:
 > What redirect latency and availability goals would you target for this service?
 
 <!-- end-retest-live-11 -->
+
+## 12. Explain only a drawing update
+
+Confirmed cause: `hasExplanation` sliced the transcript at the latest Explain
+control, discarding earlier walkthroughs when deciding readiness. It now recognizes
+a real explanation in any earlier explanation window. The first walkthrough is
+still required; controls and clarification messages do not satisfy it. A return
+cycle asks only what changed and enables Done immediately without another answer.
+The interviewer remains quiet. Existing transcript contents are retained.
+
+<!-- retest-live-12 -->
+
+## Live reply comparison: item 12
+
+### 12-explain-update
+
+Before:
+
+> Write your explanation across as many messages as you need. Choose Done explaining when you're ready for questions.
+
+After:
+
+> Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue.
+
+<!-- end-retest-live-12 -->
+
+The item 12 pace-control reply is deterministic. Its before/after comparison tests
+the actual reply path without an unnecessary model call; the browser test covers
+the full return-to-drawing sequence.

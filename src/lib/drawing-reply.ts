@@ -20,3 +20,6 @@ export const DRAWING_WAIT_REPLY =
 
 export const EXPLANATION_WAIT_REPLY =
   "Write your explanation across as many messages as you need. Choose Done explaining when you're ready for questions.";
+
+export const EXPLANATION_UPDATE_REPLY =
+  "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue.";

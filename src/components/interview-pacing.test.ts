@@ -33,3 +33,18 @@ it("explains typed-explanation state and removes the hint once a drawing exists"
     ),
   ).not.toContain("explain-drawing-hint");
 });
+
+it("lets an existing walkthrough finish after a drawing update without another message", () => {
+  const html = renderToStaticMarkup(
+    createElement(InterviewPacing, {
+      action: "explain",
+      hasDrawing: true,
+      hasExplanation: true,
+      isUpdate: true,
+      disabled: false,
+      onChoose: vi.fn(),
+    }),
+  );
+  expect(html).toContain("describe what changed");
+  expect(html).not.toMatch(/disabled=""[^>]*>Done explaining/u);
+});

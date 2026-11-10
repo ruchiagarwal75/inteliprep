@@ -8,12 +8,14 @@ export function InterviewPacing({
   action,
   hasDrawing,
   hasExplanation = false,
+  isUpdate = false,
   disabled,
   onChoose,
 }: {
   action?: CandidateAction;
   hasDrawing: boolean;
   hasExplanation?: boolean;
+  isUpdate?: boolean;
   disabled: boolean;
   onChoose: (message: string, action: CandidateAction) => void;
 }) {
@@ -34,9 +36,11 @@ export function InterviewPacing({
     <div className="interview-pacing">
       <p id="pace-instruction" aria-live="polite">
         {action === "explain"
-          ? hasExplanation
-            ? "Explaining: the interviewer is reading your messages"
-            : "Explaining: type a message describing your design before finishing."
+          ? isUpdate
+            ? "Explaining an update: describe what changed, or choose Done explaining."
+            : hasExplanation
+              ? "Explaining: the interviewer is reading your messages"
+              : "Explaining: type a message describing your design before finishing."
           : action === "draw"
             ? hasDrawing
               ? "Drawing: questions paused"

@@ -730,3 +730,74 @@ test("the brief remembers level and defaults to the suggested next problem", asy
     page.getByRole("combobox", { name: "Problem", exact: true }),
   ).toHaveValue(result.scorecard.nextPractice.problemId);
 });
+
+test("an explained design can return from drawing and finish without a new walkthrough", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "explanation");
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(page.getByRole("timer")).toBeVisible();
+  await page.clock.install();
+  const settle = async () => {
+    await expect(
+      page.getByRole("button", { name: "End interview", exact: true }),
+    ).toBeEnabled();
+    await page.clock.runFor(600);
+  };
+  const draw = async (label: string, y: number) => {
+    const canvas = await page
+      .locator(".excalidraw canvas")
+      .first()
+      .boundingBox();
+    if (!canvas) throw Error("Canvas missing");
+    await page.mouse.click(canvas.x + 80, canvas.y + y);
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("r");
+    await page.mouse.move(canvas.x + 120, canvas.y + y);
+    await page.mouse.down();
+    await page.mouse.move(canvas.x + 420, canvas.y + y + 150, { steps: 8 });
+    await page.mouse.up();
+    await page.keyboard.press("Escape");
+    await page.mouse.dblclick(canvas.x + 270, canvas.y + y + 75);
+    await page.keyboard.type(label);
+    await page.keyboard.press("Escape");
+  };
+  await page
+    .getByRole("button", { name: "Start drawing", exact: true })
+    .click();
+  await settle();
+  await draw("API", 140);
+  await page
+    .getByRole("button", { name: "Ready to explain", exact: true })
+    .click();
+  await settle();
+  await page
+    .getByRole("textbox", { name: "Message", exact: true })
+    .fill(
+      "The API validates requests and stores each update durably before acknowledging it. I would measure CPU utilization and query latency before scaling.",
+    );
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await settle();
+  await page
+    .getByRole("button", { name: "Back to drawing", exact: true })
+    .click();
+  await settle();
+  await draw("Cache", 330);
+  await page
+    .getByRole("button", { name: "Ready to explain", exact: true })
+    .click();
+  await settle();
+  await expect(
+    page.getByRole("button", { name: "Done explaining", exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByRole("button", { name: "Done explaining", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Pause to draw", exact: true }),
+  ).toBeVisible();
+});

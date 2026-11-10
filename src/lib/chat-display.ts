@@ -3,13 +3,20 @@ import { invitesDrawing, questionAtEnd } from "@/lib/open-question";
 import {
   DRAWING_WAIT_REPLY,
   EXPLANATION_WAIT_REPLY,
+  EXPLANATION_UPDATE_REPLY,
 } from "@/lib/drawing-reply";
 
 /** Display-only: the verified transcript and grading evidence remain unchanged. */
 export function interviewerChatText(content: string, opening?: string) {
   if (opening && content === opening)
     return (questionAtEnd(content) ?? content).replaceAll("—", ", ");
-  if ([DRAWING_WAIT_REPLY, EXPLANATION_WAIT_REPLY].includes(content.trim()))
+  if (
+    [
+      DRAWING_WAIT_REPLY,
+      EXPLANATION_WAIT_REPLY,
+      EXPLANATION_UPDATE_REPLY,
+    ].includes(content.trim())
+  )
     return "";
   return plainInterviewerText(content)
     .split(/(?<=[.!?])\s+|\n+/u)
