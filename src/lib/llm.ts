@@ -1,3 +1,4 @@
+import { quoteDiagramLabels } from "@/lib/diagram-label-copy";
 import { hasPriorExplanation } from "@/lib/open-question";
 import {
   clarificationEnding,
@@ -337,6 +338,13 @@ export async function* streamInterviewerReply(
   for await (const part of rawInterviewerReply(...args)) reply += part;
   const interview = args[5];
   reply = trimAcknowledgements(reply);
+  if (
+    !["drawing", "explaining", "invite-drawing"].includes(
+      interview?.progress?.step ?? "",
+    ) &&
+    !invitesDrawing(reply)
+  )
+    reply = quoteDiagramLabels(reply, interview?.diagramLabels ?? []);
   if (repeatsLastQuestion(reply, args[0])) reply = withoutQuestions(reply);
   if (
     interview?.openQuestions?.length &&
@@ -367,7 +375,10 @@ export async function* streamInterviewerReply(
   ) {
     const probe = selectReviewProbe(interview.problem, args[0], interview);
     yield "\n\n" +
-      (probe?.question ??
-        "Please explain one tradeoff in your design and how you would test it.");
+      quoteDiagramLabels(
+        probe?.question ??
+          "Please explain one tradeoff in your design and how you would test it.",
+        interview.diagramLabels ?? [],
+      );
   }
 }

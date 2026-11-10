@@ -305,3 +305,29 @@ After:
 The item 12 pace-control reply is deterministic. Its before/after comparison tests
 the actual reply path without an unnecessary model call; the browser test covers
 the full return-to-drawing sequence.
+
+## 13. Diagram-label grammar
+
+Trusted instructions now ask for articles or quoted component labels. A bounded
+server formatter also quotes actual scene labels when a sentence omits an article,
+including “in Redis cache” and “from Link store”. Existing articles/quotes are kept,
+longer overlapping labels win, and label punctuation is escaped. Both generated
+replies and rubric fallback asks use it. Candidate messages and stored evidence
+are unchanged. The baseline live run was already grammatical; deterministic tests
+cover the reported awkward strings.
+
+<!-- retest-live-13 -->
+
+## Live reply comparison: item 13
+
+### 13-label-grammar
+
+Before:
+
+> How does that read path ensure a newly created link works immediately after the API confirms its creation?
+
+After:
+
+> What ensures a newly created link can be redirected immediately through the API's read path?
+
+<!-- end-retest-live-13 -->

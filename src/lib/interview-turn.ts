@@ -1,3 +1,4 @@
+import { sceneToGraph } from "@/lib/scene-graph";
 import { resumePendingQuestion } from "@/lib/pending-question-reply";
 import "server-only";
 import type { ChatRequest } from "@/lib/chat";
@@ -52,6 +53,9 @@ export async function prepareInterviewTurn(
   if (!request.sessionId) {
     const context: InterviewContext & { progress: typeof progress } = {
       problem,
+      diagramLabels: sceneToGraph(request.scene).components.map(
+        (node) => node.label,
+      ),
       level: request.level,
       progress,
       listening: isListeningContinuation(
@@ -219,6 +223,9 @@ export async function prepareInterviewTurn(
       : undefined;
     const context: InterviewContext & { progress: typeof progress } = {
       problem,
+      diagramLabels: sceneToGraph(request.scene).components.map(
+        (node) => node.label,
+      ),
       level: request.level,
       mayInviteDrawing:
         plan.state.phaseIndex > 0 || lease.clock.timing.durationMinutes === 1,
