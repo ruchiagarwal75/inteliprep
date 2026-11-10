@@ -352,7 +352,11 @@ export async function prepareInterviewTurn(
             (lease.state.phaseIndex === 0 &&
               completedPlan.state.phaseIndex > 0),
           {
-            resolvedQuestionIds: context.answeredQuestionIds ?? [],
+            // Retiring an exhausted question does not mark its rubric area covered.
+            resolvedQuestionIds: [
+              ...(context.answeredQuestionIds ?? []),
+              ...(context.retiredQuestionIds ?? []),
+            ],
             continuedQuestionId: context.continuedQuestionId,
             topicId: context.selectedTopic,
             stageId: nextPhase.id,

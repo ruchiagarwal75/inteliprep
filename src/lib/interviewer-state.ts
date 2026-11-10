@@ -2,7 +2,7 @@ import "server-only";
 import type { InterviewContext } from "@/lib/interview-instructions";
 import { drawingStepInstructions } from "@/lib/interview-progress";
 import { stageProbes } from "@/lib/review-probes";
-import { availableTopicProbes } from "@/lib/probe-topics";
+import { eligibleDiscussionProbes } from "@/lib/genai-probe-memory";
 
 /** Turn-specific trusted state follows the stable system/problem prefix, never inside it. */
 export function interviewerState(interview: InterviewContext) {
@@ -31,13 +31,14 @@ export function interviewerState(interview: InterviewContext) {
         : undefined,
       allowed_follow_ups:
         interview.allowedFollowUps ??
-        availableTopicProbes(
+        eligibleDiscussionProbes(
+          interview.problem.track,
           stageProbes(
             interview.problem,
             interview.phase,
             interview.designText ?? interview.diagramLabels?.join(" "),
           ),
-          interview.questionMemory?.topicTurns,
+          interview.questionMemory,
         ).map(({ id, question }) => ({ id, question })),
     }),
   ]

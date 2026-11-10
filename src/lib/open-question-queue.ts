@@ -71,6 +71,7 @@ export function verifiedQuestionAnswers(
   queue: readonly PendingQuestion[],
   answers: QuestionAnswer[],
   quotes: Quote[],
+  allowEarlierEvidence = false,
 ) {
   return [
     ...new Set(
@@ -79,7 +80,8 @@ export function verifiedQuestionAnswers(
         const quote = quotes.find((q) => q.quoteId === answer.quoteId);
         return question &&
           quote &&
-          quote.messageIndex > question.afterMessageIndex
+          (allowEarlierEvidence ||
+            quote.messageIndex > question.afterMessageIndex)
           ? [question.id]
           : [];
       }),

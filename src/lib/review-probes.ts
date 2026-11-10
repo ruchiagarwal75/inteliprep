@@ -8,7 +8,7 @@ import { isOffTopicRequest, DESIGN_REDIRECT } from "@/lib/off-topic";
 import { sameQuestion } from "@/lib/question-memory";
 import { questionAtEnd } from "@/lib/open-question";
 import type { InterviewContext } from "@/lib/interview-instructions";
-import { availableTopicProbes } from "@/lib/probe-topics";
+import { eligibleDiscussionProbes } from "@/lib/genai-probe-memory";
 const normalized = (text: string) =>
   plainInterviewerText(text).toLowerCase().replace(/\s+/gu, " ").trim();
 export const isGenericProbe = (text: string) =>
@@ -92,13 +92,14 @@ export function selectReviewProbe(
     "phase" | "questionMemory" | "designText" | "diagramLabels"
   >,
 ) {
-  const probes = availableTopicProbes(
+  const probes = eligibleDiscussionProbes(
+    problem.track,
     stageProbes(
       problem,
       context?.phase,
       context?.designText ?? context?.diagramLabels?.join(" "),
     ),
-    context?.questionMemory?.topicTurns,
+    context?.questionMemory,
     requestedReviewTopic(messages),
   );
   const latest = latestCandidate(messages);

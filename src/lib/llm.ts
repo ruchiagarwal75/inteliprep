@@ -1,3 +1,4 @@
+import { cappedGenaiQuestions } from "@/lib/genai-probe-memory";
 import { genaiFactFollowUp } from "@/lib/genai-clarification-pace";
 import { genaiClarification } from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
@@ -374,9 +375,29 @@ async function* rawInterviewerReply(
 export async function* streamInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ): AsyncGenerator<string> {
+  const interview = args[5];
+  if (interview?.problem.track === "genai") {
+    const capped = cappedGenaiQuestions(
+      "genai",
+      interview.openQuestions ?? [],
+      args[0],
+      interview.questionMemory?.topicTurns,
+    );
+    interview.openQuestions = capped.questions;
+    interview.retiredQuestionIds = [
+      ...new Set([...(interview.retiredQuestionIds ?? []), ...capped.retired]),
+    ];
+    if (
+      interview.continuedQuestionId &&
+      capped.retired.includes(interview.continuedQuestionId)
+    ) {
+      interview.continuedQuestionId = undefined;
+      if (interview.reviewQuestion)
+        interview.reviewQuestion = withoutQuestions(interview.reviewQuestion);
+    }
+  }
   let reply = "";
   for await (const part of rawInterviewerReply(...args)) reply += part;
-  const interview = args[5];
   reply = trimAcknowledgements(reply);
   if (
     !["drawing", "explaining", "invite-drawing"].includes(

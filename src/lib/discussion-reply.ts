@@ -1,3 +1,5 @@
+import { eligibleDiscussionProbes } from "@/lib/genai-probe-memory";
+import { genaiDiscussionQuotes } from "@/lib/genai-discussion-quotes";
 import "server-only";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
@@ -23,7 +25,7 @@ import {
 } from "@/lib/interviewer-reply-filter";
 import { trimAcknowledgements } from "@/lib/question-memory";
 
-import { availableTopicProbes, probeTopic } from "@/lib/probe-topics";
+import { probeTopic } from "@/lib/probe-topics";
 import {
   verifiedQuestionAnswers,
   unresolvedQuestions,
@@ -55,13 +57,14 @@ export async function discussionReply(
 ) {
   const probes = focusGenaiProbes(
     interview.problem.track,
-    availableTopicProbes(
+    eligibleDiscussionProbes(
+      interview.problem.track,
       stageProbes(
         interview.problem,
         interview.phase,
         interview.designText ?? interview.diagramLabels?.join(" "),
       ),
-      interview.questionMemory?.topicTurns,
+      interview.questionMemory,
       requestedReviewTopic(messages),
     ),
     requestedReviewTopic(messages),
@@ -76,7 +79,10 @@ export async function discussionReply(
     messages.length - 9,
     ...(interview.openQuestions ?? []).map((q) => q.afterMessageIndex),
   );
-  const quotes = allQuotes.filter((q) => q.messageIndex > oldest).slice(-40);
+  const quotes =
+    interview.problem.track === "genai"
+      ? genaiDiscussionQuotes(messages)
+      : allQuotes.filter((q) => q.messageIndex > oldest).slice(-40);
   const payload = JSON.stringify({
     recent_messages: recent,
     earlier_turn_excerpts: olderTurnSummary(messages, recent),
@@ -94,7 +100,10 @@ export async function discussionReply(
           problem: interview.problem,
           level: interview.level,
         }) +
-        "\n\nReturn one specific unanswered question from the allowed current-stage topics. topicId must name one allowed follow-up. Adapt its question to the latest technical answer; do not repeat the follow-up bank mechanically. Ask exactly one question. Supply one brief critical or neutral acknowledgement, with acknowledgementQuote set to a supplied quoteId from the latest technical candidate answer; use empty strings for controls or topic choices. Mark a topic covered only with a real candidate quoteId that establishes its mechanism. Never mark a topic covered from an interviewer message. In answers, mark a pending question answered only by a concrete relevant candidate quote AFTER it was asked. A side question is not an answer. Continue the oldest unanswered pending question before choosing a new topic. Set continuesQuestionId to that question's exact ID, otherwise use an empty string. Briefly acknowledge the latest technical point even when it answers a different topic, then reword or narrow the outstanding question. Never repeat the original question or previous interviewer question verbatim. Keep its underlying unresolved issue; do not replace it with a new topic. New diagram components alone do not prove a mechanism: refer to their exact names when resuming their related question. If all pending questions are answered, probe an uncovered topic; do not spend more than three follow-ups on one topic. Do not list or read back diagram components. Choose the most consequential request path, correctness risk or unresolved tradeoff in this stage and ask one concrete question about it. Use actual component names naturally. When diagram_updates is nonempty, incorporate a relevant new component in that question, especially when it relates to a pending question; a short acknowledgement may name that one change but never inventory the drawing. Never ask about a covered topic again; probe another distinct boundary. No markdown, praise, verbatim candidate quotes, or generic topic invitations.",
+        "\n\nReturn one specific unanswered question from the allowed current-stage topics. topicId must name one allowed follow-up. Adapt its question to the latest technical answer; do not repeat the follow-up bank mechanically. Ask exactly one question. Supply one brief critical or neutral acknowledgement, with acknowledgementQuote set to a supplied quoteId from the latest technical candidate answer; use empty strings for controls or topic choices. Mark a topic covered only with a real candidate quoteId that establishes its mechanism. Never mark a topic covered from an interviewer message. In answers, mark a pending question answered only by a concrete relevant candidate quote AFTER it was asked. A side question is not an answer. Continue the oldest unanswered pending question before choosing a new topic. Set continuesQuestionId to that question's exact ID, otherwise use an empty string. Briefly acknowledge the latest technical point even when it answers a different topic, then reword or narrow the outstanding question. Never repeat the original question or previous interviewer question verbatim. Keep its underlying unresolved issue; do not replace it with a new topic. New diagram components alone do not prove a mechanism: refer to their exact names when resuming their related question. If all pending questions are answered, probe an uncovered topic; do not spend more than three follow-ups on one topic. Do not list or read back diagram components. Choose the most consequential request path, correctness risk or unresolved tradeoff in this stage and ask one concrete question about it. Use actual component names naturally. When diagram_updates is nonempty, incorporate a relevant new component in that question, especially when it relates to a pending question; a short acknowledgement may name that one change but never inventory the drawing. Never ask about a covered topic again; probe another distinct boundary. No markdown, praise, verbatim candidate quotes, or generic topic invitations." +
+        (interview.problem.track === "genai"
+          ? " For this GenAI discussion, earlier candidate explanations count even when given before a pending question. The AFTER-it-was-asked restriction does not apply here. Check all supplied candidate quotes before asking. Mark an issue covered only when a quote establishes its mechanism, not a component name or buzzword. If an answer is partial, acknowledge the part it answered and ask only about the specific unresolved gap. Do not ask the broad question again or make a candidate repeat a complete answer. Never make more than two attempts on the same issue; move to an uncovered topic afterward."
+          : ""),
       input: [
         { role: "developer", content: interviewerState(interview) },
         {
@@ -140,6 +149,7 @@ export async function discussionReply(
         interview.openQuestions ?? [],
         value.answers,
         quotes,
+        interview.problem.track === "genai",
       )
     : [];
   interview.answeredQuestionIds?.push(...resolved);
@@ -150,7 +160,8 @@ export async function discussionReply(
     (q) =>
       q.topicId === "diagram_consistency" ||
       !q.topicId ||
-      (interview.questionMemory?.topicTurns?.[q.topicId] ?? 0) < 3,
+      (interview.questionMemory?.topicTurns?.[q.topicId] ?? 0) <
+        (interview.problem.track === "genai" ? 2 : 3),
   );
   if (pending) {
     interview.selectedTopic = pending.topicId;
@@ -180,7 +191,11 @@ export async function discussionReply(
   const question = value ? filter.push(value.question) + filter.finish() : "";
   const valid =
     value &&
-    probes.some((p) => p.id === value.topicId) &&
+    eligibleDiscussionProbes(
+      interview.problem.track,
+      probes,
+      interview.questionMemory,
+    ).some((p) => p.id === value.topicId) &&
     questionMatchesGenaiTopic(
       interview.problem.track,
       probes.find((p) => p.id === value.topicId),
