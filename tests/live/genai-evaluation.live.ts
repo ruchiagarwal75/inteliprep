@@ -129,7 +129,8 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
       }
       for (const fact of fixture.facts.slice(1)) {
         const reply = await turn(fact.ask, 0);
-        expect(reply).toContain(
+        // The shared label grammar guard may quote a matching diagram name.
+        expect(reply.replaceAll('"', "")).toContain(
           config.facts.find((f) => f.id === fact.id)?.answers[level],
         );
       }
@@ -141,7 +142,16 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
           /redo|walk.*(?:math|calculation)|revisit|recalculate|check.*(?:math|units)/iu,
         );
         expect(reply).not.toMatch(/about 150 GB|1,?700 GPUs|50M tokens/iu);
+        await turn(
+          level === "mid" && problem.id === "ai-chat-assistant"
+            ? "I redid the units: 10M messages times 2,400 tokens is 24B tokens daily, about 16.7M per minute average and 50M at the three-times peak. That exceeds 40M per minute, so I need a bounded overload plan as well as the request limit."
+            : fixture.strong[0],
+          0,
+        );
       }
+      // The requested extra Mid chat case tests the provider token-limit math;
+      // the full chat design/failure/evaluation/safety flow is tested at Senior.
+      if (problem.id === "ai-chat-assistant" && level === "mid") return;
       for (const row of fixture.responses) await turn(row.text, row.stage);
       const discussion = replies
         .filter((r) => r.stage > 0)
@@ -151,9 +161,14 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
       expect(discussion).toMatch(
         /permission|safety|moderation|injection|unauthor|confirm|approval|access|salary|retrieved.*instruction/iu,
       );
-      expect(discussion).toMatch(
-        /fail|outage|retry|unavailable|duplicate|lost|crash|replica|revok/iu,
-      );
+      // Keep the scenario sentence: "A GPU dies. What does the user see?"
+      // loses its failure context if reduced to just the final question.
+      const fullDiscussion = replies
+        .filter((r) => r.stage > 0)
+        .map((r) => r.reply)
+        .join("\n");
+      for (const pattern of fixture.failureChecks)
+        expect(fullDiscussion).toMatch(new RegExp(pattern, "iu"));
       expect(discussion).not.toMatch(
         /I see (?:a component|components labeled)/iu,
       );
@@ -193,6 +208,7 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
       outputs.push(scorecard);
     }
     const [weak, strong] = outputs;
+    expect(["yes", "strong_yes"]).toContain(strong.signal);
     expect(["strong_no", "no", "insufficient_evidence"]).toContain(weak.signal);
     expect(weak.gaps.length).toBeGreaterThanOrEqual(2);
     expect(

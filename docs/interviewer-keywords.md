@@ -689,6 +689,39 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 /^(?:what|how|when|where|why|which|is|are|does|do|can|could|would|should)\b/iu
 ```
 
+## Problem configuration: ai-chat-assistant
+
+- rubric assessment: `{"assessmentPattern":"requirement|scope|users|messages|tokens|gpus?|capacity|estimate|throughput|latency|limits?"}`
+- rubric assessment: `{"assessmentPattern":"chat service|conversation|history|context|summari|truncat|prompt|partition|storage"}`
+- rubric assessment: `{"assessmentPattern":"inferen|stream|sse|websocket|reconnect|resume|prefill|decode|batch|kv.cache|gpu"}`
+- rubric assessment: `{"assessmentPattern":"overload|fail|retry|retries|timeout|queue|priority|rate.limit|full|degrad|warm|launch|surge|capacity"}`
+- rubric assessment: `{"assessmentPattern":"tier|free|paid|routing|large model|small model|cost|budget|canary|rollout|rollback|region"}`
+- rubric assessment: `{"assessmentPattern":"eval|quality|test|regression|canary|gate|rollback|rollout|metric|success"}`
+- rubric assessment: `{"assessmentPattern":"moderat|safety|security|auth|user.{0,20}(?:isola|boundary)|delete|residen|region|private"}`
+- review probes: `{"topicPattern":"stream|reconnect|resume","requiresPattern":"stream|sse|websocket"}`
+- review probes: `{"topicPattern":"gpu|batch|kv.cache","requiresPattern":"gpu|inference|model server"}`
+- review probes: `{"topicPattern":"overload|capacity|degrad","requiresPattern":"gpu|inference|model server"}`
+- review probes: `{"topicPattern":"history|context","requiresPattern":"context|history|prompt"}`
+- review probes: `{"topicPattern":"tokens?|rate.limit","requiresPattern":"token|rate.limit|gateway"}`
+- review probes: `{"topicPattern":"moderat|safety"}`
+- review probes: `{"topicPattern":"gpu|failure","requiresPattern":"gpu|inference|model server"}`
+- review probes: `{"topicPattern":"eval|quality|rollout"}`
+- review probes: `{"topicPattern":"eval|canary|rollback","requiresPattern":"canary|rollout|new model|router"}`
+- review probes: `{"topicPattern":"cost|tiers?|budget"}`
+- GenAI facts: `{"pattern":"daily active users|dau|how many.{0,20}users|user (?:count|scale)|how much traffic"}`
+- GenAI facts: `{"pattern":"messages per user|messages? (?:does|will|should).{0,15}(?:each|a|one) user|user.{0,15}messages.{0,15}day"}`
+- GenAI facts: `{"pattern":"peak|burst|peak factor"}`
+- GenAI facts: `{"pattern":"(?:third.party|self.host|own).{0,20}(?:model|gpu)|(?:which|what).{0,15}(?:model|provider)(?!\\s+(?:account|rate|limits?))|where.{0,15}(?:run|host)|upcoming|launch|surge"}`
+- GenAI facts: `{"pattern":"provider.{0,20}limits?|account.{0,20}limits?|requests? per second limit|tokens per minute limit|model rate limits?"}`
+- GenAI facts: `{"pattern":"gpu.{0,20}(?:capacity|available|limit|budget|add|warm|load)|(?:available|fixed).{0,15}gpus|new node|warm.up"}`
+- GenAI facts: `{"pattern":"gpu throughput|tokens.{0,15}(?:per gpu|gpu per second)|gpu.{0,20}(?:throughput|tokens per second)|throughput.{0,15}gpu"}`
+- GenAI facts: `{"pattern":"tokens per (?:message|request)|(?:input|output|history|prompt).{0,15}tokens|token counts"}`
+- GenAI facts: `{"pattern":"latency|first.token|response time|how (?:fast|quick)"}`
+- GenAI facts: `{"pattern":"tiers?|free|paid|per.user.{0,15}limit|subscription"}`
+- GenAI facts: `{"pattern":"history.{0,20}(?:retain|keep|delet|storage)|retention|how long|in.region|residen"}`
+- GenAI facts: `{"pattern":"moderation|safety|security requirement|harmful"}`
+- GenAI assumptions: `{"pattern":"(?:bytes|kb|size|storage).{0,30}(?:per message|each message|stored message)|message.{0,30}(?:size|bytes|kilobytes)|how (?:big|large).{0,25}message"}`
+
 ## Problem configuration: chat-service
 
 - clarifications: `{"pattern":"\\b(traffic|rps|qps|scale|capacity|latency|response.time|users? per|messages? per|delivery.time|how (?:fast|quickly))\\b"}`

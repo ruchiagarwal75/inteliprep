@@ -28,6 +28,8 @@ import {
   interviewSessionCheckpoint,
 } from "@/lib/interview-sessions";
 
+import aiChatAssistant from "@/lib/problems/ai-chat-assistant.json";
+
 const problems: ProblemDefinition[] = [
   problemSchema.parse(singleServerScaling),
   problemSchema.parse(urlShortener),
@@ -38,6 +40,7 @@ const problems: ProblemDefinition[] = [
   problemSchema.parse(fileStorage),
   problemSchema.parse(videoStreaming),
   problemSchema.parse(enterpriseRagAssistant),
+  problemSchema.parse(aiChatAssistant),
 ];
 
 export function getProblem(problemId: string): ProblemDefinition | undefined {

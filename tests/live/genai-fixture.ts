@@ -3,6 +3,7 @@ import { sceneSchema } from "@/lib/scene";
 
 export const fixtureSchema = z.object({
   problemId: z.string(),
+  failureChecks: z.array(z.string()).min(2),
   facts: z.array(z.object({ ask: z.string(), id: z.string() })),
   levels: z.array(z.enum(["mid", "senior", "staff"])),
   wrongEstimates: z.array(

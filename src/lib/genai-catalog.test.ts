@@ -4,7 +4,9 @@ import { genaiFact } from "@/lib/genai-facts";
 import { buildInterviewInstructions } from "@/lib/interview-instructions";
 import rag from "../../tests/fixtures/genai/enterprise-rag-assistant.json";
 
-const fixtures = [rag];
+import chat from "../../tests/fixtures/genai/ai-chat-assistant.json";
+
+const fixtures = [rag, chat];
 describe.each(fixtures)("GenAI config $problemId", (fixture) => {
   const problem = getProblem(fixture.problemId);
   if (!problem?.genai) throw new Error("Missing private GenAI config");

@@ -114,7 +114,7 @@ it.each([
   expect(reply).not.toContain(content);
 });
 
-it("keeps the question pool inside the current stage across all eight problems", () => {
+it("keeps applicable questions inside the current stage across all configured problems", () => {
   for (const summary of listProblems()) {
     const p = getProblem(summary.problemId);
     if (!p) throw Error("Missing problem");
@@ -123,6 +123,8 @@ it("keeps the question pool inside the current stage across all eight problems",
       for (let i = 0; i < 30; i++) {
         const probe = selectReviewProbe(p, history, {
           phase: p.phases[stageIndex],
+          designText:
+            "API gateway model inference context builder tool executor vector store retrieval cache",
         });
         if (!probe) break;
         expect(probe.stageIndex).toBe(stageIndex);

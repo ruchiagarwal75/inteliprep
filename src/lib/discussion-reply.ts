@@ -31,6 +31,10 @@ import {
 
 import { discussionAcknowledgement } from "@/lib/discussion-acknowledgement";
 import { resumePendingQuestion } from "@/lib/pending-question-reply";
+import {
+  focusGenaiProbes,
+  questionMatchesGenaiTopic,
+} from "@/lib/genai-probes";
 
 const schema = z.object({
   continuesQuestionId: z.string(),
@@ -49,13 +53,17 @@ export async function discussionReply(
   whiteboard: { summary: string; changes: string; image?: string },
   signal?: AbortSignal,
 ) {
-  const probes = availableTopicProbes(
-    stageProbes(
-      interview.problem,
-      interview.phase,
-      interview.designText ?? interview.diagramLabels?.join(" "),
+  const probes = focusGenaiProbes(
+    interview.problem.track,
+    availableTopicProbes(
+      stageProbes(
+        interview.problem,
+        interview.phase,
+        interview.designText ?? interview.diagramLabels?.join(" "),
+      ),
+      interview.questionMemory?.topicTurns,
+      requestedReviewTopic(messages),
     ),
-    interview.questionMemory?.topicTurns,
     requestedReviewTopic(messages),
   );
   interview.allowedFollowUps = probes.map(({ id, question }) => ({
@@ -173,6 +181,11 @@ export async function discussionReply(
   const valid =
     value &&
     probes.some((p) => p.id === value.topicId) &&
+    questionMatchesGenaiTopic(
+      interview.problem.track,
+      probes.find((p) => p.id === value.topicId),
+      question,
+    ) &&
     /[?？]\s*$/u.test(question) &&
     !isGenericProbe(question) &&
     !wasProbeAsked(question, messages);

@@ -153,5 +153,9 @@
       "stage": 4,
       "text": "Compute cost per question from actual input and output tokens at the chosen provider rates, reranking, embeddings, index storage and connector work. Compare with two cents and adjust bounded context and duplicate work before quality compromises; no provider price has been specified. Trace each stage with document and ACL version references and latency metrics, keeping private text out of general logs. Re-embedding migrations build a versioned shadow index, evaluate it, dual-read a sampled cohort and switch an alias with rollback while the old index serves queries."
     }
+  ],
+  "failureChecks": [
+    "cache.{0,180}(?:access|revok)|(?:access|revok).{0,180}cache",
+    "replica|vector.{0,100}(?:unavailable|fail)|permission.{0,100}(?:sync|delay|stale)"
   ]
 }

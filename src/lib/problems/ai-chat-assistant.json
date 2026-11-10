@@ -1,0 +1,424 @@
+{
+  "id": "ai-chat-assistant",
+  "track": "genai",
+  "title": "Design an AI chat assistant",
+  "summary": "Design a consumer AI chat assistant. Users chat with a model in web and mobile apps, see answers stream in as they are generated, and can return to past conversations.",
+  "prompt": "Design a consumer AI chat assistant. Users chat with a model in web and mobile apps, see answers stream in as they are generated, and can return to past conversations.",
+  "requirements": [
+    "Design a consumer AI chat assistant. Users chat with a model in web and mobile apps, see answers stream in as they are generated, and can return to past conversations."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch your design, then choose Ready to explain when you're ready.",
+    "legacyInvitations": []
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Design a consumer AI chat assistant. Users chat with a model in web and mobile apps, see answers stream in as they are generated, and can return to past conversations.\n\nWhat would you clarify before starting your design?",
+      "expectations": "A clean chat service with streaming, history storage, per-user limits, timeouts and retries on provider calls, and a plan for the provider token limit at peak.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Design a consumer AI chat assistant. Users chat with a model in web and mobile apps, see answers stream in as they are generated, and can return to past conversations.\n\nWhat would you clarify before starting your design?",
+      "expectations": "Capacity math in tokens and GPUs, batching and KV cache awareness, tier routing and priority, graceful overload, a context strategy and stream resume.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Design a consumer AI chat assistant. Users chat with a model in web and mobile apps, see answers stream in as they are generated, and can return to past conversations.\n\nWhat would you clarify before starting your design?",
+      "expectations": "All of Senior plus a plan for fixed GPU capacity and the upcoming launch surge, multi-region, model rollout with evaluation gates, a cost-per-message target and a clear free-versus-paid tradeoff.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    }
+  },
+  "openingCriteria": [0],
+  "clarifications": [],
+  "rubric": [
+    {
+      "area": "Requirements and capacity estimation",
+      "strong": "Clarifies workload, token counts, latency, tier and retention constraints; estimates token throughput and the relevant provider/GPU bottleneck, using stated assumptions.",
+      "assessmentPattern": "requirement|scope|users|messages|tokens|gpus?|capacity|estimate|throughput|latency|limits?"
+    },
+    {
+      "area": "Chat, context and history",
+      "strong": "Explains a coherent chat service, per-user conversation storage and context truncation or summarization, with prompt prefix caching where justified; does not store or send full history forever.",
+      "assessmentPattern": "chat service|conversation|history|context|summari|truncat|prompt|partition|storage"
+    },
+    {
+      "area": "Inference and streaming",
+      "strong": "Explains streaming to the client and reconnection behavior; Senior understands prefill, decode, continuous batching and KV-cache memory in their inference path.",
+      "assessmentPattern": "inferen|stream|sse|websocket|reconnect|resume|prefill|decode|batch|kv.cache|gpu"
+    },
+    {
+      "area": "Overload and reliability",
+      "strong": "Explains provider timeouts/retries or GPU failure, queueing, priority and graceful overload. Staff accounts for fixed capacity and the launch surge.",
+      "assessmentPattern": "overload|fail|retry|retries|timeout|queue|priority|rate.limit|full|degrad|warm|launch|surge|capacity"
+    },
+    {
+      "area": "Tiers, cost and rollout",
+      "strong": "Explains tier routing, resource/cost tradeoffs and operational evolution. Staff sets a justified cost-per-message target, free-versus-paid tradeoff, multi-region plan and safe model rollout.",
+      "assessmentPattern": "tier|free|paid|routing|large model|small model|cost|budget|canary|rollout|rollback|region"
+    },
+    {
+      "area": "Evaluation and quality",
+      "strong": "Explains quality evaluation of a context/model change and a safe rollout; Staff uses an evaluation gate, canary and rollback for a new model.",
+      "assessmentPattern": "eval|quality|test|regression|canary|gate|rollback|rollout|metric|success"
+    },
+    {
+      "area": "Safety and security",
+      "strong": "Explains required input/output moderation and its streaming latency implications, protects user conversation boundaries and honors deletion and applicable residency.",
+      "assessmentPattern": "moderat|safety|security|auth|user.{0,20}(?:isola|boundary)|delete|residen|region|private"
+    }
+  ],
+  "followUps": [
+    "The phone loses signal while your answer is streaming. What happens when it reconnects?",
+    "What limits how many requests one of your GPUs can serve at once?",
+    "Your GPUs are full and traffic keeps rising. What do you do in the next five minutes?",
+    "What goes into your model prompt when a conversation reaches 200 turns?",
+    "Why does your capacity or rate-limit plan use those units?",
+    "How does your moderation path affect time to the first streamed token?",
+    "A GPU node dies while producing an answer. What does the user see?",
+    "How would you evaluate a new model or prompt before rolling it out?",
+    "What would make you stop or roll back your new-model rollout?",
+    "How would you account for cost per message and the tradeoff between free and paid users?"
+  ],
+  "followUpStages": [2, 2, 3, 2, 2, 3, 3, 3, 3, 4],
+  "reviewProbes": [
+    {
+      "id": "reconnect",
+      "areaIndex": 2,
+      "topic": "stream|reconnect|resume",
+      "topicPattern": "stream|reconnect|resume",
+      "question": "The phone loses signal while your answer is streaming. What happens when it reconnects?",
+      "stageIndex": 2,
+      "requiresPattern": "stream|sse|websocket"
+    },
+    {
+      "id": "gpu-concurrency",
+      "areaIndex": 2,
+      "topic": "gpu|batch|kv.cache",
+      "topicPattern": "gpu|batch|kv.cache",
+      "question": "What limits how many requests one of your GPUs can serve at once?",
+      "stageIndex": 2,
+      "requiresPattern": "gpu|inference|model server"
+    },
+    {
+      "id": "overload",
+      "areaIndex": 3,
+      "topic": "overload|capacity|degrad",
+      "topicPattern": "overload|capacity|degrad",
+      "question": "Your GPUs are full and traffic keeps rising. What do you do in the next five minutes?",
+      "stageIndex": 3,
+      "requiresPattern": "gpu|inference|model server"
+    },
+    {
+      "id": "long-context",
+      "areaIndex": 1,
+      "topic": "history|context",
+      "topicPattern": "history|context",
+      "question": "What goes into your model prompt when a conversation reaches 200 turns?",
+      "stageIndex": 2,
+      "requiresPattern": "context|history|prompt"
+    },
+    {
+      "id": "token-limits",
+      "areaIndex": 0,
+      "topic": "tokens?|rate.limit",
+      "topicPattern": "tokens?|rate.limit",
+      "question": "Why does your capacity or rate-limit plan use those units?",
+      "stageIndex": 2,
+      "requiresPattern": "token|rate.limit|gateway"
+    },
+    {
+      "id": "moderation",
+      "areaIndex": 6,
+      "topic": "moderat|safety",
+      "topicPattern": "moderat|safety",
+      "question": "How does your moderation path affect time to the first streamed token?",
+      "stageIndex": 3
+    },
+    {
+      "id": "gpu-failure",
+      "areaIndex": 3,
+      "topic": "gpu|failure",
+      "topicPattern": "gpu|failure",
+      "question": "A GPU node dies while producing an answer. What does the user see?",
+      "stageIndex": 3,
+      "requiresPattern": "gpu|inference|model server"
+    },
+    {
+      "id": "quality",
+      "areaIndex": 5,
+      "topic": "eval|quality|rollout",
+      "topicPattern": "eval|quality|rollout",
+      "question": "How would you evaluate a new model or prompt before rolling it out?",
+      "stageIndex": 3
+    },
+    {
+      "id": "model-rollout",
+      "areaIndex": 5,
+      "topic": "eval|canary|rollback",
+      "topicPattern": "eval|canary|rollback",
+      "question": "What would make you stop or roll back your new-model rollout?",
+      "stageIndex": 3,
+      "requiresPattern": "canary|rollout|new model|router"
+    },
+    {
+      "id": "cost",
+      "areaIndex": 4,
+      "topic": "cost|tiers?|budget",
+      "topicPattern": "cost|tiers?|budget",
+      "question": "How would you account for cost per message and the tradeoff between free and paid users?",
+      "stageIndex": 4
+    }
+  ],
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Clarify the scope, workload, goals and constraints before drawing.",
+      "completionCriteria": [
+        "Candidate establishes the required user workflow and scope.",
+        "Candidate clarifies workload and service goals, or explicitly states justified working assumptions.",
+        "Candidate clarifies safety, access or privacy constraints."
+      ],
+      "transition": "initial",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer. Shared facts are never proof of candidate reasoning.",
+      "clarificationQuestions": [
+        "What would you clarify about the user workflow?",
+        "Which workload or service goal would you clarify next?",
+        "What safety or access constraints would you clarify?"
+      ]
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate draw and explain their own architecture.",
+      "completionCriteria": [
+        "Candidate draws at least one component and explicitly finishes explaining."
+      ],
+      "transition": "drawing",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "core-design",
+      "title": "Core design",
+      "goal": "Explore the candidate’s own core request, data and action paths.",
+      "completionCriteria": [
+        "Candidate explains a coherent end-to-end path using their own components.",
+        "Candidate explains how their design maintains correctness and its trust boundaries.",
+        "Candidate explains an unresolved core failure boundary or tradeoff."
+      ],
+      "transition": "coverage",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "scaling-reliability",
+      "title": "Scaling and reliability",
+      "goal": "Explore the failure modes, quality checks, safety boundaries and costs of the candidate’s design.",
+      "completionCriteria": [
+        "Candidate explores failure and recovery of mechanisms they added.",
+        "Candidate explains how they would evaluate quality and safety before a change.",
+        "Candidate explains the latency, capacity and cost consequences of their choices."
+      ],
+      "transition": "coverage",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "tradeoffs-wrap-up",
+      "title": "Tradeoffs and wrap-up",
+      "goal": "Review the candidate’s evaluation plan, safety tradeoffs and cost priorities.",
+      "completionCriteria": [
+        "Candidate justifies a major tradeoff and a way to check the result."
+      ],
+      "transition": "wrap-up",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    }
+  ],
+  "gradingGuidance": [
+    "Use the provided level bar and candidate evidence. The expected design is a reference, not a mandatory vendor or component recipe.",
+    "Reference estimates are conditional on their example assumptions; accept justified representation, message-size and routing alternatives.",
+    "Identify demonstrated red flags with evidence; do not turn unasked missing evidence into a failure."
+  ],
+  "genai": {
+    "facts": [
+      {
+        "id": "dau",
+        "pattern": "daily active users|dau|how many.{0,20}users|user (?:count|scale)|how much traffic",
+        "answers": {
+          "mid": "1M daily active users.",
+          "senior": "20M daily active users.",
+          "staff": "100M daily active users globally."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "messages-per-user",
+        "pattern": "messages per user|messages? (?:does|will|should).{0,15}(?:each|a|one) user|user.{0,15}messages.{0,15}day",
+        "answers": {
+          "mid": "Ten messages per user per day.",
+          "senior": "Fifteen messages per user per day.",
+          "staff": "Fifteen messages per user per day."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "peak",
+        "pattern": "peak|burst|peak factor",
+        "answers": {
+          "mid": "Peak traffic is three times the average.",
+          "senior": "Peak traffic is three times the average.",
+          "staff": "Peak traffic is three times the average."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "model-hosting",
+        "pattern": "(?:third.party|self.host|own).{0,20}(?:model|gpu)|(?:which|what).{0,15}(?:model|provider)(?!\\s+(?:account|rate|limits?))|where.{0,15}(?:run|host)|upcoming|launch|surge",
+        "answers": {
+          "mid": "Use a third-party model API.",
+          "senior": "You run your own models on your own GPUs, with a large model and a small model.",
+          "staff": "You run a large and a small model on your own GPUs. A new model launch in one week is expected to triple traffic."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "provider-limits",
+        "pattern": "provider.{0,20}limits?|account.{0,20}limits?|requests? per second limit|tokens per minute limit|model rate limits?",
+        "answers": {
+          "mid": "The account allows 500 requests per second and 40M tokens per minute.",
+          "senior": "Third-party provider limits do not apply; you run your own models.",
+          "staff": "Third-party provider limits do not apply; you run your own models."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "gpu-capacity",
+        "pattern": "gpu.{0,20}(?:capacity|available|limit|budget|add|warm|load)|(?:available|fixed).{0,15}gpus|new node|warm.up",
+        "answers": {
+          "mid": "GPU capacity is not applicable; use the third-party API.",
+          "senior": "You can add GPUs, but a new node takes about ten minutes to load a model.",
+          "staff": "Capacity is fixed at 6,000 GPUs for the next six months."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "gpu-throughput",
+        "pattern": "gpu throughput|tokens.{0,15}(?:per gpu|gpu per second)|gpu.{0,20}(?:throughput|tokens per second)|throughput.{0,15}gpu",
+        "answers": {
+          "mid": "GPU throughput is not applicable; use the third-party API.",
+          "senior": "About 2,500 output tokens per second per GPU on the large model with batching.",
+          "staff": "About 2,500 output tokens per second per GPU on the large model with batching."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "tokens",
+        "pattern": "tokens per (?:message|request)|(?:input|output|history|prompt).{0,15}tokens|token counts",
+        "answers": {
+          "mid": "About 2,000 input tokens including history, and 400 output tokens per message.",
+          "senior": "About 2,000 input tokens including history, and 400 output tokens per message.",
+          "staff": "About 2,000 input tokens including history, and 400 output tokens per message."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "latency",
+        "pattern": "latency|first.token|response time|how (?:fast|quick)",
+        "answers": {
+          "mid": "First token under two seconds.",
+          "senior": "First token under one second at p95.",
+          "staff": "First token under one second at p95."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "tiers",
+        "pattern": "tiers?|free|paid|per.user.{0,15}limit|subscription",
+        "answers": {
+          "mid": "Free only, with a per-user daily limit; the numeric daily limit is not specified.",
+          "senior": "Free users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified.",
+          "staff": "Free users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified."
+        },
+        "coversCriteria": [2]
+      },
+      {
+        "id": "history",
+        "pattern": "history.{0,20}(?:retain|keep|delet|storage)|retention|how long|in.region|residen",
+        "answers": {
+          "mid": "History is kept until the user deletes it.",
+          "senior": "History is kept until the user deletes it.",
+          "staff": "History is kept until the user deletes it, with in-region storage for some countries."
+        },
+        "coversCriteria": [2]
+      },
+      {
+        "id": "safety",
+        "pattern": "moderation|safety|security requirement|harmful",
+        "answers": {
+          "mid": "Input and output moderation are required.",
+          "senior": "Input and output moderation are required.",
+          "staff": "Input and output moderation are required."
+        },
+        "coversCriteria": [2]
+      }
+    ],
+    "estimateAnchors": {
+      "mid": [
+        "10M messages per day is about 116/s on average, 350/s at peak.",
+        "2,400 total tokens per message is about 17M tokens/min on average and 50M at peak, exceeding the 40M provider limit."
+      ],
+      "senior": [
+        "300M messages per day is about 3,500/s on average and 10K/s at peak.",
+        "Output is about 1.4M tokens/s on average and 4.2M at peak. At 2,500 output tokens/s/GPU, this needs about 560 GPUs on average and 1,700 at peak if all traffic uses the large model.",
+        "At an example assumption of 2 KB per stored message, storage is about 600 GB/day and 220 TB/year. Use the candidate’s own justified size instead."
+      ],
+      "staff": [
+        "1.5B messages per day is about 17K/s on average and 52K/s at peak. Peak output is about 21M tokens/s, requiring about 8,300 large-model GPUs, above the available 6,000.",
+        "These baseline peak figures are before the separate upcoming launch surge; account for that surge as well."
+      ]
+    },
+    "expectedDesign": [
+      "Clients enter through a gateway with authentication and token-based limits per tier, then a chat service.",
+      "A context builder handles history truncation or summarization and prompt prefix caching.",
+      "Moderation runs before and alongside generation.",
+      "An inference router chooses a model, queues requests and prioritizes tiers.",
+      "The GPU cluster uses continuous batching and manages KV cache.",
+      "SSE or WebSocket streams answers back; conversation storage is partitioned by user.",
+      "Async jobs handle titles, summaries and analytics."
+    ],
+    "redFlags": [
+      "Treating the model call as a fast REST call with fixed timeouts.",
+      "Doing capacity math only in requests rather than tokens.",
+      "No plan for full GPUs.",
+      "Sending the entire history indefinitely.",
+      "No moderation.",
+      "Assuming GPU nodes become ready instantly."
+    ],
+    "assumptions": [
+      {
+        "id": "stored-message-size",
+        "pattern": "(?:bytes|kb|size|storage).{0,30}(?:per message|each message|stored message)|message.{0,30}(?:size|bytes|kilobytes)|how (?:big|large).{0,25}message",
+        "question": "What would you assume for stored message size, given the token counts?",
+        "midSuggestion": "After your attempt, about 2 KB for the user message, reply and metadata is one possible assumption."
+      }
+    ],
+    "assumptionGuidance": [
+      "Stored message size is a candidate assumption, not a fixed 2 KB fact. If asked, invite an assumption based on the token counts.",
+      "Accept about 1 to 5 KB per message, including user text, reply and metadata; grade storage arithmetic from their number.",
+      "Probe an unexplained size such as 100 bytes or 1 MB, and storing the full 2,000-token history prompt again with every message.",
+      "Only at Mid, after a genuine attempted estimate and being stuck, may the interviewer suggest about 2 KB. Senior and Staff get no anchor-derived size hint."
+    ],
+    "interviewerGuidance": [
+      "The new-model launch surge is additional to the ordinary peak factor. Do not reveal derived GPU requirements.",
+      "A provider request limit and a token limit are independent constraints. Ask the candidate to check both without doing the calculation for them."
+    ]
+  }
+}

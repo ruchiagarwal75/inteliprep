@@ -57,6 +57,26 @@ Scripts directly select stages to exercise the whole discussion without waiting 
 
 The config tests check every fact at all three levels and public projections. Build verification scans browser chunks for private facts, anchors and rubric content.
 
+### ai-chat-assistant
+
+**mid:** 14 turns, including deterministic single-fact clarifications and real-model design discussion.
+
+- Stage 1: Could you redo that estimate, showing the units and assumptions at each step?
+
+**senior:** 22 turns, including deterministic single-fact clarifications and real-model design discussion.
+
+- Stage 1: Could you redo that estimate, showing the units and assumptions at each step?
+- Stage 3: The gateway checks tier budgets before the chat service creates a turn. How do the token budgets in the gateway enforce the free tier's limit on large-model messages?
+- Stage 4: The bounded queue gives requests a place to wait when GPU capacity is unavailable. A GPU node dies while producing an answer. What does the user see?
+- Stage 4: The retry makes interrupted answers explicit. What happens if a worker completes a turn but loses its queue acknowledgement, so the same work is delivered again?
+- Stage 4: How would you use "Evaluation" to check a new model's answer quality and safety before rollout?
+- Stage 4: The evaluation plan compares quality and safety before and during rollout. If the queue delivers an already completed turn to another worker, how does your design prevent a duplicate answer or GPU work?
+- Stage 4: How does "Input and output moderation" affect the time until the user sees the first streamed token?
+- Stage 4: Moderation adds a buffering step before streamed output is released. What would make you stop or roll back your new-model rollout?
+- Stage 5: How would you choose a paid-tier limit that balances cost and user experience, and check whether that choice works?
+
+The config tests check every fact at all three levels and public projections. Build verification scans browser chunks for private facts, anchors and rubric content.
+
 ## enterprise-rag-assistant: weak Senior scorecard
 
 **Signal: strong_no.** Accurate initial vector sizing is outweighed by explicit authorization leaks, unsafe cache behavior, weak grounding and inadequate quality controls. The proposed design is not suitable for a security-sensitive enterprise assistant.
@@ -211,6 +231,154 @@ The config tests check every fact at all three levels and public projections. Bu
 
 **Next practice:** Design an enterprise RAG assistant. Refine the latency plan: allocate queueing and generation headroom, define bounded reranking and context limits, and specify a peak-load test that measures end-to-end first-token p95 alongside answer quality.
 
+## ai-chat-assistant: weak Senior scorecard
+
+**Signal: strong_no.** The design demonstrates fundamental problems in capacity planning, context management, inference reliability, and user-data protection. Explicitly unsafe choices, unsupported scaling assumptions, and absent quality safeguards make this a strong negative result.
+
+| Area | Score | Rationale |
+| --- | --- | --- |
+| Requirements and capacity estimation | 1 | Capacity planning explicitly ignores token lengths and prefill, while the 100-byte storage assumption is left unchecked. These choices cannot support credible GPU or storage sizing. |
+| Chat, context and history | 1 | Duplicating full conversations on every message and sending all history indefinitely causes excessive storage growth and eventually exceeds model context limits. Title-only shared cache keys cannot reliably distinguish conversations or protect user boundaries. |
+| Inference and streaming | 1 | A fixed one-second REST timeout does not accommodate long-lived generation, and restarting answers without turn or sequence identifiers prevents reliable resumption. The candidate also explicitly lacks an understanding of batching and KV-cache effects on concurrency. |
+| Overload and reliability | 1 | Unbounded queues and an assumption of instantly available GPUs leave saturation unmanaged. Silently losing partial answers on GPU failure provides no recovery behavior. |
+| Tiers, cost and rollout | 1 | Unlimited large-model access contradicts the specified free-tier policy, and HTTP request counts alone do not capture inference resource costs. Deploying a model globally without canarying or rollback exposes all users to regressions. |
+| Evaluation and quality | 1 | Reading one fluent answer is not a credible quality evaluation. The explicit rejection of regression testing, quality gates, and testing context changes leaves no dependable way to detect degradation before deployment. |
+| Safety and security | 1 | The design explicitly omits required input/output moderation and trusts client-selected user identities for history access. Leaving summaries and caches intact after deletion also fails to honor deletion across derived data. |
+
+**Requirements and capacity estimation, candidate evidence:** “I will do capacity in requests per second only and ignore token lengths and prefill.”
+
+**Requirements and capacity estimation, candidate evidence:** “I assume 100 bytes per stored exchange and do not check whether the text fits.”
+
+**Chat, context and history, candidate evidence:** “I will store the entire prompt and full conversation again on every message and always send all history to the model forever.”
+
+**Chat, context and history, candidate evidence:** “A single shared history cache can use only conversation titles as keys.”
+
+**Inference and streaming, candidate evidence:** “I will treat inference as a normal fast REST call with a fixed one-second timeout.”
+
+**Inference and streaming, candidate evidence:** “A dropped mobile connection just restarts the entire answer with no turn ID or sequence number.”
+
+**Inference and streaming, candidate evidence:** “I do not know how batching or KV cache affects GPU concurrency.”
+
+**Overload and reliability, candidate evidence:** “If GPUs fill up I have no overload plan; requests can queue forever.”
+
+**Overload and reliability, candidate evidence:** “We can add new GPUs instantly whenever needed, so I will not reserve headroom or plan for warmup.”
+
+**Overload and reliability, candidate evidence:** “A GPU failure will silently lose the partial answer.”
+
+**Tiers, cost and rollout, candidate evidence:** “I will give free and paid requests the same unlimited large-model capacity without checking the specified free tier.”
+
+**Tiers, cost and rollout, candidate evidence:** “I will estimate cost only from number of HTTP requests, and roll out the new model to everyone with no canary or rollback.”
+
+**Evaluation and quality, candidate evidence:** “I will judge quality by reading one fluent answer.”
+
+**Evaluation and quality, candidate evidence:** “I have no regression suite, human labels, canary metrics or quality gate, and would deploy a context change without testing it.”
+
+**Safety and security, candidate evidence:** “I will omit both input and output moderation to make responses fast.”
+
+**Safety and security, candidate evidence:** “The client can request any user ID for history and I will trust it.”
+
+**Safety and security, candidate evidence:** “Deletes need not remove summaries or cache copies.”
+
+### Strengths
+
+
+### Gaps
+
+- Request-only capacity planning, unbounded queues, and assumed instantaneous GPU readiness leave saturation unmanaged and latency potentially unbounded. Estimate token-driven GPU demand, account for model-loading delay and headroom, and define bounded queues with priority, admission control, and fallback or rejection.
+  Candidate evidence: “I will do capacity in requests per second only and ignore token lengths and prefill.”
+  Candidate evidence: “If GPUs fill up I have no overload plan; requests can queue forever.”
+  Candidate evidence: “We can add new GPUs instantly whenever needed, so I will not reserve headroom or plan for warmup.”
+- Persisting and replaying the entire history will exceed context limits, while treating generation as a fast one-second REST call can terminate valid answers; restarting disconnected answers also loses continuity. Store turns once, apply a context budget, and design streaming with generation-aware deadlines and resumable turn/sequence identifiers.
+  Candidate evidence: “I will store the entire prompt and full conversation again on every message and always send all history to the model forever.”
+  Candidate evidence: “I will treat inference as a normal fast REST call with a fixed one-second timeout.”
+  Candidate evidence: “A dropped mobile connection just restarts the entire answer with no turn ID or sequence number.”
+- Omitting moderation, trusting client-selected user IDs, and retaining deleted summaries or cache copies permit unsafe responses, cross-user history access, and incomplete deletion. Add both moderation stages with an explicit streaming policy, enforce ownership server-side, and propagate deletion to derived copies.
+  Candidate evidence: “I will omit both input and output moderation to make responses fast.”
+  Candidate evidence: “The client can request any user ID for history and I will trust it.”
+  Candidate evidence: “Deletes need not remove summaries or cache copies.”
+
+**Next practice:** Design an AI chat assistant. Rebuild the design around token-based capacity estimates and a bounded inference queue. Trace one chat turn through context selection, moderation, streaming, disconnect recovery, and persistence, then define quality checks and rollback criteria before rollout.
+
+## ai-chat-assistant: strong Senior scorecard
+
+**Signal: yes.** Meets the Senior bar with correct token/GPU estimates, bounded context, recoverable streaming, and credible quality and safety controls. The main improvement is translating overload policy into explicit latency-aware admission thresholds.
+
+| Area | Score | Rationale |
+| --- | --- | --- |
+| Requirements and capacity estimation | 4 | Correctly derives peak token throughput and GPU demand, distinguishing decode capacity from prefill and failure headroom. Storage assumptions are reasonable, avoid duplicated context, and are paired with workload-specific benchmarking. |
+| Chat, context and history | 3 | Defines a coherent per-user durable chat flow with bounded recent history and versioned summaries. Shared prefix caching is explicitly restricted to common instructions rather than private conversation content. |
+| Inference and streaming | 3 | Explains continuous batching, KV-cache constraints, and prefill interference with active decoding. Sequence-based replay and explicit interruption provide concrete reconnect semantics without claiming generation can always resume exactly. |
+| Overload and reliability | 3 | Uses bounded tier-prioritized queues, accounts for GPU warmup delay, and defines deduplicated recovery after an interrupted generation. Admission thresholds are not yet connected to the queue-wait budget needed to protect first-token latency. |
+| Tiers, cost and rollout | 3 | Correctly enforces the free-tier model allowance while treating unspecified paid limits as a product decision. Cost measurement includes tokens, GPU utilization, context processing, and storage, with model routing evaluated against quality. |
+| Evaluation and quality | 4 | Proposes a human-labeled evaluation suite spanning context, factuality, refusal, and interrupted streams, with model-judge calibration and stratification. Regression gates, controlled canaries, and rollback connect evaluation results to deployment decisions. |
+| Safety and security | 4 | Places input moderation before inference and output moderation before chunk release, explicitly testing buffering against first-token latency. Privacy controls include deletion across derived data, avoiding private-prompt logging, and testing cross-user access attempts. |
+
+**Requirements and capacity estimation, candidate evidence:** “With 400 output tokens, peak decode is 4.17M tokens per second; at 2,500 per GPU this is roughly 1,667 GPUs for all-large-model peak traffic, before failure headroom and prefill capacity.”
+
+**Requirements and capacity estimation, candidate evidence:** “I will benchmark both prefill and decode with the actual input/output distribution.”
+
+**Requirements and capacity estimation, candidate evidence:** “I assume 3 KB per stored exchange including user text, reply and metadata, so about 900 GB daily; I do not store the full 2,000-token context again with every message.”
+
+**Chat, context and history, candidate evidence:** “Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user.”
+
+**Chat, context and history, candidate evidence:** “A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget.”
+
+**Chat, context and history, candidate evidence:** “Shared prefix caching contains only common instructions, never another user’s private history.”
+
+**Inference and streaming, candidate evidence:** “An inference router sends work to large or small model pools with continuous batching.”
+
+**Inference and streaming, candidate evidence:** “GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes.”
+
+**Inference and streaming, candidate evidence:** “On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete.”
+
+**Overload and reliability, candidate evidence:** “A bounded queue prioritizes paid requests while maintaining a free-tier floor.”
+
+**Overload and reliability, candidate evidence:** “New GPUs take ten minutes to warm, so they cannot solve the next five minutes.”
+
+**Overload and reliability, candidate evidence:** “If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state.”
+
+**Tiers, cost and rollout, candidate evidence:** “Enforce the free limit of 20 large-model messages per three hours, then route to the small model.”
+
+**Tiers, cost and rollout, candidate evidence:** “Higher paid limits need an explicit product assumption.”
+
+**Tiers, cost and rollout, candidate evidence:** “Measure cost per completed message from input/output tokens, GPU seconds, utilization, context processing and storage; evaluate tier routing with quality rather than assuming every request needs the largest model.”
+
+**Evaluation and quality, candidate evidence:** “I will use a human-labeled conversation suite covering long context, factual tasks, refusal and interrupted streams.”
+
+**Evaluation and quality, candidate evidence:** “Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions.”
+
+**Evaluation and quality, candidate evidence:** “A canary compares those metrics to control before broad traffic and supports rollback.”
+
+**Safety and security, candidate evidence:** “Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them.”
+
+**Safety and security, candidate evidence:** “Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks.”
+
+**Safety and security, candidate evidence:** “Do not log private prompts in general metrics; honor deletion across store, summaries and caches, and test cross-user access attempts.”
+
+### Strengths
+
+- Capacity planning uses tokens and GPU throughput rather than request counts alone, acknowledges prefill and failure headroom, and uses a defensible storage representation.
+  Candidate evidence: “With 400 output tokens, peak decode is 4.17M tokens per second; at 2,500 per GPU this is roughly 1,667 GPUs for all-large-model peak traffic, before failure headroom and prefill capacity.”
+  Candidate evidence: “I will benchmark both prefill and decode with the actual input/output distribution.”
+  Candidate evidence: “I assume 3 KB per stored exchange including user text, reply and metadata, so about 900 GB daily; I do not store the full 2,000-token context again with every message.”
+- Streaming recovery distinguishes replayable transport interruptions from GPU failures that require recomputation, preserving honest client-visible completion semantics.
+  Candidate evidence: “Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log.”
+  Candidate evidence: “On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete.”
+  Candidate evidence: “If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state.”
+- Quality and safety are actionable deployment controls through calibrated evaluation, gated canaries and rollback, and moderation before content release.
+  Candidate evidence: “Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions.”
+  Candidate evidence: “Canary a new model on a bounded cohort with instant router rollback, checking quality and safety gates plus latency and interruption rates.”
+  Candidate evidence: “Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them.”
+
+### Gaps
+
+- The queue is bounded and overload actions are defined, but admission is not tied to maximum queue wait. A bounded queue can still violate the first-token target; derive a queue-wait budget after moderation and prefill, then define and load-test the corresponding rejection or downgrade trigger.
+  Candidate evidence: “A bounded queue prioritizes paid requests while maintaining a free-tier floor.”
+  Candidate evidence: “When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue.”
+  Candidate evidence: “Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks.”
+
+**Next practice:** Design a rate limiter. Design token-weighted, tier-aware admission control with explicit queue-wait cutoffs. Test saturation behavior, paid-tier priority, and the free-tier service floor.
+
 ## Cost methodology
 
 Each interview artifact records real response usage (including cached input, cache writes when reported, reasoning within output, and any retried calls with available usage). Missing usage/pricing remains unavailable rather than zero. Costs use the app’s verified rate table: [official pricing](https://developers.openai.com/api/docs/pricing). Terra: $1 input / $0.05 cached / $1.25 cache write / $5 output per million tokens. Sol: $2 / $0.10 / $2.50 / $10 respectively. These are estimates, not invoices.
@@ -220,6 +388,23 @@ Compare one completed Senior scripted conversation plus its strong scorecard aga
 | Script | Turns | Calls | Input tokens | Output tokens | Estimated USD | Missing usage/cost |
 | --- | --- | --- | --- | --- | --- | --- |
 | enterprise-rag-assistant | 23 | 12 | 57,020 | 5,616 | $0.08765 | 0 |
+| ai-chat-assistant | 22 | 13 | 55,475 | 5,198 | $0.08444 | 0 |
 | URL shortener baseline | 9 discussion turns | 10 | 47,869 | 4,766 | $0.07778 | 0 |
 
 No production deployment or main update is authorized for this change. Beta Preview is the review target. Existing saved interviews are untouched.
+
+## Corrections found during live evaluation
+
+A broad RAG latency matcher captured a permission-revocation question; narrowing
+it restored the configured revocation fact at all levels. A broad chat hosting
+matcher captured provider-account limits; it now separates hosting from limits.
+Derived GPU requirements are estimation questions, while available GPU capacity
+is a raw fact. These are factual-routing corrections, not new exercise facts.
+
+A chat run repeatedly asked about queue redelivery while labeling the turn as an
+evaluation/safety topic. GenAI-only selection now constrains an explicit topic
+request and verifies that a generated question matches its topic pattern. Core
+selection is unchanged. Before: “On redelivery after a lost acknowledgement, what
+does the worker check before starting inference for that turn?” After the
+candidate requested evaluation/moderation, the verified run asked those specific
+questions, recorded above.
