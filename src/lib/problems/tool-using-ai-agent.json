@@ -312,10 +312,20 @@
         "answers": {
           "mid": "Sending an email to the wrong person is a serious incident.",
           "senior": "Sending an email to the wrong person is a serious incident.",
-          "staff": "Sending an email to the wrong person is a serious incident, and actions in third-party tools cannot be undone."
+          "staff": "Sending an email to the wrong person is a serious incident."
         },
         "coversCriteria": [2],
-        "description": "Severity of mistakes, wrong recipients, whether actions can be undone and irreversible third-party actions."
+        "description": "Severity and business impact of mistakes, such as an email sent to the wrong recipient. Not whether actions can be undone."
+      },
+      {
+        "id": "action-reversibility",
+        "description": "Whether actions can be undone, reversed or recalled after execution; irreversible external actions.",
+        "answers": {
+          "mid": "Whether actions can be undone isn't specified. What would you assume?",
+          "senior": "Whether actions can be undone isn't specified. What would you assume?",
+          "staff": "Actions in third-party tools cannot be undone."
+        },
+        "coversCriteria": [2]
       }
     ],
     "estimateAnchors": {

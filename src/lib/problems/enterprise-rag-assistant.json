@@ -323,10 +323,10 @@
         "answers": {
           "mid": "Daily permission sync is fine.",
           "senior": "Removed access must apply within five minutes.",
-          "staff": "Removed access must apply within one minute; some regions require data to stay in-region."
+          "staff": "Removed access must apply within one minute."
         },
         "coversCriteria": [2],
-        "description": "How quickly revocations and removed access must take effect; permission sync requirements and regional residency restrictions."
+        "description": "How quickly revoked or removed document access must take effect and how often permissions synchronize. Not data residency."
       },
       {
         "id": "restricted-docs",
@@ -407,6 +407,16 @@
         },
         "coversCriteria": [1],
         "description": "Average input and output tokens per RAG question."
+      },
+      {
+        "id": "data-residency",
+        "description": "Whether documents or processing must stay in a particular region, data residency and in-region requirements.",
+        "answers": {
+          "mid": "Data residency requirements aren't specified. What would you assume?",
+          "senior": "There are no data residency requirements.",
+          "staff": "Some regions require data to stay in-region."
+        },
+        "coversCriteria": [2]
       }
     ],
     "estimateAnchors": {

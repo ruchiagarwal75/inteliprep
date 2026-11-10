@@ -1,0 +1,140 @@
+[
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "How big is the company?",
+    "ids": ["employees"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "How many people will use this?",
+    "ids": ["employees"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "What's the size of the corpus?",
+    "ids": ["documents"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "How much load should I expect?",
+    "ids": ["questions"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "How quickly do edits need to show up in answers?",
+    "ids": ["document-changes"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "If someone loses access to a doc, how fast must that take effect?",
+    "ids": ["permission-changes"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "What fraction of documents are private?",
+    "ids": ["restricted-docs"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "Are there data residency requirements?",
+    "ids": ["data-residency"],
+    "level": "senior"
+  },
+  {
+    "problemId": "enterprise-rag-assistant",
+    "message": "How many people are in the company and how many documents do we have?",
+    "ids": ["employees", "documents"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "What's the expected scale?",
+    "ids": ["dau"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "How many messages does a typical user send per day?",
+    "ids": ["messages-per-user"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "Do we host the model ourselves or call an API?",
+    "ids": ["model-hosting"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "What's the rate limit on the provider API?",
+    "ids": ["provider-limits"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "How many tokens is a typical message?",
+    "ids": ["tokens"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "How many GPUs do we have?",
+    "ids": ["gpu-capacity"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "How long does it take to bring up a new GPU node?",
+    "ids": ["gpu-warmup"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "How long should it take before the first word shows up?",
+    "ids": ["latency"],
+    "level": "senior"
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "message": "What's the expected volume?",
+    "ids": ["tasks"],
+    "level": "senior"
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "message": "How many actions does a typical task take?",
+    "ids": ["steps"],
+    "level": "senior"
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "message": "Whose credentials does the agent use?",
+    "ids": ["permissions"],
+    "level": "senior"
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "message": "Can actions be undone?",
+    "ids": ["action-reversibility"],
+    "level": "senior"
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "message": "How many GPUs do we have?",
+    "ids": ["gpu-capacity"],
+    "level": "staff"
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "message": "Can actions be undone?",
+    "ids": ["action-reversibility"],
+    "level": "staff"
+  }
+]
