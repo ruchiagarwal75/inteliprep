@@ -93,7 +93,7 @@ describe("provider failures across API, browser account scope, and saved intervi
       expect(responses[0].headers.get(CANDIDATE_AUTH_ERROR_HEADER)).toBeNull();
       expect(await responses[0].json()).toEqual({
         error: INTERVIEWER_UNAVAILABLE,
-        code,
+        code: "INTERVIEWER_UNAVAILABLE",
       });
       expect(changed).not.toHaveBeenCalled();
       const state = acquireInterviewSession(saved.id, saved.interview);

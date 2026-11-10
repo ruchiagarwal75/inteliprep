@@ -479,12 +479,16 @@ test("uninvited and signed-out users cannot start, and policies are linked", asy
   for (const path of ["/", "/interview/new", "/api/health"]) {
     const response = await context.request.get(path);
     const headers = response.headers();
+    expect(headers["x-powered-by"]).toBeUndefined();
     expect(headers["x-frame-options"]).toBe("DENY");
     expect(headers["content-security-policy"]).toContain(
       "frame-ancestors 'none'",
     );
     expect(headers["permissions-policy"]).toContain("microphone=()");
   }
+  expect(await (await context.request.get("/api/health")).json()).toEqual({
+    status: "ok",
+  });
   for (const path of ["/privacy", "/terms"]) {
     await page.goto(path);
     await expect(

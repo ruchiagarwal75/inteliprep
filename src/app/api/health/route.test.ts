@@ -12,7 +12,7 @@ describe("readiness health", () => {
     vi.stubEnv("OPENAI_KEY", "key");
     const response = await GET();
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ status: "ok" });
+    expect(await response.json()).toEqual({ status: "ok" });
     expect(redis).not.toHaveBeenCalled();
   });
   it("reports missing configuration without exposing any values", async () => {
@@ -22,7 +22,7 @@ describe("readiness health", () => {
     vi.stubEnv("INTERVIEW_RESUME_SECRET", "");
     const response = await GET();
     expect(response.status).toBe(503);
-    expect(await response.text()).not.toContain("secret");
+    expect(await response.json()).toEqual({ status: "unavailable" });
     expect(redis).not.toHaveBeenCalled();
   });
   it("requires a working store in beta", async () => {

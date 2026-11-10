@@ -28,11 +28,11 @@ export async function GET(): Promise<Response> {
     route: "/api/health",
     requestId,
     status,
+    checks: { configuration: configured, sharedStore },
   });
   return Response.json(
     {
       status: ready ? "ok" : "unavailable",
-      checks: { configuration: configured, sharedStore },
     },
     {
       status,

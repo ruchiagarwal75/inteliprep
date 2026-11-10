@@ -201,7 +201,7 @@ describe("POST /api/chat", () => {
     expect(JSON.stringify(log.mock.calls)).not.toContain(PNG_FIXTURE);
   });
 
-  it("maps an upstream failure to its status and code", async () => {
+  it("preserves upstream status while returning a generic code", async () => {
     mocks.streamInterviewerReply.mockImplementation(async function* () {
       throw new APIError(
         429,
@@ -216,7 +216,7 @@ describe("POST /api/chat", () => {
 
     expect(response.status).toBe(429);
     await expect(response.json()).resolves.toMatchObject({
-      code: "credit_balance_exhausted",
+      code: "INTERVIEWER_UNAVAILABLE",
     });
   });
 

@@ -355,3 +355,11 @@ After:
 > A replica can provide a path through a node failure. If the Redis cache fails before recent admitted requests reach the Redis replica, what happens to the quota when the replica takes over?
 
 <!-- end-retest-live-14 -->
+
+## 15. Public error and framework details
+
+Next's powered-by header is disabled. Health returns only its status; the two
+readiness booleans remain in allowlisted server logs. Provider-specific error
+codes are replaced with INTERVIEWER_UNAVAILABLE, preserving status/retry behavior
+and request IDs. Unit tests cover generic provider responses and health payloads;
+the browser suite checks headers on the public, brief and API paths.

@@ -33,6 +33,7 @@ type Event = {
     | "approval_email_failure"
     | "framework_failure"
     | "client_failure";
+  checks?: { configuration: boolean; sharedStore: boolean };
   failureStage?:
     | "configuration"
     | "identity_or_invite"

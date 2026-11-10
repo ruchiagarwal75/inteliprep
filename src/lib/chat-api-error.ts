@@ -29,8 +29,12 @@ export function upstreamChatError(cause: unknown, requestId: string): Response {
     return chatError(
       "Interviewer unavailable. Please try again.",
       status,
-      cause.code ?? undefined,
+      "INTERVIEWER_UNAVAILABLE",
     );
   }
-  return chatError("Interviewer unavailable. Please try again.", 502);
+  return chatError(
+    "Interviewer unavailable. Please try again.",
+    502,
+    "INTERVIEWER_UNAVAILABLE",
+  );
 }
