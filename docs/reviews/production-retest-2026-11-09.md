@@ -181,13 +181,71 @@ checks locally. Each item's CI must pass before moving on; Production stays on m
 Before:
 
 > There’s no fixed memory target. Assume 100,000 active API keys, each with a limit of 100 admitted requests per rolling 60 seconds. Estimate memory based on the state your design needs to retain.
-> 
+>
 > What should callers see when the quota is exceeded or the limiter is unavailable?
 
 After:
 
 > There’s no fixed memory budget specified. Estimate it from 100,000 active keys, the limit of 100 admitted requests per rolling 60 seconds, and the state representation you choose. Include any storage overhead in your assumptions.
-> 
+>
 > Anything else you'd like to clarify before drawing?
 
 <!-- end-retest-live-9 -->
+
+## 10. Resource estimates and arithmetic follow-ups
+
+Confirmed two causes: the capacity detector omitted memory and common resource
+phrases, and declarative estimates never selected the estimation continuation.
+Senior/Staff capacity questions now cover memory/RAM, disk/storage, bandwidth, cache
+size and machine/server counts. A volunteered numerical estimate gets a units-and-
+assumptions follow-up instead of being dropped. The interviewer is told to request
+a redo for a clearly incorrect estimate without supplying the correction or a
+conversion hint. Mid-level behavior and configured workload inputs are unchanged.
+
+<!-- retest-live-10 -->
+
+## Live reply comparison: item 10
+
+### 10-memory-question
+
+Before:
+
+> There’s no fixed memory target. Estimate it using 100,000 active keys and the 100-request rolling-window limit, with your own assumptions about how much state each key needs.
+>
+> What should callers see when the quota is exceeded or the limiter is unavailable?
+
+After:
+
+> There’s no fixed memory target. Assume 100,000 active API keys, with up to 100 admitted requests per key in any rolling 60 seconds. Peak traffic is 10,000 checks per second, and rejected requests don’t consume quota.
+>
+> What capacity do you estimate from those inputs, and what state or resources does your design need?
+
+### 10-wrong-estimate
+
+Before:
+
+> That estimate looks high for 10 million creates per day.
+>
+> Anything else you'd like to clarify before drawing?
+
+After:
+
+> That estimate looks high for 10 million creates per day.
+>
+> Could you walk through that estimate again, showing the units at each step?
+
+### 10-volunteered-estimate
+
+Before:
+
+> Noted. We can revisit the state estimate during the design discussion.
+>
+> Anything else you'd like to clarify before drawing?
+
+After:
+
+> That estimate assumes one 64-byte entry per key, before Redis overhead.
+>
+> Could you walk through that estimate again, showing the units at each step?
+
+<!-- end-retest-live-10 -->

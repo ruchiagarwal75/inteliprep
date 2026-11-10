@@ -6,7 +6,7 @@ export function withoutQuestions(reply: string): string {
       const text = sentence.trim();
       return (
         !/[?？]["'”’)\]]*$/u.test(text) &&
-        !/^(?:please )?(?:tell me|walk me through|explain (?:how|why|your)|describe (?:how|your)|what\b|how\b|why\b|can you\b|could you\b)/iu.test(
+        !/^(?:please )?(?:tell me|walk me through|redo\b|recalculate\b|explain (?:how|why|your)|describe (?:how|your)|what\b|how\b|why\b|can you\b|could you\b)/iu.test(
           text,
         )
       );

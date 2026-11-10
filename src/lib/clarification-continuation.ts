@@ -10,9 +10,29 @@ import { isOffTopicRequest } from "@/lib/off-topic";
 export function estimationAsk(messages: ChatMessage[], level: InterviewLevel) {
   if (level === "mid") return undefined;
   const latest = messages.findLast((m) => m.role === "user");
-  if (!latest || latest.source === "control" || !/[?？]/u.test(latest.content))
-    return undefined;
+  if (!latest || latest.source === "control") return undefined;
   const question = latest.content;
+  const isQuestion =
+    /[?？]/u.test(question) ||
+    /^(?:how|what|which|can|could|should|do|does|is|are)\b/iu.test(
+      question.trim(),
+    );
+  if (!isQuestion) {
+    if (
+      /\d/u.test(question) &&
+      /\b(?:estimat\w*|calculat\w*|works? out|i get|assuming|budget|provision|allocate)\b/iu.test(
+        question,
+      ) &&
+      /\b(?:bytes?|[kmgt]i?b|qps|rps|requests?|creates?|reads?|writes?|keys?|counters?|per second|per day|servers?|machines?)\b|\d\s*[kmgt]i?b\b|\/s\b/iu.test(
+        question,
+      )
+    )
+      return choose(messages, [
+        "Could you walk through that estimate again, showing the units at each step?",
+        "What assumptions and arithmetic led you to that estimate?",
+      ]);
+    return undefined;
+  }
   if (
     /\b(?:qps|rps|requests? per second|arithmetic|calculate.*(?:rate|traffic))\b/iu.test(
       question,
@@ -24,13 +44,16 @@ export function estimationAsk(messages: ChatMessage[], level: InterviewLevel) {
     ]);
   }
   if (
-    /\b(?:estimate|calculate|how much)\b.{0,50}\b(?:storage|bandwidth|capacity)\b/iu.test(
+    /\b(?:estimate|calculate|how much|how many|how large|how big|size|provision|capacity|needed)\b/iu.test(
+      question,
+    ) &&
+    /\b(?:memory|ram|disk|storage|bandwidth|capacity|cache|counters?|machines?|servers?|instances?)\b/iu.test(
       question,
     )
   )
     return choose(messages, [
-      "What capacity do you estimate from those inputs?",
-      "Which assumptions would you use for that capacity estimate?",
+      "What capacity do you estimate from those inputs, and what state or resources does your design need?",
+      "Which assumptions would you use to estimate that resource requirement?",
     ]);
   return undefined;
 }
