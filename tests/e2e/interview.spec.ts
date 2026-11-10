@@ -534,7 +534,7 @@ test("an unavailable interviewer keeps the message and offers a working Retry re
   page,
   context,
 }) => {
-  await signIn(context);
+  await signIn(context, "recovery");
   await page.goto("/interview/new");
   await page
     .getByRole("button", { name: "Start interview", exact: true })
@@ -580,7 +580,7 @@ test("an active deadline ends automatically and keeps an unfinished draft unsent
   page,
   context,
 }) => {
-  await signIn(context);
+  await signIn(context, "expiry");
   await page.goto("/interview/new");
   await page
     .getByRole("button", { name: "Start interview", exact: true })
@@ -610,7 +610,7 @@ test("an expired server transcript opens as an unscored saved record", async ({
   page,
   context,
 }) => {
-  await signIn(context);
+  await signIn(context, "archive");
   await page.goto("/interview/new");
   await page
     .getByRole("button", { name: "Start interview", exact: true })
@@ -656,7 +656,7 @@ test("timer position is stable across all five stage names on laptops", async ({
   page,
   context,
 }) => {
-  await signIn(context, "admin");
+  await signIn(context, "layout");
   await page.goto("/interview/new");
   await page
     .getByRole("button", { name: "Start interview", exact: true })
@@ -694,7 +694,7 @@ test("the brief remembers level and defaults to the suggested next problem", asy
   page,
   context,
 }) => {
-  await signIn(context, "admin");
+  await signIn(context, "preferences");
   await page.goto("/interview/new");
   await page
     .getByRole("combobox", { name: "Problem", exact: true })

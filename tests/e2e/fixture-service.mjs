@@ -1,23 +1,10 @@
+import { fixtureAccounts as accounts } from "./fixture-accounts.mjs";
 import { createServer } from "node:https";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 export const fixtureOrigin = "https://127.0.0.1:4444";
 const jwtSecret = "mockmeai-ci-only-auth-fixture-not-a-production-key";
-const accounts = {
-  admin: {
-    id: "99999999-9999-4999-8999-999999999999",
-    email: "owner@example.invalid",
-  },
-  invited: {
-    id: "11111111-1111-4111-8111-111111111111",
-    email: "browser-smoke@example.invalid",
-  },
-  uninvited: {
-    id: "22222222-2222-4222-8222-222222222222",
-    email: "not-invited@example.invalid",
-  },
-};
 function session(account) {
   const user = {
     ...account,
@@ -88,7 +75,11 @@ function inputData(body) {
 }
 export function startFixtureService(key, cert) {
   let modelCalls = 0;
-  const approved = new Set([accounts.invited.id]);
+  const approved = new Set(
+    Object.values(accounts)
+      .filter((account) => account.id !== accounts.uninvited.id)
+      .map((account) => account.id),
+  );
   const service = createServer(
     { key: readFileSync(key), cert: readFileSync(cert) },
     async (req, res) => {

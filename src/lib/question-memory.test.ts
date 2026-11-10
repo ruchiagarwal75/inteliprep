@@ -51,3 +51,39 @@ it("also trims duplicate acknowledgements with typographic apostrophes", () => {
     ),
   ).toBe("You’ve explained ID leasing. What happens when the lease expires?");
 });
+
+it("detects a repeated final question after a different factual answer", async () => {
+  const { repeatsLastQuestion } = await import("@/lib/question-memory");
+  const history = [
+    {
+      role: "assistant" as const,
+      content: "Some facts. What happens if Redis fails?",
+    },
+    { role: "user" as const, content: "Is authentication already handled?" },
+  ];
+  expect(
+    repeatsLastQuestion(
+      "Yes, authentication already exists. What happens if Redis fails?",
+      history,
+    ),
+  ).toBe(true);
+  expect(
+    repeatsLastQuestion(
+      "What would a caller receive during that failure?",
+      history,
+    ),
+  ).toBe(false);
+});
+
+it("extracts the final question from a long prior answer without quadratic scanning", async () => {
+  const { questionAtEnd } = await import("@/lib/open-question");
+  const prefix = "x".repeat(32000);
+  const started = performance.now();
+  expect(questionAtEnd("?")).toBe("?");
+  expect(questionAtEnd("？")).toBe("？");
+  expect(questionAtEnd(prefix)).toBeUndefined();
+  expect(questionAtEnd(prefix + ". What happens on failover? ")).toBe(
+    "What happens on failover?",
+  );
+  expect(performance.now() - started).toBeLessThan(1000);
+});

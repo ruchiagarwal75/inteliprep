@@ -1,7 +1,14 @@
 import type { ChatMessage } from "@/lib/chat";
 
 export function questionAtEnd(reply: string) {
-  return reply.match(/[^.!?\n]*[?？]\s*$/u)?.[0].trim();
+  const text = reply.trimEnd();
+  if (!text.endsWith("?") && !text.endsWith("？")) return undefined;
+  if (text.length === 1) return text;
+  const end = text.length - 2;
+  const separator = Math.max(
+    ...[".", "!", "?", "？", "\n"].map((mark) => text.lastIndexOf(mark, end)),
+  );
+  return text.slice(separator + 1).trim();
 }
 export function hasExplanation(messages: ChatMessage[]) {
   const start = messages.findLastIndex(

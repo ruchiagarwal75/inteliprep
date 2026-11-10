@@ -148,3 +148,46 @@ No saved interview is changed or deleted. Unit and browser checks cover the defa
 The Brief guide also replaces “The interviewer listens until you choose Done
 explaining.” with “The interviewer waits while you type your explanation.”
 This completes the item 2 copy sweep without changing the guide artwork.
+
+## 9. Consecutive clarification asks
+
+Confirmed the configured/raw clarification paths could append the pending
+requirement even when it was the previous turn's final question. A shared final
+reply check now removes an exact repeat before the existing clarification
+continuation chooses a different ask. Facts are retained. It also protects
+non-configured reply paths; drawing handoffs still have no filler question.
+The regression sends two configured factual questions without answering the pending
+one and requires different closing questions.
+
+The repeat check also exposed a quadratic regex in `questionAtEnd`: a synthetic
+32,000-character answer without a question took 14.2 seconds locally. Final-question
+extraction now uses an end check and bounded backwards searches instead of regex
+backtracking. A long-message regression protects this path.
+
+CI exposed test-data coupling: new browser scenarios shared the original account's
+three-start minute window. Each scenario now uses a separate synthetic account;
+production limits are unchanged. The multi-request catalog integration test has
+a 15-second cold-run budget instead of five seconds. No app/model timeout changed.
+The local machine reported CPU_Speed_Limit 22%, so subsequent full check/build
+validation uses the existing GitHub Actions job, with targeted and real-model
+checks locally. Each item's CI must pass before moving on; Production stays on main.
+
+<!-- retest-live-9 -->
+
+## Live reply comparison: item 9
+
+### 9-repeated-clarification
+
+Before:
+
+> There’s no fixed memory target. Assume 100,000 active API keys, each with a limit of 100 admitted requests per rolling 60 seconds. Estimate memory based on the state your design needs to retain.
+> 
+> What should callers see when the quota is exceeded or the limiter is unavailable?
+
+After:
+
+> There’s no fixed memory budget specified. Estimate it from 100,000 active keys, the limit of 100 admitted requests per rolling 60 seconds, and the state representation you choose. Include any storage overhead in your assumptions.
+> 
+> Anything else you'd like to clarify before drawing?
+
+<!-- end-retest-live-9 -->

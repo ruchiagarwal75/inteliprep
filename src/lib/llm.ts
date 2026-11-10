@@ -7,7 +7,10 @@ import { resumePendingQuestion } from "@/lib/pending-question-reply";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import { hasAsk, invitesDrawing } from "@/lib/open-question";
 import { selectReviewProbe } from "@/lib/review-probes";
-import { trimAcknowledgements } from "@/lib/question-memory";
+import {
+  trimAcknowledgements,
+  repeatsLastQuestion,
+} from "@/lib/question-memory";
 import type { ChatMessage } from "@/lib/chat";
 import { isRequirementProposal } from "@/lib/candidate-proposal";
 import {
@@ -330,6 +333,7 @@ export async function* streamInterviewerReply(
   for await (const part of rawInterviewerReply(...args)) reply += part;
   const interview = args[5];
   reply = trimAcknowledgements(reply);
+  if (repeatsLastQuestion(reply, args[0])) reply = withoutQuestions(reply);
   if (
     interview?.openQuestions?.length &&
     !interview.reviewQuestion &&

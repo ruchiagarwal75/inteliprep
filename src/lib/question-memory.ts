@@ -67,3 +67,16 @@ export function trimAcknowledgements(reply: string) {
     .replace(/[ \t]{2,}/gu, " ")
     .trim();
 }
+
+/** Catch exact consecutive asks on every reply path, including configured facts. */
+export function repeatsLastQuestion(reply: string, messages: ChatMessage[]) {
+  const current = questionAtEnd(reply);
+  const previous = questionAtEnd(
+    messages.findLast((m) => m.role === "assistant")?.content ?? "",
+  );
+  const normalized = (value: string) =>
+    value.toLocaleLowerCase().replace(/\s+/gu, " ").trim();
+  return (
+    !!current && !!previous && normalized(current) === normalized(previous)
+  );
+}

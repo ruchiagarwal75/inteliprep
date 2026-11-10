@@ -1,3 +1,4 @@
+import { fixtureAccounts } from "./fixture-accounts.mjs";
 import EmbeddedPostgres from "embedded-postgres";
 import postgres from "postgres";
 import { randomUUID } from "node:crypto";
@@ -47,10 +48,9 @@ export async function startReportingFixture(key, cert) {
   try {
     await operator.unsafe(`create role anon; create role authenticated; create schema auth;
       create table auth.users(id uuid primary key,email text,created_at timestamptz default now(),is_anonymous boolean default false,deleted_at timestamptz);
-      insert into auth.users(id,email) values
-        ('11111111-1111-4111-8111-111111111111','browser-smoke@example.invalid'),
-        ('22222222-2222-4222-8222-222222222222','not-invited@example.invalid'),
-        ('99999999-9999-4999-8999-999999999999','owner@example.invalid');`);
+      `);
+    for (const account of Object.values(fixtureAccounts))
+      await operator`insert into auth.users(id,email) values (${account.id},${account.email})`;
     for (const name of [
       "20261106214658_interview_admin_reporting.sql",
       "20261108003142_reporting_least_privilege.sql",

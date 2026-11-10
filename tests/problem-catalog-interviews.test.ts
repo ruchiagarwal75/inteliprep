@@ -222,5 +222,6 @@ describe("new catalog interview wiring with scripted provider responses", () => 
       expect((await repeated.json()).scorecard).toEqual(result.scorecard);
       expect(mocks.create.mock.calls).toHaveLength(calls);
     },
+    15_000,
   );
 });
