@@ -395,8 +395,8 @@ markers invalidate old-tab writes and draft journals during removal.
 Public catalog projections contain only selection metadata, track and the visible
 brief. Expected designs never enter reply prompts. Estimate anchors enter only
 grading and a private structured arithmetic check with an exact evidence quote;
-its only public outcome is a redo question. Facts are disclosed individually when
-asked. Candidate assumptions, including vector precision and stored-message size,
+its only public outcome is a redo question. A structured selector chooses requested fact IDs; their values are returned only
+by the server. All requested facts are answered together, without unasked facts. Candidate assumptions, including vector precision and stored-message size,
 are judged on their reasoning and arithmetic. Do not impose an anchor's assumed
 representation or vendor. New problem commits must preserve all eight core JSON
 files byte for byte. `postbuild` scans browser chunks for private config content.

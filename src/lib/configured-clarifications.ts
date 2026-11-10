@@ -1,4 +1,4 @@
-import { genaiFact, disclosedGenaiFacts } from "@/lib/genai-facts";
+import { disclosedGenaiFacts } from "@/lib/genai-facts";
 import "server-only";
 import type { ChatMessage } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
@@ -32,7 +32,7 @@ export function configuredClarification(
     )
   )
     return undefined;
-  if (problem.track === "genai") return genaiFact(problem, level, content);
+  if (problem.track === "genai") return undefined;
   const matches = problem.clarifications.filter((entry) =>
     new RegExp(entry.pattern, "iu").test(content),
   );

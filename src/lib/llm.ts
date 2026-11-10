@@ -1,3 +1,4 @@
+import { genaiClarification } from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
 import { genaiEstimateNeedsRedo } from "@/lib/genai-estimation";
 import { quoteDiagramLabels } from "@/lib/diagram-label-copy";
@@ -96,7 +97,7 @@ async function* rawInterviewerReply(
       interview.level,
       messages,
     );
-    if (assumption) {
+    if (assumption && !isFactualQuestion(latestCandidate?.content ?? "")) {
       yield assumption;
       return;
     }
@@ -121,11 +122,19 @@ async function* rawInterviewerReply(
   const clarification =
     interview &&
     latestCandidate &&
-    configuredClarification(
-      interview.problem,
-      interview.level,
-      latestCandidate.content,
-    );
+    (interview.problem.track === "genai" &&
+    isFactualQuestion(latestCandidate.content)
+      ? await genaiClarification(
+          interview.problem,
+          interview.level,
+          messages,
+          signal,
+        )
+      : configuredClarification(
+          interview.problem,
+          interview.level,
+          latestCandidate.content,
+        ));
   const estimateQuestion =
     interview?.phase?.transition === "initial" && step === "discussion"
       ? estimationAsk(messages, interview.level, interview.problem.track)

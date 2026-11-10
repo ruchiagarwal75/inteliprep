@@ -1155,7 +1155,7 @@ The picker groups public titles under Core system design and AI / GenAI.
 
 Server-only GenAI content separates asked facts, reference estimates, expected
 design, red flags, and assumption guidance. The candidate sees only the brief.
-The factual dispatcher answers one requested fact per turn. Candidate assumptions
+A structured intent call selects zero or more allowed fact IDs, without seeing their values. The server answers every requested fact from its level config. No matching value gets an explicit unspecified response and an invitation to state an assumption. Candidate assumptions
 are not silently replaced with reference-anchor assumptions. A private structured
 arithmetic check returns a verified redo verdict; it never sends an anchor answer
 to the reply-generating prompt or browser. Expected designs are grading-only.

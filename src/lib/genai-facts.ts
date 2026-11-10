@@ -2,36 +2,24 @@ import "server-only";
 import type { ProblemDefinition } from "@/lib/problem-definition";
 import type { InterviewLevel } from "@/lib/interview-selection";
 import type { ChatMessage } from "@/lib/chat";
-/** Deliberately answer a single requested fact, even if the candidate bundles questions. */
+/** Return only validated, explicitly selected IDs, once each and in request order. */
 export function genaiFact(
   problem: ProblemDefinition,
   level: InterviewLevel,
-  content: string,
+  ids: string[],
 ) {
-  const matches = problem.genai?.facts
-    .map((fact, index) => ({
-      fact,
-      index,
-      offset: content.search(new RegExp(fact.pattern, "iu")),
-    }))
-    .filter((match) => match.offset >= 0)
-    .sort((a, b) => a.offset - b.offset || a.index - b.index);
-  const fact = matches?.[0]?.fact;
-  return fact
-    ? {
-        text: fact.answers[level],
-        complete: true,
-        coveredCriteria: fact.coversCriteria,
-      }
-    : /what else (?:should|do|can|would) (?:i|we) (?:know|clarify)|(?:all|remaining|other) (?:exercise |problem )?facts/iu.test(
-          content,
-        )
-      ? {
-          text: "I can clarify one requirement at a time.",
-          complete: true,
-          coveredCriteria: [],
-        }
-      : undefined;
+  const facts = [...new Set(ids)].map((id) =>
+    problem.genai?.facts.find((f) => f.id === id),
+  );
+  if (facts.some((f) => !f)) throw new Error("Unknown GenAI fact ID");
+  if (!facts.length) return;
+  return {
+    text: facts.map((f) => f?.answers[level]).join("\n\n"),
+    complete: true,
+    coveredCriteria: [
+      ...new Set(facts.flatMap((f) => f?.coversCriteria ?? [])),
+    ],
+  };
 }
 export function disclosedGenaiFacts(
   problem: ProblemDefinition,

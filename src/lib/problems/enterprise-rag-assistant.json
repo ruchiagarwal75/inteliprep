@@ -280,133 +280,133 @@
     "facts": [
       {
         "id": "employees",
-        "pattern": "how many.{0,25}(?:employees|users)|(?:employee|user) (?:count|population)|business units",
         "answers": {
           "mid": "2,000 employees.",
           "senior": "20,000 employees.",
           "staff": "100,000 employees across several business units and regions."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Number of employees or people in the company and expected employee users; overall company size."
       },
       {
         "id": "documents",
-        "pattern": "how many (?:total )?(?:documents|docs|sources)(?! (?:change|update))|(?:document|corpus) (?:count|volume|size)|sources? (?:count|types?)",
         "answers": {
           "mid": "200K documents from two sources: wiki pages and PDFs.",
           "senior": "5M documents from five sources: wiki, drive, tickets, chat and docs.",
           "staff": "50M documents from more than ten sources."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Total document or corpus size and number and kinds of document sources."
       },
       {
         "id": "questions",
-        "pattern": "questions? per day|daily.{0,20}(?:questions|traffic)|how (?:much|many).{0,25}(?:traffic|questions)|peak|qps",
         "answers": {
           "mid": "5K questions per day.",
           "senior": "100K questions per day, with peak traffic three times the average.",
           "staff": "1M questions per day, with peak traffic three times the average."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Expected query load, questions per day, request volume and peak traffic factor."
       },
       {
         "id": "document-changes",
-        "pattern": "(?:doc(?:ument)?|edit|content).{0,30}(?:change|update|fresh|delay|appear)|freshness|how often.{0,20}(?:docs|documents)",
         "answers": {
           "mid": "Document updates within one day are fine.",
           "senior": "About 2% of documents change daily; edits must appear within 15 minutes.",
           "staff": "About 2% of documents change daily; edits must appear within 15 minutes."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "How often documents change, percentage changed daily, and how quickly document edits must appear in answers."
       },
       {
         "id": "permission-changes",
-        "pattern": "revok|removed access|permission changes|access changes|permission.{0,20}(?:sync|fresh)|residen|in.region",
         "answers": {
           "mid": "Daily permission sync is fine.",
           "senior": "Removed access must apply within five minutes.",
           "staff": "Removed access must apply within one minute; some regions require data to stay in-region."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "How quickly revocations and removed access must take effect; permission sync requirements and regional residency restrictions."
       },
       {
         "id": "restricted-docs",
-        "pattern": "restricted|nested groups|different permissions|(?:how many|percent|percentage|proportion).{0,25}(?:private|permission)",
         "answers": {
           "mid": "About 30% of documents are restricted.",
           "senior": "About 30% of documents are restricted, with nested groups.",
           "staff": "About 30% of documents are restricted, with nested groups and per-region rules."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "Fraction or percentage of documents that are private or restricted, including group permissions."
       },
       {
         "id": "latency",
-        "pattern": "latency|first token|full answer|response time|how (?:fast|quick).{0,25}(?:answer|respond|response|generat)",
         "answers": {
           "mid": "A full answer should take under five seconds.",
           "senior": "First token under two seconds at p95, and a full answer under eight seconds.",
           "staff": "First token under two seconds at p95, and a full answer under eight seconds."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "User-visible response latency, time until the first generated token or word, and full response time."
       },
       {
         "id": "cost",
-        "pattern": "cost target|budget|(?:target|limit).{0,15}cost|how (?:much|expensive).{0,20}(?:cost|question)",
         "answers": {
           "mid": "Cost is not a concern for this exercise.",
           "senior": "The cost target is about two cents per question.",
           "staff": "Cut cost per question by half next year; a current baseline is not specified."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Specified cost target or budget."
       },
       {
         "id": "languages",
-        "pattern": "languages?|english|multilingual",
         "answers": {
           "mid": "English.",
           "senior": "English.",
           "staff": "Five languages."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Languages supported."
       },
       {
         "id": "today",
-        "pattern": "today|current (?:system|search)|existing (?:system|search)|starting point",
         "answers": {
           "mid": "Today there is keyword search only.",
           "senior": "Today there is keyword search only.",
           "staff": "Today there is keyword search plus a pilot that users do not trust."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Current or existing search system."
       },
       {
         "id": "chunks-per-doc",
-        "pattern": "chunks? per (?:doc|document)|average.{0,20}chunks|how many chunks.{0,20}document",
         "answers": {
           "mid": "About ten chunks per document.",
           "senior": "About ten chunks per document.",
           "staff": "About ten chunks per document."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Average chunks per document."
       },
       {
         "id": "embedding-dimensions",
-        "pattern": "dimensions?|dimensional|embedding.{0,15}width",
         "answers": {
           "mid": "Use 768-dimensional embeddings.",
           "senior": "Use 768-dimensional embeddings.",
           "staff": "Use 768-dimensional embeddings."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Embedding vector dimensions."
       },
       {
         "id": "tokens-per-question",
-        "pattern": "(?:input|output|prompt|answer) tokens|tokens per (?:question|request)|average.{0,20}tokens",
         "answers": {
           "mid": "About 4,000 input tokens and 500 output tokens per question.",
           "senior": "About 4,000 input tokens and 500 output tokens per question.",
           "staff": "About 4,000 input tokens and 500 output tokens per question."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Average input and output tokens per RAG question."
       }
     ],
     "estimateAnchors": {

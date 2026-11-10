@@ -251,123 +251,123 @@
     "facts": [
       {
         "id": "dau",
-        "pattern": "daily active users|dau|how many.{0,20}users|user (?:count|scale)|how much traffic",
         "answers": {
           "mid": "1M daily active users.",
           "senior": "20M daily active users.",
           "staff": "100M daily active users globally."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Daily active users, overall expected user scale."
       },
       {
         "id": "messages-per-user",
-        "pattern": "messages per user|messages? (?:does|will|should).{0,15}(?:each|a|one) user|user.{0,15}messages.{0,15}day",
         "answers": {
           "mid": "Ten messages per user per day.",
           "senior": "Fifteen messages per user per day.",
           "staff": "Fifteen messages per user per day."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Number of messages a typical user sends per day."
       },
       {
         "id": "peak",
-        "pattern": "peak|burst|peak factor",
         "answers": {
           "mid": "Peak traffic is three times the average.",
           "senior": "Peak traffic is three times the average.",
           "staff": "Peak traffic is three times the average."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Peak traffic multiplier, when explicitly asked about peaks or bursts."
       },
       {
         "id": "model-hosting",
-        "pattern": "(?:third.party|self.host|own).{0,20}(?:model|gpu)|(?:which|what).{0,15}(?:model|provider)(?!\\s+(?:account|rate|limits?))|where.{0,15}(?:run|host)|upcoming|launch|surge",
         "answers": {
           "mid": "Use a third-party model API.",
           "senior": "You run your own models on your own GPUs, with a large model and a small model.",
           "staff": "You run a large and a small model on your own GPUs. A new model launch in one week is expected to triple traffic."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Whether models are self-hosted on own GPUs or accessed through a third-party model API; upcoming model launch."
       },
       {
         "id": "provider-limits",
-        "pattern": "provider.{0,20}limits?|account.{0,20}limits?|requests? per second limit|tokens per minute limit|model rate limits?",
         "answers": {
           "mid": "The account allows 500 requests per second and 40M tokens per minute.",
           "senior": "Third-party provider limits do not apply; you run your own models.",
           "staff": "Third-party provider limits do not apply; you run your own models."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Request and token rate limits of the third-party model provider account."
       },
       {
         "id": "gpu-capacity",
-        "pattern": "gpu.{0,20}(?:capacity|available|limit|budget|add|warm|load)|(?:available|fixed).{0,15}gpus|new node|warm.up",
         "answers": {
           "mid": "GPU capacity is not applicable; use the third-party API.",
           "senior": "You can add GPUs, but a new node takes about ten minutes to load a model.",
           "staff": "Capacity is fixed at 6,000 GPUs for the next six months."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Available GPU count, GPU budget and capacity, ability to add nodes and their model-loading warmup time."
       },
       {
         "id": "gpu-throughput",
-        "pattern": "gpu throughput|tokens.{0,15}(?:per gpu|gpu per second)|gpu.{0,20}(?:throughput|tokens per second)|throughput.{0,15}gpu",
         "answers": {
           "mid": "GPU throughput is not applicable; use the third-party API.",
           "senior": "About 2,500 output tokens per second per GPU on the large model with batching.",
           "staff": "About 2,500 output tokens per second per GPU on the large model with batching."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Measured output token throughput per GPU."
       },
       {
         "id": "tokens",
-        "pattern": "tokens per (?:message|request)|(?:input|output|history|prompt).{0,15}tokens|token counts",
         "answers": {
           "mid": "About 2,000 input tokens including history, and 400 output tokens per message.",
           "senior": "About 2,000 input tokens including history, and 400 output tokens per message.",
           "staff": "About 2,000 input tokens including history, and 400 output tokens per message."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Average input and output tokens per chat message."
       },
       {
         "id": "latency",
-        "pattern": "latency|first.token|response time|how (?:fast|quick)",
         "answers": {
           "mid": "First token under two seconds.",
           "senior": "First token under one second at p95.",
           "staff": "First token under one second at p95."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "User-visible response latency, time until the first generated token or word, and full response time."
       },
       {
         "id": "tiers",
-        "pattern": "tiers?|free|paid|per.user.{0,15}limit|subscription",
         "answers": {
           "mid": "Free only, with a per-user daily limit; the numeric daily limit is not specified.",
           "senior": "Free users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified.",
           "staff": "Free users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "Free and paid tiers and per-user message limits."
       },
       {
         "id": "history",
-        "pattern": "history.{0,20}(?:retain|keep|delet|storage)|retention|how long|in.region|residen",
         "answers": {
           "mid": "History is kept until the user deletes it.",
           "senior": "History is kept until the user deletes it.",
           "staff": "History is kept until the user deletes it, with in-region storage for some countries."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "History retention, deletion and regional conversation storage."
       },
       {
         "id": "safety",
-        "pattern": "moderation|safety|security requirement|harmful",
         "answers": {
           "mid": "Input and output moderation are required.",
           "senior": "Input and output moderation are required.",
           "staff": "Input and output moderation are required."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "Required input and output moderation."
       }
     ],
     "estimateAnchors": {

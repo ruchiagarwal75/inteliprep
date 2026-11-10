@@ -138,7 +138,13 @@ export function startFixtureService(key, cert, reporting) {
       const body = JSON.parse(raw);
       let text =
         "Measuring the baseline will help you test that assumption. What workload and response-time goals would you clarify first?";
-      if (body.text?.format?.name === "stage_coverage") {
+      if (body.text?.format?.name === "genai_fact_selection") {
+        text = JSON.stringify({
+          intent: "facts",
+          factIds: ["employees", "documents"],
+          hasUnspecified: false,
+        });
+      } else if (body.text?.format?.name === "stage_coverage") {
         text = JSON.stringify({
           criteria: inputData(body).criteria.map((value) => ({
             criterionIndex: value.index,

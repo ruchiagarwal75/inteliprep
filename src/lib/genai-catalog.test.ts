@@ -27,7 +27,7 @@ describe.each(fixtures)("GenAI config $problemId", (fixture) => {
       config.facts.length,
     );
     for (const fact of config.facts)
-      expect(() => new RegExp(fact.pattern, "iu")).not.toThrow();
+      expect(fact.description.length).toBeGreaterThan(5);
     for (const probe of problem.reviewProbes) {
       expect(() => new RegExp(probe.topicPattern, "iu")).not.toThrow();
       expect(probe.areaIndex).toBeLessThan(problem.rubric.length);
@@ -38,21 +38,19 @@ describe.each(fixtures)("GenAI config $problemId", (fixture) => {
     it(`discloses each requested fact individually at ${level}`, () => {
       for (const row of fixture.facts) {
         const fact = config.facts.find((f) => f.id === row.id);
-        expect(genaiFact(problem, level, row.ask)?.text, row.ask).toBe(
+        expect(genaiFact(problem, level, [row.id])?.text, row.ask).toBe(
           fact?.answers[level],
         );
       }
       const one = genaiFact(
         problem,
         level,
-        fixture.facts
-          .slice(0, 3)
-          .map((f) => f.ask)
-          .join(" "),
+        fixture.facts.slice(0, 3).map((f) => f.id),
       );
-      expect(one?.text).toBe(
-        config.facts.find((f) => f.id === fixture.facts[0].id)?.answers[level],
-      );
+      for (const row of fixture.facts.slice(0, 3))
+        expect(one?.text).toContain(
+          config.facts.find((f) => f.id === row.id)?.answers[level],
+        );
     });
     it(`keeps private reference material out of every ${level} reply prefix`, () => {
       const publicText = JSON.stringify([listProblems(), problemBriefs()]);
@@ -71,21 +69,3 @@ describe.each(fixtures)("GenAI config $problemId", (fixture) => {
     });
   }
 });
-
-it.each(fixtures)(
-  "does not label undisclosed $problemId facts as unspecified",
-  (fixture) => {
-    const problem = getProblem(fixture.problemId);
-    if (!problem) throw new Error("Missing GenAI problem");
-    for (const level of ["mid", "senior", "staff"] as const) {
-      expect(genaiFact(problem, level, "What else should I know?")).toEqual({
-        text: "I can clarify one requirement at a time.",
-        complete: true,
-        coveredCriteria: [],
-      });
-      const instructions = buildInterviewInstructions({ problem, level });
-      expect(instructions).toContain("available_fact_topics");
-      expect(instructions).toContain("does not mean they are unspecified");
-    }
-  },
-);

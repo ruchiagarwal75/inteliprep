@@ -129,10 +129,6 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 
 
 ```text
-/what else (?:should|do|can|would) (?:i|we) (?:know|clarify)|(?:all|remaining|other) (?:exercise |problem )?facts/iu
-```
-
-```text
 /\b(?:stuck|unsure|not sure|don't know|do not know|help me|need help)\b/iu
 ```
 
@@ -712,19 +708,8 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 - review probes: `{"topicPattern":"eval|quality|rollout"}`
 - review probes: `{"topicPattern":"eval|canary|rollback","requiresPattern":"canary|rollout|new model|router"}`
 - review probes: `{"topicPattern":"cost|tiers?|budget"}`
-- GenAI facts: `{"pattern":"daily active users|dau|how many.{0,20}users|user (?:count|scale)|how much traffic"}`
-- GenAI facts: `{"pattern":"messages per user|messages? (?:does|will|should).{0,15}(?:each|a|one) user|user.{0,15}messages.{0,15}day"}`
-- GenAI facts: `{"pattern":"peak|burst|peak factor"}`
-- GenAI facts: `{"pattern":"(?:third.party|self.host|own).{0,20}(?:model|gpu)|(?:which|what).{0,15}(?:model|provider)(?!\\s+(?:account|rate|limits?))|where.{0,15}(?:run|host)|upcoming|launch|surge"}`
-- GenAI facts: `{"pattern":"provider.{0,20}limits?|account.{0,20}limits?|requests? per second limit|tokens per minute limit|model rate limits?"}`
-- GenAI facts: `{"pattern":"gpu.{0,20}(?:capacity|available|limit|budget|add|warm|load)|(?:available|fixed).{0,15}gpus|new node|warm.up"}`
-- GenAI facts: `{"pattern":"gpu throughput|tokens.{0,15}(?:per gpu|gpu per second)|gpu.{0,20}(?:throughput|tokens per second)|throughput.{0,15}gpu"}`
-- GenAI facts: `{"pattern":"tokens per (?:message|request)|(?:input|output|history|prompt).{0,15}tokens|token counts"}`
-- GenAI facts: `{"pattern":"latency|first.token|response time|how (?:fast|quick)"}`
-- GenAI facts: `{"pattern":"tiers?|free|paid|per.user.{0,15}limit|subscription"}`
-- GenAI facts: `{"pattern":"history.{0,20}(?:retain|keep|delet|storage)|retention|how long|in.region|residen"}`
-- GenAI facts: `{"pattern":"moderation|safety|security requirement|harmful"}`
 - GenAI assumptions: `{"pattern":"(?:bytes|kb|size|storage).{0,30}(?:per message|each message|stored message)|message.{0,30}(?:size|bytes|kilobytes)|how (?:big|large).{0,25}message"}`
+- GenAI facts use structured ID selection, not regex matching: `dau` (Daily active users, overall expected user scale.); `messages-per-user` (Number of messages a typical user sends per day.); `peak` (Peak traffic multiplier, when explicitly asked about peaks or bursts.); `model-hosting` (Whether models are self-hosted on own GPUs or accessed through a third-party model API; upcoming model launch.); `provider-limits` (Request and token rate limits of the third-party model provider account.); `gpu-capacity` (Available GPU count, GPU budget and capacity, ability to add nodes and their model-loading warmup time.); `gpu-throughput` (Measured output token throughput per GPU.); `tokens` (Average input and output tokens per chat message.); `latency` (User-visible response latency, time until the first generated token or word, and full response time.); `tiers` (Free and paid tiers and per-user message limits.); `history` (History retention, deletion and regional conversation storage.); `safety` (Required input and output moderation.).
 
 ## Problem configuration: chat-service
 
@@ -760,20 +745,8 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 - review probes: `{"topicPattern":"vector|index|outage","requiresPattern":"vector|pgvector|pinecone"}`
 - review probes: `{"topicPattern":"llm|model|rate.limit","requiresPattern":"llm|model|inference"}`
 - review probes: `{"topicPattern":"cost|budget"}`
-- GenAI facts: `{"pattern":"how many.{0,25}(?:employees|users)|(?:employee|user) (?:count|population)|business units"}`
-- GenAI facts: `{"pattern":"how many (?:total )?(?:documents|docs|sources)(?! (?:change|update))|(?:document|corpus) (?:count|volume|size)|sources? (?:count|types?)"}`
-- GenAI facts: `{"pattern":"questions? per day|daily.{0,20}(?:questions|traffic)|how (?:much|many).{0,25}(?:traffic|questions)|peak|qps"}`
-- GenAI facts: `{"pattern":"(?:doc(?:ument)?|edit|content).{0,30}(?:change|update|fresh|delay|appear)|freshness|how often.{0,20}(?:docs|documents)"}`
-- GenAI facts: `{"pattern":"revok|removed access|permission changes|access changes|permission.{0,20}(?:sync|fresh)|residen|in.region"}`
-- GenAI facts: `{"pattern":"restricted|nested groups|different permissions|(?:how many|percent|percentage|proportion).{0,25}(?:private|permission)"}`
-- GenAI facts: `{"pattern":"latency|first token|full answer|response time|how (?:fast|quick).{0,25}(?:answer|respond|response|generat)"}`
-- GenAI facts: `{"pattern":"cost target|budget|(?:target|limit).{0,15}cost|how (?:much|expensive).{0,20}(?:cost|question)"}`
-- GenAI facts: `{"pattern":"languages?|english|multilingual"}`
-- GenAI facts: `{"pattern":"today|current (?:system|search)|existing (?:system|search)|starting point"}`
-- GenAI facts: `{"pattern":"chunks? per (?:doc|document)|average.{0,20}chunks|how many chunks.{0,20}document"}`
-- GenAI facts: `{"pattern":"dimensions?|dimensional|embedding.{0,15}width"}`
-- GenAI facts: `{"pattern":"(?:input|output|prompt|answer) tokens|tokens per (?:question|request)|average.{0,20}tokens"}`
 - GenAI assumptions: `{"pattern":"bytes per (?:float|value|dimension)|float.{0,20}bytes|vector.{0,25}(?:precision|representation)|(?:float32|float16|quantiz)"}`
+- GenAI facts use structured ID selection, not regex matching: `employees` (Number of employees or people in the company and expected employee users; overall company size.); `documents` (Total document or corpus size and number and kinds of document sources.); `questions` (Expected query load, questions per day, request volume and peak traffic factor.); `document-changes` (How often documents change, percentage changed daily, and how quickly document edits must appear in answers.); `permission-changes` (How quickly revocations and removed access must take effect; permission sync requirements and regional residency restrictions.); `restricted-docs` (Fraction or percentage of documents that are private or restricted, including group permissions.); `latency` (User-visible response latency, time until the first generated token or word, and full response time.); `cost` (Specified cost target or budget.); `languages` (Languages supported.); `today` (Current or existing search system.); `chunks-per-doc` (Average chunks per document.); `embedding-dimensions` (Embedding vector dimensions.); `tokens-per-question` (Average input and output tokens per RAG question.).
 
 ## Problem configuration: file-storage
 
@@ -870,14 +843,7 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 - review probes: `{"topicPattern":"audit|trace|debug|replay"}`
 - review probes: `{"topicPattern":"eval|mock|scenario|quality"}`
 - review probes: `{"topicPattern":"cost|latency|budget"}`
-- GenAI facts: `{"pattern":"how many.{0,20}(?:users|employees)|(?:user|employee) (?:count|scale)"}`
-- GenAI facts: `{"pattern":"tasks? per day|daily.{0,15}tasks|how (?:many|much).{0,20}(?:tasks|traffic)|peak"}`
-- GenAI facts: `{"pattern":"how many.{0,20}tools|which tools|what tools|read.only|write tools|integrations"}`
-- GenAI facts: `{"pattern":"steps per task|calls per task|model calls|how many.{0,20}steps|step limit|maximum.{0,15}steps|background|hours"}`
-- GenAI facts: `{"pattern":"latency|how (?:fast|long)|completion time|speed|sixty|60 seconds"}`
-- GenAI facts: `{"pattern":"tokens per task|tokens.{0,15}(?:task|budget)|token (?:count|budget)"}`
-- GenAI facts: `{"pattern":"acting as|whose permissions|delegat|service account|authorization|scopes|permissions"}`
-- GenAI facts: `{"pattern":"mistakes?|wrong (?:person|recipient)|undo|irreversible|serious incident|risk tolerance"}`
+- GenAI facts use structured ID selection, not regex matching: `users` (Number of employee users.); `tasks` (Expected task volume, tasks per day, task traffic and peak factor.); `tools` (Number and kinds of tools, read-only versus write tools and integrations.); `steps` (Typical number of model calls, actions or steps per task, maximum steps and long-running tasks.); `speed` (Task completion latency and duration.); `tokens` (Total tokens per task.); `permissions` (Whose credentials and permissions the agent uses; delegated authority, scopes and service accounts.); `mistakes` (Severity of mistakes, wrong recipients, whether actions can be undone and irreversible third-party actions.).
 
 ## Problem configuration: url-shortener
 

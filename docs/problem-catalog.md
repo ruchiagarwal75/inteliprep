@@ -211,7 +211,7 @@ permissions. The AI chat assistant adds streaming conversations, token/provider
 limits at Mid, and token/GPU capacity, tier routing and overload at Senior/Staff.
 The tool-using agent covers bounded execution, delegated permissions, approval,
 idempotency, recovery and evaluation with mocked tools. Its math is secondary to
-correctness and safety. Table facts are disclosed one requested row at a time; estimate
+correctness and safety. Table facts are disclosed for every requested row in the message; estimate
 anchors and expected designs are private. Representation sizes not specified in
 the facts remain candidate assumptions.
 

@@ -13,7 +13,7 @@ export function genaiEngineFixture(): ProblemDefinition {
       facts: [
         {
           id: "employees",
-          pattern: "employees|users",
+          description: "Number of employees and users.",
           answers: {
             mid: "There are 2,000 employees.",
             senior: "There are 20,000 employees.",
@@ -23,7 +23,7 @@ export function genaiEngineFixture(): ProblemDefinition {
         },
         {
           id: "docs",
-          pattern: "documents|docs",
+          description: "Number of documents.",
           answers: {
             mid: "There are 200K documents.",
             senior: "There are 5M documents.",

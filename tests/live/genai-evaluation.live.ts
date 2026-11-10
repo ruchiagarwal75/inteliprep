@@ -132,13 +132,15 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
       const combined = await turn(selected.map((f) => f.ask).join(" "), 0);
       const first = config.facts.find((f) => f.id === selected[0].id);
       expect(combined).toContain(first?.answers[level]);
-      for (const row of selected.slice(1)) {
+      for (const row of selected) {
         const fact = config.facts.find((f) => f.id === row.id);
-        expect(combined).not.toContain(fact?.answers[level]);
+        expect(combined).toContain(fact?.answers[level]);
       }
       const noNewFacts = await turn("What else should I know?", 0);
-      expect(noNewFacts).not.toMatch(/unspecified|choose.*assumptions/iu);
-      for (const fact of config.facts.filter((f) => f.id !== selected[0].id))
+      expect(noNewFacts).toMatch(/isn't specified|not specified/iu);
+      for (const fact of config.facts.filter(
+        (f) => !selected.some((row) => row.id === f.id),
+      ))
         expect(noNewFacts.replaceAll('"', "")).not.toContain(
           fact.answers[level],
         );

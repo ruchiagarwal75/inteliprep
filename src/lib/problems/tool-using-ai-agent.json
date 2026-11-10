@@ -239,83 +239,83 @@
     "facts": [
       {
         "id": "users",
-        "pattern": "how many.{0,20}(?:users|employees)|(?:user|employee) (?:count|scale)",
         "answers": {
           "mid": "1,000 employees.",
           "senior": "20,000 employees.",
           "staff": "100,000 employees, and other teams build tools for the agent."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Number of employee users."
       },
       {
         "id": "tasks",
-        "pattern": "tasks? per day|daily.{0,15}tasks|how (?:many|much).{0,20}(?:tasks|traffic)|peak",
         "answers": {
           "mid": "2K tasks per day.",
           "senior": "50K tasks per day, with peak traffic three times the average.",
           "staff": "500K tasks per day, with peak traffic three times the average."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Expected task volume, tasks per day, task traffic and peak factor."
       },
       {
         "id": "tools",
-        "pattern": "how many.{0,20}tools|which tools|what tools|read.only|write tools|integrations",
         "answers": {
           "mid": "Three tools: search, read document and send email.",
           "senior": "About 20 tools, including email, calendar, tickets, docs, chat and code search. Some are read-only and some write.",
           "staff": "More than 200 tools built by other teams, plus third-party integrations."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Number and kinds of tools, read-only versus write tools and integrations."
       },
       {
         "id": "steps",
-        "pattern": "steps per task|calls per task|model calls|how many.{0,20}steps|step limit|maximum.{0,15}steps|background|hours",
         "answers": {
           "mid": "About six model calls per task on average, with a maximum of 30.",
           "senior": "About six model calls per task on average, with a maximum of 30.",
           "staff": "About six model calls per task on average, with a maximum of 30. Some tasks run for hours in the background."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Typical number of model calls, actions or steps per task, maximum steps and long-running tasks."
       },
       {
         "id": "speed",
-        "pattern": "latency|how (?:fast|long)|completion time|speed|sixty|60 seconds",
         "answers": {
           "mid": "Most tasks should finish within 60 seconds.",
           "senior": "Most tasks should finish within 60 seconds.",
           "staff": "Most short tasks should finish within 60 seconds."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Task completion latency and duration."
       },
       {
         "id": "tokens",
-        "pattern": "tokens per task|tokens.{0,15}(?:task|budget)|token (?:count|budget)",
         "answers": {
           "mid": "About 40K tokens total per task.",
           "senior": "About 40K tokens total per task.",
           "staff": "About 40K tokens total per task."
         },
-        "coversCriteria": [1]
+        "coversCriteria": [1],
+        "description": "Total tokens per task."
       },
       {
         "id": "permissions",
-        "pattern": "acting as|whose permissions|delegat|service account|authorization|scopes|permissions",
         "answers": {
           "mid": "The agent acts as the user, with only that user’s permissions.",
           "senior": "The agent acts as the user, with only that user’s permissions.",
           "staff": "The agent acts as the user, with only that user’s permissions."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "Whose credentials and permissions the agent uses; delegated authority, scopes and service accounts."
       },
       {
         "id": "mistakes",
-        "pattern": "mistakes?|wrong (?:person|recipient)|undo|irreversible|serious incident|risk tolerance",
         "answers": {
           "mid": "Sending an email to the wrong person is a serious incident.",
           "senior": "Sending an email to the wrong person is a serious incident.",
           "staff": "Sending an email to the wrong person is a serious incident, and actions in third-party tools cannot be undone."
         },
-        "coversCriteria": [2]
+        "coversCriteria": [2],
+        "description": "Severity of mistakes, wrong recipients, whether actions can be undone and irreversible third-party actions."
       }
     ],
     "estimateAnchors": {

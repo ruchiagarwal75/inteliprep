@@ -84,7 +84,7 @@ test("GenAI group preserves private facts and runs the normal interview flow", a
   await page.getByRole("button", { name: "Send", exact: true }).click();
   expect((await reply).ok()).toBe(true);
   await expect(page.getByText(/20,000 employees/).first()).toBeVisible();
-  expect(await page.locator("body").innerText()).not.toContain("5M documents");
+  expect(await page.locator("body").innerText()).toContain("5M documents");
   await expect(
     page.getByRole("button", { name: "End interview", exact: true }),
   ).toBeEnabled();

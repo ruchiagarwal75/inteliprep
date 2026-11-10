@@ -11,7 +11,7 @@ export const genaiConfigSchema = z.object({
     .array(
       z.object({
         id: z.string().min(1),
-        pattern: z.string().min(1).max(500),
+        description: z.string().min(1).max(500),
         answers: levels,
         coversCriteria: z.array(z.number().int().min(0).max(7)),
       }),

@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { genaiEngineFixture } from "@/lib/fixtures/genai-engine-test";
-import { configuredClarification } from "@/lib/configured-clarifications";
+import { genaiClarification } from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
 import { buildInterviewInstructions } from "@/lib/interview-instructions";
 import { stageProbes } from "@/lib/review-probes";
@@ -13,16 +13,25 @@ const model = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/observed-model-request", () => ({
   observedModelRequest: model,
 }));
-it("answers exactly one asked fact, in question order, at every level", () => {
+it("answers all selected facts at every level without generating their values", async () => {
   const p = genaiEngineFixture();
   for (const level of ["mid", "senior", "staff"] as const) {
-    const answer = configuredClarification(
-      p,
-      level,
-      "How many documents and employees are there?",
+    model.mockResolvedValueOnce({
+      status: "completed",
+      output_text: JSON.stringify({
+        intent: "facts",
+        factIds: ["docs", "employees"],
+        hasUnspecified: false,
+      }),
+    });
+    const answer = await genaiClarification(p, level, [
+      { role: "user", content: "How many documents and employees are there?" },
+    ]);
+    expect(answer?.text).toBe(
+      [p.genai?.facts[1].answers[level], p.genai?.facts[0].answers[level]].join(
+        "\n\n",
+      ),
     );
-    expect(answer?.text).toBe(p.genai?.facts[1].answers[level]);
-    expect(answer?.text).not.toContain("employees");
   }
 });
 it("keeps expected designs, anchors, facts and rubric definitions out of every interviewer stage", () => {
