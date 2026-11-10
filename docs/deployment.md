@@ -2,21 +2,21 @@
 
 The Vercel project is `inteliprep` in `ruchiagarwal75s-projects`:
 [project dashboard](https://vercel.com/ruchiagarwal75s-projects/inteliprep).
-It uses Node 24 and Vercel Authentication for all deployments, including Production domains. The local
+It uses Node 24. Production is publicly reachable, with Google sign-in and database invitations controlling interview access. Preview deployments retain Vercel protection. The local
 `.vercel/project.json` records its project/workspace IDs and stays gitignored.
 The existing beta URL is
 [the protected interview app](https://inteliprep-ruchiagarwal75s-projects.vercel.app/interview).
 
 ## Custom domain
 
-`mockmeai.com` serves the protected Production deployment of the same Vercel
+`mockmeai.com` serves the Production deployment of the same Vercel
 project. `www.mockmeai.com` redirects to `mockmeai.com` with HTTP 308. Vercel
-Authentication remains enabled for All Deployments; this is a private release.
+Authentication protects Preview deployments. Production uses the application's invitation checks; testers do not need a Vercel account.
 
 DNS is hosted at GoDaddy. Vercel's domain configuration is the source of truth for
 the required A and CNAME records; check it before updating the zone. Preserve MX,
 TXT, nameservers, and unrelated records. After DNS changes, verify both hostnames,
-HTTPS, the www redirect, signed-out protection, and an authorized `/api/health`.
+HTTPS, the www redirect, candidate sign-in/invitation enforcement, and `/api/health`.
 
 Supabase Site URL is `https://mockmeai.com`, with
 `https://mockmeai.com/auth/callback` allowed alongside the existing localhost and
@@ -31,47 +31,36 @@ are enabled in `vercel.json`. Production requires the explicit server setting
 `INTELIPREP_ENV=production`; without it the readiness guard rejects Production
 requests. The same shared Redis, authentication and quota checks remain required.
 
-Vercel Authentication must use **All Deployments**, covering both custom Production
-domains and Preview URLs. Vercel made this option free on every plan in
-[September 2026](https://vercel.com/changelog/protect-production-deployments-for-free-on-every-plan).
-No public launch or protection bypass is implied by deploying to Production.
+Production releases must come from the Git integration on `main`. Do not use
+`vercel --prod`, a file-upload deployment, or promotion of a Preview deployment.
+A Preview may have different environment settings and is not a Production build.
 
 ### GitHub releases
 
 The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed
 changes to `beta` for Preview and fast-forward the reviewed commit to `main` for
-Production. Keep `main` as the Production branch in Vercel.
+Production. Keep `main` as the Production branch in Vercel. Dependabot targets `beta`; dependency PRs must not merge directly into Production.
 The GitHub `Check` workflow runs `npm ci`, `npm run check`, and `npm run build`
 using the pinned Node version. Vercel builds independently, so confirm both the
 workflow result and the intended deployment's Ready status for the same commit.
 
-Before sharing a release, verify the intended hostname points to that deployment,
-signed-out requests still require Vercel Authentication, and an authorized
-`/api/health` request returns `status: "ok"` with both checks true. Retain the same
-browser hostname so testers keep their IndexedDB interviews. A successful health
-check verifies configuration and Redis; it does not make a model request.
+Before sharing a release, verify the custom domain points to the Ready Production
+deployment whose `githubCommitRef` is `main` and whose SHA matches `origin/main`.
+Signed-out candidate APIs must return 401 and uninvited accounts must remain
+blocked. Preview access may still require Vercel Authentication. A successful
+health check does not make a model request.
 
-Enable Vercel Authentication → All Deployments under Settings → Deployment
-Protection before sharing any URL. Standard Protection excludes Production domains.
-Verify access in a signed-out browser. This configuration lives in the Vercel
-dashboard, not in `vercel.json`. See
-[Vercel Deployment Protection](https://vercel.com/docs/deployment-protection).
-
-Use Vercel's deployment-sharing controls for invited testers; an access link is
-a credential and should stay private. See
-[sharing a preview](https://vercel.com/docs/deployments/sharing-deployments).
-The app also requires candidate Google sign-in through Supabase Auth. Keep Vercel
-Authentication enabled during this rollout; platform access and candidate identity
-are separate checks. Interview quotas identify the verified candidate, so testers
-on the same network have separate allowances. Anonymous error reports retain IP-based
-limits. See [authentication setup](authentication.md) for provider configuration.
+After advancing GitHub `main`, fetch it and fast-forward local `main` without
+resetting local commits. A stale local `origin/main` is not evidence that the
+GitHub branch is behind Production. See the November 9 retest report for the
+verified branch/deployment history.
 
 ## Project and environment setup
 
 1. Connect the Vercel account and import `ruchiagarwal75/inteliprep`. Use the Next.js
    preset, repository root, `npm ci` and `npm run build`. Node 24 is pinned in
    `package.json`; no secrets are needed during the build.
-2. Enable Vercel Authentication for All Deployments before assigning any domain.
+2. Keep Preview protection enabled. Production relies on application sign-in and invitations.
    Configure both Preview and Production deliberately; keep the Production opt-in
    unset until its configuration is complete.
 3. Create an Upstash Redis database for this project. Choose a region near the
@@ -87,7 +76,7 @@ limits. See [authentication setup](authentication.md) for provider configuration
    saving. Enter secrets directly in the provider dashboards; do not paste them
    into chat or commit them. See [Vercel environment variables](https://vercel.com/docs/environment-variables).
 5. Push the reviewed version to `beta` for Preview. For Production, set
-   `INTELIPREP_ENV=production` in Production only, enable the same Auth and database
+   `INTELIPREP_ENV=production` in Production only, use the intended Auth and database
    settings there, and fast-forward `main`. Redeploy after environment changes.
    Check health on the built deployment before assigning the Production domain.
 
@@ -266,8 +255,8 @@ health check needs authorized access without removing deployment protection.
 
 ## Release smoke test
 
-1. In a signed-out browser, confirm the intended Preview or Production hostname
-   and its API routes require authorized Vercel access.
+1. Confirm Production is publicly reachable, candidate APIs require sign-in, and
+   uninvited accounts are blocked. Check Vercel protection separately on Preview.
 2. In an authorized browser, open `/api/health`: expect 200 with `status: "ok"` and
    both checks true. It checks Redis and settings, not provider billing/model access.
 3. Start a 45-minute scaling interview, ask a clarification, draw and explain,
