@@ -1,6 +1,7 @@
 import { IDBFactory } from "fake-indexeddb";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCandidateBrowserScope } from "@/lib/candidate-browser-scope";
+import { InterviewStorageInactiveError } from "@/lib/interview-database";
 import { savedFixture } from "@/lib/fixtures/saved-interview-test";
 import {
   CANDIDATE_AUTH_ERROR_HEADER,
@@ -61,7 +62,7 @@ describe("browser account isolation", () => {
     const a = createCandidateBrowserScope(alice);
     const pending = a.storage.saveInterview(savedFixture());
     a.deactivate();
-    await expect(pending).rejects.toThrow("account changed");
+    await expect(pending).rejects.toBeInstanceOf(InterviewStorageInactiveError);
     await expect(a.storage.saveInterview(savedFixture())).rejects.toThrow(
       "account changed",
     );

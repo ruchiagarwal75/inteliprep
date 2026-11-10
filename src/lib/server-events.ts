@@ -33,6 +33,13 @@ type Event = {
     | "approval_email_failure"
     | "framework_failure"
     | "client_failure";
+  failureStage?:
+    | "configuration"
+    | "identity_or_invite"
+    | "request_limit"
+    | "handler"
+    | "visitor_identity"
+    | "visitor_ip";
   requestId?: string;
   route?: string;
   status?: number;

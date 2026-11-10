@@ -58,3 +58,42 @@ Shared interviewer instructions now explicitly describe typed messages.
 References to voice/video as an excluded feature of the chat-service design
 problem remain: those describe the exercise's scope, not an app input feature.
 Rubrics, problem workloads and scoring weights are unchanged.
+
+## Item 3: incident evidence and diagnostic limits
+
+Vercel rejected the requested November 10, 03:37–03:40 UTC runtime-log query:
+this project's Hobby plan retains runtime logs for one hour. The error-group query
+returned no entries, which does not establish that no failures occurred. The CLI
+request-log fallback was not authenticated. No deployment credentials were changed.
+The exact causes of the reported chat and viewer 503 responses cannot be established
+from these sources. Provider authentication, invite checks and Redis coordination
+remain possibilities, not confirmed diagnoses.
+
+The reporting database contained one browser-storage failure at 03:38:31 UTC for
+interview `9a0fde28-8427-4950-bf88-95f7a214ec30`, request
+`a7bf4eea-25c4-4b4d-9cda-7cdc1bf25c43`. It contained no provider failure for that
+window. Reporting is best effort, so absence of a row is not proof of success.
+
+For an incident within retention: open Vercel → ruchiagarwal75s-projects →
+inteliprep → Logs, select Production, set the UTC window to 03:37–03:40 on
+November 10, and filter Status Code 503. Inspect `/api/chat` and
+`/api/monitoring/viewer` separately. Export the entries including request IDs,
+`providerStatus`, `failureStage` and scrubbed code frames. For this expired window,
+use an export captured at the time or a browser HAR containing response bodies and
+`X-Request-Id`. Upgrading retention now does not recreate discarded runtime logs.
+
+Future failures identify the failed boundary using an allowlisted `failureStage`.
+Viewer failures now retain their actual cause for scrubbed logging instead of
+silently dropping it. No error messages, answers, cookies or secrets are logged.
+
+The e2e storage error was confirmed in a production build: on refresh,
+CandidateWorkspace's pagehide handler deactivated the account scope before the
+draft pagehide callback queued its final IndexedDB save. The rejected save carried
+“Your signed-in account changed. Please reopen the interview.” Diagnostics showed
+no schema validation failure. The immutable storage guard still rejects those
+late writes, now with a typed cancellation that autosave does not misreport.
+The synchronous draft journal still flushes before leaving. Quota, revision
+conflicts and actual storage errors continue to report. The browser regression
+asserts no storage reports through refresh, results and feedback persistence.
+A separate browser check injects a chat 503, verifies the visible error and Retry
+reply, and completes the retry without losing the candidate turn.

@@ -77,6 +77,9 @@ export function withApiRequest(
       let response: Response;
       let failure: unknown;
       let accountChanged = false;
+      let failureStage:
+        "configuration" | "identity_or_invite" | "request_limit" | "handler" =
+        "configuration";
       try {
         const origin = request.headers.get("origin");
         if (origin && origin !== new URL(request.url).origin)
@@ -85,6 +88,7 @@ export function withApiRequest(
             403,
           );
         assertBetaReady();
+        failureStage = "identity_or_invite";
         const candidateId =
           kind === "clientError" ? undefined : await requireCandidateIdentity();
         setReportingUser(candidateId);
@@ -97,9 +101,11 @@ export function withApiRequest(
           );
         }
         const run = async () => {
+          failureStage = "request_limit";
           const retry = options?.deferLimit
             ? 0
             : await checkRequestLimit(request, kind);
+          if (!retry) failureStage = "handler";
           return retry
             ? Response.json(
                 {
@@ -161,6 +167,7 @@ export function withApiRequest(
           route,
           status: response.status,
           durationMs: Date.now() - startedAt,
+          ...(response.status >= 500 ? { failureStage } : {}),
         },
         failure,
       );

@@ -5,6 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import { whiteboardContentKey } from "@/lib/whiteboard-snapshot";
 import { reportClientError } from "@/lib/report-client-error";
+import { InterviewStorageInactiveError } from "@/lib/interview-database";
 import { InterviewStorageConflict } from "@/lib/interview-storage";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { ChatMessage } from "@/lib/chat";
@@ -66,6 +67,8 @@ export function useInterviewAutosave({
           onError(undefined);
         })
         .catch((cause: unknown) => {
+          // Account teardown intentionally cancels writes. The draft journal has already flushed.
+          if (cause instanceof InterviewStorageInactiveError) return;
           void reportClientError("storage", cause, snapshot.id);
           dirtyRef.current = true;
           if (cause instanceof InterviewStorageConflict) {

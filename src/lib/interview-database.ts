@@ -1,4 +1,11 @@
 import { BRAND } from "@/lib/brand";
+export class InterviewStorageInactiveError extends Error {
+  constructor() {
+    super("Your signed-in account changed. Please reopen the interview.");
+    this.name = "AbortError";
+  }
+}
+
 const SESSIONS = "interviews";
 const META = "meta";
 
@@ -54,16 +61,11 @@ export function createInterviewDatabase(userId: string) {
       fail: (error: Error) => void,
     ) => void,
   ): Promise<T> {
-    if (!active)
-      throw new Error(
-        "Your signed-in account changed. Please reopen the interview.",
-      );
+    if (!active) throw new InterviewStorageInactiveError();
     const db = await openDatabase(name);
     if (!active) {
       db.close();
-      throw new Error(
-        "Your signed-in account changed. Please reopen the interview.",
-      );
+      throw new InterviewStorageInactiveError();
     }
     return new Promise<T>((resolve, reject) => {
       const tx = db.transaction([SESSIONS, META], mode);
@@ -80,7 +82,7 @@ export function createInterviewDatabase(userId: string) {
         db.close();
         reject(
           failure ??
-            tx.error ??
+            (!active ? new InterviewStorageInactiveError() : tx.error) ??
             new Error(
               "Browser save failed. Check your storage settings and free disk space.",
             ),

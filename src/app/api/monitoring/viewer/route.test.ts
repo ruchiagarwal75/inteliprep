@@ -3,6 +3,7 @@ const mocks = vi.hoisted(() => ({
   identity: vi.fn(),
   limit: vi.fn(),
   track: vi.fn(),
+  log: vi.fn(),
 }));
 vi.mock("@/lib/candidate-auth", () => ({ candidateIdentity: mocks.identity }));
 vi.mock("@/lib/request-limits", () => ({ checkRequestLimit: mocks.limit }));
@@ -11,7 +12,7 @@ vi.mock("@/lib/reporting-write", () => ({
   deferReporting: (fn: () => Promise<unknown>) => void fn(),
 }));
 vi.mock("@/lib/server-events", () => ({
-  logServerEvent: () => {},
+  logServerEvent: mocks.log,
   withServerContext: (_id: string, _path: string, fn: () => unknown) => fn(),
 }));
 import { POST } from "./route";
@@ -94,4 +95,16 @@ it("rejects cross-origin writes and rate limits without recording a visit", asyn
   expect(result.status).toBe(429);
   expect(result.headers.get("Retry-After")).toBe("45");
   expect(mocks.track).not.toHaveBeenCalled();
+});
+
+it("records which dependency failed without leaking its diagnostic message", async () => {
+  const cause = new Error("private upstream details");
+  mocks.identity.mockRejectedValueOnce(cause);
+  const response = await POST(request());
+  expect(response.status).toBe(503);
+  expect(await response.text()).not.toContain("private upstream");
+  expect(mocks.log).toHaveBeenLastCalledWith(
+    expect.objectContaining({ failureStage: "visitor_identity", status: 503 }),
+    cause,
+  );
 });

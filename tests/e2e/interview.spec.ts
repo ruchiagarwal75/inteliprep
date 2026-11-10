@@ -66,6 +66,14 @@ for (const durationMinutes of [45, 60]) {
     page,
     context,
   }) => {
+    const storageReports: unknown[] = [];
+    context.on("request", (request) => {
+      if (
+        request.url().endsWith("/api/monitoring/client-error") &&
+        request.postDataJSON()?.kind === "storage"
+      )
+        storageReports.push(request.postDataJSON());
+    });
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await signIn(context);
@@ -232,6 +240,7 @@ for (const durationMinutes of [45, 60]) {
       )
       .toEqual({ handled: true });
     await expect(feedback).toHaveCount(0);
+    expect(storageReports).toEqual([]);
     expect(starts).toBe(1);
     expect(errors).toEqual([]);
     const stats = await (
@@ -503,4 +512,50 @@ test("beta funnel shows persisted per-user activity and denies non-admin access"
     path: `${screenshots}/admin-funnel.png`,
     fullPage: true,
   });
+});
+
+test("an unavailable interviewer keeps the message and offers a working Retry reply", async ({
+  page,
+  context,
+}) => {
+  await signIn(context);
+  await page.goto("/interview/new");
+  await page
+    .getByRole("button", { name: "Start interview", exact: true })
+    .click();
+  await expect(
+    page.getByRole("textbox", { name: "Message", exact: true }),
+  ).toBeVisible();
+  let calls = 0;
+  await page.route("**/api/chat", async (route) => {
+    calls++;
+    if (calls === 1)
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({
+          error: "Interviewer unavailable. Please try again.",
+          code: "INTERVIEWER_UNAVAILABLE",
+        }),
+      });
+    else await route.continue();
+  });
+  await page
+    .getByRole("textbox", { name: "Message", exact: true })
+    .fill(
+      "I would measure CPU utilization and database query latency under load.",
+    );
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Interviewer unavailable" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Retry reply", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Retry reply", exact: true }),
+  ).toHaveCount(0);
+  await expect.poll(() => calls).toBe(2);
+  await expect(
+    page.getByRole("button", { name: "End interview", exact: true }),
+  ).toBeEnabled();
+  await expect(page).toHaveURL(/\/interview\/[a-f0-9-]+$/);
 });

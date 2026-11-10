@@ -18,6 +18,9 @@ export async function POST(request: Request) {
   return withServerContext(requestId, path, async () => {
     const headers = { "Cache-Control": "no-store", "X-Request-Id": requestId };
     let response: Response;
+    let failure: unknown;
+    let failureStage: "request_limit" | "visitor_identity" | "visitor_ip" =
+      "request_limit";
     try {
       const url = new URL(request.url);
       const origin = request.headers.get("origin");
@@ -38,10 +41,12 @@ export async function POST(request: Request) {
           headers: { ...headers, "Retry-After": String(retry) },
         });
       else {
+        failureStage = "visitor_identity";
         const userId = await candidateIdentity();
         const local = ["localhost", "127.0.0.1", "[::1]"].includes(
           url.hostname,
         );
+        failureStage = "visitor_ip";
         const ipHash = requestVisitorIpHash(request);
         deferReporting(() =>
           trackAppViewer(parsed.data.visitorId, userId, local, ipHash),
@@ -49,6 +54,7 @@ export async function POST(request: Request) {
         response = new Response(null, { status: 204, headers });
       }
     } catch (cause) {
+      failure = cause;
       response = Response.json(
         { error: "Visitor tracking unavailable" },
         {
@@ -57,12 +63,16 @@ export async function POST(request: Request) {
         },
       );
     }
-    logServerEvent({
-      event: response.ok ? "api_request" : "api_failure",
-      requestId,
-      route: path,
-      status: response.status,
-    });
+    logServerEvent(
+      {
+        event: response.ok ? "api_request" : "api_failure",
+        requestId,
+        route: path,
+        status: response.status,
+        ...(response.status >= 500 ? { failureStage } : {}),
+      },
+      failure,
+    );
     return response;
   });
 }
