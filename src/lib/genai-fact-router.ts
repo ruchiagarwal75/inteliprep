@@ -1,4 +1,5 @@
 import "server-only";
+import { genaiAssumptionInvitation } from "@/lib/genai-clarification-pace";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ChatMessage } from "@/lib/chat";
@@ -69,7 +70,7 @@ export async function genaiClarification(
       answer?.text,
       unspecified
         ? "That detail isn't specified. " +
-          (assumption || "What would you assume?")
+          genaiAssumptionInvitation(messages, assumption || undefined)
         : "",
     ]
       .filter(Boolean)

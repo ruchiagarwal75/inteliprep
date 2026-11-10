@@ -1,3 +1,4 @@
+import { genaiFactFollowUp } from "@/lib/genai-clarification-pace";
 import { genaiClarification } from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
 import { genaiEstimateNeedsRedo } from "@/lib/genai-estimation";
@@ -158,16 +159,17 @@ async function* rawInterviewerReply(
   }
   if (clarification?.complete && interview) {
     signal?.throwIfAborted();
+    if (interview.problem.track === "genai") interview.factAnswer = true;
     yield clarification.text;
     if (step === "invite-drawing")
       yield `\n\n${interview.problem.drawingPolicy.invitation}`;
-    else if (
-      interview.problem.track === "genai" &&
-      step !== "drawing" &&
-      step !== "explaining"
-    )
-      yield "\n\nWhich requirement would you like to clarify next?";
-    else if (estimateQuestion) yield `\n\n${estimateQuestion}`;
+    else if (interview.problem.track === "genai") {
+      const followUp =
+        interview.phase?.transition === "initial" && step === "discussion"
+          ? genaiFactFollowUp(messages, clarification.text)
+          : undefined;
+      if (followUp) yield "\n\n" + followUp;
+    } else if (estimateQuestion) yield `\n\n${estimateQuestion}`;
     else if (requirementsQuestion) yield `\n\n${requirementsQuestion}`;
     return;
   }

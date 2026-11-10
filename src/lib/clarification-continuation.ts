@@ -94,6 +94,7 @@ export function clarificationEnding(
   interview: InterviewContext,
 ) {
   if (
+    interview.factAnswer ||
     interview.phase?.transition !== "initial" ||
     ["drawing", "explaining"].includes(interview.progress?.step ?? "") ||
     questionAtEnd(reply) ||
