@@ -117,3 +117,13 @@ existing one-third threshold. The two-stage rule is described as explaining the
 design in at least two parts of the interview, with walkthrough/discussion examples.
 The end title no longer promises a scorecard. Internal AI-request language is removed.
 Tests cover 15 minutes for a 45-minute attempt and 20 minutes for an hour.
+
+## 6. Outcome before feedback
+
+The result/scorecard, or its loading/error state, now precedes the optional feedback
+card in the DOM and visual order. Short and insufficient-stage outcomes never
+mount the cheering mascot. Feedback stays independent of grading and remains
+available for short attempts. The browser test checks the outcome precedes the form.
+
+Existing saved scorecards also receive the plain scoring-rule wording at render
+time. Their stored content is retained unchanged.

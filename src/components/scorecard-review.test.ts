@@ -49,6 +49,7 @@ it("keeps provisional scores unnumbered and explains the evidence threshold plai
   );
   expect(html).toContain("Not enough evidence");
   expect(html).not.toContain("score-bars");
-  expect(html).toContain("answered in two stages");
+  expect(html).toContain("15 minutes");
+  expect(html).toContain("Explain how your design works in at least 2 parts");
   expect(html).not.toContain("Not enough evidence: scores are hidden");
 });

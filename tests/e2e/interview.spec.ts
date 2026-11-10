@@ -178,6 +178,22 @@ for (const durationMinutes of [45, 60]) {
       exact: true,
     });
     await expect(feedback).toBeVisible();
+    expect(
+      await page
+        .getByRole("tabpanel", { name: "Scorecard", exact: true })
+        .evaluate((outcome) => {
+          const form = document.querySelector(
+            '[aria-label="Interview feedback"]',
+          );
+          return (
+            !!form &&
+            !!(
+              outcome.compareDocumentPosition(form) &
+              Node.DOCUMENT_POSITION_FOLLOWING
+            )
+          );
+        }),
+    ).toBe(true);
     await expect(
       feedback.getByRole("button", { name: "Send", exact: true }),
     ).toBeDisabled();

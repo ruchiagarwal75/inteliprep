@@ -1,3 +1,7 @@
+import {
+  DESIGN_EXPLANATION_RULE,
+  scoringMinimumInWords,
+} from "@/lib/scoring-copy";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SCORE_LABELS, SIGNAL_LABELS, type Scorecard } from "@/lib/scorecard";
@@ -39,11 +43,12 @@ export function InterviewScorecard({
         ? "Not enough evidence"
         : "Not assessed"
       : `${score}/4 · ${SCORE_LABELS[score as keyof typeof SCORE_LABELS]}`;
-  const note = scorecard.session?.note.startsWith(
-    "Not enough evidence: scores are hidden",
-  )
-    ? "Scores show after you've used at least a third of the time and answered in two stages."
-    : scorecard.session?.note;
+  const note =
+    /^(?:Not enough evidence: scores are hidden|Scores show after you've used)/u.test(
+      scorecard.session?.note ?? "",
+    )
+      ? `Scores need at least ${scoringMinimumInWords((scorecard.session?.allowedSeconds ?? 2700) / 60)}. ${DESIGN_EXPLANATION_RULE}`
+      : scorecard.session?.note;
   return (
     <div className="scorecard-content">
       <section className="scorecard-summary" aria-labelledby="feedback-summary">

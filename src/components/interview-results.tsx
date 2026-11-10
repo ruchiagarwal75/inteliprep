@@ -148,12 +148,6 @@ export function InterviewResults({
           ))}
         </div>
       </header>
-      {interview?.sessionId && (
-        <InterviewFeedbackCard
-          key={interview.sessionId}
-          interviewId={interview.sessionId}
-        />
-      )}
       <div
         id={`results-${tab}`}
         role="tabpanel"
@@ -208,6 +202,12 @@ export function InterviewResults({
           </div>
         )}
       </div>
+      {interview?.sessionId && (
+        <InterviewFeedbackCard
+          key={interview.sessionId}
+          interviewId={interview.sessionId}
+        />
+      )}
     </div>
   );
 }

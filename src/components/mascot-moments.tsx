@@ -46,8 +46,10 @@ export function ResultsMascot({
   scorecard?: Scorecard;
   ready: boolean;
 }) {
-  const { show, finish } = useOncePeek(Boolean(scorecard) && ready);
-  return show && scorecard ? (
+  const { show, finish } = useOncePeek(
+    Boolean(scorecard && !scorecard.notScoredReason) && ready,
+  );
+  return show && scorecard && !scorecard.notScoredReason ? (
     <MascotAppearance
       pose="done"
       gentle={resultNeedsEncouragement(scorecard)}
