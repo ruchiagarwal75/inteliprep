@@ -8,6 +8,7 @@ import newsFeed from "@/lib/problems/news-feed.json";
 import notificationSystem from "@/lib/problems/notification-system.json";
 import fileStorage from "@/lib/problems/file-storage.json";
 import videoStreaming from "@/lib/problems/video-streaming.json";
+import enterpriseRagAssistant from "@/lib/problems/enterprise-rag-assistant.json";
 import {
   interviewLevelSchema,
   type InterviewLevel,
@@ -36,6 +37,7 @@ const problems: ProblemDefinition[] = [
   problemSchema.parse(notificationSystem),
   problemSchema.parse(fileStorage),
   problemSchema.parse(videoStreaming),
+  problemSchema.parse(enterpriseRagAssistant),
 ];
 
 export function getProblem(problemId: string): ProblemDefinition | undefined {

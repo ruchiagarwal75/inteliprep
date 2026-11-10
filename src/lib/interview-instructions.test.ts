@@ -6,7 +6,11 @@ import { INTERVIEWER_INSTRUCTIONS } from "@/lib/interviewer-input";
 import { getInterviewProgress } from "@/lib/interview-progress";
 
 describe("buildInterviewInstructions", () => {
-  it.each(listProblems().map((problem) => problem.problemId))(
+  it.each(
+    listProblems()
+      .filter((problem) => problem.track === "core")
+      .map((problem) => problem.problemId),
+  )(
     "defers %s design guidance until the requirements checkpoint is complete",
     (id) => {
       const problem = getProblem(id);

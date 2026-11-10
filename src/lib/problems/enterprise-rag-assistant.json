@@ -1,0 +1,457 @@
+{
+  "id": "enterprise-rag-assistant",
+  "track": "genai",
+  "title": "Design an enterprise RAG assistant",
+  "summary": "Design an AI assistant that answers employees' questions using the company's internal documents (wiki pages, PDFs, tickets, chat threads). Answers must cite their sources and must never reveal content the user isn't allowed to see.",
+  "prompt": "Design an AI assistant that answers employees' questions using the company's internal documents (wiki pages, PDFs, tickets, chat threads). Answers must cite their sources and must never reveal content the user isn't allowed to see.",
+  "requirements": [
+    "Design an AI assistant that answers employees' questions using the company's internal documents (wiki pages, PDFs, tickets, chat threads). Answers must cite their sources and must never reveal content the user isn't allowed to see."
+  ],
+  "drawingPolicy": {
+    "discussionTurns": 3,
+    "invitation": "Let's move to the whiteboard. Sketch your design, then choose Ready to explain when you're ready.",
+    "legacyInvitations": []
+  },
+  "levels": {
+    "mid": {
+      "openingMessage": "Design an AI assistant that answers employees' questions using the company's internal documents (wiki pages, PDFs, tickets, chat threads). Answers must cite their sources and must never reveal content the user isn't allowed to see.\n\nWhat would you clarify before starting your design?",
+      "expectations": "A working end-to-end pipeline with citations, a basic permission filter and a simple test set. Daily document and permission sync is acceptable at this level.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    },
+    "senior": {
+      "openingMessage": "Design an AI assistant that answers employees' questions using the company's internal documents (wiki pages, PDFs, tickets, chat threads). Answers must cite their sources and must never reveal content the user isn't allowed to see.\n\nWhat would you clarify before starting your design?",
+      "expectations": "Hybrid retrieval plus rerank, permissions at retrieval time meeting the 5-minute revoke rule, retrieval and answer metrics, a latency budget per stage, cost per question and a prompt injection defense. Accept reasonable justified alternatives rather than requiring a particular vendor.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    },
+    "staff": {
+      "openingMessage": "Design an AI assistant that answers employees' questions using the company's internal documents (wiki pages, PDFs, tickets, chat threads). Answers must cite their sources and must never reveal content the user isn't allowed to see.\n\nWhat would you clarify before starting your design?",
+      "expectations": "All of Senior plus data residency, an embedding migration plan, a regression gate for every change, a connector platform for other teams, a cost roadmap using routing or smaller models, audit logs and a plan for earning user trust.",
+      "scaleHints": [
+        "Use only facts explicitly requested by the candidate; all other numerical assumptions must be stated and justified."
+      ]
+    }
+  },
+  "openingCriteria": [0],
+  "clarifications": [],
+  "rubric": [
+    {
+      "area": "Requirements and estimation",
+      "strong": "Clarifies the employee/document workload, freshness, permission and latency goals; states representation assumptions and derives index, update and token volumes consistently.",
+      "assessmentPattern": "requirement|scope|employees|documents|chunks|tokens|vector|gb|tb|estimate|latency|freshness"
+    },
+    {
+      "area": "Ingestion and retrieval",
+      "strong": "Explains an end-to-end connector, parsing/cleaning, chunking and embedding pipeline, incremental changes and deletes, and a reasoned retrieval/reranking approach suited to the level.",
+      "assessmentPattern": "connector|parse|pdf|tables|chunk|embed|retriev|keyword|hybrid|rerank|index"
+    },
+    {
+      "area": "Grounded answers and citations",
+      "strong": "Explains query handling, source-aware prompt construction, streaming, citation checks and abstention when evidence is weak, with an explicit latency budget at Senior.",
+      "assessmentPattern": "query|prompt|context|stream|citations?|sources?|ground|abstain|latency"
+    },
+    {
+      "area": "Freshness and reliability",
+      "strong": "Explains edits, deletes and revocations through the pipeline, failures and rate limits; at Staff includes an embedding migration without downtime.",
+      "assessmentPattern": "fresh|edit|delet|revok|sync|failure|outage|rate.limit|migration|re.embed|downtime"
+    },
+    {
+      "area": "Cost, operations and evolution",
+      "strong": "Explains cost per question and tracing; at Staff adds a cost roadmap, connector platform, audit logs and user trust.",
+      "assessmentPattern": "cost|cents|budget|tracing|trace|audit|platform|roadmap|routing|smaller|trust"
+    },
+    {
+      "area": "Evaluation and quality",
+      "strong": "Uses a test set and retrieval/answer quality metrics, with human checking of any automated judge; Staff requires a regression gate for changes and the stated multilingual scope.",
+      "assessmentPattern": "eval|quality|recall|groundedness|judge|human|test set|regression|label|metric"
+    },
+    {
+      "area": "Safety and security",
+      "strong": "Enforces user permissions before unauthorized content reaches generation, meets the selected revoke bound, handles prompt injection and prevents cross-user cache leaks; Staff includes residency and regional rules.",
+      "assessmentPattern": "permission|acl|auth|revok|nested|injection|untrusted|cache|security|residen|region"
+    }
+  ],
+  "followUps": [
+    "Where does your design enforce the user’s document permissions?",
+    "What can happen between access being revoked and your next permission sync?",
+    "How would you choose chunk size for the documents you described?",
+    "Why does your retrieval approach fit the kinds of questions employees ask?",
+    "What does your reranking step add to the latency budget?",
+    "How would you measure whether a change improves retrieval and answer quality before launch?",
+    "What does the assistant do when your retrieval returns nothing relevant?",
+    "A document contains an instruction to list salary files. What does your design do with it?",
+    "How would you change the embedding model without interrupting existing queries?",
+    "Can an answer cached for one user reach another user in your design?",
+    "What does the employee see if your vector store becomes unavailable?",
+    "What does the employee see if your model service rate-limits your requests?",
+    "How would you account for cost per question in the design you proposed?"
+  ],
+  "followUpStages": [2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 3, 3, 4],
+  "reviewProbes": [
+    {
+      "id": "permissions",
+      "areaIndex": 6,
+      "topic": "permission|acl|revok",
+      "topicPattern": "permission|acl|revok",
+      "question": "Where does your design enforce the user’s document permissions?",
+      "stageIndex": 2
+    },
+    {
+      "id": "revoke",
+      "areaIndex": 6,
+      "topic": "permission|acl|revok",
+      "topicPattern": "permission|acl|revok",
+      "question": "What can happen between access being revoked and your next permission sync?",
+      "stageIndex": 3,
+      "requiresPattern": "permission|acl|sync|retriev"
+    },
+    {
+      "id": "chunks",
+      "areaIndex": 1,
+      "topic": "chunk|table|heading",
+      "topicPattern": "chunk|table|heading",
+      "question": "How would you choose chunk size for the documents you described?",
+      "stageIndex": 2,
+      "requiresPattern": "chunk|parse|pdf"
+    },
+    {
+      "id": "retrieval",
+      "areaIndex": 1,
+      "topic": "retriev|keyword|vector|hybrid",
+      "topicPattern": "retriev|keyword|vector|hybrid",
+      "question": "Why does your retrieval approach fit the kinds of questions employees ask?",
+      "stageIndex": 2,
+      "requiresPattern": "retriev|keyword|vector|search"
+    },
+    {
+      "id": "reranker",
+      "areaIndex": 2,
+      "topic": "rerank|latency",
+      "topicPattern": "rerank|latency",
+      "question": "What does your reranking step add to the latency budget?",
+      "stageIndex": 3,
+      "requiresPattern": "rerank|cross.encoder"
+    },
+    {
+      "id": "evaluation",
+      "areaIndex": 5,
+      "topic": "eval|quality|metric",
+      "topicPattern": "eval|quality|metric",
+      "question": "How would you measure whether a change improves retrieval and answer quality before launch?",
+      "stageIndex": 3
+    },
+    {
+      "id": "empty-results",
+      "areaIndex": 2,
+      "topic": "retriev|abstain|evidence",
+      "topicPattern": "retriev|abstain|evidence",
+      "question": "What does the assistant do when your retrieval returns nothing relevant?",
+      "stageIndex": 2,
+      "requiresPattern": "retriev|search|index"
+    },
+    {
+      "id": "injection",
+      "areaIndex": 6,
+      "topic": "injection|untrusted|safety",
+      "topicPattern": "injection|untrusted|safety",
+      "question": "A document contains an instruction to list salary files. What does your design do with it?",
+      "stageIndex": 3
+    },
+    {
+      "id": "embedding-migration",
+      "areaIndex": 3,
+      "topic": "embedding|migration",
+      "topicPattern": "embedding|migration",
+      "question": "How would you change the embedding model without interrupting existing queries?",
+      "stageIndex": 3,
+      "requiresPattern": "embed|vector"
+    },
+    {
+      "id": "cache-isolation",
+      "areaIndex": 6,
+      "topic": "cache|caching",
+      "topicPattern": "cache|caching",
+      "question": "Can an answer cached for one user reach another user in your design?",
+      "stageIndex": 3,
+      "requiresPattern": "cache|caching"
+    },
+    {
+      "id": "vector-outage",
+      "areaIndex": 3,
+      "topic": "vector|index|outage",
+      "topicPattern": "vector|index|outage",
+      "question": "What does the employee see if your vector store becomes unavailable?",
+      "stageIndex": 3,
+      "requiresPattern": "vector|pgvector|pinecone"
+    },
+    {
+      "id": "provider-limit",
+      "areaIndex": 3,
+      "topic": "llm|model|rate.limit",
+      "topicPattern": "llm|model|rate.limit",
+      "question": "What does the employee see if your model service rate-limits your requests?",
+      "stageIndex": 3,
+      "requiresPattern": "llm|model|inference"
+    },
+    {
+      "id": "cost",
+      "areaIndex": 4,
+      "topic": "cost|budget",
+      "topicPattern": "cost|budget",
+      "question": "How would you account for cost per question in the design you proposed?",
+      "stageIndex": 4
+    }
+  ],
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
+  "phases": [
+    {
+      "id": "clarify-requirements",
+      "title": "Clarify requirements",
+      "goal": "Clarify the scope, workload, goals and constraints before drawing.",
+      "completionCriteria": [
+        "Candidate establishes the required user workflow and scope.",
+        "Candidate clarifies workload and service goals, or explicitly states justified working assumptions.",
+        "Candidate clarifies safety, access or privacy constraints."
+      ],
+      "transition": "initial",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer. Shared facts are never proof of candidate reasoning.",
+      "clarificationQuestions": [
+        "What would you clarify about the user workflow?",
+        "Which workload or service goal would you clarify next?",
+        "What safety or access constraints would you clarify?"
+      ]
+    },
+    {
+      "id": "draw-and-explain",
+      "title": "Draw and explain",
+      "goal": "Let the candidate draw and explain their own architecture.",
+      "completionCriteria": [
+        "Candidate draws at least one component and explicitly finishes explaining."
+      ],
+      "transition": "drawing",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "core-design",
+      "title": "Core design",
+      "goal": "Explore the candidate’s own core request, data and action paths.",
+      "completionCriteria": [
+        "Candidate explains a coherent end-to-end path using their own components.",
+        "Candidate explains how their design maintains correctness and its trust boundaries.",
+        "Candidate explains an unresolved core failure boundary or tradeoff."
+      ],
+      "transition": "coverage",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "scaling-reliability",
+      "title": "Scaling and reliability",
+      "goal": "Explore the failure modes, quality checks, safety boundaries and costs of the candidate’s design.",
+      "completionCriteria": [
+        "Candidate explores failure and recovery of mechanisms they added.",
+        "Candidate explains how they would evaluate quality and safety before a change.",
+        "Candidate explains the latency, capacity and cost consequences of their choices."
+      ],
+      "transition": "coverage",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    },
+    {
+      "id": "tradeoffs-wrap-up",
+      "title": "Tradeoffs and wrap-up",
+      "goal": "Review the candidate’s evaluation plan, safety tradeoffs and cost priorities.",
+      "completionCriteria": [
+        "Candidate justifies a major tradeoff and a way to check the result."
+      ],
+      "transition": "wrap-up",
+      "interviewerGuidance": "Ask within the current stage and about the candidate’s own choices. Do not reveal a reference design, unasked facts or estimate anchors. Respect drawing and explanation pauses. Ask one question at a time. Evaluation, safety and cost belong in the discussion; never treat a vendor as the correct answer."
+    }
+  ],
+  "gradingGuidance": [
+    "Use the provided level bar and candidate evidence. The expected design is a reference, not a mandatory vendor or component recipe.",
+    "Reference estimates are conditional on their example assumptions; accept justified representation, message-size and routing alternatives.",
+    "Identify demonstrated red flags with evidence; do not turn unasked missing evidence into a failure."
+  ],
+  "genai": {
+    "facts": [
+      {
+        "id": "employees",
+        "pattern": "how many.{0,25}(?:employees|users)|(?:employee|user) (?:count|population)|business units",
+        "answers": {
+          "mid": "2,000 employees.",
+          "senior": "20,000 employees.",
+          "staff": "100,000 employees across several business units and regions."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "documents",
+        "pattern": "how many (?:total )?(?:documents|docs|sources)(?! (?:change|update))|(?:document|corpus) (?:count|volume|size)|sources? (?:count|types?)",
+        "answers": {
+          "mid": "200K documents from two sources: wiki pages and PDFs.",
+          "senior": "5M documents from five sources: wiki, drive, tickets, chat and docs.",
+          "staff": "50M documents from more than ten sources."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "questions",
+        "pattern": "questions? per day|daily.{0,20}(?:questions|traffic)|how (?:much|many).{0,25}(?:traffic|questions)|peak|qps",
+        "answers": {
+          "mid": "5K questions per day.",
+          "senior": "100K questions per day, with peak traffic three times the average.",
+          "staff": "1M questions per day, with peak traffic three times the average."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "document-changes",
+        "pattern": "(?:doc(?:ument)?|edit|content).{0,30}(?:change|update|fresh|delay|appear)|freshness|how often.{0,20}(?:docs|documents)",
+        "answers": {
+          "mid": "Document updates within one day are fine.",
+          "senior": "About 2% of documents change daily; edits must appear within 15 minutes.",
+          "staff": "About 2% of documents change daily; edits must appear within 15 minutes."
+        },
+        "coversCriteria": [2]
+      },
+      {
+        "id": "permission-changes",
+        "pattern": "revok|removed access|permission changes|access changes|permission.{0,20}(?:sync|fresh)|residen|in.region",
+        "answers": {
+          "mid": "Daily permission sync is fine.",
+          "senior": "Removed access must apply within five minutes.",
+          "staff": "Removed access must apply within one minute; some regions require data to stay in-region."
+        },
+        "coversCriteria": [2]
+      },
+      {
+        "id": "restricted-docs",
+        "pattern": "restricted|nested groups|different permissions|(?:how many|percent|percentage|proportion).{0,25}(?:private|permission)",
+        "answers": {
+          "mid": "About 30% of documents are restricted.",
+          "senior": "About 30% of documents are restricted, with nested groups.",
+          "staff": "About 30% of documents are restricted, with nested groups and per-region rules."
+        },
+        "coversCriteria": [2]
+      },
+      {
+        "id": "latency",
+        "pattern": "latency|first token|full answer|response time|how (?:fast|quick).{0,25}(?:answer|respond|response|generat)",
+        "answers": {
+          "mid": "A full answer should take under five seconds.",
+          "senior": "First token under two seconds at p95, and a full answer under eight seconds.",
+          "staff": "First token under two seconds at p95, and a full answer under eight seconds."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "cost",
+        "pattern": "cost target|budget|(?:target|limit).{0,15}cost|how (?:much|expensive).{0,20}(?:cost|question)",
+        "answers": {
+          "mid": "Cost is not a concern for this exercise.",
+          "senior": "The cost target is about two cents per question.",
+          "staff": "Cut cost per question by half next year; a current baseline is not specified."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "languages",
+        "pattern": "languages?|english|multilingual",
+        "answers": {
+          "mid": "English.",
+          "senior": "English.",
+          "staff": "Five languages."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "today",
+        "pattern": "today|current (?:system|search)|existing (?:system|search)|starting point",
+        "answers": {
+          "mid": "Today there is keyword search only.",
+          "senior": "Today there is keyword search only.",
+          "staff": "Today there is keyword search plus a pilot that users do not trust."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "chunks-per-doc",
+        "pattern": "chunks? per (?:doc|document)|average.{0,20}chunks|how many chunks.{0,20}document",
+        "answers": {
+          "mid": "About ten chunks per document.",
+          "senior": "About ten chunks per document.",
+          "staff": "About ten chunks per document."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "embedding-dimensions",
+        "pattern": "dimensions?|dimensional|embedding.{0,15}width",
+        "answers": {
+          "mid": "Use 768-dimensional embeddings.",
+          "senior": "Use 768-dimensional embeddings.",
+          "staff": "Use 768-dimensional embeddings."
+        },
+        "coversCriteria": [1]
+      },
+      {
+        "id": "tokens-per-question",
+        "pattern": "(?:input|output|prompt|answer) tokens|tokens per (?:question|request)|average.{0,20}tokens",
+        "answers": {
+          "mid": "About 4,000 input tokens and 500 output tokens per question.",
+          "senior": "About 4,000 input tokens and 500 output tokens per question.",
+          "staff": "About 4,000 input tokens and 500 output tokens per question."
+        },
+        "coversCriteria": [1]
+      }
+    ],
+    "estimateAnchors": {
+      "mid": [
+        "2M chunks, about 6 GB of raw vectors when each value uses four bytes; another justified representation changes this."
+      ],
+      "senior": [
+        "5M documents times ten chunks is 50M chunks. At 768 dimensions and four bytes per value, raw vectors are about 150 GB before index overhead.",
+        "2% daily change is 100K documents or about 1M chunks to re-embed per day.",
+        "100K questions per day is about 1.2 per second on average, 3.5 at peak.",
+        "About 450M model tokens per day."
+      ],
+      "staff": [
+        "500M chunks, about 1.5 TB of raw vectors at four bytes per value.",
+        "About 12 questions per second on average, 35 at peak."
+      ]
+    },
+    "expectedDesign": [
+      "Incremental source connectors feed parsing and cleaning, including PDF tables, then chunking and embedding.",
+      "Vector and keyword indexes carry ACL metadata; permission sync handles updates, revocations and deletes.",
+      "The query path authenticates the user, rewrites the query, performs permission-filtered hybrid retrieval, reranks, builds a prompt with numbered sources, streams the answer, checks citations and abstains on weak evidence.",
+      "Feedback, an evaluation set and per-stage tracing support the pipeline."
+    ],
+    "redFlags": [
+      "Permissions checked only after generation, or not at all.",
+      "An answer cache shared across users.",
+      "No evaluation plan beyond seeing whether answers look right.",
+      "Whole documents placed into the prompt.",
+      "Deletes and revocations ignored.",
+      "Vendors named without a reason."
+    ],
+    "assumptions": [
+      {
+        "id": "vector-representation",
+        "pattern": "bytes per (?:float|value|dimension)|float.{0,20}bytes|vector.{0,25}(?:precision|representation)|(?:float32|float16|quantiz)",
+        "question": "Which numeric representation would you assume, and how many bytes would each vector value use?",
+        "midSuggestion": "After your attempt, four bytes per value is one possible assumption. Justify the representation you choose."
+      }
+    ],
+    "assumptionGuidance": [
+      "Four bytes per embedding value is an example assumption, not a fixed fact. Accept justified alternatives and check arithmetic consistently.",
+      "The explicitly supplied averages of ten chunks per document, 768 dimensions and 4,000 input plus 500 output tokens may be disclosed when asked."
+    ],
+    "interviewerGuidance": [
+      "Do not require a particular chunk size, embedding representation, vector database or vendor. Probe the candidate’s reasons."
+    ]
+  }
+}

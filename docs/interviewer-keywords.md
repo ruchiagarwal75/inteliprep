@@ -701,6 +701,43 @@ Patterns route questions, evidence, pacing and diagram checks. They do not award
 - rubric assessment: `{"assessmentPattern":"\\b(order\\w*|sequence\\w*|concurren\\w*|retry|retries|duplicate\\w*|dedup\\w*|idempot\\w*|participant\\w*|authoriz\\w*|permission\\w*|access.control|privacy)\\b"}`
 - rubric assessment: `{"assessmentPattern":"\\b(scal\\w*|partition\\w*|shard\\w*|ownership|fail\\w*|outage\\w*|recover\\w*|replic\\w*|monitor\\w*|metric\\w*|backlog|cost\\w*|trade.off\\w*|retention)\\b"}`
 
+## Problem configuration: enterprise-rag-assistant
+
+- rubric assessment: `{"assessmentPattern":"requirement|scope|employees|documents|chunks|tokens|vector|gb|tb|estimate|latency|freshness"}`
+- rubric assessment: `{"assessmentPattern":"connector|parse|pdf|tables|chunk|embed|retriev|keyword|hybrid|rerank|index"}`
+- rubric assessment: `{"assessmentPattern":"query|prompt|context|stream|citations?|sources?|ground|abstain|latency"}`
+- rubric assessment: `{"assessmentPattern":"fresh|edit|delet|revok|sync|failure|outage|rate.limit|migration|re.embed|downtime"}`
+- rubric assessment: `{"assessmentPattern":"cost|cents|budget|tracing|trace|audit|platform|roadmap|routing|smaller|trust"}`
+- rubric assessment: `{"assessmentPattern":"eval|quality|recall|groundedness|judge|human|test set|regression|label|metric"}`
+- rubric assessment: `{"assessmentPattern":"permission|acl|auth|revok|nested|injection|untrusted|cache|security|residen|region"}`
+- review probes: `{"topicPattern":"permission|acl|revok"}`
+- review probes: `{"topicPattern":"permission|acl|revok","requiresPattern":"permission|acl|sync|retriev"}`
+- review probes: `{"topicPattern":"chunk|table|heading","requiresPattern":"chunk|parse|pdf"}`
+- review probes: `{"topicPattern":"retriev|keyword|vector|hybrid","requiresPattern":"retriev|keyword|vector|search"}`
+- review probes: `{"topicPattern":"rerank|latency","requiresPattern":"rerank|cross.encoder"}`
+- review probes: `{"topicPattern":"eval|quality|metric"}`
+- review probes: `{"topicPattern":"retriev|abstain|evidence","requiresPattern":"retriev|search|index"}`
+- review probes: `{"topicPattern":"injection|untrusted|safety"}`
+- review probes: `{"topicPattern":"embedding|migration","requiresPattern":"embed|vector"}`
+- review probes: `{"topicPattern":"cache|caching","requiresPattern":"cache|caching"}`
+- review probes: `{"topicPattern":"vector|index|outage","requiresPattern":"vector|pgvector|pinecone"}`
+- review probes: `{"topicPattern":"llm|model|rate.limit","requiresPattern":"llm|model|inference"}`
+- review probes: `{"topicPattern":"cost|budget"}`
+- GenAI facts: `{"pattern":"how many.{0,25}(?:employees|users)|(?:employee|user) (?:count|population)|business units"}`
+- GenAI facts: `{"pattern":"how many (?:total )?(?:documents|docs|sources)(?! (?:change|update))|(?:document|corpus) (?:count|volume|size)|sources? (?:count|types?)"}`
+- GenAI facts: `{"pattern":"questions? per day|daily.{0,20}(?:questions|traffic)|how (?:much|many).{0,25}(?:traffic|questions)|peak|qps"}`
+- GenAI facts: `{"pattern":"(?:doc(?:ument)?|edit|content).{0,30}(?:change|update|fresh|delay|appear)|freshness|how often.{0,20}(?:docs|documents)"}`
+- GenAI facts: `{"pattern":"revok|removed access|permission changes|access changes|permission.{0,20}(?:sync|fresh)|residen|in.region"}`
+- GenAI facts: `{"pattern":"restricted|nested groups|different permissions|(?:how many|percent|percentage|proportion).{0,25}(?:private|permission)"}`
+- GenAI facts: `{"pattern":"latency|first token|full answer|response time|how (?:fast|quick).{0,25}(?:answer|respond|response|generat)"}`
+- GenAI facts: `{"pattern":"cost target|budget|(?:target|limit).{0,15}cost|how (?:much|expensive).{0,20}(?:cost|question)"}`
+- GenAI facts: `{"pattern":"languages?|english|multilingual"}`
+- GenAI facts: `{"pattern":"today|current (?:system|search)|existing (?:system|search)|starting point"}`
+- GenAI facts: `{"pattern":"chunks? per (?:doc|document)|average.{0,20}chunks|how many chunks.{0,20}document"}`
+- GenAI facts: `{"pattern":"dimensions?|dimensional|embedding.{0,15}width"}`
+- GenAI facts: `{"pattern":"(?:input|output|prompt|answer) tokens|tokens per (?:question|request)|average.{0,20}tokens"}`
+- GenAI assumptions: `{"pattern":"bytes per (?:float|value|dimension)|float.{0,20}bytes|vector.{0,25}(?:precision|representation)|(?:float32|float16|quantiz)"}`
+
 ## Problem configuration: file-storage
 
 - clarifications: `{"pattern":"\\b(traffic|rps|qps|load|volume|scale|capacity|latency|response.time|file.sizes?|uploads? per|downloads? per|how (?:many|large|fast|quickly))\\b"}`

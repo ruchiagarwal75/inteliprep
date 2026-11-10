@@ -1,0 +1,157 @@
+{
+  "problemId": "enterprise-rag-assistant",
+  "facts": [
+    {
+      "ask": "How many employees will use it?",
+      "id": "employees"
+    },
+    {
+      "ask": "How many documents and sources are there?",
+      "id": "documents"
+    },
+    {
+      "ask": "How many questions per day and what is the peak factor?",
+      "id": "questions"
+    },
+    {
+      "ask": "How often do documents change and when must edits appear?",
+      "id": "document-changes"
+    },
+    {
+      "ask": "How quickly must removed access apply?",
+      "id": "permission-changes"
+    },
+    {
+      "ask": "What proportion of documents is restricted?",
+      "id": "restricted-docs"
+    },
+    {
+      "ask": "What latency do we need?",
+      "id": "latency"
+    },
+    {
+      "ask": "What is the cost target?",
+      "id": "cost"
+    },
+    {
+      "ask": "Which languages are needed?",
+      "id": "languages"
+    },
+    {
+      "ask": "What is the current search system?",
+      "id": "today"
+    },
+    {
+      "ask": "How many chunks per document on average?",
+      "id": "chunks-per-doc"
+    },
+    {
+      "ask": "How many embedding dimensions?",
+      "id": "embedding-dimensions"
+    },
+    {
+      "ask": "How many input and output tokens per question?",
+      "id": "tokens-per-question"
+    }
+  ],
+  "levels": ["senior", "mid", "staff"],
+  "wrongEstimates": [
+    {
+      "level": "senior",
+      "text": "I assume four bytes per vector value. With 5M documents and ten chunks each, 50M chunks times 768 times four gives only 1.5 GB of raw vectors, so index storage is negligible."
+    }
+  ],
+  "strong": [
+    "I need employee count, document count and source types, daily questions with peak factor, update frequency, permission revocation bound, latency and cost target. I will design against the disclosed Senior facts: 20,000 employees, 5M documents, 100K questions daily, 2% changes daily, 15-minute edit freshness and 5-minute revokes. I assume float32 values at four bytes each: 50M chunks times 768 times four is about 154 GB raw, before an index overhead measurement; updates require about 1M chunks daily. Questions average about 1.16 per second, 3.47 peak, and the stated 4,500 tokens imply 450M tokens daily.",
+    "Incremental connectors store per-source watermarks, deduplicate by source document version and feed parsing and cleaning. I preserve PDF table rows with headings, choose chunks using a test set rather than a fixed universal size, and embed only changed chunks. Tombstones remove deleted chunks from both keyword and vector indexes; versioned publishes prevent mixed document versions. I choose hybrid keyword and vector retrieval for exact identifiers and paraphrases, then rerank a bounded candidate set because reranking every chunk would blow the latency budget.",
+    "Authenticate the employee and resolve current groups, rewrite their query, then apply their ACL filter inside both retrieval systems before fetching content or sending anything to a model. Rerank authorized results, build numbered sources with immutable document versions, and stream the answer. Check every citation points to a retrieved authorized passage; reject unsupported claims and abstain when confidence or relevance is weak. Budget 100 ms auth, 300 ms retrieval, 200 ms rerank and 200 ms context work, leaving about 1.2 seconds to first model token and measuring the full answer against eight seconds.",
+    "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content.",
+    "Compute cost per question from actual input and output tokens at the chosen provider rates, reranking, embeddings, index storage and connector work. Compare with two cents and adjust bounded context and duplicate work before quality compromises; no provider price has been specified. Trace each stage with document and ACL version references and latency metrics, keeping private text out of general logs. Re-embedding migrations build a versioned shadow index, evaluate it, dual-read a sampled cohort and switch an alias with rollback while the old index serves queries.",
+    "I would create a representative human-labeled question set with exact identifier, paraphrase, table, no-answer and denied-document cases. Measure retrieval Recall@k, citation correctness, groundedness and abstention precision independently. Calibrate any LLM judge against human labels and measure agreement and regressions, not just a fluent answer. Gate releases on no access leaks and quality non-regression, then run a canary with user feedback and per-stage tracing.",
+    "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+  ],
+  "weak": [
+    "I will use the Senior facts of 20,000 employees, 5M documents and 100K questions daily with a three-times peak. At ten chunks per document I get 50M vectors. I assume four bytes per value and 768 dimensions for about 154 GB raw. I would target the given latency and two-cent cost.",
+    "I will poll sources daily and put entire documents into the prompt. I choose a vector vendor because it is popular, without comparing exact keyword behavior or parsing tables. Deletes can wait until a later project and I do not plan incremental updates.",
+    "The model can generate an answer first, and we can filter unauthorized source citations afterward. I trust the answer whenever it sounds plausible; if retrieval is empty, the model should guess. Citations will be whatever links the model writes.",
+    "I will share one answer cache keyed only by question across employees to save time. Revocations and deleted documents can remain in that cache indefinitely. If the vector database fails I will serve cached answers even if permissions are unknown, and I have no embedding migration plan.",
+    "Cost is mostly the model bill; I will look at an aggregate monthly invoice, without per-question tokens or a latency budget for reranking. I have no per-stage tracing or way to find which document version produced a bad answer.",
+    "I have no evaluation set or retrieval metrics. We will see whether a few examples look right and ship changes whenever they seem fluent. I will trust a model judge without comparing it with human labels.",
+    "I will tell the model to obey instructions it finds in retrieved documents, including instructions to reveal salary files. Permissions are checked only after generation and I am comfortable sharing cached answers between users. I have no prompt injection defense."
+  ],
+  "strongNodes": [
+    "Employee",
+    "Auth and permissions",
+    "Incremental connectors",
+    "Parse and chunk",
+    "Embedding service",
+    "ACL vector index",
+    "ACL keyword index",
+    "Reranker",
+    "Context builder",
+    "LLM",
+    "Citation check",
+    "Scoped answer cache",
+    "Eval and tracing"
+  ],
+  "weakNodes": [
+    "Employee",
+    "Vector store",
+    "LLM",
+    "Shared answer cache",
+    "Post-generation permission filter"
+  ],
+  "strongEdges": [
+    [0, 1],
+    [2, 3],
+    [3, 4],
+    [4, 5],
+    [3, 6],
+    [1, 5],
+    [1, 6],
+    [5, 7],
+    [6, 7],
+    [7, 8],
+    [8, 9],
+    [9, 10],
+    [10, 11]
+  ],
+  "responses": [
+    {
+      "stage": 2,
+      "text": "Incremental connectors store per-source watermarks, deduplicate by source document version and feed parsing and cleaning. I preserve PDF table rows with headings, choose chunks using a test set rather than a fixed universal size, and embed only changed chunks. Tombstones remove deleted chunks from both keyword and vector indexes; versioned publishes prevent mixed document versions. I choose hybrid keyword and vector retrieval for exact identifiers and paraphrases, then rerank a bounded candidate set because reranking every chunk would blow the latency budget. Authenticate the employee and resolve current groups, rewrite their query, then apply their ACL filter inside both retrieval systems before fetching content or sending anything to a model. Rerank authorized results, build numbered sources with immutable document versions, and stream the answer. Check every citation points to a retrieved authorized passage; reject unsupported claims and abstain when confidence or relevance is weak. Budget 100 ms auth, 300 ms retrieval, 200 ms rerank and 200 ms context work, leaving about 1.2 seconds to first model token and measuring the full answer against eight seconds."
+    },
+    {
+      "stage": 3,
+      "text": "I will add a per-user answer cache and a second vector index replica so failures do not interrupt answers."
+    },
+    {
+      "stage": 3,
+      "text": "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content."
+    },
+    {
+      "stage": 3,
+      "text": "For replicas I reject service if document lag exceeds the agreed freshness bound or if I cannot confirm current permission versions. A cache entry includes the user and ACL version and is invalidated on revocation; uncertainty fails closed."
+    },
+    {
+      "stage": 3,
+      "text": "Let's examine evaluation of retrieval and answer quality."
+    },
+    {
+      "stage": 3,
+      "text": "I would create a representative human-labeled question set with exact identifier, paraphrase, table, no-answer and denied-document cases. Measure retrieval Recall@k, citation correctness, groundedness and abstention precision independently. Calibrate any LLM judge against human labels and measure agreement and regressions, not just a fluent answer. Gate releases on no access leaks and quality non-regression, then run a canary with user feedback and per-stage tracing."
+    },
+    {
+      "stage": 3,
+      "text": "Let's examine prompt injection and permissions before wrapping up."
+    },
+    {
+      "stage": 3,
+      "text": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+    },
+    {
+      "stage": 4,
+      "text": "Compute cost per question from actual input and output tokens at the chosen provider rates, reranking, embeddings, index storage and connector work. Compare with two cents and adjust bounded context and duplicate work before quality compromises; no provider price has been specified. Trace each stage with document and ACL version references and latency metrics, keeping private text out of general logs. Re-embedding migrations build a versioned shadow index, evaluate it, dual-read a sampled cohort and switch an alias with rollback while the old index serves queries."
+    }
+  ]
+}

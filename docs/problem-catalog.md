@@ -1,6 +1,6 @@
 # Interview problem catalog
 
-All eight exercises support Mid-level, Senior, and Staff. The picker reads the
+The eight core exercises support Mid-level, Senior, and Staff. The picker reads the
 server registry automatically. Each problem owns its opening, requirements,
 clarifications, five stages, private rubric, and follow-up bank. Starting an
 interview does not call a model. The default remains Scale a single server.
@@ -201,3 +201,27 @@ current answer thread, and acknowledge technical answers. News-feed setup recogn
 numeric shorthand and equivalent time units. The empty-board button now has a
 visible hint. Route-to-stream regression tests cover fallback exhaustion, topic
 selection, and the requirements handoff; these changes await a fresh browser retest.
+
+
+## AI / GenAI application design
+
+The GenAI group reuses the same five-stage interview engine. The enterprise RAG
+assistant covers the supplied internal-document scenario, citations and user
+permissions. Table facts are disclosed one requested row at a time; estimate
+anchors and expected designs are private. Representation sizes not specified in
+the facts remain candidate assumptions.
+
+Each GenAI problem has seven independent 1–4 areas, including Evaluation and
+quality and Safety and security, with cost in its own problem-specific area.
+There are no numerical weights or weighted total. The eight core configurations
+and their five areas are unchanged.
+
+Real-provider evaluations are explicitly opt-in and incur cost:
+
+```sh
+node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.genai.config.mts
+```
+
+They use synthetic transcripts and diagrams, do not create account/interview
+reporting records, and write local results under ignored `artifacts/genai/`.
+Normal checks and CI use no paid model calls.
