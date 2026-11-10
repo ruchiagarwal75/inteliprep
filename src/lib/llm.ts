@@ -2,7 +2,7 @@ import { cappedGenaiQuestions } from "@/lib/genai-probe-memory";
 import { genaiFactFollowUp } from "@/lib/genai-clarification-pace";
 import { genaiClarification } from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
-import { genaiEstimateNeedsRedo } from "@/lib/genai-estimation";
+import { genaiEstimateVerdict } from "@/lib/genai-estimation";
 import { quoteDiagramLabels } from "@/lib/diagram-label-copy";
 import { hasPriorExplanation } from "@/lib/open-question";
 import {
@@ -103,7 +103,13 @@ async function* rawInterviewerReply(
       yield assumption;
       return;
     }
-    if (await genaiEstimateNeedsRedo(messages, interview, signal)) {
+    const estimateVerdict = await genaiEstimateVerdict(
+      messages,
+      interview,
+      signal,
+    );
+    interview.estimateAccepted = estimateVerdict === "reasonable";
+    if (estimateVerdict === "redo") {
       yield "Could you redo that estimate, showing the units and assumptions at each step?";
       return;
     }
@@ -125,6 +131,7 @@ async function* rawInterviewerReply(
     interview &&
     latestCandidate &&
     (interview.problem.track === "genai" &&
+    !interview.estimateAccepted &&
     isFactualQuestion(latestCandidate.content)
       ? await genaiClarification(
           interview.problem,
@@ -139,7 +146,9 @@ async function* rawInterviewerReply(
         ));
   const estimateQuestion =
     interview?.phase?.transition === "initial" && step === "discussion"
-      ? estimationAsk(messages, interview.level, interview.problem.track)
+      ? interview.estimateAccepted
+        ? undefined
+        : estimationAsk(messages, interview.level, interview.problem.track)
       : undefined;
   const requirementsQuestion = pendingRequirementsQuestion(
     interview && clarification
@@ -365,7 +374,12 @@ async function* rawInterviewerReply(
     else if (!reply && closing)
       yield "Thanks for walking through your design and its tradeoffs.";
     else if (!reply && clarifying && step === "discussion")
-      yield clarificationContinuation(messages, interview?.level ?? "mid");
+      yield clarificationContinuation(
+        messages,
+        interview?.level ?? "mid",
+        interview?.problem.track,
+        interview?.estimateAccepted,
+      );
     else if (!reply)
       yield step === "explaining" ? EXPLANATION_WAIT_REPLY : DRAWING_WAIT_REPLY;
   }

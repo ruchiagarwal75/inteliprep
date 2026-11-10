@@ -25,6 +25,7 @@ export type InterviewContext = {
   explanationMissing?: boolean;
   mayInviteDrawing?: boolean;
   factAnswer?: boolean;
+  estimateAccepted?: boolean;
   questionMemory?: QuestionMemory;
   openQuestions?: PendingQuestion[];
   diagramQuestion?: string;

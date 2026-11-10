@@ -16,8 +16,12 @@ export function interviewerState(interview: InterviewContext) {
     interview.requirementProposal
       ? "Explicitly accept the candidate's proposed alternative or explain the fixed constraint it conflicts with. While drawing/explaining, do so briefly without a question."
       : "",
+    interview.estimateAccepted
+      ? "The latest estimate has been verified against the candidate's stated assumptions. Acknowledge it once and move to a different uncovered requirement or design question. Do not ask them to restate inputs, assumptions or arithmetic, or redo that accepted estimate."
+      : "",
     JSON.stringify({
       current_stage: interview.phase,
+      accepted_estimate: interview.estimateAccepted,
       covered_criterion_indexes: interview.coveredCriteria,
       progress: interview.progress?.step,
       pending_questions: interview.openQuestions,

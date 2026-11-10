@@ -17,16 +17,17 @@ export function estimationAsk(
   const latest = messages.findLast((m) => m.role === "user");
   if (!latest || latest.source === "control") return undefined;
   const question = latest.content;
-  if (track === "genai" && GENAI_CAPACITY.test(question))
-    return choose(messages, [
-      "What inputs and assumptions would you use for that estimate?",
-      "Could you work through the capacity or cost estimate using your stated assumptions?",
-    ]);
   const isQuestion =
     /[?？]/u.test(question) ||
     /^(?:how|what|which|can|could|should|do|does|is|are)\b/iu.test(
       question.trim(),
     );
+  if (track === "genai" && !isQuestion) return undefined;
+  if (track === "genai" && GENAI_CAPACITY.test(question))
+    return choose(messages, [
+      "What inputs and assumptions would you use for that estimate?",
+      "Could you work through the capacity or cost estimate using your stated assumptions?",
+    ]);
   if (!isQuestion) {
     if (
       /\d/u.test(question) &&
@@ -70,9 +71,11 @@ export function estimationAsk(
 export function clarificationContinuation(
   messages: ChatMessage[],
   level: InterviewLevel,
+  track: "core" | "genai" = "core",
+  estimateAccepted = false,
 ) {
   return (
-    estimationAsk(messages, level) ??
+    (estimateAccepted ? undefined : estimationAsk(messages, level, track)) ??
     choose(messages, [
       "Anything else you'd like to clarify before drawing?",
       "Any other requirements you'd like to check?",
@@ -120,5 +123,10 @@ export function clarificationEnding(
   return missing &&
     !messages.some((m) => m.role === "assistant" && m.content.includes(missing))
     ? missing
-    : clarificationContinuation(messages, interview.level);
+    : clarificationContinuation(
+        messages,
+        interview.level,
+        interview.problem.track,
+        interview.estimateAccepted,
+      );
 }
