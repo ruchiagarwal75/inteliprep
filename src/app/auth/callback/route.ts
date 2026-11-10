@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       cause = error;
       if (success && data?.user) {
         try {
-          requireCandidateInvite(data.user.id, data.user.email);
+          await requireCandidateInvite(data.user.id, data.user.email, client);
         } catch (failure) {
           if (!(failure instanceof CandidateInviteError)) throw failure;
           invited = false;
@@ -32,6 +32,7 @@ export async function GET(request: Request) {
       }
     } catch (error) {
       cause = error;
+      success = false;
     }
   }
   const failure = authFailureKind(cause);

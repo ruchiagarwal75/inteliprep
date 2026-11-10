@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.hoisted(() => vi.resetModules());
 vi.unmock("@/lib/candidate-auth");
 const claims = vi.hoisted(() => vi.fn());
+const rpc = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/supabase-server", () => ({
-  supabaseServer: async () => ({ auth: { getClaims: claims } }),
+  supabaseServer: async () => ({ auth: { getClaims: claims }, rpc }),
 }));
 import {
   candidateIdentity,
@@ -14,8 +15,10 @@ import {
   supabaseConfiguration,
 } from "@/lib/supabase-config";
 
+beforeEach(() => rpc.mockResolvedValue({ data: true, error: null }));
 afterEach(() => {
   claims.mockReset();
+  rpc.mockReset();
   vi.unstubAllEnvs();
 });
 describe("verified candidate identity", () => {
@@ -31,7 +34,6 @@ describe("verified candidate identity", () => {
     expect(authCookieOptions().secure).toBe(false);
   });
   it("uses the verified subject, ignoring editable metadata", async () => {
-    vi.stubEnv("MOCKMEAI_INVITED_EMAILS", "invited@example.test");
     claims.mockResolvedValue({
       data: {
         claims: {

@@ -39,6 +39,7 @@ it("uses one structured call with a stable problem/rubric prefix and current dia
       topicId: "concurrent-create",
       question: "How does a crashed allocator avoid reusing its remaining IDs?",
       acknowledgement: "Disjoint ranges separate the allocators.",
+      continuesQuestionId: "",
       acknowledgementQuote: messages[1].content,
       answers: [],
       covered: [],
@@ -74,6 +75,7 @@ it("checks coverage references and replaces repeated or malformed output with a 
       topicId: "concurrent-create",
       question: messages[0].content,
       acknowledgement: "",
+      continuesQuestionId: "",
       acknowledgementQuote: "",
       answers: [],
       covered: [{ topicId: "id-encoding", quoteId: "invented" }],
@@ -98,6 +100,7 @@ it("accepts only real candidate evidence for covered topics", async () => {
       topicId: "id-encoding",
       question: "How do numeric IDs become base62 codes?",
       acknowledgement: "",
+      continuesQuestionId: "",
       acknowledgementQuote: "",
       answers: [],
       covered: [{ topicId: "concurrent-create", quoteId }],
@@ -126,6 +129,7 @@ it("returns the oldest unanswered question after a side response, then advances 
     topicId: "id-encoding",
     question: "How do IDs become base62 codes?",
     acknowledgement: "",
+    continuesQuestionId: "",
     acknowledgementQuote: "",
     covered: [],
     answers: [] as { questionId: string; quoteId: string }[],
@@ -134,7 +138,10 @@ it("returns the oldest unanswered question after a side response, then advances 
     status: "completed",
     output_text: JSON.stringify(value),
   });
-  expect(await discussionReply(messages, state, board)).toBe(queue[0].question);
+  const resumed = await discussionReply(messages, state, board);
+  expect(resumed).not.toContain(queue[0].question);
+  expect(resumed).toContain("ID allocation");
+  expect(state).toHaveProperty("continuedQuestionId", queue[0].id);
   value.answers = [
     { questionId: queue[0].id, quoteId: candidateQuotes(messages)[0].quoteId },
   ];
@@ -187,6 +194,7 @@ it("queues a diagram mismatch only after the prior answer is verified", async ()
     topicId: "id-encoding",
     question: "How do IDs become short codes?",
     acknowledgement: "",
+    continuesQuestionId: "",
     acknowledgementQuote: "",
     covered: [],
     answers: [
@@ -204,4 +212,43 @@ it("queues a diagram mismatch only after the prior answer is verified", async ()
     state.diagramQuestion,
   );
   expect(state.answeredQuestionIds).toEqual([queue[0].id]);
+});
+
+it("acknowledges a detour answer and rephrases the same pending question", async () => {
+  const { enqueueQuestion } = await import("@/lib/open-question-queue");
+  const question =
+    "How would you allocate distinct counter values in Cassandra?";
+  const queue = enqueueQuestion([], question, 0, "id_allocation");
+  const detour = [
+    { role: "assistant" as const, content: question },
+    {
+      role: "user" as const,
+      content: "Redis uses a five-minute TTL to reduce database reads.",
+    },
+  ];
+  const state = {
+    ...context,
+    openQuestions: queue,
+    answeredQuestionIds: [] as string[],
+  };
+  const reworded =
+    "What prevents two API instances from allocating the same counter value?";
+  create.mockResolvedValue({
+    status: "completed",
+    output_text: JSON.stringify({
+      topicId: "concurrent-create",
+      continuesQuestionId: queue[0].id,
+      question: reworded,
+      acknowledgement: "That TTL bounds cached data age.",
+      acknowledgementQuote: detour[1].content,
+      answers: [],
+      covered: [],
+    }),
+  });
+  const reply = await discussionReply(detour, state, board);
+  expect(reply).toContain("That TTL bounds cached data age.");
+  expect(reply).toContain(reworded);
+  expect(reply).not.toContain(question);
+  expect(state.answeredQuestionIds).toEqual([]);
+  expect(state).toHaveProperty("continuedQuestionId", queue[0].id);
 });

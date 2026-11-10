@@ -6,6 +6,8 @@ import { checkRequestLimit } from "@/lib/request-limits";
 import { deferReporting } from "@/lib/reporting-write";
 import { trackAppViewer } from "@/lib/viewer-tracking";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
+import { isAutomatedViewer } from "@/lib/viewer-automation";
+import { requestVisitorIpHash } from "@/lib/visitor-ip";
 export const runtime = "nodejs";
 const input = z.object({ visitorId: z.uuid() }).strict();
 
@@ -27,6 +29,8 @@ export async function POST(request: Request) {
       const parsed = input.safeParse(await readJsonBody(request, 256));
       if (!parsed.success)
         throw new ApiRequestError("Invalid visitor record", 400);
+      if (isAutomatedViewer(request.headers.get("user-agent")))
+        return new Response(null, { status: 204, headers });
       const retry = await checkRequestLimit(request, "viewer");
       if (retry)
         response = new Response(null, {
@@ -38,8 +42,9 @@ export async function POST(request: Request) {
         const local = ["localhost", "127.0.0.1", "[::1]"].includes(
           url.hostname,
         );
+        const ipHash = requestVisitorIpHash(request);
         deferReporting(() =>
-          trackAppViewer(parsed.data.visitorId, userId, local),
+          trackAppViewer(parsed.data.visitorId, userId, local, ipHash),
         );
         response = new Response(null, { status: 204, headers });
       }

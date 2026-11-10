@@ -70,3 +70,39 @@ describe("temporary server-owned interview sessions", () => {
     expect(() => acquireInterviewSession(oldest, selection)).toThrow("expired");
   });
 });
+
+it("keeps one pending question when a continued ask is reworded", () => {
+  const id = createInterviewSession(selection);
+  const first = acquireInterviewSession(id, selection);
+  const meta = {
+    resolvedQuestionIds: [],
+    topicId: "id_allocation",
+    stageId: "core",
+    diagramComponents: [],
+    resetQuestions: false,
+  };
+  first.recordReply(
+    "How are IDs allocated?",
+    false,
+    false,
+    "How are IDs allocated?",
+    false,
+    meta,
+  );
+  first.release();
+  const next = acquireInterviewSession(id, selection);
+  const pending = next.openQuestions[0];
+  next.recordReply(
+    "Which process owns the next ID range?",
+    true,
+    false,
+    "Which process owns the next ID range?",
+    false,
+    { ...meta, continuedQuestionId: pending.id },
+  );
+  next.release();
+  const saved = acquireInterviewSession(id, selection);
+  expect(saved.openQuestions).toHaveLength(1);
+  expect(saved.openQuestions[0].id).toBe(pending.id);
+  saved.release();
+});

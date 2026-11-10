@@ -24,7 +24,8 @@ export async function adminUserDetail(
     sql<
       AdminInterview[]
     >`select i.id,i.problem_id as "problemId",i.level,i.status,i.started_at::text as "startedAt",i.last_activity_at::text as "lastActivityAt",i.ended_at::text as "endedAt",
-      i.first_response_at::text as "firstResponseAt",i.design_presented_at::text as "designPresentedAt",i.feedback_status as "feedbackStatus",i.feedback,i.coverage,i.is_test as "isTest",
+      i.first_response_at::text as "firstResponseAt",i.design_presented_at::text as "designPresentedAt",i.feedback_status as "feedbackStatus",i.feedback,i.coverage,i.is_test as "isTest",i.not_scored_reason as "notScoredReason",
+      (select jsonb_build_object('id',id,'userId',user_id,'interviewId',interview_id,'source',source,'skipped',skipped,'liked',liked,'wouldReturn',would_return,'comment',comment,'createdAt',created_at,'updatedAt',updated_at) from interview_admin.feedback where interview_id=i.id and user_id=i.user_id and ${scope}) as "practiceFeedback",
       (select jsonb_build_object('totalCalls',count(*),'pricedCalls',count(estimated_cost_usd),'knownUsd',sum(estimated_cost_usd),'unknownCalls',count(*) filter(where estimated_cost_usd is null)) from interview_admin.ai_calls where interview_id=i.id and ${scope}) as cost,
       (select jsonb_build_object('operation',operation,'category',category,'referenceId',reference_id,'occurredAt',occurred_at,'source',source) from interview_admin.failures where interview_id=i.id and ${scope} order by occurred_at desc limit 1) as failure
       from interview_admin.interviews i where i.user_id=${id} and ${scope} order by i.started_at desc nulls last,i.id limit ${ADMIN_PAGE_SIZE} offset ${(page - 1) * ADMIN_PAGE_SIZE}`,

@@ -14,6 +14,11 @@ export function AdminOverviewPanel({
   const historyPeriod = <>Recorded interviews · {data.environment}</>;
   const cards = [
     {
+      label: "Too short to score",
+      value: data.interviews.tooShort ?? "Unavailable",
+      period: "Since the beta scoring update; older outcomes unavailable",
+    },
+    {
       label: "Registered users",
       value: data.users.total,
       period: "All current accounts · all time",

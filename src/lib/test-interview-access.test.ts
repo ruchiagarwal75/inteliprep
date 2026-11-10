@@ -21,6 +21,7 @@ it("permits ordinary sessions and an explicit server-only test flag", async () =
   vi.stubEnv("ADMIN_USER_ID", "");
   vi.stubEnv("INTELIPREP_ALLOW_TEST_INTERVIEWS", "0");
   await expect(requireTestInterviewAccess(45)).resolves.toBeUndefined();
+  await expect(requireTestInterviewAccess(60)).resolves.toBeUndefined();
   await expect(requireTestInterviewAccess(1)).rejects.toMatchObject({
     status: 400,
   });

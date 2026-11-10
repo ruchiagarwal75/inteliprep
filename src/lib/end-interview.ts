@@ -53,6 +53,10 @@ export async function endInterview(
           lease.snapshot,
           lease.endedAt,
           signal,
+          {
+            timing: lease.timing,
+            answeredStageCount: lease.answeredStageCount,
+          },
         ),
         lease.snapshot,
       ),

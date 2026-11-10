@@ -134,3 +134,19 @@ describe("buildInterviewInstructions", () => {
     },
   );
 });
+
+it.each(["senior", "staff"] as const)(
+  "leaves derived capacity arithmetic to the %s candidate",
+  (level) => {
+    const problem = getProblem("url-shortener");
+    if (!problem) throw Error("Missing URL shortener");
+    const prompt = buildInterviewInstructions({ problem, level });
+    expect(prompt).toContain("Do not calculate or reveal derived QPS");
+    expect(prompt).toContain("even when asked for the arithmetic");
+    expect(prompt).toContain("Ask the candidate to estimate");
+    expect(prompt).toContain(problem.levels[level].scaleHints[0]);
+    expect(buildInterviewInstructions({ problem, level: "mid" })).not.toContain(
+      "capacity estimation belongs to the candidate",
+    );
+  },
+);

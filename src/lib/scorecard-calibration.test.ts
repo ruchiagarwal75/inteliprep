@@ -10,6 +10,23 @@ import {
 import { createInterviewTiming } from "@/lib/interview-timer";
 
 describe("score calibration", () => {
+  it("requires 20 minutes and two answered stages for scores in a one-hour interview", () => {
+    const card = scorecardFixture();
+    const at = (elapsed: number, stages: number) =>
+      withSessionContext(
+        card,
+        createInterviewTiming(60, Date.parse(endedAtFixture) - elapsed * 1000),
+        stages,
+      );
+    expect(at(1199, 2).session).toMatchObject({
+      allowedSeconds: 3600,
+      limited: true,
+    });
+    expect(at(1200, 1).session?.limited).toBe(true);
+    const assessed = at(1200, 2);
+    expect(assessed.session?.limited).toBe(false);
+    expect(assessed.areas).toEqual(card.areas);
+  });
   it("caps bottleneck credit for echoed goals, while retaining concrete diagnostic evidence", () => {
     const card = scorecardFixture();
     expect(calibrateBottleneckScore(card).areas[1].score).toBe(3);

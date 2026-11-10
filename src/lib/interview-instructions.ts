@@ -27,6 +27,7 @@ export type InterviewContext = {
   openQuestions?: PendingQuestion[];
   diagramQuestion?: string;
   answeredQuestionIds?: string[];
+  continuedQuestionId?: string;
   diagramUpdates?: string[];
   selectedTopic?: string;
   allowedFollowUps?: { id: string; question: string }[];
@@ -65,6 +66,11 @@ export function buildInterviewInstructions({
         ]
       : []),
     "Answer explicit factual clarifications directly: start yes/no when asked whether a behavior is allowed, then give the configured tolerance or constraint. If it is unspecified, say so and invite a concrete assumption. Do not repeat questions about requirements already supplied in the opening or earlier replies. Those facts are shared context; technical understanding is assessed separately. Share relevant facts without proposing a solution or inventing additional numeric targets.",
+    ...(level !== "mid"
+      ? [
+          "At Senior and Staff, capacity estimation belongs to the candidate. Supply configured raw inputs such as daily users or operations, actions per user, read/write mix, object size, retention and peak factor. Do not calculate or reveal derived QPS, requests per second, storage totals, bandwidth totals or required server counts, even when asked for the arithmetic or a worked example. Ask the candidate to estimate from those inputs and explain their assumptions. A configured fixed policy, latency target or measured capacity is an input, not permission to derive an answer. Check a candidate's estimate with a question about their reasoning rather than doing the calculation for them.",
+        ]
+      : []),
     ...(progress ? [drawingStepInstructions(progress)] : []),
     ...(phase
       ? [

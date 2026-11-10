@@ -35,6 +35,7 @@ export async function adminOverview(
       AdminOverview["interviews"][]
     >`select count(*) filter(where status<>'failed')::int as started,
       count(*) filter(where status='completed')::int as completed,count(*) filter(where status='failed')::int as failed,
+      count(*) filter(where not_scored_reason='too_short')::int as "tooShort",
       count(*) filter(where status='unfinished')::int as unfinished,count(*) filter(where status='exited')::int as exited,
       avg(extract(epoch from ended_at-started_at)) filter(where status='completed' and ended_at>=started_at)::float as "averageSeconds",
       count(*) filter(where status='completed' and ended_at>=started_at)::int as "timedCompleted"
