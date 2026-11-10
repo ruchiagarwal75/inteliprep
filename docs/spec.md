@@ -1146,3 +1146,23 @@ neutral result with elapsed time, the rule and a link back to the Brief. They
 have no model judgments or area scores. New results persist `notScoredReason`
 and reporting stores `not_scored_reason`; old saved scorecards remain readable
 and historical outcomes are not backfilled.
+
+## GenAI application-design track
+
+The existing interview lifecycle also supports a `genai` track. The original eight
+JSON configurations default to `core` and retain their content and scoring.
+The picker groups public titles under Core system design and AI / GenAI.
+
+Server-only GenAI content separates asked facts, reference estimates, expected
+design, red flags, and assumption guidance. The candidate sees only the brief.
+The factual dispatcher answers one requested fact per turn. Candidate assumptions
+are not silently replaced with reference-anchor assumptions. A private structured
+arithmetic check returns a verified redo verdict; it never sends an anchor answer
+to the reply-generating prompt or browser. Expected designs are grading-only.
+
+Scorecards already support per-problem areas, up to ten in the provider schema.
+GenAI uses seven areas: five problem-specific areas, including cost, plus
+Evaluation and quality and Safety and security. There are no numerical weights or
+weighted total; the existing evidence-validated 1–4/null scale and overall signal
+are retained. No core scoring or rubric is changed. See
+[the keyword inventory](interviewer-keywords.md) for every routing pattern family.

@@ -32,7 +32,11 @@ export function interviewerState(interview: InterviewContext) {
       allowed_follow_ups:
         interview.allowedFollowUps ??
         availableTopicProbes(
-          stageProbes(interview.problem, interview.phase),
+          stageProbes(
+            interview.problem,
+            interview.phase,
+            interview.designText ?? interview.diagramLabels?.join(" "),
+          ),
           interview.questionMemory?.topicTurns,
         ).map(({ id, question }) => ({ id, question })),
     }),

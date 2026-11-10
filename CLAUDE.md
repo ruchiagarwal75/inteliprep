@@ -388,3 +388,15 @@ Never clear history implicitly during sign-out, account changes or history
 rendering. Only the explicit sign-out removal choice may delete that account's
 browser database. Preserve the unknown-owner legacy database. History generation
 markers invalidate old-tab writes and draft journals during removal.
+
+## GenAI catalog boundaries
+
+`problem-definition.ts`, `genai-config.ts` and `problems.ts` are server-only.
+Public catalog projections contain only selection metadata, track and the visible
+brief. Expected designs never enter reply prompts. Estimate anchors enter only
+grading and a private structured arithmetic check with an exact evidence quote;
+its only public outcome is a redo question. Facts are disclosed individually when
+asked. Candidate assumptions, including vector precision and stored-message size,
+are judged on their reasoning and arithmetic. Do not impose an anchor's assumed
+representation or vendor. New problem commits must preserve all eight core JSON
+files byte for byte. `postbuild` scans browser chunks for private config content.

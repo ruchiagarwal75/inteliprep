@@ -1,3 +1,5 @@
+import { genaiAssumptionReply } from "@/lib/genai-facts";
+import { genaiEstimateNeedsRedo } from "@/lib/genai-estimation";
 import { quoteDiagramLabels } from "@/lib/diagram-label-copy";
 import { hasPriorExplanation } from "@/lib/open-question";
 import {
@@ -75,13 +77,34 @@ async function* rawInterviewerReply(
   );
   if (
     latestCandidate?.source !== "control" &&
-    isOffTopicRequest(latestCandidate?.content ?? "")
+    isOffTopicRequest(
+      latestCandidate?.content ?? "",
+      interview?.problem.track === "genai",
+    )
   ) {
     signal?.throwIfAborted();
     yield DESIGN_REDIRECT;
     return;
   }
   const step = interview?.progress?.step;
+  if (
+    interview?.problem.track === "genai" &&
+    !["drawing", "explaining"].includes(step ?? "")
+  ) {
+    const assumption = genaiAssumptionReply(
+      interview.problem,
+      interview.level,
+      messages,
+    );
+    if (assumption) {
+      yield assumption;
+      return;
+    }
+    if (await genaiEstimateNeedsRedo(messages, interview, signal)) {
+      yield "Could you redo that estimate, showing the units and assumptions at each step?";
+      return;
+    }
+  }
   const requestedTopic = requestedReviewTopic(messages);
   const focusedReview =
     step === "review" &&
@@ -105,7 +128,7 @@ async function* rawInterviewerReply(
     );
   const estimateQuestion =
     interview?.phase?.transition === "initial" && step === "discussion"
-      ? estimationAsk(messages, interview.level)
+      ? estimationAsk(messages, interview.level, interview.problem.track)
       : undefined;
   const requirementsQuestion = pendingRequirementsQuestion(
     interview && clarification
@@ -129,6 +152,12 @@ async function* rawInterviewerReply(
     yield clarification.text;
     if (step === "invite-drawing")
       yield `\n\n${interview.problem.drawingPolicy.invitation}`;
+    else if (
+      interview.problem.track === "genai" &&
+      step !== "drawing" &&
+      step !== "explaining"
+    )
+      yield "\n\nWhich requirement would you like to clarify next?";
     else if (estimateQuestion) yield `\n\n${estimateQuestion}`;
     else if (requirementsQuestion) yield `\n\n${requirementsQuestion}`;
     return;

@@ -6,7 +6,9 @@ it("serves the public problem catalog without hidden interviewer configuration",
   expect(response.status).toBe(200);
   const body = await response.json();
   expect(
-    body.problems.map((problem: { problemId: string }) => problem.problemId),
+    body.problems
+      .filter((problem: { track: string }) => problem.track === "core")
+      .map((problem: { problemId: string }) => problem.problemId),
   ).toEqual([
     "single-server-scaling",
     "url-shortener",
@@ -24,5 +26,6 @@ it("serves the public problem catalog without hidden interviewer configuration",
       "problemId",
       "summary",
       "title",
+      "track",
     ]);
 });

@@ -1,3 +1,4 @@
+import { genaiComponents } from "@/lib/genai-components";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { sceneToGraph } from "@/lib/scene-graph";
 import { diagramStores } from "@/lib/diagram-consistency";
@@ -28,13 +29,14 @@ function isRejected(text: string, pattern: RegExp) {
 /** Compare every stated choice, then check later corrections, against the final semantic board. */
 export function auditDiagram(
   snapshot: InterviewEndSnapshot,
+  track: "core" | "genai" = "core",
 ): DiagramConsistencyFinding[] {
   const graph = sceneToGraph(snapshot.scene);
   if (!graph.components.length) return [];
   const statements = snapshot.messages.flatMap((message, messageIndex) =>
     message.role !== "user" ||
     message.source === "control" ||
-    isOffTopicRequest(message.content)
+    isOffTopicRequest(message.content, track === "genai")
       ? []
       : message.content
           .split(/(?<=[.!?])\s+|\n/gu)
@@ -70,7 +72,10 @@ export function auditDiagram(
       text: `${store.name} was named in chat while the final whiteboard shows ${labels}. ${resolved ? "Clarified later in the conversation: the earlier database choice was corrected." : "Unresolved: clarify which database and data path is intended."}`,
     });
   }
-  for (const component of components) {
+  for (const component of [
+    ...components,
+    ...(track === "genai" ? genaiComponents : []),
+  ]) {
     if (graph.components.some((node) => component.pattern.test(node.label)))
       continue;
     const first = statements.findIndex(

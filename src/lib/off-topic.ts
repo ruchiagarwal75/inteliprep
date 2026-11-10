@@ -1,8 +1,11 @@
+import { GENAI_SAFETY_SCENARIO } from "@/lib/genai-components";
 export const DESIGN_REDIRECT = "Let's stay on your design.";
 
 /** Recognize explicit unrelated tasks/instruction attacks; normal design narration stays eligible. */
-export function isOffTopicRequest(content: string): boolean {
+export function isOffTopicRequest(content: string, genai = false): boolean {
   const text = content.trim();
+  if (genai && GENAI_SAFETY_SCENARIO.test(text) && !/^system\s*:/iu.test(text))
+    return false;
   return (
     /^(?:(?:please|hey|hi)[,\s]+)?(?:(?:can|could|would|will)\s+you\s+)?(?:write|compose|generate|create|tell)\s+(?:(?:me|us|a|an|some|short|funny|little|the|beautiful|quick)\s+){0,6}(?:poem|poetry|song|story|joke|code|translation)\b/iu.test(
       text,

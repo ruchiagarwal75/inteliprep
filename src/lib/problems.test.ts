@@ -15,7 +15,11 @@ describe("problem registry", () => {
   });
   it("exposes only public catalog fields and returns independent level lists", () => {
     const catalog = listProblems();
-    expect(catalog.map((problem) => problem.problemId)).toEqual([
+    expect(
+      catalog
+        .filter((problem) => problem.track === "core")
+        .map((problem) => problem.problemId),
+    ).toEqual([
       "single-server-scaling",
       "url-shortener",
       "rate-limiter",
@@ -31,6 +35,7 @@ describe("problem registry", () => {
         "problemId",
         "summary",
         "title",
+        "track",
       ]);
     expect(catalog[0].levels).toEqual(["mid", "senior", "staff"]);
     for (const privateField of [
@@ -45,7 +50,7 @@ describe("problem registry", () => {
     catalog[0].levels.pop();
     expect(listProblems()[0].levels).toHaveLength(3);
   });
-  it("starts all eight problems at all three levels with only their configured closing question", () => {
+  it("starts all catalog problems at all three levels with only their configured closing question", () => {
     for (const { problemId } of listProblems()) {
       const problem = getProblem(problemId);
       if (!problem) throw new Error("Missing problem config");

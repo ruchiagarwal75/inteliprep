@@ -1,3 +1,4 @@
+import { GENAI_CAPACITY } from "@/lib/genai-estimate-detection";
 import type { ChatMessage } from "@/lib/chat";
 import type { InterviewLevel } from "@/lib/interview-selection";
 import { questionAtEnd, invitesDrawing } from "@/lib/open-question";
@@ -7,11 +8,20 @@ import { pendingRequirementsQuestion } from "@/lib/requirements-reply";
 import { isOffTopicRequest } from "@/lib/off-topic";
 
 /** Keep a clarification conversational without quizzing already supplied requirements. */
-export function estimationAsk(messages: ChatMessage[], level: InterviewLevel) {
+export function estimationAsk(
+  messages: ChatMessage[],
+  level: InterviewLevel,
+  track: "core" | "genai" = "core",
+) {
   if (level === "mid") return undefined;
   const latest = messages.findLast((m) => m.role === "user");
   if (!latest || latest.source === "control") return undefined;
   const question = latest.content;
+  if (track === "genai" && GENAI_CAPACITY.test(question))
+    return choose(messages, [
+      "What inputs and assumptions would you use for that estimate?",
+      "Could you work through the capacity or cost estimate using your stated assumptions?",
+    ]);
   const isQuestion =
     /[?？]/u.test(question) ||
     /^(?:how|what|which|can|could|should|do|does|is|are)\b/iu.test(

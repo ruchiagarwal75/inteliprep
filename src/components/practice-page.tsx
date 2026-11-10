@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { candidateIdentity } from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
-import { listProblems, getProblem } from "@/lib/problems";
+import { problemBriefs } from "@/lib/problems";
 import { CandidateWorkspace } from "@/components/candidate-workspace";
 import Link from "next/link";
 import { Brand } from "@/components/brand";
@@ -64,19 +64,7 @@ export async function PracticePage({
       </main>
     );
   }
-  const problems = listProblems().map((summary) => {
-    const problem = getProblem(summary.problemId);
-    return {
-      ...summary,
-      brief: problem
-        ? {
-            mid: problem.levels.mid.openingMessage,
-            senior: problem.levels.senior.openingMessage,
-            staff: problem.levels.staff.openingMessage,
-          }
-        : undefined,
-    };
-  });
+  const problems = problemBriefs();
   return (
     <CandidateWorkspace
       key={userId}

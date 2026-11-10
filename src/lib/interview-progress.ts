@@ -49,7 +49,7 @@ export function isListeningContinuation(
   const latest = messages[index];
   if (
     !latest ||
-    isOffTopicRequest(latest.content) ||
+    isOffTopicRequest(latest.content, problem.track === "genai") ||
     isRequirementProposal(latest.content) ||
     /[?？]/u.test(latest.content) ||
     /^(?:what|how|when|where|why|which|is|are|does|do|can|could|would|should)\b/iu.test(

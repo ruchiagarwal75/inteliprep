@@ -1,3 +1,4 @@
+import { genaiComponents } from "@/lib/genai-components";
 import type { Scene } from "@/lib/scene";
 import type { ChatMessage } from "@/lib/chat";
 import { sceneToGraph } from "@/lib/scene-graph";
@@ -7,6 +8,7 @@ export function diagramReviewQuestion(
   scene: Scene | undefined,
   messages: ChatMessage[],
   checkApplicationDataPaths = true,
+  track: "core" | "genai" = "core",
 ): string | undefined {
   const graph = sceneToGraph(scene);
   if (graph.status !== "drawn") return undefined;
@@ -20,17 +22,24 @@ export function diagramReviewQuestion(
     graph.unsupported.length > 0 ||
     graph.connections.some((edge) => !edge.start || !edge.end || edge.inferred);
   if (!uncertain && checkApplicationDataPaths) {
-    const apps = graph.components.filter((node) =>
-      /\b(?:app(?:lication)?\s*\d*|web(?: server)?\s*\d*|api(?: server)?\s*\d*)\b/iu.test(
-        node.label,
-      ),
+    const apps = graph.components.filter(
+      (node) =>
+        /\b(?:app(?:lication)?\s*\d*|web(?: server)?\s*\d*|api(?: server)?\s*\d*)\b/iu.test(
+          node.label,
+        ) ||
+        (track === "genai" &&
+          /\b(?:orchestrator|agent runner|embedding service|embedder|model server|inference)\b/iu.test(
+            node.label,
+          )),
     );
     const stores = new Set(
       graph.components
-        .filter((node) =>
-          /\b(?:db|database|postgres(?:ql)?|mysql|mongo(?:db)?|data store)\b/iu.test(
-            node.label,
-          ),
+        .filter(
+          (node) =>
+            /\b(?:db|database|postgres(?:ql)?|mysql|mongo(?:db)?|data store)\b/iu.test(
+              node.label,
+            ) ||
+            (track === "genai" && genaiComponents[0].pattern.test(node.label)),
         )
         .map((node) => node.id),
     );
@@ -73,8 +82,14 @@ export function diagramReviewQuestion(
     ...graph.components.map((node) => node.label),
     ...graph.notes.map((note) => note.text),
   ].join("\n");
-  for (const component of ["cache", "CDN", "load balancer"]) {
-    const pattern = new RegExp(`\\b${component}\\b`, "iu");
+  const components = [
+    ...["cache", "CDN", "load balancer"].map((name) => ({
+      name,
+      pattern: new RegExp(`\\b${name}\\b`, "iu"),
+    })),
+    ...(track === "genai" ? genaiComponents : []),
+  ];
+  for (const { name: component, pattern } of components) {
     if (pattern.test(candidateText) && !pattern.test(drawnText)) {
       const question = uncertain
         ? `You mentioned a ${component}. Could you point out where it sits in your drawing and explain its request path?`

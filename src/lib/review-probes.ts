@@ -54,33 +54,50 @@ export function wasProbeAsked(
 export function stageProbes(
   problem: ProblemDefinition,
   phase?: InterviewContext["phase"],
+  designText = "",
 ) {
   const stageIndex = phase
     ? problem.phases.findIndex((p) => p.id === phase.id)
     : -1;
   const probes = [
     ...problem.reviewProbes,
-    ...problem.followUps.map((question, index) => ({
-      id: "follow-up-" + index,
-      question,
-      areaIndex: Math.min(index, problem.rubric.length - 1),
-      stageIndex: problem.followUpStages[index],
-      topicPattern:
-        problem.rubric[Math.min(index, problem.rubric.length - 1)]
-          .assessmentPattern ?? "(?!)",
-    })),
+    ...(problem.track === "genai"
+      ? []
+      : problem.followUps.map((question, index) => ({
+          id: "follow-up-" + index,
+          question,
+          areaIndex: Math.min(index, problem.rubric.length - 1),
+          stageIndex: problem.followUpStages[index],
+          topicPattern:
+            problem.rubric[Math.min(index, problem.rubric.length - 1)]
+              .assessmentPattern ?? "(?!)",
+        }))),
   ];
   return (
     problem.reviewProbes.length && !phase ? problem.reviewProbes : probes
-  ).filter((probe) => stageIndex < 0 || probe.stageIndex === stageIndex);
+  ).filter(
+    (probe) =>
+      (stageIndex < 0 || probe.stageIndex === stageIndex) &&
+      (problem.track !== "genai" ||
+        !("requiresPattern" in probe) ||
+        !probe.requiresPattern ||
+        new RegExp(probe.requiresPattern, "iu").test(designText)),
+  );
 }
 export function selectReviewProbe(
   problem: ProblemDefinition,
   messages: ChatMessage[],
-  context?: Pick<InterviewContext, "phase" | "questionMemory">,
+  context?: Pick<
+    InterviewContext,
+    "phase" | "questionMemory" | "designText" | "diagramLabels"
+  >,
 ) {
   const probes = availableTopicProbes(
-    stageProbes(problem, context?.phase),
+    stageProbes(
+      problem,
+      context?.phase,
+      context?.designText ?? context?.diagramLabels?.join(" "),
+    ),
     context?.questionMemory?.topicTurns,
     requestedReviewTopic(messages),
   );

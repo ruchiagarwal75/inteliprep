@@ -59,6 +59,7 @@ export async function endInterview(
           },
         ),
         lease.snapshot,
+        problem.track,
       ),
       lease.timing,
       lease.answeredStageCount,

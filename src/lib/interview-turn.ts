@@ -53,6 +53,20 @@ export async function prepareInterviewTurn(
   if (!request.sessionId) {
     const context: InterviewContext & { progress: typeof progress } = {
       problem,
+      designText:
+        request.messages
+          .filter(
+            (message) =>
+              message.role === "user" &&
+              message.source !== "control" &&
+              !/[?？]/u.test(message.content),
+          )
+          .map((message) => message.content)
+          .join("\n") +
+        "\n" +
+        sceneToGraph(request.scene)
+          .components.map((node) => node.label)
+          .join("\n"),
       diagramLabels: sceneToGraph(request.scene).components.map(
         (node) => node.label,
       ),
@@ -99,7 +113,8 @@ export async function prepareInterviewTurn(
     const clarification =
       latest && configuredClarification(problem, request.level, latest.content);
     const offTopic =
-      latest?.source !== "control" && isOffTopicRequest(latest?.content ?? "");
+      latest?.source !== "control" &&
+      isOffTopicRequest(latest?.content ?? "", problem.track === "genai");
     const waiting = latest && !hasCandidateAnswer({ messages: [latest] });
     if (
       !offTopic &&
@@ -223,6 +238,20 @@ export async function prepareInterviewTurn(
       : undefined;
     const context: InterviewContext & { progress: typeof progress } = {
       problem,
+      designText:
+        request.messages
+          .filter(
+            (message) =>
+              message.role === "user" &&
+              message.source !== "control" &&
+              !/[?？]/u.test(message.content),
+          )
+          .map((message) => message.content)
+          .join("\n") +
+        "\n" +
+        sceneToGraph(request.scene)
+          .components.map((node) => node.label)
+          .join("\n"),
       diagramLabels: sceneToGraph(request.scene).components.map(
         (node) => node.label,
       ),
@@ -271,6 +300,7 @@ export async function prepareInterviewTurn(
               request.scene,
               request.messages,
               problem.diagramReview.checkApplicationDataPaths,
+              problem.track,
             )
           : undefined) ??
         (!lease.openQuestions.length &&

@@ -89,6 +89,20 @@ export async function gradeInterview(
       prompt: problem.prompt,
       requirements: problem.requirements,
       grading_guidance: problem.gradingGuidance,
+      ...(problem.genai
+        ? {
+            private_genai_reference: {
+              expected_design: problem.genai.expectedDesign,
+              level_facts: problem.genai.facts.map((fact) => ({
+                id: fact.id,
+                value: fact.answers[level],
+              })),
+              red_flags: problem.genai.redFlags,
+              estimate_anchors: problem.genai.estimateAnchors[level],
+              assumptions_policy: problem.genai.assumptionGuidance,
+            },
+          }
+        : {}),
     },
     candidate_level: level,
     level_expectations: problem.levels[level].expectations,
@@ -110,7 +124,7 @@ export async function gradeInterview(
     ),
     candidate_quotes: candidateQuotes(snapshot.messages),
     final_diagram: graphToText(sceneToGraph(snapshot.scene)),
-    diagram_consistency: auditDiagram(snapshot),
+    diagram_consistency: auditDiagram(snapshot, problem.track),
     diagram_elements:
       snapshot.scene?.elements
         .filter((element) => !element.isDeleted && element.type !== "selection")
@@ -137,7 +151,12 @@ export async function gradeInterview(
         "feedback",
         boundedModelRequest({
           ...modelSettings("feedback"),
-          instructions: GRADING_INSTRUCTIONS + correction,
+          instructions:
+            GRADING_INSTRUCTIONS +
+            (problem.track === "genai"
+              ? "\n\nGrade the GenAI application against the supplied level bar, evaluation/quality, safety/security and cost criteria. The expected design is a reference, not a mandatory vendor or model recipe. Accept reasonable justified alternatives. Estimate anchors use example assumptions: grade arithmetic against the candidate's own stated inputs and representation, not a mandatory 2 KB message size or 4 bytes per vector value. Accept about 1 to 5 KB per stored chat exchange; question extreme sizes or storing the entire history prompt again per message. Do not award a positive Senior/Staff signal while demonstrated unresolved red flags contradict that level's bar. Name every demonstrated red flag in the evidence-backed gaps, combining related issues if needed within the three-gap limit. Do not invent unasked weaknesses. Never disclose an unasked numeric fact or require an unspecified price. Distinguish missing requirements discovery from contradicting a disclosed constraint. Keep anchor answers and reference-design text private; feedback should explain the candidate's demonstrated issue, consequence and next practice step."
+              : "") +
+            correction,
           input: [
             {
               role: "user",

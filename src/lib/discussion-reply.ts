@@ -50,7 +50,11 @@ export async function discussionReply(
   signal?: AbortSignal,
 ) {
   const probes = availableTopicProbes(
-    stageProbes(interview.problem, interview.phase),
+    stageProbes(
+      interview.problem,
+      interview.phase,
+      interview.designText ?? interview.diagramLabels?.join(" "),
+    ),
     interview.questionMemory?.topicTurns,
     requestedReviewTopic(messages),
   );

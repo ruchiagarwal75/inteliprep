@@ -100,11 +100,25 @@ export function InterviewSetup({
               }
               className="bg-background rounded border px-2 py-2 text-sm disabled:opacity-40"
             >
-              {problems.map((problem) => (
-                <option key={problem.problemId} value={problem.problemId}>
-                  {problem.title}
-                </option>
-              ))}
+              {(
+                [
+                  { track: "core", label: "Core system design" },
+                  { track: "genai", label: "AI / GenAI" },
+                ] as const
+              ).map((group) => {
+                const entries = problems.filter(
+                  (problem) => (problem.track ?? "core") === group.track,
+                );
+                return entries.length ? (
+                  <optgroup key={group.track} label={group.label}>
+                    {entries.map((problem) => (
+                      <option key={problem.problemId} value={problem.problemId}>
+                        {problem.title}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null;
+              })}
             </select>
           </label>
           <label

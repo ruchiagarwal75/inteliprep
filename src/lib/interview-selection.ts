@@ -34,7 +34,9 @@ export const interviewStartRequestSchema = interviewSelectionSchema.extend({
 export type InterviewLevel = z.infer<typeof interviewLevelSchema>;
 export type InterviewSelection = z.infer<typeof interviewSelectionSchema>;
 export type InterviewStart = z.infer<typeof interviewStartSchema>;
+export type ProblemTrack = "core" | "genai";
 export type ProblemSummary = {
+  track?: ProblemTrack;
   problemId: string;
   title: string;
   summary: string;

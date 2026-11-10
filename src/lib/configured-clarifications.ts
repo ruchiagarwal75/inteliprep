@@ -1,3 +1,4 @@
+import { genaiFact, disclosedGenaiFacts } from "@/lib/genai-facts";
 import "server-only";
 import type { ChatMessage } from "@/lib/chat";
 import type { ProblemDefinition } from "@/lib/problems";
@@ -31,6 +32,7 @@ export function configuredClarification(
     )
   )
     return undefined;
+  if (problem.track === "genai") return genaiFact(problem, level, content);
   const matches = problem.clarifications.filter((entry) =>
     new RegExp(entry.pattern, "iu").test(content),
   );
@@ -90,6 +92,9 @@ export function sharedRequirementCriteria(
     )
       entry.coversCriteria.forEach((index) => criteria.add(index));
   }
+  if (problem.track === "genai")
+    for (const fact of disclosedGenaiFacts(problem, level, messages))
+      fact.coversCriteria.forEach((index) => criteria.add(index));
   const latest = messages.findLast((message) => message.role === "user");
   if (latest)
     configuredClarification(

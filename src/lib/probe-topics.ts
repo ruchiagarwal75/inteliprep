@@ -1,7 +1,13 @@
-type Probe = { id: string; question: string; topicPattern: string };
+type Probe = {
+  id: string;
+  question: string;
+  topicPattern: string;
+  topic?: string;
+};
 
 /** Related cache/ID probes share a turn budget, even if the wording changes. */
 export function probeTopic(probe: Probe) {
+  if (probe.topic) return probe.topic;
   const text = probe.question + " " + probe.topicPattern;
   if (/idempotenc|idempotency|same.{0,35}(?:request|key)/iu.test(text))
     return "idempotency";
