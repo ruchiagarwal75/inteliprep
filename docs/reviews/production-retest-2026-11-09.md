@@ -331,3 +331,27 @@ After:
 > What ensures a newly created link can be redirected immediately through the API's read path?
 
 <!-- end-retest-live-13 -->
+
+## 14. Probe reliability claims
+
+The baseline scripted replica answer already received a failover/lost-count probe,
+so the reported weak reply did not reproduce in that run. The trusted instructions
+now explicitly require examining the failure boundary of a proposed replica, retry,
+cache or queue before moving to another topic, within the current stage. No missing
+component or solution is supplied. Live before/after checks are retained below.
+
+<!-- retest-live-14 -->
+
+## Live reply comparison: item 14
+
+### 14-replica-failure
+
+Before:
+
+> The replica introduces a failover path. If Redis cache fails before a recent admission reaches Redis replica, how would the limiter avoid admitting beyond the quota during failover?
+
+After:
+
+> A replica can provide a path through a node failure. If the Redis cache fails before recent admitted requests reach the Redis replica, what happens to the quota when the replica takes over?
+
+<!-- end-retest-live-14 -->
