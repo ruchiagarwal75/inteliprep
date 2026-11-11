@@ -34,6 +34,8 @@ import toolUsingAiAgent from "@/lib/problems/tool-using-ai-agent.json";
 
 import videoRecommendations from "@/lib/problems/video-recommendations.json";
 
+import adClickPrediction from "@/lib/problems/ad-click-prediction.json";
+
 const problems: ProblemDefinition[] = [
   problemSchema.parse(singleServerScaling),
   problemSchema.parse(urlShortener),
@@ -47,6 +49,7 @@ const problems: ProblemDefinition[] = [
   problemSchema.parse(aiChatAssistant),
   problemSchema.parse(toolUsingAiAgent),
   problemSchema.parse(videoRecommendations),
+  problemSchema.parse(adClickPrediction),
 ];
 
 export function getProblem(problemId: string): ProblemDefinition | undefined {

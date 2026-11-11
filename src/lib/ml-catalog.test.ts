@@ -44,6 +44,28 @@ const examples = [
       "embedding-dimensions": "Embeddings have 256 dimensions.",
     },
   },
+  {
+    id: "ad-click-prediction",
+    anchors: 3,
+    flags: 6,
+    senior: {
+      dau: "300M daily active users.",
+      "ad-requests":
+        "10 ad requests per user per day, with peak traffic three times the average.",
+      candidates: "500 candidate ads per request after targeting.",
+      latency: "Scoring all candidates should take at most 50 ms at p99.",
+      "click-rate": "The click rate is about 1%.",
+      pricing:
+        "Pricing is cost per click. Ads are ranked by predicted click rate multiplied by bid in an auction.",
+      advertisers: "1M advertisers, 10M ads and 100K new ads a day.",
+      "feedback-delay":
+        "Most clicks arrive within one hour; conversions can arrive up to seven days later.",
+      privacy:
+        "No sensitive categories. User opt-outs must apply within 24 hours.",
+      today: "Today logistic regression is retrained daily.",
+      "ads-shown": "About five ads are shown per request.",
+    },
+  },
 ];
 describe.each(examples)("ML catalog: $id", (example) => {
   const problem = getProblem(example.id);

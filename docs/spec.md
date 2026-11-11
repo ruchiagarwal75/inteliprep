@@ -1264,3 +1264,21 @@ background metadata, scroll, or zoom. Image exports for both chat and grading
 explicitly use light mode on a white background, independent of the visible theme.
 Palette contrast and source-color checks run in the unit suite; stubbed browser
 tests cover first paint, reload, both viewports and real PNG export pixels.
+
+### Additional ML systems and track selection (November 11)
+
+The existing `genai` engine also hosts video recommendations and ad click
+prediction. No new interview lifecycle is introduced. The candidate picker uses
+a keyboard-accessible two-option native radio group, defaults to System design
+for a new browser, remembers the last selected track per account and only lists
+problems in that track. The track display name is AI / ML system design. Next
+practice suggestions are restricted to that track, including rendering older
+scorecards without modifying the saved records.
+
+AI badges identify AI / ML titles in the Brief, live/results header and history.
+Configured AI / ML phase titles are public metadata in the catalog/start
+response; the rubric, hidden facts, anchors and expected design remain server-only.
+Older saves can omit this metadata. Core phase labels and scoring are unchanged.
+Private per-problem interviewer rules and configurable evaluation/safety area
+names let ML exercises reuse the same fact classifier, estimate checks and
+seven-area grading path without calling them GenAI applications.

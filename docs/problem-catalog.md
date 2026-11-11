@@ -244,3 +244,31 @@ The offline runner reads existing local artifacts and writes a separate report
 under `artifacts/genai-retest-4/`. It does not overwrite the saved transcripts.
 Key selection prevents credential reuse; it does not impose a provider spending
 limit. No real-provider evaluations were run for retest 4.
+
+## AI / ML system design
+
+The picker has separate System design and AI / ML system design tracks. The
+stored AI track remains `genai` for compatibility with existing attempts.
+
+- `video-recommendations`: personalized video home-feed recommendations, with
+  level-specific objectives, workload, feedback, freshness and cold-start facts.
+- `ad-click-prediction`: click probability, ad ranking and fair charging, with
+  level-specific request volume, candidates, pricing, delayed feedback and privacy.
+
+Both use seven independent, unweighted rubric areas: problem framing and metrics;
+data and labels; features and model; serving and scale; offline and online
+evaluation; monitoring and feedback loops; safety, fairness and privacy. The
+phase titles are Clarify and frame the problem; Draw and explain; Data, features
+and model; Serving, scale and monitoring; Tradeoffs and wrap-up.
+
+The supplied Senior anchors remain private. No Mid or Staff anchor numbers were
+invented; the checker uses disclosed facts and the candidate's assumptions at
+those levels. Candidate counts and bytes per embedding value in recommendation
+anchors are examples, not supplied facts. Probes avoid revealing derived rates
+or unasked numeric constraints. The reference design is grading-only, and
+reasonable justified model, storage and serving choices are accepted.
+
+Validation uses stubbed fact selection and arithmetic responses, configuration
+and privacy tests, production bundle checks, and UI-only picker tests. No live
+interview, simulator or grading benchmark was run for these additions. Live
+interviewer and grading quality remain for the owner's beta review.

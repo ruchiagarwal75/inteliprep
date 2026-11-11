@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
+import { z } from "zod";
 import { signIn } from "./fixture-auth";
 test("track choices filter the picker, survive reload, and fit a phone", async ({
   page,
@@ -25,8 +26,13 @@ test("track choices filter the picker, survive reload, and fit a phone", async (
     exact: true,
   });
   await expect(core).toBeChecked();
-  const catalog = (await (await page.request.get("/api/problems")).json())
-    .problems as { problemId: string; track: string }[];
+  const catalog = z
+    .object({
+      problems: z.array(
+        z.object({ problemId: z.string(), track: z.enum(["core", "genai"]) }),
+      ),
+    })
+    .parse(await (await page.request.get("/api/problems")).json()).problems;
   mkdirSync("artifacts/ml-track", { recursive: true });
   for (const width of [1440, 375]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -49,6 +55,7 @@ test("track choices filter the picker, survive reload, and fit a phone", async (
       ).toEqual(
         catalog.filter((p) => p.track === track).map((p) => p.problemId),
       );
+      if (track === "genai") await select.selectOption("video-recommendations");
       await expect
         .poll(() =>
           page.evaluate(
@@ -61,6 +68,23 @@ test("track choices filter the picker, survive reload, and fit a phone", async (
         fullPage: true,
       });
     }
+  }
+  for (const id of ["video-recommendations", "ad-click-prediction"]) {
+    await page
+      .getByRole("combobox", { name: "Problem", exact: true })
+      .selectOption(id);
+    await expect(
+      page
+        .getByRole("region", { name: "Problem brief", exact: true })
+        .getByLabel("AI / ML system design", { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(".stage-label")).toHaveText([
+      "Clarify and frame the problem",
+      "Draw and explain",
+      "Data, features and model",
+      "Serving, scale and monitoring",
+      "Tradeoffs and wrap-up",
+    ]);
   }
   await page.reload();
   await expect(ai).toBeChecked();

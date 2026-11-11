@@ -17,6 +17,15 @@ const examples = [
     wrong:
       "I estimate 500M feed requests a day is 500K feed requests per second.",
   },
+  {
+    id: "ad-click-prediction",
+    message: "Tell me the daily audience and requests per user.",
+    ids: ["dau", "ad-requests"],
+    expected: ["300M daily active users.", "10 ad requests per user per day"],
+    hidden: "500 candidate ads",
+    wrong:
+      "I estimate 3B ad requests a day means 3M predictions per second for 500 candidates.",
+  },
 ];
 describe.each(examples)("ML clarification: $id", (example) => {
   const problem = getProblem(example.id);
