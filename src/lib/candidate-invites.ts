@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import "server-only";
 import { configuredAdminId } from "@/lib/admin-config";
 import { supabaseServer } from "@/lib/supabase-server";
@@ -8,7 +9,7 @@ export class CandidateInviteError extends Error {
   readonly status = 403;
   constructor() {
     super(
-      "You're not invited to the MockMeAI private beta yet. Please contact the person who invited you.",
+      `You're not invited to the ${BRAND.name} private beta yet. Please contact the person who invited you.`,
     );
   }
 }

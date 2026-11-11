@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import "server-only";
 import { z } from "zod";
 
@@ -10,10 +11,10 @@ export type ApprovalEmailPayload = {
 
 export function approvalEmailPayload(email: string): ApprovalEmailPayload {
   return {
-    from: "MockMeAI <hello@mockmeai.com>",
+    from: `${BRAND.name} <hello@${BRAND.domain}>`,
     to: [z.email().parse(email)],
-    subject: "Your MockMeAI access is ready",
-    text: `You're approved to practice on MockMeAI!\n\nVisit https://mockmeai.com and sign in with Google using ${email}.\n\nYou can choose a system design problem, draw your design, and get feedback after your interview.\n\nSee you there,\nMockMeAI`,
+    subject: `Your ${BRAND.name} access is ready`,
+    text: `You're approved to practice on ${BRAND.name}!\n\nVisit ${BRAND.url} and sign in with Google using ${email}.\n\nYou can choose a system design problem, draw your design, and get feedback after your interview.\n\nSee you there,\n${BRAND.name}`,
   };
 }
 

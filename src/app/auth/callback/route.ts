@@ -11,7 +11,7 @@ import {
 export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const code = params.get("code");
-  const returnTo = params.get("next") === "/admin" ? "/admin" : "/interview";
+  const returnTo = params.get("next") === "/admin" ? "/admin" : "/play";
   const requestId = randomUUID();
   let success = false;
   let invited = true;

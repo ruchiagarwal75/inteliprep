@@ -34,7 +34,7 @@ const displayFont = Lora({
 export const metadata: Metadata = {
   metadataBase: new URL(BRAND.url),
   applicationName: BRAND.name,
-  title: `${BRAND.name} · System design interview practice`,
+  title: `${BRAND.name} · ${BRAND.tagline}`,
   description: BRAND.description,
   openGraph: {
     type: "website",

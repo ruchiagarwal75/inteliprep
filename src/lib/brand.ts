@@ -2,8 +2,12 @@
 export const BRAND = {
   name: "MockMeAI",
   domain: "mockmeai.com",
-  url: "https://mockmeai.com",
-  tagline: "Practice your design. Build your confidence.",
+  get url(): string {
+    return `https://${this.domain}`;
+  },
+  tagline: "Level up for the AI engineer interview.",
+  pitch:
+    "Train in 5-minute rounds, watch your readiness map fill in, then prove it in a real mock interview.",
   description:
-    "Practice system design interviews with an AI interviewer, an interactive whiteboard, and feedback grounded in your answers.",
+    "Practice AI engineer system design in short drills and full mock interviews.",
 } as const;

@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import Image from "next/image";
 const steps = [
   {
@@ -35,7 +36,7 @@ export function PracticeGuide() {
                 width={step.width}
                 height={step.height}
                 sizes="(max-width:899px) 240px, 288px"
-                alt={`${step.title} view of the MockMeAI interview`}
+                alt={`${step.title} view of the ${BRAND.name} interview`}
               />
               <figcaption>
                 <h3>{step.title}</h3>

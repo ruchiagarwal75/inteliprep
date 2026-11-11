@@ -46,6 +46,6 @@ it("does not accept an external sign-in destination", async () => {
     SignInPage({
       searchParams: Promise.resolve({ next: "https://attacker.example" }),
     }),
-  ).rejects.toThrow("redirect:/interview");
+  ).rejects.toThrow("redirect:/play");
   expect(mocks.getUser).not.toHaveBeenCalled();
 });

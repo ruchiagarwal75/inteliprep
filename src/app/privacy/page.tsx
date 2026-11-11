@@ -1,10 +1,11 @@
+import { BRAND } from "@/lib/brand";
 import { LegalPage } from "@/components/legal-page";
-export const metadata = { title: "Privacy policy | MockMeAI" };
+export const metadata = { title: `Privacy policy | ${BRAND.name}` };
 export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy policy">
       <p>
-        MockMeAI provides AI system design interview practice. This policy
+        {BRAND.name} provides AI system design interview practice. This policy
         describes the data used to run the private beta.
       </p>
       <h2>Your account and browser history</h2>
@@ -54,8 +55,8 @@ export default function PrivacyPage() {
         records do not contain interview answers.
       </p>
       <p>
-        Feedback you send is saved with your account and only the MockMeAI admin
-        can see it.
+        Feedback you send is saved with your account and only the {BRAND.name}{" "}
+        admin can see it.
       </p>
       <p>
         Our private admin database records account signup information, interview
@@ -97,7 +98,7 @@ export default function PrivacyPage() {
       <h2>Delete your data</h2>
       <p>
         Use Delete in practice history to remove a saved attempt from this
-        browser. Clearing MockMeAI site data in your browser removes local
+        browser. Clearing {BRAND.name} site data in your browser removes local
         history, drafts, sign-in cookies and the visitor ID. This does not
         delete account records, server reporting or copies already processed by
         providers.
@@ -105,9 +106,9 @@ export default function PrivacyPage() {
       <p>
         To request deletion of your Supabase account and associated server
         reporting, contact the person who invited you to the beta and provide
-        the Google email you use with MockMeAI. The operator will verify your
-        account before handling the request. Provider retention is governed by
-        the applicable provider settings and policies.
+        the Google email you use with {BRAND.name}. The operator will verify
+        your account before handling the request. Provider retention is governed
+        by the applicable provider settings and policies.
       </p>
       <h2>Questions and changes</h2>
       <p>

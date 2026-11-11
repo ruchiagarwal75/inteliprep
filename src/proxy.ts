@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
   const config = supabaseConfiguration();
   if (
     config &&
-    /^\/(?:interview|admin|sign-in|auth|api\/(?:admin|interview|chat))(?:\/|$)/u.test(
+    /^\/(?:interview|play|progress|mock|admin|sign-in|auth|api\/(?:admin|interview|chat|play))(?:\/|$)/u.test(
       request.nextUrl.pathname,
     )
   ) {
@@ -63,6 +63,7 @@ export const config = {
     "/api/admin/:path*",
     "/api/interview/:path*",
     "/api/chat",
+    "/api/play/:path*",
     "/((?!api/|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|fonts/|practice-guide/).*)",
   ],
 };

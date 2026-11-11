@@ -120,9 +120,18 @@ export function CandidateProfileMenu({
                 <MascotToggle />
                 {account ? (
                   <>
+                    <Link className="profile-menu-link" href="/play">
+                      Play
+                    </Link>
+                    <Link className="profile-menu-link" href="/mock">
+                      Mock
+                    </Link>
+                    <Link className="profile-menu-link" href="/progress">
+                      Progress
+                    </Link>
                     <Link
                       className="profile-menu-link"
-                      href="/#practice-history"
+                      href="/mock/history#practice-history"
                       onClick={() => setOpen(false)}
                     >
                       Practice history

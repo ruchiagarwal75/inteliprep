@@ -65,9 +65,9 @@ engine intact and use Postgres transactions for the game.
 
 RAG has four configured levels and all four drill types. Sample questions visibly
 say `[sample]` and carry TODO markers in code. A five-question level needs at least
-five distinct configured drills. The requested two samples per level cannot form
-such a session; content size needs an explicit owner decision before level play
-is enabled. Placement can use two drills per level.
+five distinct configured drills. The owner approved five clearly marked samples per level so full level
+sessions can be tested before real content arrives. Placement uses two drills
+per level.
 
 Tests use stubbed AI responses. Pure tests cover tolerance, pass/unlock rules,
 time zones, freezes, reviews and readiness. Database tests check row ownership,

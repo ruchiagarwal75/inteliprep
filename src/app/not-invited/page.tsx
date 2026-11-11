@@ -1,10 +1,11 @@
+import { BRAND } from "@/lib/brand";
 import { candidateIdentity } from "@/lib/candidate-auth";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { InviteSignOut } from "@/components/invite-sign-out";
 
-export const metadata = { title: "Private beta | MockMeAI" };
+export const metadata = { title: `Private beta | ${BRAND.name}` };
 export default async function NotInvitedPage() {
   const userId = await candidateIdentity();
   return (
@@ -17,12 +18,12 @@ export default async function NotInvitedPage() {
         <section className="practice-surface welcome-note">
           <h1>You&apos;re not invited yet</h1>
           <p>
-            MockMeAI is in private beta. Contact the person who invited you to
-            get access for your Google account.
+            {BRAND.name} is in private beta. Contact the person who invited you
+            to get access for your Google account.
           </p>
           <InviteSignOut userId={userId} />
           <p>
-            <Link href="/">Return to MockMeAI</Link>
+            <Link href="/">Return to {BRAND.name}</Link>
           </p>
         </section>
       </div>

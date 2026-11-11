@@ -35,7 +35,7 @@ export default async function SignInPage({
     if (!(cause instanceof CandidateAuthError) && !returnTo) throw cause;
     unavailable = true;
   }
-  if (id) redirect(returnTo ?? "/interview");
+  if (id) redirect(returnTo ?? "/play");
   return (
     <main className="bg-surface flex min-h-dvh items-center justify-center p-6">
       <div className="bg-background border-border w-full max-w-md rounded-2xl border p-8 shadow-sm">
@@ -45,7 +45,7 @@ export default async function SignInPage({
         </header>
         <h1 className="mb-3 text-2xl font-semibold">Sign in to practice</h1>
         <p className="text-muted mb-6">
-          {BRAND.tagline} Sign in to start your next system design interview.
+          {BRAND.tagline} Sign in to start a practice round.
         </p>
         {unavailable ? (
           <p role="alert">

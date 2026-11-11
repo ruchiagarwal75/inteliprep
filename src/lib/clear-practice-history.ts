@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import { historyGenerationKey } from "@/lib/practice-history-generation";
 /** Explicit user request only. Never touches another account or the old unassigned database. */
 export async function clearPracticeHistory(userId: string) {
@@ -22,7 +23,7 @@ export async function clearPracticeHistory(userId: string) {
     request.onblocked = () =>
       reject(
         new Error(
-          "Close other MockMeAI tabs, then retry sign out to remove this account's history.",
+          `Close other ${BRAND.name} tabs, then retry sign out to remove this account's history.`,
         ),
       );
   });

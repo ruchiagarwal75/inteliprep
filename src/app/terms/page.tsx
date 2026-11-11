@@ -1,12 +1,13 @@
+import { BRAND } from "@/lib/brand";
 import Link from "next/link";
 import { LegalPage } from "@/components/legal-page";
-export const metadata = { title: "Terms | MockMeAI" };
+export const metadata = { title: `Terms | ${BRAND.name}` };
 export default function TermsPage() {
   return (
     <LegalPage title="Terms of use">
       <p>
-        MockMeAI is a private beta for practicing system design interviews. By
-        using it, you agree to these terms and our{" "}
+        {BRAND.name} is a private beta for practicing system design interviews.
+        By using it, you agree to these terms and our{" "}
         <Link href="/privacy">privacy policy</Link>.
       </p>
       <h2>Access and acceptable use</h2>
@@ -18,7 +19,7 @@ export default function TermsPage() {
       </p>
       <h2>Your interview material</h2>
       <p>
-        You retain ownership of material you submit. You give MockMeAI
+        You retain ownership of material you submit. You give {BRAND.name}
         permission to process it, send it to the AI provider and store the
         records described in the privacy policy to deliver practice and
         feedback. Only submit material you have permission to share. The beta

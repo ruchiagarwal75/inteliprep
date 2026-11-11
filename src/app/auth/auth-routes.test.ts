@@ -39,9 +39,7 @@ describe("authentication callbacks", () => {
       ),
     );
     expect(auth.exchange).toHaveBeenCalledWith("fixture-code");
-    expect(response.headers.get("location")).toBe(
-      "https://beta.example/interview",
-    );
+    expect(response.headers.get("location")).toBe("https://beta.example/play");
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
   it("handles missing, rejected and disconnected callbacks without reflecting private errors", async () => {

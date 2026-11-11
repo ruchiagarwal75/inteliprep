@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/lib/brand";
 
 import { useEffect, type RefObject } from "react";
 import type { ChatMessage } from "@/lib/chat";
@@ -57,7 +58,7 @@ export function ChatTranscript({
                 <span className="interviewer-avatar" aria-hidden="true">
                   M
                 </span>
-                <span>MockMeAI interviewer</span>
+                <span>{BRAND.name} interviewer</span>
               </div>
             )}
             <div className="chat-bubble">{content}</div>

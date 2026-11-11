@@ -26,7 +26,7 @@ it("waits for database authorization before redirecting into an interview", asyn
   const r = await GET(
     new Request("https://mockmeai.test/auth/callback?code=fixture"),
   );
-  expect(r.headers.get("location")).toBe("https://mockmeai.test/interview");
+  expect(r.headers.get("location")).toBe("https://mockmeai.test/play");
   expect(invite).toHaveBeenCalledOnce();
 });
 it("redirects an unapproved account to the invitation notice", async () => {

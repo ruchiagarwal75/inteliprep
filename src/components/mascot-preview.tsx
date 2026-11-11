@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/lib/brand";
 import {
   useMascotPreference,
   MascotToggle,
@@ -47,7 +48,7 @@ export function MascotPreview() {
     <main className="practice-page">
       <div className="practice-shell">
         <header className="practice-nav">
-          <Link href="/">Back to MockMeAI</Link>
+          <Link href="/">Back to {BRAND.name}</Link>
           <ThemeToggle />
         </header>
         <div className="mt-4">

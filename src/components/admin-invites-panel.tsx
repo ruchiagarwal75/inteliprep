@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/lib/brand";
 
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
@@ -144,8 +145,8 @@ export function AdminInvitesPanel({
         </button>
       </form>
       <p className="text-sm">
-        New approvals send an email from hello@mockmeai.com. If delivery fails,
-        access stays approved and you can retry the email below. Existing
+        New approvals send an email from hello@{BRAND.domain}. If delivery
+        fails, access stays approved and you can retry the email below. Existing
         approvals are not emailed automatically.
       </p>
       <h3 className="text-lg font-semibold">Invitations</h3>

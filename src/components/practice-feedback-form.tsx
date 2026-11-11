@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "@/lib/brand";
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
@@ -110,7 +111,7 @@ export function PracticeFeedbackForm({
         onChange={setLiked}
       />
       <PracticeFeedbackChoices
-        question="Would you do another interview on MockMeAI?"
+        question={`Would you do another interview on ${BRAND.name}?`}
         choices={RETURN_CHOICES}
         value={wouldReturn}
         disabled={busy}
