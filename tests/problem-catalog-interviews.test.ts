@@ -40,25 +40,52 @@ beforeEach(() => {
   vi.stubEnv("OPENAI_KEY", "catalog-test-key");
   mocks.create
     .mockReset()
-    .mockImplementation(async (input: { stream?: boolean; input?: string }) => {
-      if (!input.stream) {
-        const stage = JSON.parse(input.input ?? "{}");
-        return {
-          status: "completed",
-          output_text: JSON.stringify({
-            criteria: stage.criteria.map(
-              (_: unknown, criterionIndex: number) => ({
-                criterionIndex,
-                met: false,
-                messageIndex: -1,
-                quote: "",
+    .mockImplementation(
+      async (input: {
+        stream?: boolean;
+        input?: string;
+        text?: { format?: { name?: string } };
+      }) => {
+        if (!input.stream) {
+          const stage = JSON.parse(input.input ?? "{}");
+          if (input.text?.format?.name === "fresh_discussion_question")
+            return {
+              status: "completed",
+              output_text: JSON.stringify({
+                topicId: stage.topics[0]?.id ?? "",
+                quoteId: stage.candidate_quotes[0]?.quoteId ?? "",
+                question:
+                  "Which recovery boundary would you test with an interrupted storage write?",
+                exhausted: false,
               }),
-            ),
-          }),
-        };
-      }
-      return reply();
-    });
+            };
+          if (input.text?.format?.name === "unique_interviewer_reply")
+            return {
+              status: "completed",
+              output_text: JSON.stringify({
+                reply:
+                  "For this step, " +
+                  stage.reply.charAt(0).toLowerCase() +
+                  stage.reply.slice(1),
+              }),
+            };
+          return {
+            status: "completed",
+            output_text: JSON.stringify({
+              criteria: stage.criteria.map(
+                (_: unknown, criterionIndex: number) => ({
+                  criterionIndex,
+                  met: false,
+                  messageIndex: -1,
+                  quote: "",
+                }),
+              ),
+            }),
+          };
+        }
+        return reply();
+      },
+    );
 });
 afterEach(() => {
   vi.unstubAllEnvs();

@@ -36,6 +36,7 @@ export type InterviewContext = {
   diagramLabels?: string[];
   designText?: string;
   selectedTopic?: string;
+  advancedPhaseIndex?: number;
   allowedFollowUps?: { id: string; question: string }[];
 };
 

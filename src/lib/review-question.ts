@@ -1,3 +1,4 @@
+import { continueDiscussion } from "@/lib/discussion-exhaustion";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import "server-only";
 import { z } from "zod";
@@ -57,15 +58,16 @@ export async function reviewQuestion(
     );
   };
   const rejected: ChatMessage[] = [];
-  const safeInstruction =
-    "You can choose Pause to draw to update your diagram, or add a concrete example of the current request path before we continue.";
+
   const fallback = () => {
     const probe = selectReviewProbe(
       interview.problem,
       [...messages, ...rejected],
       interview,
     );
-    return probe ? finish(probe.question) : safeInstruction;
+    return probe
+      ? finish(probe.question)
+      : continueDiscussion(messages, interview, signal);
   };
   let question = oneQuestion(draft, messages);
   if (
@@ -74,7 +76,7 @@ export async function reviewQuestion(
     isGenericProbe(question) ||
     wasProbeAsked(question, messages)
   )
-    question = fallback();
+    question = await fallback();
   const quotes = candidateQuotes(modelMessages);
   if (!/[?？]/u.test(question) || !quotes.length) return question;
   const previous = messages.findLast(
@@ -83,7 +85,7 @@ export async function reviewQuestion(
   const alreadyCovered: string[] = [];
   for (let attempt = 0; attempt < 4; attempt++) {
     if (attempt === 3) {
-      question = fallback();
+      question = await fallback();
       if (!/[?？]/u.test(question)) return question;
     }
     const response = await observedModelRequest(
@@ -121,7 +123,7 @@ export async function reviewQuestion(
         route: "/api/chat",
         kind,
       });
-      return safeInstruction;
+      return continueDiscussion(messages, interview, signal);
     };
     if (response.status !== "completed")
       return unavailableReview("incomplete_result");
@@ -145,7 +147,7 @@ export async function reviewQuestion(
         !isGenericProbe(replacement) &&
         !wasProbeAsked(replacement, [...messages, ...rejected])
           ? replacement
-          : fallback();
+          : await fallback();
       if (!/[?？]/u.test(question)) return question;
       continue;
     }
@@ -176,10 +178,10 @@ export async function reviewQuestion(
       isGenericProbe(replacement) ||
       wasProbeAsked(replacement, messages)
     ) {
-      question = fallback();
+      question = await fallback();
       if (!/[?？]/u.test(question)) return question;
     } else question = replacement;
     alreadyCovered.push(review.answerQuote);
   }
-  return safeInstruction;
+  return continueDiscussion(messages, interview, signal);
 }

@@ -343,6 +343,17 @@ export async function prepareInterviewTurn(
             ...completedPlan,
             state: { phaseIndex: 1, coveredCriteria: [] },
           };
+        if (
+          context.advancedPhaseIndex === plan.state.phaseIndex + 1 &&
+          plan.state.phaseIndex >= 2
+        )
+          completedPlan = {
+            ...completedPlan,
+            state: {
+              phaseIndex: context.advancedPhaseIndex,
+              coveredCriteria: [],
+            },
+          };
         lease.recordReply(
           reply,
           !offTopic && !waiting && latest?.source !== "control",
@@ -359,7 +370,7 @@ export async function prepareInterviewTurn(
             ],
             continuedQuestionId: context.continuedQuestionId,
             topicId: context.selectedTopic,
-            stageId: nextPhase.id,
+            stageId: context.phase?.id ?? nextPhase.id,
             diagramComponents:
               context.diagramUpdates?.length && !paused
                 ? []

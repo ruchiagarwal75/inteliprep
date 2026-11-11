@@ -87,10 +87,21 @@ it("retains a distinct unanswered question and uses a safe probe when review inv
       "How does recovery work?",
     ),
   );
+  create.mockResolvedValueOnce({
+    status: "completed",
+    output_text: JSON.stringify({
+      topicId: problem.reviewProbes.find((p) => p.stageIndex === 2)?.id,
+      quoteId: "m0q0",
+      question:
+        "What happens if metadata publication fails after byte verification?",
+      exhausted: false,
+    }),
+  });
   const replacement = await reviewQuestion(draft, messages, context);
   expect(replacement).not.toContain("implemented full recovery");
   expect(replacement).not.toBe(draft);
-  expect(replacement).toContain("Pause to draw");
+  expect(replacement).toContain("metadata publication");
+  expect(replacement).not.toContain("Pause to draw");
 });
 it("skips the extra request when there is no candidate evidence or question", async () => {
   expect(

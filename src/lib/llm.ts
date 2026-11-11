@@ -1,3 +1,5 @@
+import { uniqueInterviewerReply } from "@/lib/unique-interviewer-reply";
+import { continueDiscussion } from "@/lib/discussion-exhaustion";
 import { cappedGenaiQuestions } from "@/lib/genai-probe-memory";
 import { genaiFactFollowUp } from "@/lib/genai-clarification-pace";
 import {
@@ -466,12 +468,16 @@ export async function* streamInterviewerReply(
     // Canonical wording also makes the client and next server turn recognize the handoff.
     if (!reply.includes(interview.problem.drawingPolicy.invitation))
       reply = interview.problem.drawingPolicy.invitation;
-    yield reply;
+    yield await uniqueInterviewerReply(
+      reply,
+      args[0],
+      args[3],
+      interview?.phase?.transition === "initial",
+    );
     return;
   }
   const ending = interview && clarificationEnding(reply, args[0], interview);
   if (ending) reply += `\n\n${ending}`;
-  yield reply;
   if (
     interview?.phase &&
     interview.phase.transition !== "initial" &&
@@ -479,12 +485,19 @@ export async function* streamInterviewerReply(
     !hasAsk(reply)
   ) {
     const probe = selectReviewProbe(interview.problem, args[0], interview);
-    yield "\n\n" +
+    reply +=
+      "\n\n" +
       quoteDiagramLabels(
         probe?.question ??
-          "Please explain one tradeoff in your design and how you would test it.",
+          (await continueDiscussion(args[0], interview, args[3])),
         interview.diagramLabels ?? [],
         interview.problem.track,
       );
   }
+  yield await uniqueInterviewerReply(
+    reply,
+    args[0],
+    args[3],
+    interview?.phase?.transition === "initial",
+  );
 }

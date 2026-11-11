@@ -146,6 +146,6 @@ it("keeps a repeated friendly classifier-failure reply nonempty", async () => {
     },
   ))
     reply += part;
-  expect(reply).toBe("Could you rephrase that?");
+  expect(reply).toBe("Could you ask that in a different way?");
   expect(model).toHaveBeenCalledTimes(2);
 });

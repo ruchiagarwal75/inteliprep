@@ -1164,3 +1164,15 @@ Evaluation and quality and Safety and security. There are no numerical weights o
 weighted total; the existing evidence-validated 1–4/null scale and overall signal
 are retained. No core scoring or rubric is changed. See
 [the keyword inventory](interviewer-keywords.md) for every routing pattern family.
+
+
+### Discussion exhaustion and sentence novelty
+
+Finite stage probes are guidance, not an exhaustion message. A bounded structured
+request writes a fresh question grounded in a verified candidate quote and the
+current stage. The server rejects repeated questions, repeated sentences and
+invented grounding. If no useful question remains in a discussion stage, the
+server may enter the next stage before its minimum time without granting coverage
+or grading credit. The final stage can offer a contextual instruction to finish.
+Every reply path checks the complete verified interviewer transcript for repeated
+sentences; duplicated factual replies are rephrased without adding facts.

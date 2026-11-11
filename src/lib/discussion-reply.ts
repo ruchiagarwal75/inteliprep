@@ -1,3 +1,4 @@
+import { continueDiscussion } from "@/lib/discussion-exhaustion";
 import { eligibleDiscussionProbes } from "@/lib/genai-probe-memory";
 import { genaiDiscussionQuotes } from "@/lib/genai-discussion-quotes";
 import "server-only";
@@ -232,8 +233,7 @@ export async function discussionReply(
     removeCandidateEcho(
       [
         acknowledgement,
-        selected ??
-          "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path.",
+        selected ?? (await continueDiscussion(messages, interview, signal)),
       ]
         .filter(Boolean)
         .join(" "),
