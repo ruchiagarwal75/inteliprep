@@ -355,6 +355,9 @@ through the Data API or grant it public access.
 Candidates can answer or skip a short survey on results, including interviews
 that are too short to score, or use **Send feedback** in their account menu.
 Feedback never enters model requests or diagnostic logs and never gates scoring.
+The results survey optionally asks whether candidates prefer Talk, Type or No
+preference, after the existing practice-again question. This records a preference;
+it does not enable voice input. Feedback can still be sent without answering it.
 `POST /api/feedback` uses candidate authentication, current invitation checks,
 same-origin enforcement, a 4 KB strict JSON boundary, and per-account limits of
 5/minute, 30/hour and 60/day. Comments are trimmed and limited to 2,000 characters.
@@ -378,6 +381,27 @@ second answer replaces the first, without changing its original creation date.
 Practice feedback also appears alongside interviews under `/admin/users/[id]`.
 The page and direct read API re-check the configured admin identity. Comments
 are rendered as plain text. No feedback is emailed or sent to an AI provider.
+
+### Optional input-preference migration
+
+Before testing the updated beta feedback form, apply
+`supabase/migrations/20261111073325_feedback_input_preference.sql` to the app's
+Supabase database. This migration is prepared in the repository, not automatically
+applied to the shared database by a Vercel deployment.
+
+- With the existing operator connection in `.env.local`, run `npm run db:admin`.
+  The migration runner includes this file and applies its changes transactionally.
+- Alternatively, open the IntelliPrep project in Supabase, open SQL Editor,
+  paste this migration file, and run it. No API key or database password should be
+  pasted into chat.
+
+The migration adds nullable `input_preference`, validates the three choices and
+allows that optional answer to be the only submitted answer. It replaces only
+the response-presence constraint. Existing feedback and its RLS/grants remain
+intact, and older rows keep a null preference, shown as Not answered. Summary
+counts at `/admin/feedback` use the same search, environment and exclusion filters
+as other feedback counts and exclude skipped records. User interview details
+also show the saved preference. Existing production code can ignore the new column.
 
 Browser CI now starts a temporary PostgreSQL cluster with synthetic accounts,
 strict TLS and the actual reporting-role grants. It exercises feedback ownership,

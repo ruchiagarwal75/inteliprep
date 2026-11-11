@@ -56,3 +56,38 @@ it("only checks the verified owner's handled status", async () => {
     "11111111-1111-4111-8111-111111111111",
   );
 });
+it.each(["talk", "type", "no_preference", undefined] as const)(
+  "saves feedback with optional input preference %s on the existing record",
+  async (inputPreference) => {
+    sql
+      .mockResolvedValueOnce([{ isTest: false }])
+      .mockResolvedValueOnce([{ id: "saved" }]);
+    expect(
+      await savePracticeFeedback({
+        source: "interview_end",
+        interviewId,
+        skipped: false,
+        liked: "okay",
+        inputPreference,
+      }),
+    ).toEqual({ id: "saved" });
+    const call = sql.mock.calls[1];
+    expect(call[0].join("?")).toContain(
+      "input_preference=excluded.input_preference",
+    );
+    expect(call.slice(1)).toContain(inputPreference ?? null);
+    expect(call.slice(1)).toContain("okay");
+  },
+);
+it("discards the optional preference on a skip", async () => {
+  sql
+    .mockResolvedValueOnce([{ isTest: false }])
+    .mockResolvedValueOnce([{ id: "saved" }]);
+  await savePracticeFeedback({
+    source: "interview_end",
+    interviewId,
+    skipped: true,
+    inputPreference: "talk",
+  });
+  expect(sql.mock.calls[1].slice(1)).not.toContain("talk");
+});

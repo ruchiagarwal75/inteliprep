@@ -5,8 +5,10 @@ import { useCandidateAccount } from "@/components/candidate-account-context";
 import {
   LIKED_CHOICES,
   RETURN_CHOICES,
+  INPUT_PREFERENCE_CHOICES,
   type PracticeFeedbackInput,
 } from "@/lib/practice-feedback";
+import { PracticeFeedbackChoices } from "./practice-feedback-choices";
 import styles from "./practice-feedback.module.css";
 
 export function PracticeFeedbackForm({
@@ -24,6 +26,8 @@ export function PracticeFeedbackForm({
   const [liked, setLiked] = useState<PracticeFeedbackInput["liked"]>();
   const [wouldReturn, setWouldReturn] =
     useState<PracticeFeedbackInput["wouldReturn"]>();
+  const [inputPreference, setInputPreference] =
+    useState<PracticeFeedbackInput["inputPreference"]>();
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false),
     [sent, setSent] = useState(false);
@@ -51,7 +55,12 @@ export function PracticeFeedbackForm({
           source: interviewId ? "interview_end" : "menu",
           skipped,
           ...(!skipped
-            ? { liked, wouldReturn, comment: comment.trim() || undefined }
+            ? {
+                liked,
+                wouldReturn,
+                inputPreference,
+                comment: comment.trim() || undefined,
+              }
             : {}),
         }),
         signal: AbortSignal.timeout(15000),
@@ -93,40 +102,29 @@ export function PracticeFeedbackForm({
         void submit(false);
       }}
     >
-      <fieldset disabled={busy}>
-        <legend>How was your practice interview?</legend>
-        <div className={styles.choices}>
-          {LIKED_CHOICES.map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={liked === value}
-              className={styles.choice}
-              onClick={() => setLiked(liked === value ? undefined : value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset disabled={busy}>
-        <legend>Would you do another interview on MockMeAI?</legend>
-        <div className={styles.choices}>
-          {RETURN_CHOICES.map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={wouldReturn === value}
-              className={styles.choice}
-              onClick={() =>
-                setWouldReturn(wouldReturn === value ? undefined : value)
-              }
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <PracticeFeedbackChoices
+        question="How was your practice interview?"
+        choices={LIKED_CHOICES}
+        value={liked}
+        disabled={busy}
+        onChange={setLiked}
+      />
+      <PracticeFeedbackChoices
+        question="Would you do another interview on MockMeAI?"
+        choices={RETURN_CHOICES}
+        value={wouldReturn}
+        disabled={busy}
+        onChange={setWouldReturn}
+      />
+      {interviewId && (
+        <PracticeFeedbackChoices
+          question="Would you rather talk than type during the interview?"
+          choices={INPUT_PREFERENCE_CHOICES}
+          value={inputPreference}
+          disabled={busy}
+          onChange={setInputPreference}
+        />
+      )}
       <label htmlFor={id}>Anything else you want to share? (optional)</label>
       <textarea
         id={id}
@@ -149,7 +147,10 @@ export function PracticeFeedbackForm({
         <button
           className="practice-primary"
           type="submit"
-          disabled={busy || (!liked && !wouldReturn && !comment.trim())}
+          disabled={
+            busy ||
+            (!liked && !wouldReturn && !inputPreference && !comment.trim())
+          }
         >
           {busy ? "Sending…" : "Send"}
         </button>

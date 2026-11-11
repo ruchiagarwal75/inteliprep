@@ -10,6 +10,11 @@ export const RETURN_CHOICES = [
   ["maybe", "Maybe"],
   ["no", "No"],
 ] as const;
+export const INPUT_PREFERENCE_CHOICES = [
+  ["talk", "Talk"],
+  ["type", "Type"],
+  ["no_preference", "No preference"],
+] as const;
 
 export const practiceFeedbackSchema = z
   .strictObject({
@@ -18,10 +23,17 @@ export const practiceFeedbackSchema = z
     skipped: z.boolean(),
     liked: z.enum(["loved", "okay", "not_for_me"]).optional(),
     wouldReturn: z.enum(["yes", "maybe", "no"]).optional(),
+    inputPreference: z.enum(["talk", "type", "no_preference"]).optional(),
     comment: z.string().trim().max(2000).optional(),
   })
   .superRefine((value, context) => {
-    if (!value.skipped && !value.liked && !value.wouldReturn && !value.comment)
+    if (
+      !value.skipped &&
+      !value.liked &&
+      !value.wouldReturn &&
+      !value.inputPreference &&
+      !value.comment
+    )
       context.addIssue({
         code: "custom",
         message: "Choose an answer or write a comment.",
@@ -42,6 +54,7 @@ export type PracticeFeedbackRecord = {
   skipped: boolean;
   liked: PracticeFeedbackInput["liked"] | null;
   wouldReturn: PracticeFeedbackInput["wouldReturn"] | null;
+  inputPreference?: PracticeFeedbackInput["inputPreference"] | null;
   comment: string | null;
   createdAt: string;
   updatedAt: string;

@@ -3,7 +3,11 @@ import { AdminTime } from "@/components/admin-format";
 import { AdminPracticeFeedbackDetail } from "@/components/admin-practice-feedback-detail";
 import type { adminPracticeFeedback } from "@/lib/admin-practice-feedback";
 import { getProblem } from "@/lib/problems";
-import { LIKED_CHOICES, RETURN_CHOICES } from "@/lib/practice-feedback";
+import {
+  LIKED_CHOICES,
+  RETURN_CHOICES,
+  INPUT_PREFERENCE_CHOICES,
+} from "@/lib/practice-feedback";
 
 export function AdminFeedbackPanel({
   data,
@@ -62,6 +66,15 @@ export function AdminFeedbackPanel({
         <p>Choice counts across all non-skipped feedback:</p>
         <dl className="flex flex-wrap gap-6">
           {[...LIKED_CHOICES, ...RETURN_CHOICES].map(([key, label]) => (
+            <div key={key}>
+              <dt>{label}</dt>
+              <dd className="text-2xl font-semibold">{data.counts[key]}</dd>
+            </div>
+          ))}
+        </dl>
+        <p>Preferred interview input (optional):</p>
+        <dl className="flex flex-wrap gap-6">
+          {INPUT_PREFERENCE_CHOICES.map(([key, label]) => (
             <div key={key}>
               <dt>{label}</dt>
               <dd className="text-2xl font-semibold">{data.counts[key]}</dd>

@@ -1,6 +1,7 @@
 import {
   LIKED_CHOICES,
   RETURN_CHOICES,
+  INPUT_PREFERENCE_CHOICES,
   type PracticeFeedbackRecord,
 } from "@/lib/practice-feedback";
 
@@ -28,6 +29,12 @@ export function AdminPracticeFeedbackDetail({
             Would practice again:{" "}
             {RETURN_CHOICES.find(
               ([value]) => value === feedback.wouldReturn,
+            )?.[1] ?? "Not answered"}
+          </p>
+          <p>
+            Preferred interview input:{" "}
+            {INPUT_PREFERENCE_CHOICES.find(
+              ([value]) => value === feedback.inputPreference,
             )?.[1] ?? "Not answered"}
           </p>
           {feedback.comment && (

@@ -36,11 +36,11 @@ export async function savePracticeFeedback(input: PracticeFeedbackInput) {
   const rows = await sql<
     { id: string }[]
   >`insert into interview_admin.feedback as existing
-    (id,user_id,interview_id,environment,is_test,source,skipped,liked,would_return,comment)
+    (id,user_id,interview_id,environment,is_test,source,skipped,liked,would_return,input_preference,comment)
     values (${randomUUID()},${userId},${input.interviewId ?? null},${reportingEnvironment()},${isTest},${input.source},${input.skipped},
-      ${input.skipped ? null : (input.liked ?? null)},${input.skipped ? null : (input.wouldReturn ?? null)},${input.skipped ? null : input.comment || null})
+      ${input.skipped ? null : (input.liked ?? null)},${input.skipped ? null : (input.wouldReturn ?? null)},${input.skipped ? null : (input.inputPreference ?? null)},${input.skipped ? null : input.comment || null})
     on conflict (user_id,interview_id) do update set
-      skipped=excluded.skipped,liked=excluded.liked,would_return=excluded.would_return,comment=excluded.comment,
+      skipped=excluded.skipped,liked=excluded.liked,would_return=excluded.would_return,input_preference=excluded.input_preference,comment=excluded.comment,
       is_test=existing.is_test or excluded.is_test,updated_at=now()
     returning id`;
   return { id: rows[0]?.id };

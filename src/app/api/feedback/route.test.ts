@@ -89,6 +89,22 @@ it("records skips and returns no-store without echoing the comment", async () =>
   expect(save).toHaveBeenCalledWith(input);
   expect(await response.json()).toEqual({ id });
 });
+it.each(["talk", "type", "no_preference", undefined] as const)(
+  "accepts an optional input preference %s without changing existing answers",
+  async (inputPreference) => {
+    const input = {
+      source: "interview_end",
+      interviewId: id,
+      skipped: false,
+      liked: "loved",
+      ...(inputPreference ? { inputPreference } : {}),
+    };
+    const response = await POST(request(input));
+    expect(response.status).toBe(200);
+    expect(save).toHaveBeenCalledWith(input);
+    expect(await response.json()).toEqual({ id });
+  },
+);
 it("enforces five feedback sends per minute with Retry-After", async () => {
   vi.useFakeTimers();
   for (let i = 0; i < 5; i++)

@@ -21,6 +21,9 @@ export type FeedbackCounts = {
   yes: number;
   maybe: number;
   no: number;
+  talk: number;
+  type: number;
+  no_preference: number;
 };
 
 export async function adminPracticeFeedback(
@@ -36,7 +39,7 @@ export async function adminPracticeFeedback(
     sql<
       AdminPracticeFeedback[]
     >`select f.id,f.user_id as "userId",f.interview_id as "interviewId",f.source,f.skipped,f.liked,
-      f.would_return as "wouldReturn",f.comment,f.created_at::text as "createdAt",f.updated_at::text as "updatedAt",
+      f.would_return as "wouldReturn",f.input_preference as "inputPreference",f.comment,f.created_at::text as "createdAt",f.updated_at::text as "updatedAt",
       u.email,i.problem_id as "problemId",i.level ${from}
       order by f.created_at desc,f.id limit ${ADMIN_PAGE_SIZE} offset ${(query.page - 1) * ADMIN_PAGE_SIZE}`,
     sql<(FeedbackCounts & { total: number })[]>`select count(*)::int as total,
@@ -48,11 +51,14 @@ export async function adminPracticeFeedback(
       count(*) filter(where not f.skipped and f.liked='not_for_me')::int as not_for_me,
       count(*) filter(where not f.skipped and f.would_return='yes')::int as yes,
       count(*) filter(where not f.skipped and f.would_return='maybe')::int as maybe,
-      count(*) filter(where not f.skipped and f.would_return='no')::int as no ${from}`,
+      count(*) filter(where not f.skipped and f.would_return='no')::int as no,
+      count(*) filter(where not f.skipped and f.input_preference='talk')::int as talk,
+      count(*) filter(where not f.skipped and f.input_preference='type')::int as type,
+      count(*) filter(where not f.skipped and f.input_preference='no_preference')::int as no_preference ${from}`,
   ]);
   if (!totals[0]) throw new Error("Feedback counts unavailable");
   return {
-    entries,
+    entries: Array.from(entries),
     counts: totals[0],
     total: totals[0].total,
     page: query.page,

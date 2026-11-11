@@ -6,6 +6,24 @@ it.each([
   { source: "interview_end", interviewId: id, skipped: false, liked: "loved" },
   { source: "interview_end", interviewId: id, skipped: true },
   { source: "menu", skipped: false, wouldReturn: "maybe" },
+  {
+    source: "interview_end",
+    interviewId: id,
+    skipped: false,
+    inputPreference: "talk",
+  },
+  {
+    source: "interview_end",
+    interviewId: id,
+    skipped: false,
+    inputPreference: "type",
+  },
+  {
+    source: "interview_end",
+    interviewId: id,
+    skipped: false,
+    inputPreference: "no_preference",
+  },
 ])("accepts partial answers and skips %j", (input) => {
   expect(practiceFeedbackSchema.safeParse(input).success).toBe(true);
 });
@@ -14,6 +32,12 @@ it.each([
   { source: "menu", skipped: false, comment: " \n " },
   { source: "menu", skipped: false, comment: "x".repeat(2001) },
   { source: "menu", skipped: false, liked: "excellent" },
+  {
+    source: "interview_end",
+    interviewId: id,
+    skipped: false,
+    inputPreference: "voice",
+  },
   { source: "menu", skipped: true, userId: id },
   { source: "menu", skipped: true, is_test: false },
   { source: "interview_end", skipped: true },
