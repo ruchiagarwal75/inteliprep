@@ -318,6 +318,15 @@ export async function prepareInterviewTurn(
     };
     if (modern && plan.progress.step === "review" && !offTopic)
       await refreshSemanticTopicMemory(request.messages, context, signal);
+    // Build a side-answer continuation from refreshed memory, not the stale lease queue.
+    if (modern && visibility && !paused) {
+      const pending = context.openQuestions?.[0];
+      context.reviewQuestion = pending
+        ? `${withoutQuestions(visibility).trim()}\n\n${resumePendingQuestion(pending, request.messages)}`
+        : visibility;
+      context.continuedQuestionId = pending?.id;
+      context.selectedTopic = pending?.topicId;
+    }
     return {
       context,
       phase: publicPhase(problem.phases, plan.state.phaseIndex),
@@ -384,6 +393,13 @@ export async function prepareInterviewTurn(
               completedPlan.state.phaseIndex > 0,
           },
         );
+        // Done explaining can enter a core stage whose issues are already answered.
+        // Commit both validated adjacent transitions under the same exclusive lease.
+        if (
+          context.advancedPhaseIndex === plan.state.phaseIndex + 1 &&
+          completedPlan.state.phaseIndex > lease.state.phaseIndex + 1
+        )
+          lease.commit(plan.state);
         lease.commit(completedPlan.state, [
           ...(context.questionMemory?.coveredTopics ?? memory.coveredTopics),
           ...[...covered, ...lease.state.coveredCriteria]

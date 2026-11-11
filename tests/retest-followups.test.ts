@@ -22,7 +22,19 @@ beforeEach(() => {
   create.mockReset();
   let replacement = 0;
   create.mockImplementation(
-    async (input: { stream?: boolean; input?: string }) => {
+    async (input: {
+      stream?: boolean;
+      input?: string;
+      text?: { format?: { name?: string } };
+    }) => {
+      if (input.text?.format?.name === "interview_question_budget")
+        return {
+          status: "completed",
+          output_text: JSON.stringify({
+            sameIssueIndexes: [],
+            answeredQuoteId: "",
+          }),
+        };
       if (input.stream)
         return (async function* () {
           yield {

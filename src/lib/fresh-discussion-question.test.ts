@@ -3,6 +3,10 @@ import { freshDiscussionQuestion } from "@/lib/fresh-discussion-question";
 import { genaiEngineFixture } from "@/lib/fixtures/genai-engine-test";
 import type { InterviewContext } from "@/lib/interview-instructions";
 const model = vi.hoisted(() => vi.fn());
+const novelty = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/design-question-novelty", () => ({
+  isNewDesignBoundary: novelty,
+}));
 vi.mock("@/lib/observed-model-request", () => ({
   observedModelRequest: model,
 }));
@@ -38,7 +42,10 @@ const response = (question: string, quoteId = "m1q0") => ({
     exhausted: false,
   }),
 });
-beforeEach(() => model.mockReset());
+beforeEach(() => {
+  model.mockReset();
+  novelty.mockReset().mockResolvedValue(true);
+});
 it("writes a distinct design-specific question after the bank sentence was used", async () => {
   const state = context();
   model.mockResolvedValueOnce(
@@ -49,7 +56,7 @@ it("writes a distinct design-specific question after the bank sentence was used"
   expect(await freshDiscussionQuestion(messages, state)).toContain(
     "permission source",
   );
-  expect(state.selectedTopic).toBe("cache");
+  expect(state.selectedTopic).toMatch(/^fresh:[a-f0-9]{16}$/u);
 });
 it("rejects repeated sentences and invented grounding, then asks for a fresh alternative", async () => {
   model
@@ -68,5 +75,30 @@ it("rejects repeated sentences and invented grounding, then asks for a fresh alt
     .mockResolvedValue(
       response("How is the failed cache repopulated?", "invented"),
     );
+  expect(await freshDiscussionQuestion(messages, context())).toBeUndefined();
+});
+
+it("looks beyond exhausted bank issues for a distinct design boundary", async () => {
+  const state = context();
+  state.questionMemory = {
+    askedQuestions: [messages[0].content],
+    coveredTopics: ["issue:cache"],
+    topicTurns: { cache: 2 },
+  };
+  model.mockResolvedValueOnce(
+    response("How would permission-source loss affect recovery of this cache?"),
+  );
+  expect(await freshDiscussionQuestion(messages, state)).toContain(
+    "permission-source",
+  );
+  expect(state.selectedTopic).toMatch(/^fresh:/u);
+  expect(state.questionMemory.topicTurns?.cache).toBe(2);
+  expect(novelty).toHaveBeenCalledOnce();
+});
+it("rejects a semantically answered or previously asked boundary", async () => {
+  novelty.mockResolvedValue(false);
+  model.mockResolvedValue(
+    response("How would the cache handle becoming unavailable?"),
+  );
   expect(await freshDiscussionQuestion(messages, context())).toBeUndefined();
 });

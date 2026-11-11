@@ -53,8 +53,12 @@ export function hasAsk(reply: string) {
       .trim()
       .split(/(?<=[.!?])\s+|\n+/u)
       .at(-1) ?? "";
-  return /^(?:(?:yes|okay|ok|sure)[,!.]?\s+)?(?:please\b|feel free to\b|you can\b|choose\b|draw\b|sketch\b|explain\b|walk\b|end the interview\b|keep\b|take your time\b|go ahead\b|let.s stay on your design\b|continue\b|describe\b|tell me\b|review\b|confirm\b|clarify\b)/iu.test(
-    ending,
+  const instruction = ending.replace(
+    /^when (?:(?:you['’]re|you are) )?ready,?\s+/iu,
+    "",
+  );
+  return /^(?:(?:yes|okay|ok|sure)[,!.]?\s+)?(?:please\b|feel free to\b|you can\b|choose\b|draw\b|sketch\b|explain\b|walk\b|(?:finish|conclude)\b|end (?:the|this|your) interview\b|keep\b|take your time\b|go ahead\b|let.s stay on your design\b|continue\b|describe\b|tell me\b|review\b|confirm\b|clarify\b)/iu.test(
+    instruction,
   );
 }
 

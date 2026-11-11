@@ -1,4 +1,6 @@
 import { uniqueInterviewerReply } from "@/lib/unique-interviewer-reply";
+import { withinInterviewQuestionBudget } from "@/lib/interview-question-budget";
+import { questionAtEnd } from "@/lib/open-question";
 import { continueDiscussion } from "@/lib/discussion-exhaustion";
 import { cappedGenaiQuestions } from "@/lib/genai-probe-memory";
 import { genaiFactFollowUp } from "@/lib/genai-clarification-pace";
@@ -11,6 +13,7 @@ import { genaiEstimateVerdict } from "@/lib/genai-estimation";
 import { formatDiagramLabels } from "@/lib/diagram-label-copy";
 import { hasPriorExplanation } from "@/lib/open-question";
 import { acknowledgeDesignUpdate } from "@/lib/design-update-acknowledgement";
+import { interviewerChatText } from "@/lib/chat-display";
 import {
   clarificationEnding,
   clarificationContinuation,
@@ -231,7 +234,13 @@ async function* rawInterviewerReply(
         : DRAWING_WAIT_REPLY;
     return;
   }
-  if (focusedReview && interview && modernModel && !interview.reviewQuestion) {
+  if (
+    (focusedReview ||
+      (step === "review" && interview?.phase?.transition === "wrap-up")) &&
+    interview &&
+    modernModel &&
+    !interview.reviewQuestion
+  ) {
     injectDevelopmentModelFailure();
     yield await discussionReply(
       messages,
@@ -438,6 +447,7 @@ export async function* streamInterviewerReply(
       capped.retired.includes(interview.continuedQuestionId)
     ) {
       interview.continuedQuestionId = undefined;
+      interview.selectedTopic = undefined;
       if (interview.reviewQuestion)
         interview.reviewQuestion = withoutQuestions(interview.reviewQuestion);
     }
@@ -470,9 +480,32 @@ export async function* streamInterviewerReply(
   ) {
     const pending = interview.openQuestions[0];
     interview.continuedQuestionId = pending.id;
+    interview.selectedTopic = pending.topicId;
     reply = `${withoutQuestions(reply).trim()}\n\n${resumePendingQuestion(pending, args[0])}`;
   }
   if (interview && invitesDrawing(reply)) {
+    if (
+      ["drawing", "invite-drawing"].includes(interview.progress?.step ?? "") &&
+      args[0].some((m) => m.role === "assistant" && invitesDrawing(m.content))
+    ) {
+      // The first handoff already changed the UI. Keep new facts, not another invitation.
+      reply = interviewerChatText(
+        reply.replace(interview.problem.drawingPolicy.invitation, ""),
+      );
+      if (!reply) {
+        interview.listening = true;
+        yield "I'm waiting while you draw.";
+        return;
+      }
+      yield await uniqueInterviewerReply(
+        reply,
+        args[0],
+        args[3],
+        Boolean(interview.factAnswer),
+        interview.diagramLabels,
+      );
+      return;
+    }
     // Canonical wording also makes the client and next server turn recognize the handoff.
     if (!reply.includes(interview.problem.drawingPolicy.invitation))
       reply = interview.problem.drawingPolicy.invitation;
@@ -480,7 +513,8 @@ export async function* streamInterviewerReply(
       reply,
       args[0],
       args[3],
-      interview?.phase?.transition === "initial",
+      Boolean(interview.factAnswer) ||
+        interview?.phase?.transition === "initial",
       interview?.diagramLabels,
     );
     return;
@@ -494,6 +528,7 @@ export async function* streamInterviewerReply(
     !hasAsk(reply)
   ) {
     const probe = selectReviewProbe(interview.problem, args[0], interview);
+    if (probe) interview.selectedTopic = probe.id;
     reply +=
       "\n\n" +
       formatDiagramLabels(
@@ -503,11 +538,42 @@ export async function* streamInterviewerReply(
         interview.problem.track,
       );
   }
+  if (
+    interview?.questionMemory &&
+    interview.progress?.step === "review" &&
+    hasAsk(reply) &&
+    !/\b(?:end|finish|conclude) (?:the|this|your) interview\b/iu.test(reply) &&
+    (!interview.selectedTopic?.startsWith("fresh:") ||
+      interview.continuedQuestionId) &&
+    !(await withinInterviewQuestionBudget(
+      questionAtEnd(reply) ?? reply,
+      args[0],
+      args[3],
+    ))
+  ) {
+    const retired = interview.continuedQuestionId;
+    if (retired) {
+      interview.retiredQuestionIds = [
+        ...(interview.retiredQuestionIds ?? []),
+        retired,
+      ];
+      interview.openQuestions = interview.openQuestions?.filter(
+        (q) => q.id !== retired,
+      );
+    }
+    interview.continuedQuestionId = undefined;
+    reply = formatDiagramLabels(
+      await continueDiscussion(args[0], interview, args[3]),
+      interview.diagramLabels ?? [],
+      interview.problem.track,
+    );
+  }
   yield await uniqueInterviewerReply(
     reply,
     args[0],
     args[3],
-    interview?.phase?.transition === "initial",
+    Boolean(interview?.factAnswer) ||
+      interview?.phase?.transition === "initial",
     interview?.diagramLabels,
   );
 }

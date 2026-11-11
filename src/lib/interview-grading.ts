@@ -8,7 +8,7 @@ import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { listProblems, type ProblemDefinition } from "@/lib/problems";
 import { modelSettings } from "@/lib/model-settings";
 import { gradingAssessmentSchema } from "@/lib/scorecard";
-import { candidateQuotes } from "@/lib/scorecard-quotes";
+import { gradingQuoteIndex } from "@/lib/grading-quote-index";
 import {
   validateScorecard,
   emptyInterviewScorecard,
@@ -31,6 +31,7 @@ import { shortInterviewScorecard } from "@/lib/short-interview-scorecard";
 import { gradingModelBudgetMs } from "@/lib/grading-budget";
 
 const GRADING_INSTRUCTIONS = [
+  "candidate_quotes is a compact locator index: long quote text is only a prefix. Each quoteId begins with m followed by the transcript message index and q followed by the excerpt number. Use that index and prefix to find the complete statement in the full transcript. Read that complete statement and all counter-evidence before selecting its quoteId. The server attaches the unchanged original full quote, not this shortened index text.",
   "Compare the final diagram with the full transcript and supplied diagram_consistency audit. Respect later corrections: a resolved PostgreSQL/Cassandra conflict is a clarified design choice, not an unresolved gap. Account for described components missing from the board, including a load balancer. The server displays the audit once in its own section: never repeat generic diagram-consistency boilerplate in each area's rationale. The text graph is the source of truth; the image is supporting evidence.",
   "Check candidate evidence from every phase, including clarification and drawing explanations. Numeric scenarios such as a 50k-follower or 50,000-follower creator count as discussion of popular-creator workload even without the word popular. Do not claim a topic was never explored when its reasoning appears in those answers; limited depth and absent discussion are different findings.",
   "Grade only the configured product scope and agreed assumptions. Optional or explicitly excluded features are never required. Distinguish conflicting file replacements from collaborative document editing: an explained compare-and-set/base-version conflict check is concurrency evidence, not an absence of concurrent-edit handling. Candidate clarifying questions about workload or timing are requirements-discovery evidence even when phrased as questions, not restated answers; this does not prove a technical design in other rubric areas. Accepted alternatives to defaults remain valid assumptions. Lack of justification, when actually missing, is different from claiming retention was never explored.",
@@ -131,7 +132,7 @@ export async function gradeInterview(
           : {}),
       }),
     ),
-    candidate_quotes: candidateQuotes(snapshot.messages),
+    candidate_quotes: gradingQuoteIndex(snapshot.messages),
     final_diagram: graphToText(sceneToGraph(snapshot.scene)),
     diagram_consistency: auditDiagram(snapshot, problem.track),
     diagram_elements:

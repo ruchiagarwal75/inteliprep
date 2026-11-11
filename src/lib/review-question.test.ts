@@ -97,6 +97,10 @@ it("retains a distinct unanswered question and uses a safe probe when review inv
       exhausted: false,
     }),
   });
+  create.mockResolvedValueOnce({
+    status: "completed",
+    output_text: JSON.stringify({ verdict: "new_boundary" }),
+  });
   const replacement = await reviewQuestion(draft, messages, context);
   expect(replacement).not.toContain("implemented full recovery");
   expect(replacement).not.toBe(draft);

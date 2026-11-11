@@ -106,3 +106,37 @@ it("keeps one pending question when a continued ask is reworded", () => {
   expect(saved.openQuestions[0].id).toBe(pending.id);
   saved.release();
 });
+
+it("counts a technical imperative as an ask even without a question mark", async () => {
+  const { getCachedSession } = await import("@/lib/interview-session-store");
+  const id = createInterviewSession(selection);
+  const lease = acquireInterviewSession(id, selection);
+  try {
+    const metadata = {
+      resolvedQuestionIds: [],
+      topicId: "fresh:retry-recovery",
+      stageId: "core",
+      diagramComponents: [],
+      resetQuestions: false,
+    };
+    lease.recordReply(
+      "Walk me through recovery after an ambiguous retry.",
+      false,
+      false,
+      undefined,
+      false,
+      metadata,
+    );
+    lease.recordReply(
+      "That is one tradeoff.",
+      false,
+      false,
+      undefined,
+      false,
+      metadata,
+    );
+    expect(getCachedSession(id)?.topicTurnCounts?.[metadata.topicId]).toBe(1);
+  } finally {
+    lease.release();
+  }
+});

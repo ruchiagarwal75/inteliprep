@@ -25,29 +25,43 @@ beforeEach(() => {
   vi.stubEnv("VERCEL", "");
   vi.stubEnv("INTELIPREP_ENV", "");
   vi.stubEnv("INTELIPREP_TEST_MODEL_503_ONCE", "1");
-  create.mockReset().mockImplementation(async (input: { stream?: boolean }) =>
-    input.stream
-      ? (async function* () {
-          yield {
-            type: "response.output_text.delta",
-            delta: "How does the request reach the data store?",
-          };
-          yield { type: "response.completed" };
-        })()
-      : {
-          status: "completed",
-          output_text: JSON.stringify({
-            alreadyAnswered: false,
-            answerMessageIndex: -1,
-            answerQuote: "",
-            followsLatestReply: true,
-            withinStage: true,
-            replacementQuestion: "",
-            acknowledgement: "",
-            acknowledgementQuote: "",
-          }),
-        },
-  );
+  create
+    .mockReset()
+    .mockImplementation(
+      async (input: {
+        stream?: boolean;
+        text?: { format?: { name?: string } };
+      }) =>
+        input.text?.format?.name === "interview_question_budget"
+          ? {
+              status: "completed",
+              output_text: JSON.stringify({
+                sameIssueIndexes: [],
+                answeredQuoteId: "",
+              }),
+            }
+          : input.stream
+            ? (async function* () {
+                yield {
+                  type: "response.output_text.delta",
+                  delta: "How does the request reach the data store?",
+                };
+                yield { type: "response.completed" };
+              })()
+            : {
+                status: "completed",
+                output_text: JSON.stringify({
+                  alreadyAnswered: false,
+                  answerMessageIndex: -1,
+                  answerQuote: "",
+                  followsLatestReply: true,
+                  withinStage: true,
+                  replacementQuestion: "",
+                  acknowledgement: "",
+                  acknowledgementQuote: "",
+                }),
+              },
+    );
   vi.spyOn(console, "log").mockImplementation(() => {});
   vi.spyOn(console, "info").mockImplementation(() => {});
 });

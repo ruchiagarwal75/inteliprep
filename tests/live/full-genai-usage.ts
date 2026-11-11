@@ -1,7 +1,12 @@
 import type { calls } from "./model-meter";
 
 /** Missing usage remains unknown, including on failed or retried calls. */
-export function fullInterviewUsage(observations: typeof calls) {
+export function fullInterviewUsage(
+  observations: Pick<
+    (typeof calls)[number],
+    "estimatedUsd" | "normalizedUsage"
+  >[],
+) {
   const priced = observations.filter((c) => c.estimatedUsd !== null);
   const knownEstimatedUsd = priced.reduce(
     (sum, c) => sum + (c.estimatedUsd ?? 0),

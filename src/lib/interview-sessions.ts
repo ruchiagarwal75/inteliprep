@@ -1,3 +1,4 @@
+import { hasAsk } from "@/lib/open-question";
 import "server-only";
 import { interviewWrapUpSeconds } from "@/lib/interview-timer";
 import type { InterviewSelection } from "@/lib/interview-selection";
@@ -124,7 +125,7 @@ export function acquireInterviewSession(
         session.openQuestions = queue;
         session.openQuestion = queue[0]?.question;
         session.pendingDiagramComponents = metadata.diagramComponents;
-        if (metadata.topicId && question) {
+        if (metadata.topicId && hasAsk(reply)) {
           const key = metadata.topicId;
           session.topicTurnCounts = {
             ...(metadata.topicCounts ?? session.topicTurnCounts ?? {}),

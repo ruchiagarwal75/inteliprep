@@ -9,6 +9,10 @@ it.each([
   "Yes, please start drawing your design.",
   "Feel free to begin the drawing.",
   "Choose Ready to explain when you're ready.",
+  "When ready, conclude the interview considering your retry budget.",
+  "When ready, conclude with your tradeoff between retries and the task budget.",
+  "When you're ready, end this interview.",
+  "Finish the interview when you are ready.",
 ])("recognizes an instruction without adding a filler question: %s", (text) => {
   expect(hasAsk(text)).toBe(true);
 });

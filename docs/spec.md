@@ -1201,3 +1201,30 @@ change, without a question or evaluation. Entry controls and messages without a
 specific change remain silent. Listening turns persist their verified checkpoint
 but send no text deltas; the completed listening frame and successful EOF are
 required before the browser accepts that checkpoint.
+
+The adaptive GenAI benchmark uses a model candidate that sees only public brief
+content, the actual conversation and its own diagram. Its strong, buzzword and
+weak policies are separate from application prompts and grading. App, simulator
+and semantic-audit usage are metered separately. Only the interview clock is
+simulated; provider and grading timings use real elapsed time.
+
+Grading sends the complete transcript and compact quote locators. Each locator
+retains its original ID and a short prefix, with the message index encoded in
+the ID. Validation and displayed evidence still use the original full candidate
+quotes. This removes duplicated answer text without raising the model input cap
+or dropping transcript evidence. Modern-model wrap-up turns use the same
+structured question-memory path as other discussion stages.
+
+When a configured bank is exhausted, its stage topics remain guidance for a new,
+genuinely distinct boundary in the candidate's actual design. A semantic check
+rejects already asked or answered issues. Fresh questions receive their own
+server-owned IDs without reopening closed bank issues. Bank and pending asks
+also receive a direct history-budget check so aliases across stages cannot
+permit a third same-issue ask. Imperative asks count too. Retiring a rejected
+pending question does not award scoring coverage. Final exhaustion requests a
+separate grounded closing instruction, rather than another technical question.
+
+Benchmark audits account for every delivered ask, including imperatives, and
+separate app usage from candidate-simulator and independent-audit overhead.
+The resumed post-guard live acceptance is documented as incomplete after a
+provider-credit failure; beta publication with that limitation was approved.

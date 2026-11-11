@@ -48,6 +48,27 @@ beforeEach(() => {
       }) => {
         if (!input.stream) {
           const stage = JSON.parse(input.input ?? "{}");
+          if (input.text?.format?.name === "interview_question_budget")
+            return {
+              status: "completed",
+              output_text: JSON.stringify({
+                sameIssueIndexes: [],
+                answeredQuoteId: "",
+              }),
+            };
+          if (input.text?.format?.name === "design_boundary_novelty")
+            return {
+              status: "completed",
+              output_text: JSON.stringify({ verdict: "new_boundary" }),
+            };
+          if (input.text?.format?.name === "discussion_closing")
+            return {
+              status: "completed",
+              output_text: JSON.stringify({
+                quoteId: stage.candidate_quotes[0]?.quoteId ?? "",
+                instruction: `End the interview when ready, considering these ${stage.previous.length} prior replies.`,
+              }),
+            };
           if (input.text?.format?.name === "fresh_discussion_question")
             return {
               status: "completed",

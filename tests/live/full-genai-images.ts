@@ -1,6 +1,5 @@
 import { chromium } from "@playwright/test";
 import type { Scene } from "@/lib/scene";
-import { fixtureScene, type GenaiFixture } from "./genai-fixture";
 
 /** Matching synthetic board PNGs use the same bounds and edges as the text scene. */
 export async function fullInterviewImages(scenes: Record<string, Scene>) {
@@ -93,25 +92,4 @@ export async function fullInterviewImages(scenes: Record<string, Scene>) {
   } finally {
     await browser.close();
   }
-}
-
-export function fullInterviewScenes(fixture: GenaiFixture) {
-  const evalIndex = fixture.strongNodes.findIndex((label) =>
-    /eval|judge/iu.test(label),
-  );
-  return {
-    empty: fixtureScene([]),
-    partial: fixtureScene(fixture.strongNodes.slice(0, 1)),
-    full: fixtureScene(fixture.strongNodes, fixture.strongEdges),
-    updated: fixtureScene(
-      [...fixture.strongNodes, "Evaluation rollout gate"],
-      [
-        ...fixture.strongEdges,
-        [
-          evalIndex < 0 ? fixture.strongNodes.length - 1 : evalIndex,
-          fixture.strongNodes.length,
-        ],
-      ],
-    ),
-  };
 }

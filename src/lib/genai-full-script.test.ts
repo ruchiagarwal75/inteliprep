@@ -1,6 +1,4 @@
 import { expect, it } from "vitest";
-import { readFileSync } from "node:fs";
-import { fixtureSchema } from "../../tests/live/genai-fixture";
 import { fullInterviewScript } from "../../tests/live/full-genai-script";
 for (const id of [
   "enterprise-rag-assistant",
@@ -8,11 +6,13 @@ for (const id of [
   "tool-using-ai-agent",
 ])
   it(`keeps the full ${id} script within a 45-minute interview`, () => {
-    const fixture = fixtureSchema.parse(
-      JSON.parse(readFileSync(`tests/fixtures/genai/${id}.json`, "utf8")),
-    );
-    const rows = fullInterviewScript(fixture);
+    const rows = fullInterviewScript();
     expect(rows).toHaveLength(37);
+    expect(
+      rows
+        .filter((row) => !row.action)
+        .every((row) => row.task && !row.content),
+    ).toBe(true);
     expect(rows.at(-1)?.minute).toBe(44.5);
     expect(
       rows.every(

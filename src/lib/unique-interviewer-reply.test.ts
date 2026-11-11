@@ -43,3 +43,24 @@ it("keeps repeated configured facts exact without a provider request", async () 
   );
   expect(model).not.toHaveBeenCalled();
 });
+
+it("tells the second rewrite exactly which sentences still repeat", async () => {
+  model.mockResolvedValueOnce({
+    status: "completed",
+    output_text: JSON.stringify({ reply: "How does retrieval work?" }),
+  });
+  model.mockResolvedValueOnce({
+    status: "completed",
+    output_text: JSON.stringify({
+      reply: "Which step retrieves evidence for a request?",
+    }),
+  });
+  expect(
+    await uniqueInterviewerReply("How does retrieval work?", [
+      { role: "assistant", content: "How does retrieval work?" },
+    ]),
+  ).toBe("Which step retrieves evidence for a request?");
+  const retry = JSON.parse(model.mock.calls[1][1].input);
+  expect(retry.sentences_to_rephrase).toEqual(["How does retrieval work?"]);
+  expect(retry.rejected_reply).toBe("How does retrieval work?");
+});

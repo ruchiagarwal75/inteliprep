@@ -51,7 +51,7 @@ export async function fullGenaiTurn(
       const stage = getCachedSession(payload.sessionId)?.phaseIndex;
       if (stage === undefined) throw new Error("Missing benchmark stage");
       return {
-        reply,
+        reply: turn.context.listening ? "" : reply,
         checkpoint,
         stage,
         step: turn.context.progress.step,

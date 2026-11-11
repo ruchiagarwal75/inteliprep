@@ -159,6 +159,16 @@ export function startFixtureService(key, cert, reporting) {
           quote: "",
           acknowledgement: "",
         });
+      } else if (body.text?.format?.name === "interview_question_budget") {
+        text = JSON.stringify({ sameIssueIndexes: [], answeredQuoteId: "" });
+      } else if (body.text?.format?.name === "design_boundary_novelty") {
+        text = JSON.stringify({ verdict: "new_boundary" });
+      } else if (body.text?.format?.name === "discussion_closing") {
+        const data = inputData(body);
+        text = JSON.stringify({
+          quoteId: data.candidate_quotes[0]?.quoteId ?? "",
+          instruction: `End the interview when ready, considering the tradeoffs in these ${data.previous.length} replies.`,
+        });
       } else if (body.text?.format?.name === "interview_topic_memory") {
         text = JSON.stringify({ covered: [], asked: [] });
       } else if (body.text?.format?.name === "fresh_discussion_question") {
