@@ -21,7 +21,8 @@
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "db:admin": "node scripts/migrate-admin.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:play": "node scripts/migrate-play.mjs"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.1",

@@ -5,7 +5,9 @@ import { CandidateAccountProvider } from "@/components/candidate-account-provide
 import { LegalLinks } from "@/components/legal-links";
 import { ModeNav } from "./mode-nav";
 import styles from "./play.module.css";
-export function PlayShell({
+import { playerSnapshot } from "@/lib/play/player";
+import { PlayerBootstrap } from "./player-bootstrap";
+export async function PlayShell({
   userId,
   active = "play",
   children,
@@ -18,16 +20,33 @@ export function PlayShell({
   points?: number;
   streak?: number;
 }) {
+  let unavailable = false;
+  try {
+    const snapshot = await playerSnapshot(userId);
+    points = snapshot.points;
+    streak = snapshot.streak;
+  } catch {
+    unavailable = true;
+  }
   return (
     <CandidateAccountProvider userId={userId}>
       <main className="practice-page">
         <div className="practice-shell">
+          <PlayerBootstrap />
           <header className="practice-nav">
             <Brand />
             <CandidateProfileMenu />
           </header>
           <ModeNav active={active} points={points} streak={streak} />
-          <div className={styles.content}>{children}</div>
+          <div className={styles.content}>
+            {unavailable && (
+              <p role="status" className={styles.note}>
+                Practice progress is unavailable right now. You can still use
+                Mock. Please try Play again in a moment.
+              </p>
+            )}
+            {children}
+          </div>
           <LegalLinks />
         </div>
       </main>
