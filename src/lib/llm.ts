@@ -433,7 +433,11 @@ export async function* streamInterviewerReply(
     ) &&
     !invitesDrawing(reply)
   )
-    reply = quoteDiagramLabels(reply, interview?.diagramLabels ?? []);
+    reply = quoteDiagramLabels(
+      reply,
+      interview?.diagramLabels ?? [],
+      interview?.problem.track,
+    );
   if (repeatsLastQuestion(reply, args[0])) reply = withoutQuestions(reply);
   if (
     interview?.openQuestions?.length &&
@@ -468,6 +472,7 @@ export async function* streamInterviewerReply(
         probe?.question ??
           "Please explain one tradeoff in your design and how you would test it.",
         interview.diagramLabels ?? [],
+        interview.problem.track,
       );
   }
 }

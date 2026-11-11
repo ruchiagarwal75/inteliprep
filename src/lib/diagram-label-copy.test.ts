@@ -15,6 +15,7 @@ it("preserves articles, existing quotes and the longer overlapping label", () =>
     quoteDiagramLabels(
       'The Redis cache reads from "Link store". What does Redis cache retain?',
       ["cache", "Redis cache", "Link store"],
+      "genai",
     ),
   ).toBe(
     'The "Redis cache" reads from "Link store". What does "Redis cache" retain?',
@@ -31,15 +32,58 @@ it("quotes capitalized labels even after an article and preserves acronyms", () 
     quoteDiagramLabels(
       "How does the Redis cache call your Link store through an API?",
       ["Redis cache", "Link store", "API"],
+      "genai",
     ),
-  ).toBe('How does the "Redis cache" call your "Link store" through an "API"?');
+  ).toBe('How does the "Redis cache" call your "Link store" through an API?');
 });
 it("does not match labels inside other words or add double quotes", () => {
   expect(
-    quoteDiagramLabels('The "API" uses a cacheable key in the Redis cache.', [
-      "API",
-      "cache",
-      "Redis cache",
-    ]),
+    quoteDiagramLabels(
+      'The "API" uses a cacheable key in the Redis cache.',
+      ["API", "cache", "Redis cache"],
+      "genai",
+    ),
   ).toBe('The "API" uses a cacheable key in the "Redis cache".');
+});
+
+for (const track of ["core", "genai"] as const) {
+  it.each([
+    {
+      text: "What happens to cache hit rate when the cache is cold after a deploy?",
+      labels: ["Cache", "Users", "LLM"],
+    },
+    {
+      text: "How do users see a partial answer if the LLM stalls mid-stream?",
+      labels: ["Cache", "Users", "LLM"],
+    },
+    {
+      text: "If two API servers request an ID at the same time, how does the ID generator avoid collisions?",
+      labels: ["API servers", "ID generator"],
+    },
+  ])(`keeps general words natural for ${track}: $text`, ({ text, labels }) =>
+    expect(quoteDiagramLabels(text, labels, track)).toBe(text),
+  );
+}
+it("restores core articles while retaining GenAI distinctive-name quoting", () => {
+  expect(
+    quoteDiagramLabels(
+      "How does the Redis cache call your Link store?",
+      ["Redis cache", "Link store"],
+      "core",
+    ),
+  ).toBe("How does the Redis cache call your Link store?");
+  expect(
+    quoteDiagramLabels(
+      "How does the Redis cache call your Link store?",
+      ["Redis cache", "Link store"],
+      "genai",
+    ),
+  ).toBe('How does the "Redis cache" call your "Link store"?');
+  expect(
+    quoteDiagramLabels(
+      "Cache warms up. How do Users reach the Cache?",
+      ["Cache", "Users"],
+      "genai",
+    ),
+  ).toBe("Cache warms up. How do users reach the cache?");
 });
