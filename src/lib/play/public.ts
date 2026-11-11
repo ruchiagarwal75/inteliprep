@@ -130,6 +130,14 @@ export const roundSummarySchema = z.object({
   bonusPoints: z.number().int(),
   earnedBadges: z.array(z.string()),
   practiceReadyNow: z.boolean(),
+  mockPrompt: z
+    .object({
+      topic: z.string(),
+      title: z.string(),
+      problemId: z.string(),
+      level: z.enum(["mid", "senior", "staff"]),
+    })
+    .optional(),
 });
 export type RoundSummary = z.infer<typeof roundSummarySchema>;
 const roundFields = {

@@ -173,3 +173,46 @@ it("awards points, a first-try bonus and badges once, with one daily streak incr
     await fixture.operator`select * from practice_game.play_events where user_id=${user} and event='streak_extended'`,
   ).toHaveLength(1);
 });
+it("reaches practice ready after all four levels, without granting interview readiness", async () => {
+  const { playerSnapshot } = await import("@/lib/play/player");
+  const { markMockPromptSeen } = await import("@/lib/play/readiness-store");
+  for (const level of [4, 2]) {
+    const { sessionId: id } = await startRound(user, {
+      requestId: crypto.randomUUID(),
+      topic: "rag",
+      mode: "level",
+      level,
+      timeZone: "UTC",
+    });
+    let view = await getRound(user, id);
+    for (let i = 0; i < 5; i++) {
+      const outcome = await submitRoundAnswer(
+        user,
+        view.question.attemptId,
+        await solve(view),
+      );
+      if (i === 4) {
+        if (level === 2) {
+          expect(outcome.summary?.practiceReadyNow).toBe(true);
+          expect(outcome.summary?.mockPrompt).toMatchObject({
+            topic: "rag",
+            level: "senior",
+            problemId: "enterprise-rag-assistant",
+          });
+        }
+        break;
+      }
+      view = await advanceRound(user, id, view.question.attemptId);
+    }
+  }
+  const state = await playerSnapshot(user);
+  expect(state.readiness.find((row) => row.topic === "rag")?.state).toBe(
+    "practice_ready",
+  );
+  expect(state.badges.map((row) => row.badge_id)).toContain("rag-practice");
+  await markMockPromptSeen(user, "rag");
+  await markMockPromptSeen(user, "rag");
+  expect(
+    await fixture.operator`select * from practice_game.play_events where user_id=${user} and event='mock_prompt_shown'`,
+  ).toHaveLength(1);
+});

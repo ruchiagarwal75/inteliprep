@@ -24,7 +24,7 @@ export default async function TopicPage({
       .map((row) => row.level),
     reviews = snapshot.reviews.find((row) => row.topic === id)?.count ?? 0;
   return (
-    <PlayShell userId={userId}>
+    <PlayShell userId={userId} snapshot={snapshot}>
       <Link className="practice-link" href="/play">
         All topics
       </Link>

@@ -1,3 +1,4 @@
+import { ageReadiness } from "./readiness-store";
 import { refreshStreak } from "./streak-store";
 import "server-only";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export async function playerSnapshot(userId: string) {
   return withPlayer(userId, async (sql) => {
     await ensurePlayer(sql, userId);
     await refreshStreak(sql, userId);
+    await ageReadiness(sql, userId);
     const [row] = await sql`select jsonb_build_object(
    'points',(select coalesce(sum(delta),0) from practice_game.points_ledger),
    'streak',s.current,'freezes',s.freezes_available,'level',p.chosen_level,'timeZone',p.time_zone,

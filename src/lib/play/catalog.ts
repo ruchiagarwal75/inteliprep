@@ -16,6 +16,8 @@ export const PLAY_TOPICS = [
     levels: RAG_LEVELS,
     placementLevels: [1, 2, 3],
     mockProblemId: "enterprise-rag-assistant",
+    practiceBadgeId: "rag-practice",
+    interviewBadgeId: "rag-interview",
   },
   {
     id: "chat-serving",
@@ -25,6 +27,8 @@ export const PLAY_TOPICS = [
     levels: [],
     placementLevels: [],
     mockProblemId: null,
+    practiceBadgeId: null,
+    interviewBadgeId: null,
   },
   {
     id: "agents",
@@ -35,6 +39,8 @@ export const PLAY_TOPICS = [
     levels: [],
     placementLevels: [],
     mockProblemId: null,
+    practiceBadgeId: null,
+    interviewBadgeId: null,
   },
   {
     id: "final-loop",
@@ -44,6 +50,8 @@ export const PLAY_TOPICS = [
     levels: [],
     placementLevels: [],
     mockProblemId: null,
+    practiceBadgeId: null,
+    interviewBadgeId: null,
   },
 ] as const;
 export const playTopic = (id: string) =>

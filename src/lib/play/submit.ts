@@ -1,3 +1,4 @@
+import { recordDrillReadiness } from "./readiness-store";
 import { rewardDrill, rewardRound } from "./rewards";
 import "server-only";
 import { randomUUID } from "node:crypto";
@@ -105,13 +106,18 @@ export async function submitRoundAnswer(
       if (review.kind === "schedule")
         await sql`insert into practice_game.review_queue(user_id,drill_id,topic,level,due_at,step) values(${userId},${attempt.drill_id},${attempt.topic},${attempt.level},${review.dueAt},${review.step}) on conflict(user_id,drill_id) do update set due_at=excluded.due_at,step=excluded.step,updated_at=now()`;
       const completed = await completeRound(sql, userId, attempt.session_id);
+      const readiness = await recordDrillReadiness(sql, userId, attempt.topic);
       const summary = completed
         ? await rewardRound(
             sql,
             userId,
             attempt.session_id,
-            completed,
-            rewards.badges,
+            {
+              ...completed,
+              practiceReadyNow: readiness.becamePracticeReady,
+              mockPrompt: readiness.prompt,
+            },
+            [...rewards.badges, ...readiness.badges],
           )
         : undefined;
       return { result, summary };

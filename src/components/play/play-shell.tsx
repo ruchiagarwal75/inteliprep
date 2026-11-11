@@ -5,6 +5,7 @@ import { CandidateAccountProvider } from "@/components/candidate-account-provide
 import { LegalLinks } from "@/components/legal-links";
 import { ModeNav } from "./mode-nav";
 import styles from "./play.module.css";
+import type { PlayerSnapshot } from "@/lib/play/player";
 import { playerSnapshot } from "@/lib/play/player";
 import { PlayerBootstrap } from "./player-bootstrap";
 export async function PlayShell({
@@ -13,16 +14,18 @@ export async function PlayShell({
   children,
   points,
   streak,
+  snapshot: suppliedSnapshot,
 }: {
   userId: string;
   active?: "play" | "mock" | "progress";
   children: ReactNode;
   points?: number;
   streak?: number;
+  snapshot?: PlayerSnapshot;
 }) {
   let unavailable = false;
   try {
-    const snapshot = await playerSnapshot(userId);
+    const snapshot = suppliedSnapshot ?? (await playerSnapshot(userId));
     points = snapshot.points;
     streak = snapshot.streak;
   } catch {

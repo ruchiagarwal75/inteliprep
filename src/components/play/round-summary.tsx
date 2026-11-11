@@ -1,3 +1,4 @@
+import { MockPrompt } from "./mock-prompt";
 import Link from "next/link";
 import type { RoundSummary } from "@/lib/play/public";
 import { Celebration } from "./celebration";
@@ -42,6 +43,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
           </ul>
         </>
       )}
+      {summary.mockPrompt && <MockPrompt {...summary.mockPrompt} />}
       <div className={styles.actions}>
         {summary.mode === "level" && summary.level !== null && (
           <StartRound
