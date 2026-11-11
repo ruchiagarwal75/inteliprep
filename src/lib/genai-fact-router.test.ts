@@ -33,6 +33,25 @@ it("returns every selected value once, in selection order", async () => {
     "There are 5M documents.\n\nThere are 20,000 employees.",
   );
 });
+it("returns only the new fact after earlier facts were already supplied", async () => {
+  model.mockResolvedValueOnce(result(["employees", "docs"]));
+  const answer = await genaiClarification(genaiEngineFixture(), "senior", [
+    { role: "user", content: "How many people will use it?" },
+    { role: "assistant", content: "There are 20,000 employees." },
+    { role: "user", content: "What's the size of the corpus?" },
+  ]);
+  expect(answer?.text).toBe("There are 5M documents.");
+  expect(answer?.text).not.toMatch(/20,000|confirm/iu);
+});
+it("keeps a useful invitation when every selected fact is already known", async () => {
+  model.mockResolvedValueOnce(result(["employees"]));
+  const answer = await genaiClarification(genaiEngineFixture(), "senior", [
+    { role: "assistant", content: "To confirm, there are 20,000 employees." },
+    { role: "user", content: "How many employees?" },
+  ]);
+  expect(answer?.text).toMatch(/requirement/iu);
+  expect(answer?.text).not.toMatch(/20,000|confirm/iu);
+});
 it("gives an explicit assumption invitation when no fact matches", async () => {
   model.mockResolvedValueOnce(result([], true));
   expect(

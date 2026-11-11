@@ -12,7 +12,11 @@ import type { InterviewLevel } from "@/lib/interview-selection";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import { modelSettings } from "@/lib/model-settings";
 import { boundedModelRequest } from "@/lib/model-request";
-import { genaiFact, genaiAssumptionReply } from "@/lib/genai-facts";
+import {
+  genaiFact,
+  genaiAssumptionReply,
+  disclosedGenaiFacts,
+} from "@/lib/genai-facts";
 
 export const GENAI_REPHRASE_REPLY = "Could you rephrase that?";
 
@@ -112,8 +116,18 @@ export async function genaiClarification(
       coveredCriteria: [],
     };
   if (selected.intent !== "facts") return;
-  const answer = genaiFact(problem, level, selected.factIds);
+  const disclosed = new Set(
+    disclosedGenaiFacts(problem, level, messages).map((fact) => fact.id),
+  );
+  const newIds = selected.factIds.filter((id) => !disclosed.has(id));
+  const answer = genaiFact(problem, level, newIds);
   const unspecified = selected.hasUnspecified;
+  if (!answer && !unspecified)
+    return {
+      text: genaiGeneralInvitation(messages),
+      complete: true,
+      coveredCriteria: [],
+    };
   const assumption =
     unspecified && genaiAssumptionReply(problem, level, messages);
   return {

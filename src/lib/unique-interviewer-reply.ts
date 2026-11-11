@@ -1,6 +1,5 @@
 import "server-only";
 import { formatDiagramLabels } from "@/lib/diagram-label-copy";
-import { exactSentences } from "@/lib/exact-sentences";
 import { GENAI_REPHRASE_REPLY } from "@/lib/genai-fact-router";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
@@ -31,25 +30,17 @@ export async function uniqueInterviewerReply(
     if (next) return next;
   }
   if (factual) {
-    const clarified = exactSentences(reply)
-      .map((sentence) => {
-        if (!repeatedInterviewerSentences(sentence, messages).length)
-          return sentence;
-        if (/[?？]\s*$/u.test(sentence)) return sentence;
-        return (
-          ["To confirm, ", "For this interview, ", "As clarified earlier, "]
-            .map(
-              (prefix) =>
-                prefix + sentence.charAt(0).toLowerCase() + sentence.slice(1),
-            )
-            .find(
-              (value) => !repeatedInterviewerSentences(value, messages).length,
-            ) ?? sentence
-        );
-      })
-      .join(" ");
-    if (!repeatedInterviewerSentences(clarified, messages).length)
-      return clarified;
+    const fresh = withoutRepeatedSentences(reply, messages).trim();
+    if (fresh) return fresh;
+    const invitation = [
+      "What would you like to clarify next?",
+      "Is there another requirement you'd like to check?",
+      "What else would help you set the requirements?",
+    ].find((text) => !repeatedInterviewerSentences(text, messages).length);
+    if (invitation) return invitation;
+    throw new Error(
+      "The interviewer couldn't produce a new reply. Please retry.",
+    );
   }
   const trimmed = withoutRepeatedSentences(reply, messages);
   if (

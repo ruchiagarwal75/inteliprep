@@ -31,16 +31,25 @@ it("rewrites a repeated factual reply without introducing a canned fallback", as
   ).toBe("The target remains 20,000 employees.");
 });
 
-it("keeps repeated configured facts exact without a provider request", async () => {
+it("drops repeated configured facts without a prefix or provider request", async () => {
   const reply = await uniqueInterviewerReply(
     "There are 20,000 employees. What else do you need?",
     [{ role: "assistant", content: "There are 20,000 employees." }],
     undefined,
     true,
   );
-  expect(reply).toBe(
-    "To confirm, there are 20,000 employees. What else do you need?",
-  );
+  expect(reply).toBe("What else do you need?");
+  expect(model).not.toHaveBeenCalled();
+});
+it("keeps only new facts in a mixed factual answer", async () => {
+  expect(
+    await uniqueInterviewerReply(
+      "There are 20,000 employees. There are 5M documents.",
+      [{ role: "assistant", content: "There are 20,000 employees." }],
+      undefined,
+      true,
+    ),
+  ).toBe("There are 5M documents.");
   expect(model).not.toHaveBeenCalled();
 });
 
