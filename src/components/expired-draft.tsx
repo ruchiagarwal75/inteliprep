@@ -12,7 +12,7 @@ export function ExpiredDraft({
   return (
     <section
       aria-label="Unsent answer at time limit"
-      className="shrink-0 border-t border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950"
+      className="border-warning bg-warning-soft shrink-0 border-t p-3"
     >
       <p role="alert" className="text-sm font-medium">
         Time is up. Your unsent answer is preserved.
@@ -33,7 +33,7 @@ export function ExpiredDraft({
           type="button"
           disabled={busy}
           onClick={onInclude}
-          className="bg-brand text-brand-foreground rounded px-3 py-2 text-sm disabled:opacity-40"
+          className="bg-brand text-brand-foreground disabled:bg-accent-soft disabled:text-foreground rounded px-3 py-2 text-sm disabled:opacity-100"
         >
           Include final answer and score
         </button>
@@ -41,7 +41,7 @@ export function ExpiredDraft({
           type="button"
           disabled={busy}
           onClick={onSkip}
-          className="rounded border px-3 py-2 text-sm disabled:opacity-40"
+          className="disabled:bg-accent-soft disabled:text-foreground rounded border px-3 py-2 text-sm disabled:opacity-100"
         >
           Score without this answer
         </button>

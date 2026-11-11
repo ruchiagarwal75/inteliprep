@@ -7,6 +7,7 @@ import { CandidateInviteError } from "@/lib/candidate-invites";
 import { problemBriefs } from "@/lib/problems";
 import { CandidateWorkspace } from "@/components/candidate-workspace";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { PracticeHero } from "@/components/practice-hero";
 import { PracticeIcon } from "@/components/practice-icons";
@@ -24,8 +25,16 @@ export async function PracticePage({
     if (cause instanceof CandidateInviteError) redirect("/not-invited");
     if (!(cause instanceof CandidateAuthError)) throw cause;
     return (
-      <main className="p-6" role="alert">
-        Sign-in is temporarily unavailable. Please try again later.
+      <main className="practice-page">
+        <div className="practice-shell">
+          <header className="practice-nav">
+            <Brand />
+            <ThemeToggle />
+          </header>
+          <p role="alert">
+            Sign-in is temporarily unavailable. Please try again later.
+          </p>
+        </div>
       </main>
     );
   }
@@ -37,6 +46,7 @@ export async function PracticePage({
           <header className="practice-nav">
             <Brand />
             <div className="practice-account-actions">
+              <ThemeToggle />
               <Link className="practice-link" href="/sign-in">
                 Sign in
               </Link>

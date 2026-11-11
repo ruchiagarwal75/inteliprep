@@ -56,7 +56,7 @@ export function ChatComposer({
             : "Start an interview to chat"
         }
         aria-label="Message"
-        className="min-w-0 flex-1 resize-y rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-black/40 dark:border-white/20 dark:focus:border-white/50"
+        className="border-border focus:border-border min-w-0 flex-1 resize-y rounded-md border px-3 py-2 text-sm outline-none"
       />
       <button
         type="submit"
@@ -69,7 +69,7 @@ export function ChatComposer({
         <p
           id="draft-length-hint"
           role="status"
-          className="w-full text-xs text-black/60 dark:text-white/60"
+          className="text-muted w-full text-xs"
         >
           Message limit reached (8,000 characters). Shorten your message to add
           more.

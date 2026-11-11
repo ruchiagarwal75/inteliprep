@@ -3,7 +3,7 @@
   max-width: calc(var(--page-width) + var(--space-8));
   margin-inline: auto;
   background: var(--navy);
-  color: var(--cream);
+  color: var(--foreground);
   padding: var(--space-3) var(--space-4);
   gap: var(--space-2);
   --brand: var(--teal);
@@ -52,8 +52,6 @@ body:has(.interview-page) {
 .chat-panel,
 .whiteboard-panel {
   overflow: hidden;
-  --background: var(--cream);
-  --foreground: var(--ink);
 }
 .whiteboard-heading {
   display: flex;
@@ -139,8 +137,8 @@ body:has(.interview-page) {
   border: 1px solid var(--paper-line);
 }
 .chat-message-user .chat-bubble {
-  background: var(--teal-deep);
-  color: var(--white);
+  background: var(--bubble-user-bg);
+  color: var(--bubble-user-text);
   border-color: var(--teal-deep);
 }
 .interviewer-identity {
@@ -176,11 +174,10 @@ body:has(.interview-page) {
   font-size: 0.8125rem;
   line-height: 1.5;
 }
-.interview-pacing .practice-primary,
 .interview-pacing .interview-dialog {
   background: var(--cream);
   color: var(--ink);
-  color-scheme: light;
+  color-scheme: inherit;
   border: 1px solid var(--paper-line);
   border-radius: var(--corner-large);
 }
@@ -245,7 +242,7 @@ body:has(.interview-page) {
   .interview-page > [role="tablist"] button {
     flex: 1;
     border: 0;
-    color: var(--cream);
+    color: var(--foreground);
   }
   .interview-page > [role="tablist"] [aria-selected="true"] {
     background: var(--cream);
@@ -282,5 +279,27 @@ body:has(.interview-page) {
   }
   .skeleton-live-title .skeleton-copy + .skeleton-copy {
     height: 12px;
+  }
+}
+
+/* Keep the timer, theme switch and account controls distinct on narrow phones. */
+@media (max-width: 599px) {
+  .live-header {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .live-header .live-identity,
+  .live-header .live-controls,
+  .live-header > div:has([aria-label="Interview stage"]) {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .live-header .live-controls {
+    justify-content: space-between;
+    gap: 4px;
+  }
+  .live-header .live-controls > div:has([role="timer"]) {
+    flex-basis: 100%;
+    margin-bottom: var(--space-1);
   }
 }

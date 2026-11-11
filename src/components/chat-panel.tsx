@@ -260,10 +260,7 @@ export function ChatPanel(props: ChatPanelProps) {
         transcript
       )}
       {ending.isEnding && !hasEnded && (
-        <p
-          role="status"
-          className="border-t border-black/10 p-3 text-sm dark:border-white/15"
-        >
+        <p role="status" className="border-border border-t p-3 text-sm">
           Your interview has ended. Reviewing your answers and final diagram…
         </p>
       )}

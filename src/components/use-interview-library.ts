@@ -137,7 +137,7 @@ export function useInterviewLibrary(
         // Clear send-time scene data before remounting Excalidraw with an empty board.
         restoreScene({
           elements: [],
-          appState: { viewBackgroundColor: "#ffffff" },
+          appState: { viewBackgroundColor: "" },
           files: {},
         });
         setOpened(undefined);

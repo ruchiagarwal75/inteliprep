@@ -35,7 +35,7 @@ export function InterviewDialog({
         onClose();
       }}
       onClose={onClose}
-      className="interview-dialog m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain p-5 backdrop:bg-black/40"
+      className="interview-dialog backdrop:bg-backdrop m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain p-5"
       aria-label={title}
     >
       <div className="mb-4 flex items-center justify-between gap-3">

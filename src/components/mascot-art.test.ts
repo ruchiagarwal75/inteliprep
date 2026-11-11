@@ -11,7 +11,7 @@ import { scorecardFixture } from "@/lib/fixtures/scorecard-test";
 it.each([
   [
     "mascotArt.ts",
-    "d3975ce449c99f5c7081c1715b91218202d1907eeaebd06150724191631fcaa4",
+    "d48c5794505c3871abe20310d3fb016b68a3a120f8f7de9ba3433b345b7525b5",
   ],
   [
     "Mascot.tsx",
@@ -21,8 +21,15 @@ it.each([
     "mascot.css",
     "72fd8b4e0bec76133b227dbfc01759edff3b78e2d1b9d3dedb8d828ade8b9bac",
   ],
-])("preserves the supplied %s byte for byte", (file, hash) => {
-  const source = readFileSync(`src/components/mascot-art/${file}`);
+])("preserves supplied %s artwork, allowing color tokens", (file, hash) => {
+  const original = readFileSync(`src/components/mascot-art/${file}`, "utf8");
+  // Only SVG paints moved to theme.css. The normalized hash still checks every path and pose.
+  const source =
+    file === "mascotArt.ts"
+      ? original
+          .replace(/var\(--mascot-color-([a-f0-9]+)\)/gu, "#$1")
+          .replace(/#[a-f0-9]{3,8}\b/giu, (color) => color.toLowerCase())
+      : original;
   expect(createHash("sha256").update(source).digest("hex")).toBe(hash);
 });
 it("uses the supplied wave, typing and done artwork", () => {
@@ -31,7 +38,7 @@ it("uses the supplied wave, typing and done artwork", () => {
   expect(render("wave")).toContain('class="mm-wave"');
   expect(render("working")).toContain('class="mm-ty"');
   expect(render("done")).toContain('class="mm-cheer"');
-  expect(render("wave")).toContain('stroke="#E8B84A"');
+  expect(render("wave")).toContain('stroke="var(--mascot-color-e8b84a)"');
   expect(render("wave")).toContain('viewBox="0 0 220 240"');
 });
 it("renders nothing before Home and results are ready on the client", () => {

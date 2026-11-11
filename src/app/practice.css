@@ -1,7 +1,7 @@
 .practice-page {
   min-height: 100dvh;
   background: var(--navy);
-  color: var(--cream);
+  color: var(--foreground);
   padding: var(--space-3) var(--space-4) var(--space-6);
   --brand: var(--teal);
   --brand-foreground: var(--white);
@@ -18,14 +18,14 @@
   padding: var(--space-1) var(--space-2);
 }
 .practice-nav .quiet-signout {
-  color: var(--cream);
+  color: var(--foreground);
   border-color: var(--navy-line);
   padding: var(--space-1) var(--space-2);
   font-size: 0.875rem;
   background: var(--transparent);
 }
 .practice-nav a {
-  color: var(--cream);
+  color: var(--foreground);
   font-size: 0.875rem;
   text-underline-offset: 4px;
 }
@@ -36,7 +36,7 @@
   text-transform: uppercase;
 }
 .practice-eyebrow {
-  color: var(--amber-soft);
+  color: var(--warning-text);
   margin-bottom: var(--space-2);
 }
 .section-heading {
@@ -88,7 +88,7 @@
 .practice-note {
   margin-top: var(--space-3);
   padding-inline: var(--space-2);
-  color: var(--cream);
+  color: var(--foreground);
   font-size: 0.75rem;
   line-height: 1.7;
 }

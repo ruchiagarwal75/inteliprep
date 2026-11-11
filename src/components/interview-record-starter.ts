@@ -41,7 +41,7 @@ export function interviewRecordStarter({
     const scene: WhiteboardScene = replace
       ? {
           elements: [],
-          appState: { viewBackgroundColor: "#ffffff" },
+          appState: { viewBackgroundColor: "" },
           files: {},
         }
       : getScene();

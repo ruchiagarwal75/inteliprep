@@ -1,45 +1,79 @@
+/* All application and illustration colors are defined here. Light is the default. */
 :root {
-  /* Palette: a night sky, warm paper, evergreen ink and lamplight. */
-  --navy: #0b1220;
-  --navy-soft: #142636;
-  --navy-line: #435563;
-  --cream: #f4f1ea;
-  --cream-raised: #fcfaf5;
-  --amber: #f5b94a;
-  --amber-soft: #f6e3b4;
-  --amber-ink: #62420e;
-  --teal: #0f766e;
-  --teal-deep: #0a554f;
-  --teal-light: #5eead4;
-  --teal-soft: #dcebe5;
-  --ink: #182d36;
-  --ink-muted: #52636b;
-  --paper-line: #d4d8d0;
-  --control-line: #788984;
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #17212f;
+  --surface: #f4f6f8;
+  --surface-raised: #ffffff;
+  --surface-inset: #eaf0f4;
+  --muted: #4b5c6d;
+  --border: #d8e0e7;
+  --border-strong: #788894;
+  --accent: #0f766e;
+  --accent-hover: #0a554f;
+  --accent-text: #0a5f59;
+  --accent-soft: #e1f1ed;
+  --on-accent: #ffffff;
+  --focus-ring: #0f766e;
+  --warning-bg: #fff2cc;
+  --warning-text: #70480a;
+  --danger: #a12a28;
+  --danger-soft: #fff0ef;
+  --info-bg: #e7f1ff;
+  --info-text: #204d7a;
+  --bubble-user-bg: #0a554f;
+  --bubble-user-text: #ffffff;
+  --canvas-background: #ffffff;
+  --diagram-export-background: #ffffff;
   --white: #ffffff;
-  --danger: #9b352c;
-  --arch-panel: #141c30;
-  --arch-grid: #2a3b63;
-  --arch-line: #3a4f7c;
-  --arch-server: #22335a;
-  --arch-server-stroke: #4a6598;
+  --transparent: transparent;
+  --backdrop: #00000066;
+  --shadow-card: 0 8px 28px #17212f0f;
+  --arch-panel: #f0f5f9;
+  --arch-grid: #cbd9e5;
+  --arch-line: #72879c;
+  --arch-server: #d6e3f2;
+  --arch-server-stroke: #587296;
+  --arch-label: #40546e;
+  --arch-caption: #30465d;
+  --arch-moon: #806018;
+  --arch-star: #806018;
+  --arch-ink: #2b1b3a;
   --arch-amber: #f5b94a;
   --arch-coral: #ff8a6b;
   --arch-teal: #5eead4;
   --arch-db: #2fb5a3;
   --arch-db-top: #7fe3d3;
   --arch-cream: #f6efe0;
-  --arch-label: #a8b5d1;
-  --arch-moon: #f6e3b4;
+  --arch-purple: #b9a7ff;
+  --arch-peach: #ffc9a8;
+  --arch-stress: #ff6b6b;
+  --arch-stress-top: #ff9a9a;
+  --arch-pink: #ff8fa8;
+  --arch-cape: #e0664a;
+  --arch-water: #8fd3ff;
   --arch-radius: 12px;
-  --mascot-hair: #263044;
-  --mascot-skin: #e5ad86;
-  --mascot-cheek: #cc7d68;
   --mascot-size: 100px;
   --mascot-home-size: 112px;
   --mascot-working-size: 80px;
-  --transparent: transparent;
-
+  --navy: var(--background);
+  --navy-soft: var(--surface-inset);
+  --navy-line: var(--border-strong);
+  --cream: var(--surface);
+  --cream-raised: var(--surface-raised);
+  --ink: var(--foreground);
+  --ink-muted: var(--muted);
+  --paper-line: var(--border);
+  --control-line: var(--border-strong);
+  --teal: var(--accent);
+  --teal-deep: var(--accent-text);
+  --teal-soft: var(--accent-soft);
+  --teal-light: var(--accent-text);
+  --amber: #f5b94a;
+  --amber-soft: var(--warning-bg);
+  --amber-ink: var(--warning-text);
+  --brand: var(--accent);
+  --brand-foreground: var(--on-accent);
   /* Layout spacing is an eight-pixel rhythm. */
   --space-1: 8px;
   --space-2: 16px;
@@ -76,7 +110,7 @@
   transition: background-color 160ms ease;
 }
 .practice-primary:hover {
-  background: var(--teal-deep);
+  background: var(--accent-hover);
 }
 .practice-primary:disabled {
   opacity: 0.6;
@@ -89,7 +123,7 @@
   border-radius: var(--corner-large);
   background: var(--cream);
   color: var(--ink);
-  color-scheme: light;
+  color-scheme: inherit;
 }
 .practice-surface {
   position: relative;
@@ -158,7 +192,7 @@
   padding: 10px 16px;
   border: 1px solid var(--control-line);
   border-radius: var(--corner-small);
-  background: transparent;
+  background: var(--transparent);
   color: var(--teal-deep);
   font: 500 0.875rem/1.3 var(--font-ui);
   text-decoration: none;
@@ -188,4 +222,115 @@
   flex: none;
   margin-top: 4px;
   accent-color: var(--teal);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0b1220;
+  --foreground: #eef3f8;
+  --surface: #142136;
+  --surface-raised: #1b2b42;
+  --surface-inset: #101c2d;
+  --muted: #b4c2d1;
+  --border: #41536a;
+  --border-strong: #899bb0;
+  --accent-text: #7fe3d3;
+  --accent-soft: #123d39;
+  --focus-ring: #5eead4;
+  --warning-bg: #3b2c16;
+  --warning-text: #ffda8a;
+  --danger: #ffb4ab;
+  --danger-soft: #481f28;
+  --info-bg: #172e50;
+  --info-text: #b8d9ff;
+  --backdrop: #00000099;
+  --shadow-card: 0 8px 28px #00000033;
+  --arch-panel: #141c30;
+  --arch-grid: #2a3b63;
+  --arch-line: #3a4f7c;
+  --arch-server: #22335a;
+  --arch-server-stroke: #4a6598;
+  --arch-label: #a8b5d1;
+  --arch-caption: #e4eaf6;
+  --arch-moon: #f6e3b4;
+  --arch-star: #f6efe0;
+}
+
+.header-controls {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+.theme-toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--corner-small);
+  background: var(--surface-raised);
+  color: var(--foreground);
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  background: var(--accent-soft);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+.sign-in-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+}
+
+/* Fixed character pigments keep the mascot recognizable in both themes. */
+:root {
+  --mascot-color-1e2b45: #1e2b45;
+  --mascot-color-221c30: #221c30;
+  --mascot-color-2b1b1a: #2b1b1a;
+  --mascot-color-2b2438: #2b2438;
+  --mascot-color-2fb5a3: #2fb5a3;
+  --mascot-color-3fbfae: #3fbfae;
+  --mascot-color-4b4266: #4b4266;
+  --mascot-color-5eead4: #5eead4;
+  --mascot-color-6a5e8e: #6a5e8e;
+  --mascot-color-7a2e45: #7a2e45;
+  --mascot-color-7a4a2e: #7a4a2e;
+  --mascot-color-8fa0c4: #8fa0c4;
+  --mascot-color-8fd3ff: #8fd3ff;
+  --mascot-color-c9d3e8: #c9d3e8;
+  --mascot-color-cfd8ea: #cfd8ea;
+  --mascot-color-d9cfb8: #d9cfb8;
+  --mascot-color-e39f7b: #e39f7b;
+  --mascot-color-e3a07c: #e3a07c;
+  --mascot-color-e8b84a: #e8b84a;
+  --mascot-color-f0be98: #f0be98;
+  --mascot-color-f5b94a: #f5b94a;
+  --mascot-color-f6efe0: #f6efe0;
+  --mascot-color-ff8a6b: #ff8a6b;
+  --mascot-color-ff8fa8: #ff8fa8;
+  --mascot-color-fff: #fff;
+  --mascot-hair: var(--mascot-color-2b2438);
+  --mascot-skin: var(--mascot-color-f0be98);
+  --mascot-cheek: var(--mascot-color-e3a07c);
+}
+
+/* Disabled controls remain legible instead of fading the entire label. */
+:where(button, input, select, textarea):disabled {
+  opacity: 1;
+  color: var(--muted);
+  background-color: var(--surface-inset);
+  border-color: var(--border);
 }

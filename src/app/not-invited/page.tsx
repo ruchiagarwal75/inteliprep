@@ -1,5 +1,6 @@
 import { candidateIdentity } from "@/lib/candidate-auth";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { InviteSignOut } from "@/components/invite-sign-out";
 
@@ -9,7 +10,10 @@ export default async function NotInvitedPage() {
   return (
     <main className="practice-page">
       <div className="practice-shell">
-        <Brand />
+        <header className="practice-nav">
+          <Brand />
+          <ThemeToggle />
+        </header>
         <section className="practice-surface welcome-note">
           <h1>You&apos;re not invited yet</h1>
           <p>

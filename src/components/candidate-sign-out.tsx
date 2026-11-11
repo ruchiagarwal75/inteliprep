@@ -30,7 +30,7 @@ export function CandidateSignOut({ save }: { save: () => Promise<void> }) {
         type="button"
         disabled={busy}
         onClick={() => void leave()}
-        className="quiet-signout rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-900 disabled:opacity-60 dark:border-white/50 dark:text-white"
+        className="quiet-signout border-border text-muted disabled:bg-accent-soft disabled:text-foreground rounded border px-2 py-1 text-xs font-medium disabled:opacity-100"
       >
         {busy ? "Signing out…" : "Sign out"}
       </button>

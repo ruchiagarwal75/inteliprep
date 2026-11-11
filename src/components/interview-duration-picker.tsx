@@ -19,7 +19,7 @@ export function InterviewDurationPicker({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="bg-background rounded-md border border-black/15 px-3 py-2 disabled:opacity-70 dark:border-white/20"
+        className="bg-background border-border rounded-md border px-3 py-2 disabled:opacity-70"
       >
         <option value={45}>45 minutes</option>
         <option value={60}>1 hour</option>

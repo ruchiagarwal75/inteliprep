@@ -7,6 +7,7 @@ import { PNG_FIXTURE, whiteboardFixture } from "@/lib/fixtures/whiteboard-test";
 
 const mocks = vi.hoisted(() => ({ exportToBlob: vi.fn() }));
 vi.mock("@excalidraw/excalidraw", () => mocks);
+vi.mock("@/lib/theme-colors", () => ({ themeColor: () => "#ffffff" }));
 const { exportWhiteboardImage } = await import("@/lib/whiteboard-image");
 const png = () =>
   new Blob(
@@ -30,12 +31,28 @@ describe("exportWhiteboardImage", () => {
         mimeType: "image/png",
         maxWidthOrHeight: 1280,
         appState: expect.objectContaining({
+          theme: "light",
+          viewBackgroundColor: "#ffffff",
+          exportWithDarkMode: false,
           exportBackground: true,
           exportEmbedScene: false,
           exportScale: 1,
         }),
       }),
     );
+  });
+
+  it("overrides a saved dark canvas without mutating the scene or viewport", async () => {
+    const board = whiteboardFixture();
+    board.appState.viewBackgroundColor = "#141c30";
+    const original = structuredClone(board);
+    await exportWhiteboardImage(board);
+    expect(mocks.exportToBlob.mock.calls[0][0].appState).toMatchObject({
+      theme: "light",
+      viewBackgroundColor: "#ffffff",
+      exportWithDarkMode: false,
+    });
+    expect(board).toEqual(original);
   });
 
   it("reduces oversized exports before attaching them", async () => {

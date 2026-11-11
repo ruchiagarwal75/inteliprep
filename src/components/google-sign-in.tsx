@@ -37,12 +37,12 @@ export function GoogleSignIn({
         type="button"
         disabled={busy}
         onClick={() => void signIn()}
-        className="bg-brand text-brand-foreground rounded-lg px-5 py-3 font-medium disabled:opacity-60"
+        className="bg-brand text-brand-foreground disabled:bg-accent-soft disabled:text-foreground rounded-lg px-5 py-3 font-medium disabled:opacity-100"
       >
         {busy ? "Opening Google…" : "Continue with Google"}
       </button>
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="text-danger mt-3 text-sm">
           {error === "connection"
             ? "The sign-in service is temporarily unavailable. Please try again."
             : "Sign-in couldn’t be completed. Please try again."}

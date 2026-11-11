@@ -44,7 +44,7 @@ export function InterviewSetup({
   return (
     <section
       aria-label="Interview setup"
-      className="shrink-0 rounded-lg border border-black/10 px-3 py-2 dark:border-white/15"
+      className="border-border shrink-0 rounded-lg border px-3 py-2"
     >
       {interview ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -52,7 +52,7 @@ export function InterviewSetup({
             <h1 className="truncate text-sm font-semibold">
               {selected?.title}
             </h1>
-            <p className="text-xs text-black/60 dark:text-white/60">
+            <p className="text-muted text-xs">
               {INTERVIEW_LEVEL_LABELS[interview.level]} ·{" "}
               {interview.timing?.durationMinutes ?? 45}{" "}
               {interview.timing?.durationMinutes === 1 ? "minute" : "minutes"} ·{" "}
@@ -64,7 +64,7 @@ export function InterviewSetup({
               type="button"
               disabled={disabled || isStarting}
               onClick={onChangeProblem}
-              className="rounded border px-3 py-1.5 text-xs disabled:opacity-40"
+              className="disabled:bg-accent-soft disabled:text-foreground rounded border px-3 py-1.5 text-xs disabled:opacity-100"
             >
               Change problem
             </button>
@@ -72,7 +72,7 @@ export function InterviewSetup({
               type="button"
               disabled={disabled || isStarting}
               onClick={onNew}
-              className="bg-brand text-brand-foreground rounded px-3 py-1.5 text-xs disabled:opacity-40"
+              className="bg-brand text-brand-foreground disabled:bg-accent-soft disabled:text-foreground rounded px-3 py-1.5 text-xs disabled:opacity-100"
             >
               {isStarting ? "Starting…" : "New 45-minute interview"}
             </button>
@@ -98,7 +98,7 @@ export function InterviewSetup({
               onChange={(event) =>
                 onChoice({ ...choice, problemId: event.target.value })
               }
-              className="bg-background rounded border px-2 py-2 text-sm disabled:opacity-40"
+              className="bg-background disabled:bg-accent-soft disabled:text-foreground rounded border px-2 py-2 text-sm disabled:opacity-100"
             >
               {(
                 [
@@ -136,7 +136,7 @@ export function InterviewSetup({
                   level: interviewLevelSchema.parse(event.target.value),
                 })
               }
-              className="bg-background rounded border px-2 py-2 text-sm disabled:opacity-40"
+              className="bg-background disabled:bg-accent-soft disabled:text-foreground rounded border px-2 py-2 text-sm disabled:opacity-100"
             >
               {selected?.levels.map((level) => (
                 <option key={level} value={level}>
@@ -159,7 +159,7 @@ export function InterviewSetup({
             <button
               type="submit"
               disabled={!selected || disabled || isStarting}
-              className="bg-brand text-brand-foreground rounded px-4 py-2 text-sm disabled:opacity-40"
+              className="bg-brand text-brand-foreground disabled:bg-accent-soft disabled:text-foreground rounded px-4 py-2 text-sm disabled:opacity-100"
             >
               {isStarting ? "Starting…" : "Start interview"}
             </button>
@@ -167,7 +167,7 @@ export function InterviewSetup({
         </form>
       )}
       {error && (
-        <p role="alert" className="mt-2 text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="text-danger mt-2 text-xs">
           {error}
         </p>
       )}

@@ -2,7 +2,9 @@
 
 import { configureWhiteboardAssets } from "@/lib/whiteboard-assets";
 import dynamic from "next/dynamic";
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
+import { useTheme } from "@/components/theme-provider";
+import { themeColor } from "@/lib/theme-colors";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import "@excalidraw/excalidraw/index.css";
 
@@ -16,7 +18,7 @@ const Excalidraw = dynamic(
     loading: () => (
       <div
         role="status"
-        className="flex h-full items-center justify-center text-sm text-black/50 dark:text-white/50"
+        className="text-muted flex h-full items-center justify-center text-sm"
       >
         Loading whiteboard…
       </div>
@@ -31,6 +33,10 @@ type WhiteboardProps = {
   initialScene?: WhiteboardScene;
 };
 
+const subscribePalette = () => () => {};
+const canvasColor = () => themeColor("--canvas-background");
+const serverColor = () => undefined;
+
 export function Whiteboard({
   onChange,
   onInitialize,
@@ -38,6 +44,13 @@ export function Whiteboard({
   initialScene,
 }: WhiteboardProps) {
   const initialized = useRef(false);
+  const savedBackground = useRef(initialScene?.appState.viewBackgroundColor);
+  const { theme } = useTheme();
+  const background = useSyncExternalStore(
+    subscribePalette,
+    canvasColor,
+    serverColor,
+  );
   return (
     <section
       aria-label="Whiteboard"
@@ -50,55 +63,53 @@ export function Whiteboard({
         </h2>
       </header>
       <div className="min-h-0 flex-1">
-        <Excalidraw
-          theme="light"
-          UIOptions={{
-            canvasActions: {
-              toggleTheme: false,
-              changeViewBackgroundColor: false,
-              loadScene: false,
-              saveToActiveFile: false,
-            },
-          }}
-          initialData={{
-            ...initialScene,
-            appState: {
-              ...initialScene?.appState,
-              viewBackgroundColor:
-                !initialScene?.appState.viewBackgroundColor ||
-                /^#(?:fff|ffffff)$/iu.test(
-                  initialScene.appState.viewBackgroundColor,
-                )
-                  ? "#f4f1ea"
-                  : initialScene.appState.viewBackgroundColor,
-            },
-            scrollToContent:
-              Boolean(
-                initialScene?.elements.some((element) => !element.isDeleted),
-              ) &&
-              (readOnly || !initialScene?.appState.zoom),
-          }}
-          viewModeEnabled={readOnly}
-          onChange={(elements, appState, files) => {
-            if (readOnly && initialized.current) return;
-            const scene = {
-              elements,
-              // Keep serializable drawing settings, not transient editor state.
-              appState: {
-                viewBackgroundColor: appState.viewBackgroundColor,
-                scrollX: appState.scrollX,
-                scrollY: appState.scrollY,
-                zoom: appState.zoom,
+        {background && (
+          <Excalidraw
+            theme={theme}
+            UIOptions={{
+              canvasActions: {
+                toggleTheme: false,
+                changeViewBackgroundColor: false,
+                loadScene: false,
+                saveToActiveFile: false,
               },
-              files,
-            };
-            // Excalidraw normalizes initial data before its first callback.
-            if (!initialized.current) {
-              initialized.current = true;
-              onInitialize(scene);
-            } else onChange(scene);
-          }}
-        />
+            }}
+            initialData={{
+              ...initialScene,
+              appState: {
+                ...initialScene?.appState,
+                // Excalidraw applies its native dark filter to the white canvas.
+                viewBackgroundColor: background,
+              },
+              scrollToContent:
+                Boolean(
+                  initialScene?.elements.some((element) => !element.isDeleted),
+                ) &&
+                (readOnly || !initialScene?.appState.zoom),
+            }}
+            viewModeEnabled={readOnly}
+            onChange={(elements, appState, files) => {
+              if (readOnly && initialized.current) return;
+              const scene = {
+                elements,
+                // Keep serializable drawing settings, not transient editor state.
+                appState: {
+                  // Display theme changes must not change saved drawing content.
+                  viewBackgroundColor: savedBackground.current || background,
+                  scrollX: appState.scrollX,
+                  scrollY: appState.scrollY,
+                  zoom: appState.zoom,
+                },
+                files,
+              };
+              // Excalidraw normalizes initial data before its first callback.
+              if (!initialized.current) {
+                initialized.current = true;
+                onInitialize(scene);
+              } else onChange(scene);
+            }}
+          />
+        )}
       </div>
     </section>
   );

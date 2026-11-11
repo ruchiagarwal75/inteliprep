@@ -6,6 +6,7 @@ import {
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Pose } from "@/components/mascot-art/mascotArt";
 import { MascotAppearance } from "@/components/mascot-appearance";
 
@@ -45,7 +46,10 @@ export function MascotPreview() {
   return (
     <main className="practice-page">
       <div className="practice-shell">
-        <Link href="/">Back to MockMeAI</Link>
+        <header className="practice-nav">
+          <Link href="/">Back to MockMeAI</Link>
+          <ThemeToggle />
+        </header>
         <div className="mt-4">
           <MascotToggle />
         </div>

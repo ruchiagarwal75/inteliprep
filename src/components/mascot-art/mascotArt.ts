@@ -5,20 +5,20 @@
 export type Pose = 'wave' | 'working' | 'done';
 
 const C = {
-  hair: '#2B2438',
-  hairD: '#221C30',
-  hairL: '#6A5E8E',
-  hairLD: '#4B4266',
-  skin: '#F0BE98',
-  skinD: '#E3A07C',
-  mint: '#5EEAD4',
-  mintD: '#3FBFAE',
-  gold: '#E8B84A',
-  amb: '#F5B94A',
-  coral: '#FF8A6B',
-  ink: '#2B1B1A',
-  cream: '#F6EFE0',
-  pink: '#FF8FA8',
+  hair: 'var(--mascot-color-2b2438)',
+  hairD: 'var(--mascot-color-221c30)',
+  hairL: 'var(--mascot-color-6a5e8e)',
+  hairLD: 'var(--mascot-color-4b4266)',
+  skin: 'var(--mascot-color-f0be98)',
+  skinD: 'var(--mascot-color-e3a07c)',
+  mint: 'var(--mascot-color-5eead4)',
+  mintD: 'var(--mascot-color-3fbfae)',
+  gold: 'var(--mascot-color-e8b84a)',
+  amb: 'var(--mascot-color-f5b94a)',
+  coral: 'var(--mascot-color-ff8a6b)',
+  ink: 'var(--mascot-color-2b1b1a)',
+  cream: 'var(--mascot-color-f6efe0)',
+  pink: 'var(--mascot-color-ff8fa8)',
 };
 
 const STAR = 'M0 -8 L2.4 -2.4 L8 0 L2.4 2.4 L0 8 L-2.4 2.4 L-8 0 L-2.4 -2.4 Z';
@@ -105,7 +105,7 @@ function face(m: 'normal' | 'focus' | 'happy'): string {
       : 'M76 105 Q88 96 102 102 M118 102 Q132 96 144 105';
   return (
     '<path d="' + b + '" fill="none" stroke="' + C.ink + '" stroke-width="3.6" stroke-linecap="round"/>' +
-    '<ellipse cx="110" cy="140" rx="3.4" ry="2.6" fill="#E39F7B"/><circle cx="109" cy="139" r="0.9" fill="#fff" opacity="0.7"/>' +
+    '<ellipse cx="110" cy="140" rx="3.4" ry="2.6" fill="var(--mascot-color-e39f7b)"/><circle cx="109" cy="139" r="0.9" fill="var(--mascot-color-fff)" opacity="0.7"/>' +
     '<ellipse cx="78" cy="147" rx="7" ry="4" fill="' + C.pink + '" opacity="0.55"/>' +
     '<ellipse cx="142" cy="147" rx="7" ry="4" fill="' + C.pink + '" opacity="0.55"/>'
   );
@@ -116,11 +116,11 @@ function eye1(cx: number, dy: number): string {
   const cy = 126;
   return (
     '<g class="mm-eye">' +
-    '<ellipse cx="' + cx + '" cy="' + cy + '" rx="9.5" ry="10.5" fill="#fff"/>' +
-    '<circle cx="' + cx + '" cy="' + (cy + dy) + '" r="7" fill="#7A4A2E"/>' +
+    '<ellipse cx="' + cx + '" cy="' + cy + '" rx="9.5" ry="10.5" fill="var(--mascot-color-fff)"/>' +
+    '<circle cx="' + cx + '" cy="' + (cy + dy) + '" r="7" fill="var(--mascot-color-7a4a2e)"/>' +
     '<circle cx="' + cx + '" cy="' + (cy + dy) + '" r="3.4" fill="' + C.ink + '"/>' +
-    '<circle cx="' + (cx + 2.6) + '" cy="' + (cy + dy - 3) + '" r="2.5" fill="#fff"/>' +
-    '<circle cx="' + (cx - 2.6) + '" cy="' + (cy + dy + 3) + '" r="1.2" fill="#fff"/>' +
+    '<circle cx="' + (cx + 2.6) + '" cy="' + (cy + dy - 3) + '" r="2.5" fill="var(--mascot-color-fff)"/>' +
+    '<circle cx="' + (cx - 2.6) + '" cy="' + (cy + dy + 3) + '" r="1.2" fill="var(--mascot-color-fff)"/>' +
     '<path d="M' + (cx - 10) + ' ' + (cy - 3) + ' Q' + cx + ' ' + (cy - 15) + ' ' + (cx + 10) + ' ' + (cy - 3) +
     '" fill="none" stroke="' + C.ink + '" stroke-width="2.6" stroke-linecap="round"/>' +
     '</g>'
@@ -137,19 +137,19 @@ function eyes(m: 'open' | 'down' | 'happy'): string {
 
 // Big round gold glasses. glow = true gives teal glowing lenses (laptop light).
 function glasses(glow: boolean): string {
-  const f = glow ? C.mint : '#fff';
+  const f = glow ? C.mint : 'var(--mascot-color-fff)';
   const o = glow ? 0.35 : 0.12;
   return (
     '<circle cx="90" cy="126" r="17" fill="' + f + '" fill-opacity="' + o + '" stroke="' + C.gold + '" stroke-width="3.4"/>' +
     '<circle cx="130" cy="126" r="17" fill="' + f + '" fill-opacity="' + o + '" stroke="' + C.gold + '" stroke-width="3.4"/>' +
     '<path d="M107 124 Q110 120 113 124 M73 123 L66 121 M147 123 L154 121" fill="none" stroke="' + C.gold + '" stroke-width="3.4" stroke-linecap="round"/>' +
-    '<path d="M78 118 Q82 111 90 110 M118 118 Q122 111 130 110" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity="0.85"/>'
+    '<path d="M78 118 Q82 111 90 110 M118 118 Q122 111 130 110" fill="none" stroke="var(--mascot-color-fff)" stroke-width="2.6" stroke-linecap="round" opacity="0.85"/>'
   );
 }
 
 function mouth(k: 'o' | 'big'): string {
-  if (k === 'o') return '<ellipse cx="110" cy="153" rx="3.6" ry="4.4" fill="#7A2E45"/>';
-  return '<path d="M101 148 Q110 162 119 148 Z" fill="#7A2E45"/><ellipse cx="110" cy="156" rx="4" ry="2.2" fill="#FF8FA8"/>';
+  if (k === 'o') return '<ellipse cx="110" cy="153" rx="3.6" ry="4.4" fill="var(--mascot-color-7a2e45)"/>';
+  return '<path d="M101 148 Q110 162 119 148 Z" fill="var(--mascot-color-7a2e45)"/><ellipse cx="110" cy="156" rx="4" ry="2.2" fill="var(--mascot-color-ff8fa8)"/>';
 }
 
 function sleeve(d: string): string {
@@ -169,9 +169,9 @@ function wave(): string {
     body() + hairBack() + head() + face('normal') + eyes('open') + glasses(false) + mouth('big') +
     '<g transform="rotate(-10 58 214)">' +
     '<rect x="30" y="200" width="56" height="30" rx="5" fill="' + C.cream + '"/>' +
-    '<circle cx="46" cy="214" r="6" fill="#2FB5A3"/><circle cx="46" cy="214" r="2.2" fill="' + C.amb + '"/>' +
+    '<circle cx="46" cy="214" r="6" fill="var(--mascot-color-2fb5a3)"/><circle cx="46" cy="214" r="2.2" fill="' + C.amb + '"/>' +
     '<rect x="62" y="207" width="9" height="9" rx="2" fill="' + C.coral + '"/>' +
-    '<path d="M30 224 H86" stroke="#D9CFB8" stroke-width="2"/></g>' +
+    '<path d="M30 224 H86" stroke="var(--mascot-color-d9cfb8)" stroke-width="2"/></g>' +
     sleeve('M70 184 Q56 204 62 222') + '<circle cx="74" cy="224" r="7.5" fill="' + C.skin + '"/>' +
     '<g class="mm-wave" style="transform-origin:150px 180px">' +
     sleeve('M150 180 L172 138') +
@@ -188,18 +188,18 @@ function working(): string {
   return (
     body() + hairBack() + head() + face('focus') + eyes('down') + glasses(true) + mouth('o') +
     sleeve('M72 186 Q58 216 84 228') + sleeve('M148 186 Q162 216 136 228') +
-    '<rect x="62" y="184" width="96" height="46" rx="6" fill="#1E2B45" stroke="#CFD8EA" stroke-width="3"/>' +
+    '<rect x="62" y="184" width="96" height="46" rx="6" fill="var(--mascot-color-1e2b45)" stroke="var(--mascot-color-cfd8ea)" stroke-width="3"/>' +
     '<rect class="mm-ln" x="72" y="193" width="50" height="4" rx="2" fill="' + C.mint + '"/>' +
     '<rect class="mm-ln" style="animation-delay:-.4s" x="72" y="201" width="34" height="4" rx="2" fill="' + C.amb + '"/>' +
     '<rect class="mm-ln" style="animation-delay:-.8s" x="72" y="209" width="44" height="4" rx="2" fill="' + C.cream + '"/>' +
     '<rect class="mm-ln" style="animation-delay:-.2s" x="72" y="217" width="26" height="4" rx="2" fill="' + C.coral + '"/>' +
-    '<rect x="54" y="230" width="112" height="9" rx="4.5" fill="#8FA0C4"/>' +
+    '<rect x="54" y="230" width="112" height="9" rx="4.5" fill="var(--mascot-color-8fa0c4)"/>' +
     '<circle class="mm-ty" cx="84" cy="232" r="7" fill="' + C.skin + '"/>' +
     '<circle class="mm-ty" style="animation-delay:-.15s" cx="136" cy="232" r="7" fill="' + C.skin + '"/>' +
-    '<path class="mm-sw" d="M164 100 Q170 110 164 116 Q158 110 164 100 Z" fill="#8FD3FF" opacity="0"/>' +
+    '<path class="mm-sw" d="M164 100 Q170 110 164 116 Q158 110 164 100 Z" fill="var(--mascot-color-8fd3ff)" opacity="0"/>' +
     '<rect x="172" y="212" width="24" height="24" rx="5" fill="' + C.cream + '"/>' +
     '<path d="M196 218 q10 0 10 8 q0 8 -10 8" fill="none" stroke="' + C.cream + '" stroke-width="3.5"/>' +
-    '<g fill="none" stroke="#C9D3E8" stroke-width="2" stroke-linecap="round" opacity="0">' +
+    '<g fill="none" stroke="var(--mascot-color-c9d3e8)" stroke-width="2" stroke-linecap="round" opacity="0">' +
     '<path class="mm-steam" d="M180 206 q-3 -5 0 -10"/>' +
     '<path class="mm-steam" style="animation-delay:-.7s" d="M189 206 q-3 -5 0 -10"/></g>'
   );
@@ -213,7 +213,7 @@ function done(): string {
     sleeve('M72 182 L48 134') + '<circle cx="45" cy="126" r="8.5" fill="' + C.skin + '"/>' +
     sleeve('M148 182 L172 134') + '<circle cx="175" cy="126" r="8.5" fill="' + C.skin + '"/></g>' +
     '<rect x="14" y="224" width="58" height="12" rx="4" fill="' + C.cream + '"/>' +
-    '<circle cx="28" cy="230" r="3" fill="#2FB5A3"/><path d="M14 233 H72" stroke="#D9CFB8" stroke-width="1.5"/>' +
+    '<circle cx="28" cy="230" r="3" fill="var(--mascot-color-2fb5a3)"/><path d="M14 233 H72" stroke="var(--mascot-color-d9cfb8)" stroke-width="1.5"/>' +
     '<g class="mm-badge mm-fx"><circle cx="168" cy="52" r="16" fill="' + C.mint + '"/>' +
     '<path d="M160 53 L166 59 L177 46" fill="none" stroke="' + C.ink + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>' +
     sparkle(30, 96, 0) + sparkle(190, 100, -0.5) + sparkle(24, 156, -0.9) + sparkle(196, 156, -0.3)

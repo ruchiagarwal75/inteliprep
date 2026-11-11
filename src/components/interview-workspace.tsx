@@ -1,5 +1,6 @@
 "use client";
 import { useBriefPreferences } from "@/components/use-brief-preferences";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { PracticeSkeleton } from "@/components/practice-skeleton";
 
@@ -22,7 +23,7 @@ import { remainingInterviewSeconds } from "@/lib/interview-timer";
 
 const emptyBoard: WhiteboardScene = {
   elements: [],
-  appState: { viewBackgroundColor: "#ffffff" },
+  appState: { viewBackgroundColor: "" },
   files: {},
 };
 
@@ -119,7 +120,10 @@ export function InterviewWorkspace({
   if (!library.opened)
     return sessionId ? (
       <main className="p-6">
-        <Brand />
+        <header className="sign-in-header">
+          <Brand />
+          <ThemeToggle />
+        </header>
         <p role="alert">
           {library.error ?? "This interview is not saved in this browser."}
         </p>

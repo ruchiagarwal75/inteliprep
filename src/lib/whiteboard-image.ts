@@ -1,3 +1,4 @@
+import { themeColor } from "@/lib/theme-colors";
 import { configureWhiteboardAssets } from "@/lib/whiteboard-assets";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
 import {
@@ -23,6 +24,8 @@ export async function exportWhiteboardImage(
       files: scene.files,
       appState: {
         ...scene.appState,
+        theme: "light",
+        viewBackgroundColor: themeColor("--diagram-export-background"),
         exportBackground: true,
         exportEmbedScene: false,
         exportWithDarkMode: false,

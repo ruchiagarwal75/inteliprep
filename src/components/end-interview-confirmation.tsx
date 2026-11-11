@@ -70,7 +70,7 @@ export function EndInterviewConfirmation({
             You have an unsent answer. Choose whether to include it in your
             assessment.
           </p>
-          <pre className="mt-2 max-h-48 overflow-y-auto rounded bg-black/5 p-3 text-sm whitespace-pre-wrap dark:bg-white/10">
+          <pre className="bg-surface mt-2 max-h-48 overflow-y-auto rounded p-3 text-sm whitespace-pre-wrap">
             {draft}
           </pre>
         </>

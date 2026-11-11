@@ -52,7 +52,7 @@
 }
 .results-tab {
   border: 0;
-  border-bottom: 3px solid transparent;
+  border-bottom: 3px solid var(--transparent);
   border-radius: 0;
   padding: var(--space-2) 4px;
   font-size: 0.875rem;

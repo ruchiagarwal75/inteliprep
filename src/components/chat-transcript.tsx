@@ -32,7 +32,7 @@ export function ChatTranscript({
       className="chat-transcript min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3"
     >
       {messages.length === 0 && (
-        <p className="text-sm text-black/50 dark:text-white/50">
+        <p className="text-muted text-sm">
           Choose a problem and difficulty, then select Start interview.
         </p>
       )}
@@ -68,10 +68,7 @@ export function ChatTranscript({
         );
       })}
       {isStreaming && (
-        <p
-          role="status"
-          className="flex items-center gap-2 text-sm text-black/60 dark:text-white/60"
-        >
+        <p role="status" className="text-muted flex items-center gap-2 text-sm">
           <span className="h-2 w-2 animate-pulse rounded-full bg-current" />
           {messages.at(-1)?.role === "assistant" && messages.at(-1)?.content
             ? "Interviewer is replying…"
@@ -79,7 +76,7 @@ export function ChatTranscript({
         </p>
       )}
       {imageWarning && (
-        <p role="status" className="text-sm text-amber-700 dark:text-amber-400">
+        <p role="status" className="text-warning text-sm">
           {imageWarning}
         </p>
       )}

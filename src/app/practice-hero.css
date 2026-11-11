@@ -20,7 +20,7 @@
   text-wrap: balance;
 }
 .practice-hero-description {
-  color: var(--cream);
+  color: var(--foreground);
   max-width: 360px;
   margin-top: var(--space-3);
   font-size: 1rem;

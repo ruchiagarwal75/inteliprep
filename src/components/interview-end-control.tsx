@@ -14,18 +14,12 @@ export function InterviewEndNotices({
   return (
     <>
       {error && (
-        <p
-          role="alert"
-          className="px-3 py-2 text-sm text-red-600 dark:text-red-400"
-        >
+        <p role="alert" className="text-danger px-3 py-2 text-sm">
           {error}
         </p>
       )}
       {imageWarning && (
-        <p
-          role="status"
-          className="px-3 py-2 text-xs text-amber-700 dark:text-amber-300"
-        >
+        <p role="status" className="text-warning px-3 py-2 text-xs">
           {imageWarning}
         </p>
       )}
@@ -82,7 +76,7 @@ export function InterviewEndControl({
             disabled={
               isStreaming || ending.isEnding || closure.isClosing || disabled
             }
-            className="rounded-md border border-black/15 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-white/20"
+            className="border-border rounded-md border px-3 py-1.5 text-sm disabled:opacity-40"
           >
             {closure.isClosing
               ? "Saving interview…"

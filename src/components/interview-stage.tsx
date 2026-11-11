@@ -14,7 +14,7 @@ export function InterviewStage({
       aria-live="polite"
       className="flex flex-wrap items-center gap-2 text-xs"
     >
-      <span className="text-xs text-black/60 dark:text-white/60">
+      <span className="text-muted text-xs">
         {ended
           ? "Interview ended"
           : phase

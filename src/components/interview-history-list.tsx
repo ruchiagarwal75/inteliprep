@@ -64,7 +64,7 @@ export function InterviewHistoryList({
       {count > 0 && (
         <p
           role="status"
-          className="mt-2 border-t border-black/10 pt-2 text-center text-xs text-black/60 dark:border-white/15 dark:text-white/60"
+          className="border-border text-muted mt-2 border-t pt-2 text-center text-xs"
         >
           {hint}
         </p>

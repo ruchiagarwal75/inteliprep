@@ -77,7 +77,7 @@
 }
 .history-empty .house-icon {
   flex-shrink: 0;
-  color: var(--teal);
+  color: var(--accent-text);
 }
 @media (max-width: 1100px) {
   .session-row {

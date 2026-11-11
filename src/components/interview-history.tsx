@@ -41,7 +41,7 @@ export function InterviewHistory({
   return (
     <>
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span role="status" className="text-black/60 dark:text-white/60">
+        <span role="status" className="text-muted">
           {status}
         </span>
         {status === "Not saved" && (
@@ -63,7 +63,7 @@ export function InterviewHistory({
         </button>
       </div>
       {error && (
-        <p role="alert" className="text-xs text-red-600 dark:text-red-400">
+        <p role="alert" className="text-danger text-xs">
           {error}
         </p>
       )}
@@ -72,7 +72,7 @@ export function InterviewHistory({
         title="Saved interviews"
         onClose={() => setVisible(false)}
       >
-        <p className="mb-3 text-xs text-black/60 dark:text-white/60">
+        <p className="text-muted mb-3 text-xs">
           Newest interviews first. Stored in this browser profile. Interview
           links reopen saves in this browser; clearing site data removes them.
         </p>
@@ -85,7 +85,7 @@ export function InterviewHistory({
             return (
               <li
                 key={entry.id}
-                className={`rounded-lg border p-3 ${currentId === entry.id ? "border-blue-500 bg-blue-500/5" : "border-black/15 dark:border-white/15"}`}
+                className={`rounded-lg border p-3 ${currentId === entry.id ? "border-info bg-info-soft" : "border-border"}`}
               >
                 <p className="font-medium">
                   {problems.find(
@@ -93,12 +93,12 @@ export function InterviewHistory({
                   )?.title ?? entry.problemId}{" "}
                   · {INTERVIEW_LEVEL_LABELS[entry.level]}
                   {currentId === entry.id && (
-                    <span className="ml-2 rounded bg-blue-100 px-2 py-0.5 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                    <span className="bg-info-soft text-info ml-2 rounded px-2 py-0.5 text-xs">
                       Open
                     </span>
                   )}
                 </p>
-                <p className="mt-1 text-xs text-black/60 dark:text-white/60">
+                <p className="text-muted mt-1 text-xs">
                   {new Date(entry.createdAt).toLocaleString()} ·{" "}
                   {state.elapsedSeconds === undefined
                     ? "Timing checked when opened"
@@ -142,7 +142,7 @@ export function InterviewHistory({
                       onOpen(entry.id);
                       setVisible(false);
                     }}
-                    className={`rounded border px-3 py-1 ${disabled ? "pointer-events-none opacity-40" : "hover:bg-black/5 dark:hover:bg-white/10"}`}
+                    className={`rounded border px-3 py-1 ${disabled ? "pointer-events-none opacity-40" : "hover:bg-surface"}`}
                   >
                     {state.status === "expired"
                       ? "Finish"
@@ -159,7 +159,7 @@ export function InterviewHistory({
                           onDelete(entry.id);
                           setConfirmId(undefined);
                         }}
-                        className="rounded border border-red-500 px-2 py-1 text-red-700 disabled:opacity-40 dark:text-red-300"
+                        className="border-danger text-danger rounded border px-2 py-1 disabled:opacity-40"
                       >
                         Confirm delete
                       </button>
@@ -175,7 +175,7 @@ export function InterviewHistory({
                       type="button"
                       disabled={disabled}
                       onClick={() => setConfirmId(entry.id)}
-                      className="rounded border border-red-300 px-2 py-1 text-red-700 disabled:opacity-40 dark:border-red-700 dark:text-red-300"
+                      className="border-danger text-danger rounded border px-2 py-1 disabled:opacity-40"
                     >
                       Delete
                     </button>

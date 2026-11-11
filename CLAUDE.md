@@ -310,6 +310,18 @@ scoped beneath page/component classes; migrate it only when relevant, not in a
 wholesale rewrite. Admin retains Tailwind utilities mapped to the same theme
 variables. Keep its new styles in that system rather than adding global selectors.
 
+Light is the default. Put every app color (including inline SVG paint and admin
+utilities) in `src/app/theme.css`; dark overrides belong on `html[data-theme="dark"]`.
+Use semantic tokens, never Tailwind palette colors. `check-theme-colors.mjs` and
+palette contrast tests enforce this. ThemeProvider owns the toggle; the server cookie
+and CSP-nonced head bootstrap apply the preference before paint. Cookie and
+localStorage access must tolerate blocked storage.
+
+Excalidraw follows the app theme using its native dark rendering. Keep display
+changes out of persisted drawing content. Every AI/grading image goes through
+`exportWhiteboardImage`, which always forces light mode and the white export token
+without modifying the editor, its viewport, or its saved scene.
+
 ## Deployment names and compatibility
 
 `usesSharedStore()` selects Redis-backed coordination on deployed instances,

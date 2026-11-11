@@ -21,6 +21,6 @@
   flex-shrink: 0;
 }
 .current {
-  color: var(--teal);
+  color: var(--accent-text);
   font-weight: 600;
 }

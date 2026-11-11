@@ -127,7 +127,7 @@ export function InterviewSessionWorkspace({
         save={library.save}
       />
       {library.error && (
-        <p role="alert" className="text-xs text-red-700 dark:text-red-300">
+        <p role="alert" className="text-danger text-xs">
           {library.error}
           <button
             className="ml-2 underline"

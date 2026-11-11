@@ -194,7 +194,7 @@ export function PracticeHome({
           </button>
           {confirm && (
             <button
-              className="ml-3 rounded border border-red-500 px-3 py-2"
+              className="border-danger ml-3 rounded border px-3 py-2"
               onClick={() => {
                 void onDelete(confirm.id);
                 setConfirm(undefined);

@@ -34,7 +34,7 @@ export function InterviewTimer({
       <span
         role="timer"
         aria-label="Interview time remaining"
-        className={`font-mono text-base font-semibold tabular-nums ${remainingSeconds <= (testMode ? 15 : 300) && !ended ? "text-red-600 dark:text-red-400" : ""}`}
+        className={`font-mono text-base font-semibold tabular-nums ${remainingSeconds <= (testMode ? 15 : 300) && !ended ? "text-danger" : ""}`}
       >
         {ended ? "Ended" : formatInterviewTime(remainingSeconds)}
       </span>
@@ -45,17 +45,14 @@ export function InterviewTimer({
         </span>
       )}
       {!expired && !ended && remainingSeconds <= (testMode ? 15 : 300) && (
-        <p role="status" className="text-amber-700 dark:text-amber-300">
+        <p role="status" className="text-warning">
           {remainingSeconds <= 60
             ? "Less than a minute. Send your final answer soon."
             : "5 minutes left. Finish your explanation and send your final answer."}
         </p>
       )}
       {expired && !ended && (
-        <p
-          role="status"
-          className="w-full text-xs text-amber-700 dark:text-amber-300"
-        >
+        <p role="status" className="text-warning w-full text-xs">
           Time is up. Your drawing and unsent answer are preserved.
         </p>
       )}

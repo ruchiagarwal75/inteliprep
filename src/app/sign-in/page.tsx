@@ -6,6 +6,7 @@ import { supabaseServer } from "@/lib/supabase-server";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { BRAND } from "@/lib/brand";
 
@@ -36,13 +37,14 @@ export default async function SignInPage({
   }
   if (id) redirect(returnTo ?? "/interview");
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-slate-50 p-6 dark:bg-slate-950">
-      <div className="bg-background w-full max-w-md rounded-2xl border border-slate-200 p-8 shadow-sm dark:border-slate-700">
-        <div className="mb-6">
+    <main className="bg-surface flex min-h-dvh items-center justify-center p-6">
+      <div className="bg-background border-border w-full max-w-md rounded-2xl border p-8 shadow-sm">
+        <header className="sign-in-header mb-6">
           <Brand />
-        </div>
+          <ThemeToggle />
+        </header>
         <h1 className="mb-3 text-2xl font-semibold">Sign in to practice</h1>
-        <p className="mb-6 text-slate-600 dark:text-slate-300">
+        <p className="text-muted mb-6">
           {BRAND.tagline} Sign in to start your next system design interview.
         </p>
         {unavailable ? (
@@ -61,7 +63,7 @@ export default async function SignInPage({
             }
           />
         )}
-        <p className="mt-6 text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-muted mt-6 text-sm">
           Your interview history stays in this browser, separately for each
           account.
         </p>

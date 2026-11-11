@@ -1243,3 +1243,24 @@ configured continuation or the existing final-thoughts invitation.
 Plain provider streams can release a checked sentence before provider completion.
 Structured question planning and stage/pacing checks still validate their result
 before releasing that question; the ID filter does not add a whole-reply buffer.
+
+### Light and dark appearance (November 11)
+
+Light is the default for new visitors. Theme colors, including the home animation
+and mascot pigments, are defined in `src/app/theme.css`. Dark overrides are scoped
+to `html[data-theme="dark"]`. Existing illustration geometry, captions, interview
+rules and stored attempts are unchanged. Cards use neutral surfaces in both modes.
+
+A sun/moon control appears in page headers, including sign-in and admin. It saves
+the preference in `mockmeai-theme` (cookie) and `mockmeai:theme` (localStorage), with
+each storage access guarded. The server reads the cookie; a CSP-nonced head script
+restores a storage-only preference before body paint. A cookie takes precedence
+when both stores are present. System dark-mode preference does not change the
+first-time light default.
+
+The editor follows this preference through Excalidraw's native theme. Its light
+canvas is darkened by Excalidraw on screen, without editing the saved elements,
+background metadata, scroll, or zoom. Image exports for both chat and grading
+explicitly use light mode on a white background, independent of the visible theme.
+Palette contrast and source-color checks run in the unit suite; stubbed browser
+tests cover first paint, reload, both viewports and real PNG export pixels.
