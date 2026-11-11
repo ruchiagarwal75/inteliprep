@@ -19,8 +19,8 @@ it("never emits the original or last question word for word", () => {
     original,
     pending.id,
   );
-  expect(fallback).not.toContain(original);
-  expect(fallback).toContain("ID allocation");
+  expect(fallback).not.toBe(original);
+  expect(fallback).toContain("allocate distinct counter values in Cassandra");
   expect(
     resumePendingQuestion(pending, [
       ...messages,
@@ -35,5 +35,16 @@ it("keeps a diagram clarification on the unresolved discrepancy", () => {
     0,
     "diagram_consistency",
   )[0];
-  expect(resumePendingQuestion(mismatch, [])).toContain("Which version");
+  expect(resumePendingQuestion(mismatch, [])).toContain("which is intended?");
+});
+it("never uses fresh topic IDs or a malformed generated question as copy", () => {
+  const fresh = { ...pending, topicId: "fresh:1a2b3c4d|permissions_check" };
+  const reply = resumePendingQuestion(
+    fresh,
+    messages,
+    "Explain fresh:1a2b3c4d?",
+    fresh.id,
+  );
+  expect(reply).toContain("allocate distinct counter values");
+  expect(reply).not.toMatch(/fresh:|\||permissions_check/);
 });

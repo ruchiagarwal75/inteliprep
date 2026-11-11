@@ -1,4 +1,5 @@
 import { uniqueInterviewerReply } from "@/lib/unique-interviewer-reply";
+import { publicInterviewerReply } from "@/lib/public-interviewer-reply";
 import { withinInterviewQuestionBudget } from "@/lib/interview-question-budget";
 import { questionAtEnd } from "@/lib/open-question";
 import { continueDiscussion } from "@/lib/discussion-exhaustion";
@@ -427,7 +428,7 @@ async function* rawInterviewerReply(
 }
 
 /** Enforce an actionable ending without regenerating or repeating an entire reply. */
-export async function* streamInterviewerReply(
+async function* assembledInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ): AsyncGenerator<string> {
   const interview = args[5];
@@ -576,4 +577,11 @@ export async function* streamInterviewerReply(
       interview?.phase?.transition === "initial",
     interview?.diagramLabels,
   );
+}
+
+/** Check every response path before publishing any text to the candidate. */
+export function streamInterviewerReply(
+  ...args: Parameters<typeof rawInterviewerReply>
+) {
+  return publicInterviewerReply(assembledInterviewerReply(...args));
 }

@@ -140,7 +140,7 @@ it("returns the oldest unanswered question after a side response, then advances 
   });
   const resumed = await discussionReply(messages, state, board);
   expect(resumed).not.toContain(queue[0].question);
-  expect(resumed).toContain("ID allocation");
+  expect(resumed).toContain("how are distinct IDs allocated?");
   expect(state).toHaveProperty("continuedQuestionId", queue[0].id);
   value.answers = [
     { questionId: queue[0].id, quoteId: candidateQuotes(messages)[0].quoteId },

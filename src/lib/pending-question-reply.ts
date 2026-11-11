@@ -3,6 +3,7 @@ import type { PendingQuestion } from "@/lib/open-question-queue";
 import { questionAtEnd } from "@/lib/open-question";
 import { isGenericProbe } from "@/lib/review-probes";
 import { plainInterviewerText } from "@/lib/interviewer-reply-filter";
+import { hasInternalIdentifiers } from "@/lib/public-interviewer-reply";
 
 const normalized = (text: string) =>
   text.toLowerCase().replace(/\s+/gu, " ").trim();
@@ -19,6 +20,7 @@ export function resumePendingQuestion(
   const last = questionAtEnd(previous) ?? previous;
   if (
     questionId === pending.id &&
+    !hasInternalIdentifiers(question) &&
     questionAtEnd(question) &&
     (question.match(/[?？]/gu)?.length ?? 0) === 1 &&
     normalized(questionAtEnd(question) ?? question) !== normalized(last) &&
@@ -27,23 +29,16 @@ export function resumePendingQuestion(
     !isGenericProbe(question)
   )
     return question;
-  // Malformed/repeated generations still give a concrete ask without a second model call.
-  const topic = (pending.topicId ?? "the request path")
-    .replace(/[_-]+/gu, " ")
-    .replace(/\bid\b/giu, "ID");
-  const choices =
-    pending.topicId === "diagram_consistency"
-      ? [
-          "Which version should I use when discussing your design?",
-          "What should the diagram show for that part of your design?",
-        ]
-      : [
-          `Walk me through ${topic} in your design, starting with the first decision.`,
-          `Explain the next step of ${topic} using a concrete example.`,
-        ];
-  return (
-    choices.find(
-      (choice) => !normalized(previous).endsWith(normalized(choice)),
-    ) ?? choices[0]
-  );
+  // Ground the continuation in the actual unanswered question, never its topic ID.
+  const original = questionAtEnd(pending.question);
+  if (!original || hasInternalIdentifiers(original) || isGenericProbe(original))
+    return "";
+  const next = `For the design you've described, ${original.charAt(0).toLowerCase()}${original.slice(1)}`;
+  return messages.some(
+    (m) =>
+      m.role === "assistant" &&
+      normalized(m.content).includes(normalized(next)),
+  )
+    ? ""
+    : next;
 }
