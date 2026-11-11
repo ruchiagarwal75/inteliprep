@@ -1,3 +1,4 @@
+import { observeMockCompletion } from "@/lib/play/mock-hooks";
 import { gradingResponse } from "@/lib/grading-response";
 import type { GradingProgressListener } from "@/lib/grading-progress";
 import { trackCurrentInterview } from "@/lib/interview-tracking";
@@ -65,6 +66,7 @@ async function end(request: Request): Promise<Response> {
       );
       await shared.persist();
       await trackCurrentInterview(parsed.data.sessionId);
+      await observeMockCompletion(parsed.data.sessionId, scorecard);
       return Response.json(
         {
           ended: true,

@@ -44,6 +44,7 @@ export function useBriefPreferences(
             new URLSearchParams(window.location.search).get("problem"),
             track,
             new URLSearchParams(window.location.search).get("track"),
+            new URLSearchParams(window.location.search).get("level"),
           ),
         );
     })();

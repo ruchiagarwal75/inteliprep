@@ -1,3 +1,4 @@
+import { observeMockStart } from "@/lib/play/mock-hooks";
 import { trackInterview } from "@/lib/interview-tracking";
 import { requireTestInterviewAccess } from "@/lib/test-interview-access";
 import { setInterviewReference } from "@/lib/reporting-context";
@@ -41,7 +42,15 @@ async function start(request: Request): Promise<Response> {
       interview.sessionId,
       interview.timing?.durationMinutes === 1,
     );
-    if (created && record) await trackInterview(record, { started: true });
+    if (created && record) {
+      await trackInterview(record, { started: true });
+      await observeMockStart(
+        request,
+        interview.sessionId,
+        parsed.data.problemId,
+        parsed.data.level,
+      );
+    }
     return Response.json(interview, {
       headers: { "Cache-Control": "no-store" },
     });

@@ -24,6 +24,7 @@ export function briefDefaults(
   requestedProblem?: string | null,
   storedTrack?: unknown,
   requestedTrack?: string | null,
+  requestedLevel?: string | null,
 ) {
   const lastProblem = latest?.interview.problemId ?? summary?.problemId;
   const requested = problems.find((p) => p.problemId === requestedProblem);
@@ -43,7 +44,10 @@ export function briefDefaults(
     [requested?.problemId, suggested, choices[0]?.problemId].find((id) =>
       choices.some((p) => p.problemId === id),
     ) ?? "single-server-scaling";
-  const parsed = interviewLevelSchema.safeParse(storedLevel);
+  const fromLink = interviewLevelSchema.safeParse(requestedLevel);
+  const parsed = fromLink.success
+    ? fromLink
+    : interviewLevelSchema.safeParse(storedLevel);
   const level = parsed.success
     ? parsed.data
     : (latest?.interview.level ?? summary?.level ?? "mid");
