@@ -25,6 +25,7 @@ type Event = {
     | "grading_attempt"
     | "grading_complete"
     | "model_call_complete"
+    | "play_spend_threshold"
     | "stage_assessment_failure"
     | "model_retry"
     | "model_test_fault"
@@ -49,6 +50,8 @@ type Event = {
   fingerprint?: string;
   attempt?: number;
   model?: string;
+  estimatedCostUsd?: number;
+  unknownUsageCalls?: number;
   inputTokens?: number;
   outputTokens?: number;
   cachedTokens?: number;

@@ -1,3 +1,6 @@
+import { needsAiGrade } from "./grading-policy";
+import { reserveAiGrade } from "./ai-usage";
+import { recordPlayEvent } from "./events";
 import { recordDrillReadiness } from "./readiness-store";
 import { rewardDrill, rewardRound } from "./rewards";
 import "server-only";
@@ -51,6 +54,8 @@ export async function submitRoundAnswer(
         409,
         Math.ceil((attempt.claim_until.getTime() - Date.now()) / 1000),
       );
+    if (needsAiGrade(attempt.private_variant.definition, answer))
+      await reserveAiGrade(sql, userId);
     const id = randomUUID(),
       timeMs =
         attempt.time_ms ??
@@ -88,6 +93,12 @@ export async function submitRoundAnswer(
         badgesEarned: rewards.badges,
       };
       await sql`update practice_game.drill_attempts set correct=${result.correct},score=${result.score},points_awarded=${result.points},submitted_at=now(),claim_id=null,claim_until=null,result_json=${sql.json(result)} where user_id=${userId} and id=${attemptId}`;
+      await recordPlayEvent(sql, userId, "drill_submitted", attemptId, {
+        topic: attempt.topic,
+        type: attempt.private_variant.definition.type,
+        correct: result.correct,
+        timeMs: claim.timeMs,
+      });
       const [queued] =
         await sql`select step from practice_game.review_queue where user_id=${userId} and drill_id=${attempt.drill_id}`;
       const current = queued

@@ -1,4 +1,5 @@
 "use client";
+import { z } from "zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -79,7 +80,20 @@ export function DrillRunner({
           signal: AbortSignal.timeout(40000),
         }),
         data: unknown = await response.json();
-      if (!response.ok) throw Error("Check unavailable");
+      if (!response.ok) {
+        const failure = z
+          .object({ error: z.string().max(400) })
+          .safeParse(data);
+        if (mounted.current)
+          setSubmission({
+            kind: "error",
+            answer: value,
+            message: failure.success
+              ? failure.data.error
+              : "Your answer is saved. Please retry grading.",
+          });
+        return;
+      }
       const parsed = submitRoundResultSchema.parse(data);
       if (mounted.current) {
         setView({

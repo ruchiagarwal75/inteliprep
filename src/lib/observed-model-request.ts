@@ -20,7 +20,8 @@ import { recordFailure, failureCategory } from "@/lib/reporting-failures";
 import { logServerEvent } from "@/lib/server-events";
 import { cacheableInterviewerRequest } from "@/lib/interviewer-cache";
 
-type Operation = "reply" | "assessment" | "question_review" | "feedback";
+type Operation =
+  "reply" | "assessment" | "question_review" | "feedback" | "drill";
 export function observedModelRequest(
   operation: Operation,
   params: ResponseCreateParamsStreaming,

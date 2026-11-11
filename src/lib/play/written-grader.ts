@@ -1,3 +1,5 @@
+import { needsAiGrade } from "./grading-policy";
+import { checkDailyAiSpend } from "./spend";
 import "server-only";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
@@ -19,11 +21,7 @@ export async function gradeWrittenAnswer(
   answer: Extract<DrillAnswer, { type: "pick_probe" | "tradeoff" }>,
   signal?: AbortSignal,
 ): Promise<DrillGrade> {
-  const text =
-    answer.type === "pick_probe"
-      ? answer.text
-      : answer.decision + " " + answer.reason;
-  if (text.trim().split(/\s+/u).length < 4)
+  if (!needsAiGrade(drill, answer))
     return {
       correct: false,
       score: 0,
@@ -31,7 +29,7 @@ export async function gradeWrittenAnswer(
       why: drill.why,
     };
   const response = await observedModelRequest(
-    "assessment",
+    "drill",
     boundedModelRequest({
       ...modelSettings("assessment"),
       max_output_tokens: 2200,
@@ -46,7 +44,7 @@ export async function gradeWrittenAnswer(
       text: { format: zodTextFormat(verdictSchema, "practice_drill_grade") },
     }),
     { signal, timeout: 30000, maxRetries: 0 },
-  );
+  ).finally(checkDailyAiSpend);
   if (response.status !== "completed")
     throw Error("Drill grading did not finish");
   const verdict = verdictSchema.parse(JSON.parse(response.output_text ?? ""));

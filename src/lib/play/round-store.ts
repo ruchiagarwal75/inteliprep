@@ -1,3 +1,4 @@
+import { recordPlayEvent } from "./events";
 import "server-only";
 import { z } from "zod";
 import type { PlayTransaction } from "./database";
@@ -74,6 +75,10 @@ export async function roundView(
   let attempt = await storedAttempt(sql, userId, current.id);
   if (!attempt.started_at) {
     await sql`update practice_game.drill_attempts set started_at=now() where id=${attempt.id} and user_id=${userId} and started_at is null`;
+    await recordPlayEvent(sql, userId, "drill_started", attempt.id, {
+      topic: attempt.topic,
+      type: attempt.private_variant.definition.type,
+    });
     attempt = await storedAttempt(sql, userId, attempt.id);
   }
   if (!attempt.started_at) throw Error("Missing server drill start");

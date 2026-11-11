@@ -1,3 +1,4 @@
+import { recordPlayEvent } from "./events";
 import "server-only";
 import { z } from "zod";
 import type { PlayTransaction } from "./database";
@@ -93,5 +94,13 @@ export async function completeRound(
     practiceReadyNow: false,
   });
   await sql`update practice_game.play_sessions set completed_at=now(),result_json=${sql.json(summary)} where user_id=${userId} and id=${id} and completed_at is null`;
+  for (const level of passedLevels)
+    await recordPlayEvent(sql, userId, "level_passed", `${id}:${level}`, {
+      topic: round.topic,
+    });
+  if (round.mode === "placement")
+    await recordPlayEvent(sql, userId, "placement_done", id, {
+      topic: round.topic,
+    });
   return summary;
 }
