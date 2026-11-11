@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { SCORECARD_FETCH_TIMEOUT_MS } from "@/lib/grading-budget";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { InterviewStart } from "@/lib/interview-selection";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
@@ -125,7 +126,9 @@ export function useInterviewEnd({
         const response = await request(path, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(path.endsWith("/end") ? 135_000 : 30_000),
+          signal: AbortSignal.timeout(
+            path.endsWith("/end") ? SCORECARD_FETCH_TIMEOUT_MS : 30_000,
+          ),
           body: JSON.stringify({
             ...snapshotRef.current,
             resumeToken: getResumeToken() ?? snapshotRef.current.resumeToken,

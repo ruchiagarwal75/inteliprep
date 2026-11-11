@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { APIError } from "openai";
+import { APIError, APIConnectionTimeoutError } from "openai";
 import { getProblem } from "@/lib/problems";
 import { createInterviewTiming } from "@/lib/interview-timer";
 import { gradeInterview } from "@/lib/interview-grading";
@@ -78,6 +78,19 @@ describe("separate end-of-interview grading", () => {
     expect(options.maxRetries).toBe(0);
     expect(options.timeout).toBeGreaterThan(115_000);
     expect(options.timeout).toBeLessThanOrEqual(120_000);
+  });
+  it("gives the real GenAI grading request the larger bounded budget", async () => {
+    const genai = getProblem("ai-chat-assistant");
+    if (!genai) throw new Error("Missing GenAI problem");
+    mocks.create.mockRejectedValueOnce(new APIConnectionTimeoutError());
+    await expect(
+      gradeInterview(genai, "senior", gradingSnapshot, endedAtFixture),
+    ).rejects.toBeInstanceOf(APIConnectionTimeoutError);
+    expect(mocks.create).toHaveBeenCalledTimes(1);
+    const options = mocks.create.mock.calls[0][1];
+    expect(options.timeout).toBeGreaterThan(175_000);
+    expect(options.timeout).toBeLessThanOrEqual(180_000);
+    expect(options.maxRetries).toBe(0);
   });
   it("includes the final screenshot even if it was unchanged on the last chat turn", async () => {
     await gradeInterview(

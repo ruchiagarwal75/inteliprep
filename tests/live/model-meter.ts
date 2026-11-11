@@ -27,6 +27,7 @@ export const calls: {
   status: string | null;
   usage: Response["usage"] | null;
   estimatedUsd: number | null;
+  normalizedUsage: ReturnType<typeof tokenUsage>;
   factSelection?: z.infer<typeof selectionSchema>;
 }[] = [];
 export const metered = <T>(label: string, work: () => Promise<T>) =>
@@ -35,17 +36,23 @@ export function recordCall(
   operation: string,
   started: number,
   response?: Response,
+  failure?: { model: string; usage?: unknown },
 ) {
+  const normalizedUsage = tokenUsage(response?.usage ?? failure?.usage);
   calls.push({
     label: scope.getStore() ?? "unassigned",
     operation,
     factSelection: selection(response),
-    model: response?.model ?? "unavailable",
-    durationMs: Date.now() - started,
-    status: response?.status ?? "failed_without_usage",
+    model: response?.model ?? failure?.model ?? "unavailable",
+    durationMs: performance.now() - started,
+    status:
+      response?.status ??
+      (normalizedUsage ? "failed_with_usage" : "failed_without_usage"),
     usage: response?.usage ?? null,
-    estimatedUsd: response
-      ? estimatedAiCost(response.model, tokenUsage(response.usage))
-      : null,
+    normalizedUsage,
+    estimatedUsd: estimatedAiCost(
+      response?.model ?? failure?.model ?? "unavailable",
+      normalizedUsage,
+    ),
   });
 }

@@ -27,6 +27,7 @@ import {
   scoringElapsedSeconds,
 } from "@/lib/scoring-eligibility";
 import { shortInterviewScorecard } from "@/lib/short-interview-scorecard";
+import { gradingModelBudgetMs } from "@/lib/grading-budget";
 
 const GRADING_INSTRUCTIONS = [
   "Compare the final diagram with the full transcript and supplied diagram_consistency audit. Respect later corrections: a resolved PostgreSQL/Cassandra conflict is a clarified design choice, not an unresolved gap. Account for described components missing from the board, including a load balancer. The server displays the audit once in its own section: never repeat generic diagram-consistency boilerplate in each area's rationale. The text graph is the source of truth; the image is supporting evidence.",
@@ -143,7 +144,7 @@ export async function gradeInterview(
     })),
   });
   let correction = "";
-  const deadline = Date.now() + 120_000;
+  const deadline = Date.now() + gradingModelBudgetMs(problem.track);
   for (let attempt = 0; ; attempt++) {
     const startedAt = Date.now();
     try {

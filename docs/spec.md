@@ -851,9 +851,7 @@ Verified account IDs are HMAC-hashed for interview quotas; anonymous monitoring
 uses only Vercel’s platform-overwritten IP header and ignores local forwarded headers. Exhaustion returns 429 with Retry-After.
 Same-origin checks and actual streamed JSON byte limits precede model work: 4 MB
 for chat/end, 32 KiB for start/resume, 2 KiB for monitoring. Model calls have a
-45-second timeout without SDK retries. Grading has a shared 120-second budget
-across its validation attempts, a 135-second browser deadline, and a 150-second
-route maximum; chat retains its 120-second route maximum.
+45-second timeout without SDK retries. Grading shares a bounded provider budget across validation attempts: 120 seconds for core and 180 seconds for GenAI. Its browser deadline is 195 seconds, route maximum 210 seconds and owner-fenced shared session lease 240 seconds. Chat retains its 120-second route maximum.
 Chat context retains complete recent messages and the opening within 32,000 UTF-8
 JSON bytes, while the full verified transcript remains available for grading and
 probe reuse checks. Each provider call checks instructions and escaped input text

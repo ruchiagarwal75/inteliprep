@@ -1,4 +1,5 @@
 import "server-only";
+import { INTERVIEW_SESSION_LOCK_MS } from "@/lib/grading-budget";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
 import { currentCandidateId } from "@/lib/candidate-context";
@@ -27,7 +28,7 @@ import {
 import { logServerEvent } from "@/lib/server-events";
 
 const TTL_SECONDS = 7_200;
-const LOCK_MS = 180_000; // Longer than the route's 150-second ceiling.
+const LOCK_MS = INTERVIEW_SESSION_LOCK_MS; // Longer than the 210-second grading route.
 const SAVE_SCRIPT = `
 if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
 redis.call('SET', KEYS[2], ARGV[2], 'EX', ARGV[3])

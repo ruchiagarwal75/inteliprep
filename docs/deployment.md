@@ -146,10 +146,9 @@ output once. Review provider usage and configure account spending controls befor
 expanding the tester group. Change quotas in `src/lib/request-limits.ts`.
 
 Atomic Redis operations prevent different instances bypassing quotas or running
-chat and grading concurrently for one interview. A session lock lasts three minutes
+chat and grading concurrently for one interview. A session lock lasts four minutes
 and uses owner-checked writes/releases. Chat has a 120-second Vercel maximum and
-45-second model timeout. Grading has a shared 120-second model budget, 135-second
-browser deadline, and 150-second route maximum. SDK retries remain disabled.
+45-second model timeout. Grading shares a 120-second core or 180-second GenAI model budget across validation attempts, with a 195-second browser deadline and 210-second route maximum. SDK retries remain disabled.
 See [function durations](https://vercel.com/docs/functions/configuring-functions/duration)
 and [OpenAI SDK timeouts](https://developers.openai.com/api/reference/typescript#timeouts).
 

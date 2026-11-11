@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { vi } from "vitest";
 import type {
   Response,
@@ -27,7 +28,7 @@ export async function observedModelRequest(
   const actual = await vi.importActual<
     typeof import("@/lib/observed-model-request")
   >("@/lib/observed-model-request");
-  const started = Date.now();
+  const started = performance.now();
   try {
     if (!params.stream) {
       const response = await actual.observedModelRequest(
@@ -45,6 +46,7 @@ export async function observedModelRequest(
     );
     return (async function* () {
       let terminal: Response | undefined;
+      let streamFailure: unknown;
       try {
         for await (const event of stream) {
           if (
@@ -58,12 +60,35 @@ export async function observedModelRequest(
             terminal = event.response;
           yield event;
         }
+      } catch (cause) {
+        streamFailure = cause;
+        throw cause;
       } finally {
-        recordCall(operation, started, terminal);
+        recordCall(
+          operation,
+          started,
+          terminal,
+          failedUsage(params.model, streamFailure),
+        );
       }
     })();
   } catch (cause) {
-    recordCall(operation, started);
+    recordCall(operation, started, undefined, failedUsage(params.model, cause));
     throw cause;
   }
+}
+
+function failedUsage(model: string | undefined, cause: unknown) {
+  const value = z
+    .object({
+      usage: z.unknown().optional(),
+      error: z.object({ usage: z.unknown().optional() }).optional(),
+    })
+    .safeParse(cause);
+  return {
+    model: model ?? "unavailable",
+    usage: value.success
+      ? (value.data.usage ?? value.data.error?.usage)
+      : undefined,
+  };
 }

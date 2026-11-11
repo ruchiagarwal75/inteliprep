@@ -13,7 +13,7 @@ import { verifiedEndMessages } from "@/lib/interview-transcript";
 import { getProblem } from "@/lib/problems";
 
 export const runtime = "nodejs";
-export const maxDuration = 150;
+export const maxDuration = 210;
 
 async function end(request: Request): Promise<Response> {
   const body = await readJsonBody(request, 4_000_000);
