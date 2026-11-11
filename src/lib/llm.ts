@@ -414,9 +414,9 @@ export async function* streamInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ): AsyncGenerator<string> {
   const interview = args[5];
-  if (interview?.problem.track === "genai") {
+  if (interview) {
     const capped = cappedGenaiQuestions(
-      "genai",
+      interview.problem.track,
       interview.openQuestions ?? [],
       args[0],
       interview.questionMemory?.topicTurns,

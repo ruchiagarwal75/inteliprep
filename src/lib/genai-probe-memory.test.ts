@@ -28,7 +28,7 @@ it("never revives an exhausted GenAI issue, including on a named topic request",
   expect(
     eligibleDiscussionProbes("genai", [cache, evaluation], memory),
   ).toEqual([evaluation]);
-  expect(eligibleDiscussionProbes("core", [cache], memory)).toEqual([cache]);
+  expect(eligibleDiscussionProbes("core", [cache], memory)).toEqual([]);
 });
 it("excludes a verified covered issue from generation and fallback", () => {
   expect(
@@ -55,7 +55,7 @@ it("retires two-attempt questions without awarding coverage", () => {
   ).toEqual(queue);
   expect(
     cappedGenaiQuestions("core", queue, [], { cache: 2 }).questions,
-  ).toEqual(queue);
+  ).toEqual([]);
 });
 it("retains exact evidence from an explanation outside the latest-nine-message window", () => {
   const messages: ChatMessage[] = [

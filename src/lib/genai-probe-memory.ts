@@ -4,7 +4,8 @@ import type { QuestionMemory } from "@/lib/question-memory";
 import type { PendingQuestion } from "@/lib/open-question-queue";
 import { sameQuestion } from "@/lib/question-memory";
 import { questionAtEnd } from "@/lib/open-question";
-import { availableTopicProbes, probeTopic } from "@/lib/probe-topics";
+import { probeTopic } from "@/lib/probe-topics";
+import { topicWasAnswered } from "@/lib/topic-memory";
 type Probe = {
   id: string;
   question: string;
@@ -12,18 +13,19 @@ type Probe = {
   topic?: string;
 };
 
-/** Covered GenAI issues stay closed, and two attempts cannot be revived by fallback. */
+/** Answered issues stay closed across both tracks; two asks is an interview-wide cap. */
 export function eligibleDiscussionProbes<T extends Probe>(
-  track: ProblemTrack,
+  _track: ProblemTrack,
   probes: T[],
   memory?: QuestionMemory,
-  requested?: string,
+  _requested?: string,
 ) {
-  if (track !== "genai")
-    return availableTopicProbes(probes, memory?.topicTurns, requested);
+  void _requested; // Naming a topic never overrides its interview-wide cap.
   return probes.filter(
     (p) =>
-      (memory?.topicTurns?.[probeTopic(p)] ?? 0) < 2 &&
+      (memory?.topicTurns?.[p.id] ?? memory?.topicTurns?.[probeTopic(p)] ?? 0) <
+        2 &&
+      !topicWasAnswered(memory?.coveredTopics, p.id) &&
       !memory?.coveredTopics.some((covered) =>
         sameQuestion(p.question, covered),
       ),
@@ -32,12 +34,11 @@ export function eligibleDiscussionProbes<T extends Probe>(
 
 /** Retirement closes the queue item, not its assessment or evidence of correctness. */
 export function cappedGenaiQuestions(
-  track: ProblemTrack,
+  _track: ProblemTrack,
   queue: PendingQuestion[],
   messages: ChatMessage[],
   counts: Record<string, number> = {},
 ) {
-  if (track !== "genai") return { questions: queue, retired: [] as string[] };
   const retired = queue
     .filter(
       (q) =>

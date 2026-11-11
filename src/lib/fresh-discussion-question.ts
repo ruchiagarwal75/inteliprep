@@ -86,7 +86,7 @@ export async function freshDiscussionQuestion(
       !wasProbeAsked(value.question, messages) &&
       !repeatedInterviewerSentences(value.question, messages).length
     ) {
-      interview.selectedTopic = topic ? probeTopic(topic) : undefined;
+      interview.selectedTopic = topic?.id;
       return value.question;
     }
   }

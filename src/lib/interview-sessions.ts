@@ -98,6 +98,7 @@ export function acquireInterviewSession(
         continuedQuestionId?: string;
         topicId?: string;
         stageId: string;
+        topicCounts?: Record<string, number>;
         diagramComponents: string[];
         resetQuestions: boolean;
       },
@@ -124,8 +125,10 @@ export function acquireInterviewSession(
         session.openQuestion = queue[0]?.question;
         session.pendingDiagramComponents = metadata.diagramComponents;
         if (metadata.topicId && question) {
-          const key = `${metadata.stageId}:${metadata.topicId}`;
-          session.topicTurnCounts ??= {};
+          const key = metadata.topicId;
+          session.topicTurnCounts = {
+            ...(metadata.topicCounts ?? session.topicTurnCounts ?? {}),
+          };
           session.topicTurnCounts[key] = Math.min(
             100,
             (session.topicTurnCounts[key] ?? 0) + 1,

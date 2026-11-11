@@ -1176,3 +1176,10 @@ server may enter the next stage before its minimum time without granting coverag
 or grading credit. The final stage can offer a contextual instruction to finish.
 Every reply path checks the complete verified interviewer transcript for repeated
 sentences; duplicated factual replies are rephrased without adding facts.
+
+
+Topic memory uses canonical issue IDs across the whole verified interview, not
+stage-prefixed counters. A structured semantic check reads earlier explanations
+and new answers, validates candidate quote IDs, and closes answered issues even
+when the candidate used different words. Each issue can be asked at most twice
+across stages on either track. Historical stage-keyed counters remain readable.

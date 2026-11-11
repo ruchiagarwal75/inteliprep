@@ -38,7 +38,8 @@ import { isOffTopicRequest } from "@/lib/off-topic";
 import { questionMemory } from "@/lib/question-memory";
 import type { InterviewContext } from "@/lib/interview-instructions";
 import { pendingDiagramComponents } from "@/lib/pending-diagram-components";
-import { stageTopicCounts } from "@/lib/probe-topics";
+import { globalTopicCounts } from "@/lib/topic-memory";
+import { refreshSemanticTopicMemory } from "@/lib/semantic-topic-memory";
 import { modelSettings } from "@/lib/model-settings";
 import { withoutQuestions } from "@/lib/drawing-reply";
 import { stageTimeGate } from "@/lib/stage-clock";
@@ -263,7 +264,7 @@ export async function prepareInterviewTurn(
       coveredCriteria: plan.state.coveredCriteria,
       questionMemory: {
         ...memory,
-        topicTurns: stageTopicCounts(lease.topicTurnCounts, nextPhase.id),
+        topicTurns: globalTopicCounts(lease.topicTurnCounts, problem),
       },
       openQuestions: lease.openQuestions,
       diagramQuestion: modern ? mismatch : undefined,
@@ -315,6 +316,8 @@ export async function prepareInterviewTurn(
       explanationMissing:
         latest?.action === "review" && !hasExplanation(request.messages),
     };
+    if (modern && plan.progress.step === "review" && !offTopic)
+      await refreshSemanticTopicMemory(request.messages, context, signal);
     return {
       context,
       phase: publicPhase(problem.phases, plan.state.phaseIndex),
@@ -371,6 +374,7 @@ export async function prepareInterviewTurn(
             continuedQuestionId: context.continuedQuestionId,
             topicId: context.selectedTopic,
             stageId: context.phase?.id ?? nextPhase.id,
+            topicCounts: context.questionMemory?.topicTurns,
             diagramComponents:
               context.diagramUpdates?.length && !paused
                 ? []
@@ -381,7 +385,7 @@ export async function prepareInterviewTurn(
           },
         );
         lease.commit(completedPlan.state, [
-          ...memory.coveredTopics,
+          ...(context.questionMemory?.coveredTopics ?? memory.coveredTopics),
           ...[...covered, ...lease.state.coveredCriteria]
             .map((i) => current.completionCriteria[i])
             .filter((topic): topic is string => Boolean(topic)),
