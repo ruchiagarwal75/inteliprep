@@ -1,13 +1,12 @@
 import type { ProblemTrack } from "@/lib/interview-selection";
 
-const COMMON_LABEL =
-  /^(?:cache|users?|clients?|servers?|database|storage|queue|model|llm|gpu|api|api servers?|id generator|load balancer|orchestrator|planner|reranker|guardrails|moderation|embeddings?)$/iu;
-/** Keep common nouns natural and quote distinctive scene names when needed. */
-export function quoteDiagramLabels(
+/** Both tracks use plain labels in sentences, while keeping technical acronyms. */
+export function formatDiagramLabels(
   text: string,
   supplied: readonly string[],
-  track: ProblemTrack = "core",
+  track?: ProblemTrack,
 ) {
+  void track; // Retained for callers selecting either track; formatting is shared.
   const labels = [
     ...new Set(
       supplied
@@ -20,35 +19,25 @@ export function quoteDiagramLabels(
         ),
     ),
   ]
-    .slice(0, 32)
-    .sort((a, b) => b.length - a.length);
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 32);
   if (!labels.length) return text;
-  const escaped = labels.map((label) =>
-    label.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"),
-  );
+  const patterns = labels.map((label) => {
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+    return `(?:"${escaped}"|“${escaped}”|‘${escaped}’|'${escaped}'|${escaped})`;
+  });
   const pattern = new RegExp(
-    `(?<![\\p{L}\\p{N}_])(?:${escaped.join("|")})(?![\\p{L}\\p{N}_])`,
+    `(?<![\\p{L}\\p{N}_])(?:${patterns.join("|")})(?![\\p{L}\\p{N}_])`,
     "giu",
   );
   return text.replace(pattern, (matched: string, offset: number) => {
+    const plain = matched
+      .replace(/^["“‘']|["”’']$/gu, "")
+      .toLowerCase()
+      .replace(/\b(?:llm|acl|api|id|db|gpu)\b/gu, (word) => word.toUpperCase());
     const before = text.slice(0, offset);
-    if (/["“‘'`]$/u.test(before)) return matched;
-    if (COMMON_LABEL.test(matched)) {
-      const common = matched
-        .split(/\s+/u)
-        .map((word) => (/^[A-Z]{2,}$/u.test(word) ? word : word.toLowerCase()))
-        .join(" ");
-      return !before.trim() || /[.!?]\s*$/u.test(before)
-        ? common.charAt(0).toUpperCase() + common.slice(1)
-        : common;
-    }
-    // Preserve the core track's previous treatment of articles before distinctive labels.
-    if (track === "core" && /\b(?:the|a|an|your)\s+$/iu.test(before))
-      return matched;
-    return JSON.stringify(
-      labels.find(
-        (label) => label.toLocaleLowerCase() === matched.toLocaleLowerCase(),
-      ) ?? matched,
-    );
+    return !before.trim() || /[.!?]\s*$/u.test(before)
+      ? plain.charAt(0).toUpperCase() + plain.slice(1)
+      : plain;
   });
 }

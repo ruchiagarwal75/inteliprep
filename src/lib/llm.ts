@@ -8,7 +8,7 @@ import {
 } from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
 import { genaiEstimateVerdict } from "@/lib/genai-estimation";
-import { quoteDiagramLabels } from "@/lib/diagram-label-copy";
+import { formatDiagramLabels } from "@/lib/diagram-label-copy";
 import { hasPriorExplanation } from "@/lib/open-question";
 import {
   clarificationEnding,
@@ -443,7 +443,7 @@ export async function* streamInterviewerReply(
     ) &&
     !invitesDrawing(reply)
   )
-    reply = quoteDiagramLabels(
+    reply = formatDiagramLabels(
       reply,
       interview?.diagramLabels ?? [],
       interview?.problem.track,
@@ -473,6 +473,7 @@ export async function* streamInterviewerReply(
       args[0],
       args[3],
       interview?.phase?.transition === "initial",
+      interview?.diagramLabels,
     );
     return;
   }
@@ -487,7 +488,7 @@ export async function* streamInterviewerReply(
     const probe = selectReviewProbe(interview.problem, args[0], interview);
     reply +=
       "\n\n" +
-      quoteDiagramLabels(
+      formatDiagramLabels(
         probe?.question ??
           (await continueDiscussion(args[0], interview, args[3])),
         interview.diagramLabels ?? [],
@@ -499,5 +500,6 @@ export async function* streamInterviewerReply(
     args[0],
     args[3],
     interview?.phase?.transition === "initial",
+    interview?.diagramLabels,
   );
 }

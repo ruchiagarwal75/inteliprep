@@ -1183,3 +1183,8 @@ stage-prefixed counters. A structured semantic check reads earlier explanations
 and new answers, validates candidate quote IDs, and closes answered issues even
 when the candidate used different words. Each issue can be asked at most twice
 across stages on either track. Historical stage-keyed counters remain readable.
+
+
+Diagram labels are plain lowercase words inside interviewer sentences on both
+tracks. Quotation marks are removed, acronyms are preserved and sentence starts
+remain capitalized. Candidate messages and scorecard evidence quotes are unchanged.

@@ -1,4 +1,5 @@
 import "server-only";
+import { formatDiagramLabels } from "@/lib/diagram-label-copy";
 import { exactSentences } from "@/lib/exact-sentences";
 import { GENAI_REPHRASE_REPLY } from "@/lib/genai-fact-router";
 import { z } from "zod";
@@ -18,7 +19,9 @@ export async function uniqueInterviewerReply(
   messages: ChatMessage[],
   signal?: AbortSignal,
   factual = false,
+  labels: readonly string[] = [],
 ) {
+  reply = formatDiagramLabels(reply, labels);
   if (!repeatedInterviewerSentences(reply, messages).length) return reply;
   if (reply === GENAI_REPHRASE_REPLY) {
     const next = [
@@ -78,6 +81,7 @@ export async function uniqueInterviewerReply(
     );
     try {
       const value = schema.parse(JSON.parse(response.output_text));
+      value.reply = formatDiagramLabels(value.reply, labels);
       if (
         response.status === "completed" &&
         !repeatedInterviewerSentences(value.reply, messages).length
