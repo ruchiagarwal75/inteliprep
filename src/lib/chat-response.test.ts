@@ -37,6 +37,33 @@ describe("completed reply stage commits", () => {
     expect(await read).toContain('"type":"complete"');
     expect(order).toEqual(["persisted", "unlocked"]);
   });
+  it("keeps listening text off the wire while committing and returning its checkpoint", async () => {
+    async function* deltas() {
+      yield "I'm reading your explanation.";
+    }
+    const iterator = deltas(),
+      complete = vi.fn(),
+      release = vi.fn();
+    const response = chatResponse(
+      iterator,
+      await iterator.next(),
+      { "X-Interview-Reply-Kind": "listening" },
+      complete,
+      release,
+      vi.fn(),
+      () => ({ resumeToken: "checkpoint", replyKind: "listening" }),
+    );
+    const text = await response.text();
+    expect(text).not.toContain("delta");
+    expect(text).not.toContain("reading your explanation");
+    expect(JSON.parse(text)).toMatchObject({
+      type: "complete",
+      replyKind: "listening",
+      resumeToken: "checkpoint",
+    });
+    expect(complete).toHaveBeenCalledWith("I'm reading your explanation.");
+    expect(release).toHaveBeenCalledOnce();
+  });
   it("commits exactly once after streaming a complete nonempty reply", async () => {
     async function* deltas() {
       yield "First ";

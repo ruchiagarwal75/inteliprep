@@ -10,6 +10,7 @@ import { genaiAssumptionReply } from "@/lib/genai-facts";
 import { genaiEstimateVerdict } from "@/lib/genai-estimation";
 import { formatDiagramLabels } from "@/lib/diagram-label-copy";
 import { hasPriorExplanation } from "@/lib/open-question";
+import { acknowledgeDesignUpdate } from "@/lib/design-update-acknowledgement";
 import {
   clarificationEnding,
   clarificationContinuation,
@@ -42,7 +43,6 @@ import {
   withoutQuestions,
   DRAWING_WAIT_REPLY,
   EXPLANATION_WAIT_REPLY,
-  EXPLANATION_UPDATE_REPLY,
 } from "@/lib/drawing-reply";
 
 import { modelSettings } from "@/lib/model-settings";
@@ -214,13 +214,21 @@ async function* rawInterviewerReply(
     !isFactualQuestion(latestCandidate.content)
   ) {
     signal?.throwIfAborted();
-    yield step === "explaining" && hasPriorExplanation(messages)
-      ? EXPLANATION_UPDATE_REPLY
-      : interview?.listening
-        ? "I'm reading your explanation."
-        : step === "explaining"
-          ? EXPLANATION_WAIT_REPLY
-          : DRAWING_WAIT_REPLY;
+    if (step === "explaining" && hasPriorExplanation(messages) && interview) {
+      const acknowledgement = await acknowledgeDesignUpdate(
+        latestCandidate,
+        changeText,
+        signal,
+      );
+      interview.listening = !acknowledgement;
+      yield acknowledgement ?? "I'm reading your explanation.";
+      return;
+    }
+    yield interview?.listening
+      ? "I'm reading your explanation."
+      : step === "explaining"
+        ? EXPLANATION_WAIT_REPLY
+        : DRAWING_WAIT_REPLY;
     return;
   }
   if (focusedReview && interview && modernModel && !interview.reviewQuestion) {

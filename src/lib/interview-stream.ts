@@ -52,7 +52,11 @@ export async function receiveInterviewStream(
     }
     buffer += decoder.decode();
     consume();
-    if (buffer.trim() || !completed || !reply.trim())
+    if (
+      buffer.trim() ||
+      !completed ||
+      (!reply.trim() && completed.replyKind !== "listening")
+    )
       throw new Error("The reply was interrupted. Please try again.");
     return { reply, checkpoint: completed };
   } finally {

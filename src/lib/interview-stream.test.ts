@@ -37,9 +37,11 @@ describe("completed-turn checkpoint stream", () => {
       () => {},
     );
     expect(result.checkpoint.replyKind).toBe("listening");
-    await expect(
-      receiveInterviewStream(stream(event), () => {}),
-    ).rejects.toThrow();
+    const onDelta = vi.fn();
+    const silent = await receiveInterviewStream(stream(event), onDelta);
+    expect(silent.reply).toBe("");
+    expect(silent.checkpoint.replyKind).toBe("listening");
+    expect(onDelta).not.toHaveBeenCalled();
   });
   it("handles arbitrary byte boundaries and Unicode and commits after successful EOF", async () => {
     const chunks: string[] = [];

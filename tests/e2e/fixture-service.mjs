@@ -153,6 +153,12 @@ export function startFixtureService(key, cert, reporting) {
             )
             .join(" "),
         });
+      } else if (body.text?.format?.name === "design_update_acknowledgement") {
+        text = JSON.stringify({
+          changed: false,
+          quote: "",
+          acknowledgement: "",
+        });
       } else if (body.text?.format?.name === "interview_topic_memory") {
         text = JSON.stringify({ covered: [], asked: [] });
       } else if (body.text?.format?.name === "fresh_discussion_question") {

@@ -1195,3 +1195,9 @@ effort setting. Full transcript counter-evidence, private rubrics and scoring
 weights are unchanged. Clients may request NDJSON progress events for evidence
 reading, feedback writing and evidence checking; JSON clients remain compatible.
 The UI reports server stages, not timer-based simulated progress.
+
+Re-explanation revisions receive a short, evidence-grounded acknowledgement of the
+change, without a question or evaluation. Entry controls and messages without a
+specific change remain silent. Listening turns persist their verified checkpoint
+but send no text deltas; the completed listening frame and successful EOF are
+required before the browser accepts that checkpoint.

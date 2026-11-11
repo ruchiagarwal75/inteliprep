@@ -13,6 +13,8 @@ export function chatResponse(
   requestId?: string,
 ): Response {
   const encoder = new TextEncoder();
+  const silent =
+    new Headers(headers).get("X-Interview-Reply-Kind") === "listening";
   let cancelled = false;
   let released: Promise<void> | undefined;
   const release = () => (released ??= Promise.resolve(onRelease()));
@@ -26,11 +28,11 @@ export function chatResponse(
       try {
         if (!first.done && first.value) {
           reply += first.value;
-          controller.enqueue(encodeDelta(first.value));
+          if (!silent) controller.enqueue(encodeDelta(first.value));
         }
         for await (const delta of deltas) {
           reply += delta;
-          if (!cancelled) controller.enqueue(encodeDelta(delta));
+          if (!cancelled && !silent) controller.enqueue(encodeDelta(delta));
         }
         if (!reply.trim())
           throw new Error(
