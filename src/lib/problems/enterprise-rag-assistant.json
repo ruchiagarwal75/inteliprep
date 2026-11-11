@@ -286,7 +286,7 @@
           "staff": "100,000 employees across several business units and regions."
         },
         "coversCriteria": [1],
-        "description": "Number of employees or people in the company and expected employee users; overall company size."
+        "description": "Company headcount, number of employees or people, and number of expected employee users."
       },
       {
         "id": "documents",
@@ -296,7 +296,7 @@
           "staff": "50M documents from more than ten sources."
         },
         "coversCriteria": [1],
-        "description": "Total document or corpus size and number and kinds of document sources."
+        "description": "Total corpus size counted as source documents, plus number and kinds of sources. This is a raw input, not the number of stored chunks or vectors."
       },
       {
         "id": "questions",
@@ -306,7 +306,7 @@
           "staff": "1M questions per day, with peak traffic three times the average."
         },
         "coversCriteria": [1],
-        "description": "Expected query load, questions per day, request volume and peak traffic factor."
+        "description": "Questions or query requests per day, expected daily traffic and how spiky the load is, including its peak factor."
       },
       {
         "id": "document-changes",
@@ -316,7 +316,7 @@
           "staff": "About 2% of documents change daily; edits must appear within 15 minutes."
         },
         "coversCriteria": [2],
-        "description": "How often documents change, percentage changed daily, and how quickly document edits must appear in answers."
+        "description": "Document edit frequency and freshness deadline: how stale an answer may be after a page is edited and when changed content must appear. This concerns content edits."
       },
       {
         "id": "permission-changes",
@@ -326,7 +326,7 @@
           "staff": "Removed access must apply within one minute."
         },
         "coversCriteria": [2],
-        "description": "How quickly revoked or removed document access must take effect and how often permissions synchronize. Not data residency."
+        "description": "Permission removal SLA, revoked access deadline and permission synchronization. This concerns authorization freshness, not edited document content or regional storage rules."
       },
       {
         "id": "restricted-docs",
@@ -346,7 +346,7 @@
           "staff": "First token under two seconds at p95, and a full answer under eight seconds."
         },
         "coversCriteria": [1],
-        "description": "User-visible response latency, time until the first generated token or word, and full response time."
+        "description": "Response latency SLA, first-token or first-word delay, p95 latency target and full-answer completion time."
       },
       {
         "id": "cost",
@@ -356,7 +356,7 @@
           "staff": "Cut cost per question by half next year; a current baseline is not specified."
         },
         "coversCriteria": [1],
-        "description": "Specified cost target or budget."
+        "description": "Budget constraints and the configured cost target per question."
       },
       {
         "id": "languages",
@@ -366,7 +366,7 @@
           "staff": "Five languages."
         },
         "coversCriteria": [1],
-        "description": "Languages supported."
+        "description": "Supported human languages and whether more than one language is required."
       },
       {
         "id": "today",
@@ -376,7 +376,7 @@
           "staff": "Today there is keyword search plus a pilot that users do not trust."
         },
         "coversCriteria": [1],
-        "description": "Current or existing search system."
+        "description": "What employees use today to search, the current search system or existing baseline."
       },
       {
         "id": "chunks-per-doc",
@@ -386,7 +386,7 @@
           "staff": "About ten chunks per document."
         },
         "coversCriteria": [1],
-        "description": "Average chunks per document."
+        "description": "Average chunks per source document. This raw multiplier helps the candidate estimate a total; it does not directly give total chunk or vector count."
       },
       {
         "id": "embedding-dimensions",
@@ -396,7 +396,7 @@
           "staff": "Use 768-dimensional embeddings."
         },
         "coversCriteria": [1],
-        "description": "Embedding vector dimensions."
+        "description": "Dimensionality or number of coordinates in each embedding vector, not the total count of vectors, an embedding model recommendation or bytes per coordinate."
       },
       {
         "id": "tokens-per-question",
@@ -410,7 +410,7 @@
       },
       {
         "id": "data-residency",
-        "description": "Whether documents or processing must stay in a particular region, data residency and in-region requirements.",
+        "description": "Requirements for documents or processing to stay in a particular region, and whether in-region data residency rules apply. This is separate from permission removals.",
         "answers": {
           "mid": "Data residency requirements aren't specified. What would you assume?",
           "senior": "There are no data residency requirements.",

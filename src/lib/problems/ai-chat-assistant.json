@@ -257,7 +257,7 @@
           "staff": "100M daily active users globally."
         },
         "coversCriteria": [1],
-        "description": "Daily active users, overall expected user scale."
+        "description": "Expected overall consumer scale as people using the service each day or daily active users."
       },
       {
         "id": "messages-per-user",
@@ -267,7 +267,7 @@
           "staff": "Fifteen messages per user per day."
         },
         "coversCriteria": [1],
-        "description": "Number of messages a typical user sends per day."
+        "description": "How chatty a typical user is: messages each user sends per day. This is separate from total users or peak factor."
       },
       {
         "id": "peak",
@@ -287,7 +287,7 @@
           "staff": "You run a large and a small model on your own GPUs. A new model launch in one week is expected to triple traffic."
         },
         "coversCriteria": [1],
-        "description": "Whether models are self-hosted on own GPUs or accessed through a third-party model API; upcoming model launch."
+        "description": "Whether the exercise requires self-hosted models or a third-party inference API, the model sizes on offer, and any planned launch. This is not a GPU fleet sizing calculation."
       },
       {
         "id": "provider-limits",
@@ -297,7 +297,7 @@
           "staff": "Third-party provider limits do not apply; you run your own models."
         },
         "coversCriteria": [1],
-        "description": "Request and token rate limits of the third-party model provider account."
+        "description": "External inference vendor quotas for the account, including request and token limits and whether such quotas apply to the chosen hosting arrangement."
       },
       {
         "id": "gpu-capacity",
@@ -307,7 +307,7 @@
           "staff": "Capacity is fixed at 6,000 GPUs for the next six months."
         },
         "coversCriteria": [1],
-        "description": "How many GPUs are available, fixed GPU capacity or budget, and whether more GPUs can be added. Not node startup or warmup time."
+        "description": "Available GPU count, a fixed fleet or procurement budget, and whether capacity can be added. This is not the derived number of GPUs needed for demand, their per-GPU throughput, or startup readiness time."
       },
       {
         "id": "gpu-throughput",
@@ -317,7 +317,7 @@
           "staff": "About 2,500 output tokens per second per GPU on the large model with batching."
         },
         "coversCriteria": [1],
-        "description": "Measured output token throughput per GPU."
+        "description": "Output tokens served per second by each GPU with batching. This is a provided per-device sizing input, not the derived total fleet size."
       },
       {
         "id": "tokens",
@@ -327,7 +327,7 @@
           "staff": "About 2,000 input tokens including history, and 400 output tokens per message."
         },
         "coversCriteria": [1],
-        "description": "Average input and output tokens per chat message."
+        "description": "Typical input context per request, including conversation history, and output tokens per message. This is an average request size, not a maximum model context-window limit."
       },
       {
         "id": "latency",
@@ -347,7 +347,7 @@
           "staff": "Free users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified."
         },
         "coversCriteria": [2],
-        "description": "Free and paid tiers and per-user message limits."
+        "description": "Free versus paying user benefits, model access, priority and per-user message quotas."
       },
       {
         "id": "history",
@@ -357,7 +357,7 @@
           "staff": "History is kept until the user deletes it, with in-region storage for some countries."
         },
         "coversCriteria": [2],
-        "description": "History retention, deletion and regional conversation storage."
+        "description": "How long chats are kept, whether users can wipe or delete them, and regional conversation storage requirements."
       },
       {
         "id": "safety",
@@ -371,7 +371,7 @@
       },
       {
         "id": "gpu-warmup",
-        "description": "Time to bring up a new GPU node, load its model, become ready or warm up. Not the GPU count.",
+        "description": "How fast GPU capacity can become ready during scale-out: time for a newly added node to load its model or warm up. This is a readiness delay, not the size of the available fleet.",
         "answers": {
           "mid": "GPU node warmup does not apply to the third-party model API in this exercise.",
           "senior": "A new GPU node takes about ten minutes to load a model.",

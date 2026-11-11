@@ -265,7 +265,7 @@
           "staff": "More than 200 tools built by other teams, plus third-party integrations."
         },
         "coversCriteria": [1],
-        "description": "Number and kinds of tools, read-only versus write tools and integrations."
+        "description": "Systems the agent can touch or integrate with, kinds and number of tools, and which allow reads or writes."
       },
       {
         "id": "steps",
@@ -275,7 +275,7 @@
           "staff": "About six model calls per task on average, with a maximum of 30. Some tasks run for hours in the background."
         },
         "coversCriteria": [1],
-        "description": "Typical number of model calls, actions or steps per task, maximum steps and long-running tasks."
+        "description": "Typical actions or model-call steps per task, any cap or maximum step count, and whether tasks may run in the background."
       },
       {
         "id": "speed",
@@ -285,7 +285,7 @@
           "staff": "Most short tasks should finish within 60 seconds."
         },
         "coversCriteria": [1],
-        "description": "Task completion latency and duration."
+        "description": "How fast a task should finish, end-to-end completion target or task duration."
       },
       {
         "id": "tokens",
@@ -295,7 +295,7 @@
           "staff": "About 40K tokens total per task."
         },
         "coversCriteria": [1],
-        "description": "Total tokens per task."
+        "description": "Token budget or total tokens per task, including all its model calls."
       },
       {
         "id": "permissions",
@@ -305,7 +305,7 @@
           "staff": "The agent acts as the user, with only that user’s permissions."
         },
         "coversCriteria": [2],
-        "description": "Whose credentials and permissions the agent uses; delegated authority, scopes and service accounts."
+        "description": "Whose credentials the agent uses, whether it runs as the user or an administrator or service account, and its delegated authority."
       },
       {
         "id": "mistakes",
@@ -315,7 +315,7 @@
           "staff": "Sending an email to the wrong person is a serious incident."
         },
         "coversCriteria": [2],
-        "description": "Severity and business impact of mistakes, such as an email sent to the wrong recipient. Not whether actions can be undone."
+        "description": "How costly or serious a mistake is, including business impact from sending to the wrong recipient. This is severity, not whether an action can be undone."
       },
       {
         "id": "action-reversibility",
