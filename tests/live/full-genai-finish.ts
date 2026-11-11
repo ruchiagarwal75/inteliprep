@@ -71,7 +71,14 @@ export async function finishFullGenaiInterview({
     );
     const gradingMs = performance.now() - gradingStarted;
     ending.complete(scorecard);
-    const audit = await auditFullInterview(messages, label);
+    const audit = await auditFullInterview(
+      messages,
+      label,
+      problem.genai?.facts.map((fact) => ({
+        id: fact.id,
+        text: fact.answers.senior,
+      })),
+    );
     const usage = (kind: string) =>
       fullInterviewUsage(calls.filter((c) => c.label === label + ":" + kind));
     const result = {
@@ -107,6 +114,7 @@ export async function finishFullGenaiInterview({
     expect(result.repeatedSentences).toEqual([]);
     expect(result.topicsOverTwice).toEqual([]);
     expect(result.cannedFallbacks).toEqual([]);
+    expect(result.findings).toEqual([]);
     expect(result.scorecard.signal).toMatch(
       quality === "strong" ? /^(?:strong_)?yes$/u : /^(?:strong_)?no$/u,
     );

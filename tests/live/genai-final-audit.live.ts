@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { readFileSync, writeFileSync } from "node:fs";
 import { z } from "zod";
 import { chatMessageSchema } from "@/lib/chat";
+import { getProblem } from "@/lib/problems";
 import { auditFullInterview } from "./full-genai-audit";
 import { calls } from "./model-meter";
 import { fullInterviewUsage } from "./full-genai-usage";
@@ -38,7 +39,11 @@ it.concurrent.each([
     const label = `${problemId}-${quality}`;
     const path = `artifacts/genai-retest-3/${label}-adaptive.json`;
     const stored = storedSchema.parse(JSON.parse(readFileSync(path, "utf8")));
-    const audit = await auditFullInterview(stored.transcript, label);
+    const facts = getProblem(problemId)?.genai?.facts.map((fact) => ({
+      id: fact.id,
+      text: fact.answers.senior,
+    }));
+    const audit = await auditFullInterview(stored.transcript, label, facts);
     const observations = [
       ...stored.calls,
       ...calls.filter((c) => c.label === label + ":audit"),
@@ -62,6 +67,7 @@ it.concurrent.each([
     expect(audit.repeatedSentences).toEqual([]);
     expect(audit.topicsOverTwice).toEqual([]);
     expect(audit.cannedFallbacks).toEqual([]);
+    expect(audit.findings).toEqual([]);
     expect(stored.scorecard.signal).toMatch(
       quality === "strong" ? /^(?:strong_)?yes$/u : /^(?:strong_)?no$/u,
     );

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ChatMessage } from "@/lib/chat";
-import { repeatedInterviewerSentences } from "@/lib/reply-novelty";
+import { auditTranscript, type AuditFact } from "@/lib/transcript-audit";
 import { hasAsk } from "@/lib/open-question";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import { modelSettings } from "@/lib/model-settings";
@@ -19,14 +19,9 @@ const schema = z.object({
 export async function auditFullInterview(
   messages: ChatMessage[],
   label: string,
+  facts: AuditFact[] = [],
 ) {
-  const seen: ChatMessage[] = [],
-    repeats: string[] = [];
-  for (const message of messages) {
-    if (message.role === "assistant")
-      repeats.push(...repeatedInterviewerSentences(message.content, seen));
-    seen.push(message);
-  }
+  const localAudit = auditTranscript(messages, facts);
   const questions = messages.flatMap((m, i) =>
     m.role === "assistant" && (/[?？]/u.test(m.content) || hasAsk(m.content))
       ? [{ index: i, text: m.content }]
@@ -60,7 +55,7 @@ export async function auditFullInterview(
     }
   if (assigned.size !== known.size) throw Error("Incomplete semantic audit");
   return {
-    repeatedSentences: repeats,
+    ...localAudit,
     topicsOverTwice: audit.issues.filter(
       (issue) => issue.questionIndexes.length > 2,
     ),
