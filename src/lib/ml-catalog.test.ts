@@ -80,8 +80,8 @@ describe.each(examples)("ML catalog: $id", (example) => {
     expect(problem.rubric.map((r) => r.area)).toEqual(areas);
     expect(problem.phases.map((p) => p.title)).toEqual(names);
     expect(config.estimateAnchors.senior).toHaveLength(example.anchors);
-    expect(config.estimateAnchors.mid).toEqual([]);
-    expect(config.estimateAnchors.staff).toEqual([]);
+    expect(config.estimateAnchors.mid.length).toBeGreaterThan(0);
+    expect(config.estimateAnchors.staff.length).toBeGreaterThan(0);
     expect(config.redFlags).toHaveLength(example.flags);
     expect(config.expectedDesign.length).toBeGreaterThan(0);
     expect(

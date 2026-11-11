@@ -6,14 +6,16 @@ names, configurable evaluation/safety area names, and ML diagram/estimate vocabu
 The stored track ID remains `genai`; existing sessions need no migration.
 
 Video recommendations and ad click prediction use the supplied briefs, raw facts
-at all three levels, Senior anchors, reference designs, probes, red flags and level
+at all three levels, private estimate anchors, reference designs, probes, red flags and level
 bars. Both have the seven requested unweighted rubric areas and five ML phase titles.
 Existing core and GenAI problem JSON files, rubrics and scoring weights are unchanged.
 
-Only Senior anchors were supplied, so Mid/Staff anchor arrays are empty instead
-of inventing values. Their estimate checks use disclosed inputs and candidate
-assumptions. Recommendation candidate count and bytes per embedding value remain
-example assumptions. The Mid recommendation objective stays more clicks as given;
+The follow-up adds the supplied Mid and Staff anchors for both ML problems.
+An all-AI/ML completeness check also found missing agent Mid/Staff anchors. Those
+now contain arithmetic from the agent's existing task, step and token facts.
+Recommendation candidate count and bytes per embedding value remain example
+assumptions. Mid recommendation peak traffic uses the candidate's own assumption.
+The Mid recommendation objective stays more clicks as given;
 Senior/Staff require satisfaction-aware reasoning. Probes paraphrase derived or
 unasked numeric constraints instead of revealing private anchor answers.
 

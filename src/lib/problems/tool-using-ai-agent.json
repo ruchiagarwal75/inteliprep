@@ -164,7 +164,9 @@
       "stageIndex": 4
     }
   ],
-  "diagramReview": { "checkApplicationDataPaths": false },
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
   "phases": [
     {
       "id": "clarify-requirements",
@@ -327,12 +329,18 @@
       }
     ],
     "estimateAnchors": {
-      "mid": [],
+      "mid": [
+        "2K tasks times six model calls is 12K model calls a day, about 0.14/s on average.",
+        "2K tasks times 40K tokens is 80M tokens a day. Prioritize correctness, safety and recovery rather than scale arithmetic."
+      ],
       "senior": [
         "50K tasks times six steps is 300K model calls/day, about 3.5/s on average and 10/s at peak.",
         "50K tasks times 40K tokens is 2B tokens/day. Load is modest; correctness, safety and recovery are the hard parts."
       ],
-      "staff": []
+      "staff": [
+        "500K tasks times six model calls is 3M model calls a day, about 35/s on average and 104/s at peak.",
+        "500K tasks times 40K tokens is 20B tokens a day. Prioritize correctness, safety and recovery rather than scale arithmetic."
+      ]
     },
     "expectedDesign": [
       "A durable task runner executes think, pick tool, call and observe, with step limits and loop detection.",

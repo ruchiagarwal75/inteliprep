@@ -226,7 +226,9 @@
       "interviewerGuidance": "Ask about the candidate's own choices within this stage. Never reveal a reference design, unasked facts or estimate anchors. Ask one question at a time and probe failure modes of mechanisms they add. Respect drawing and explaining pauses. Shared facts are never proof of candidate reasoning. Accept reasonable justified choices without requiring a vendor."
     }
   ],
-  "diagramReview": { "checkApplicationDataPaths": false },
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
   "gradingGuidance": [
     "Judge the supplied level bar and all seven configured areas using candidate evidence. Naming a mechanism or metric without explaining it is not enough for the Senior bar. Name demonstrated red flags, and check the transcript for counter-evidence before claiming a gap. Do not require a particular vendor or model. Grade arithmetic using disclosed inputs and the candidate's own justified assumptions. Never reveal hidden anchor answers."
   ],
@@ -347,13 +349,21 @@
       }
     ],
     "estimateAnchors": {
-      "mid": [],
+      "mid": [
+        "50M ad requests a day is about 580/s on average.",
+        "Scoring 100 candidates per request is about 58K predictions/s on average.",
+        "About 250M impressions and 2.5M clicks a day."
+      ],
       "senior": [
         "3B ad requests a day is about 35K/s on average and 104K/s at peak.",
         "Scoring 500 candidates per request is about 52M predictions/s at peak.",
         "About 15B impressions and 150M clicks a day. Positives are about 1%, so the classes are heavily imbalanced."
       ],
-      "staff": []
+      "staff": [
+        "10B ad requests a day is about 116K/s on average and 347K/s at peak.",
+        "Scoring 1,000 candidates per request is about 347M predictions/s at peak.",
+        "About 50B impressions a day."
+      ]
     },
     "expectedDesign": [
       "Targeting filters, a light prefilter model, a heavy CTR model with user/ad/context features, sparse-feature embeddings and cross features, then calibration.",

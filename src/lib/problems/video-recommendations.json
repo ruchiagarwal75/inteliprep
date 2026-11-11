@@ -236,7 +236,9 @@
       "interviewerGuidance": "Ask about the candidate's own choices within this stage. Never reveal a reference design, unasked facts or estimate anchors. Ask one question at a time and probe failure modes of mechanisms they add. Respect drawing and explaining pauses. Shared facts are never proof of candidate reasoning. Accept reasonable justified choices without requiring a vendor."
     }
   ],
-  "diagramReview": { "checkApplicationDataPaths": false },
+  "diagramReview": {
+    "checkApplicationDataPaths": false
+  },
   "gradingGuidance": [
     "Judge the supplied level bar and all seven configured areas using candidate evidence. Naming a mechanism or metric without explaining it is not enough for the Senior bar. Name demonstrated red flags, and check the transcript for counter-evidence before claiming a gap. Do not require a particular vendor or model. Grade arithmetic using disclosed inputs and the candidate's own justified assumptions. Never reveal hidden anchor answers.",
     "Apply the selected level: Mid is explicitly given more clicks as the goal. Do not penalize following that Mid goal; Senior and Staff must reason about long-term satisfaction and clickbait."
@@ -358,14 +360,23 @@
       }
     ],
     "estimateAnchors": {
-      "mid": [],
+      "mid": [
+        "30M feed requests a day is about 350/s on average. Peak traffic depends on the candidate's stated assumption.",
+        "Video embeddings: 1M x 256 x an assumed 4 bytes is about 1 GB. User embeddings: 10M x 256 x an assumed 4 bytes is about 10 GB.",
+        "30M requests x 20 videos is about 600M impressions a day."
+      ],
       "senior": [
         "500M feed requests a day is about 5,800/s on average and 17K/s at peak.",
         "Scoring an assumed 500 candidates per request is about 8.7M item scores/s at peak.",
         "Video embeddings: 50M x 256 x an assumed 4 bytes is about 51 GB. User embeddings: 100M x 256 x an assumed 4 bytes is about 102 GB.",
         "500M requests x 20 videos is 10B impressions a day of training data."
       ],
-      "staff": []
+      "staff": [
+        "2.5B feed requests a day is about 29K/s on average and 87K/s at peak.",
+        "Scoring an assumed 500 candidates per request is about 43M item scores/s at peak.",
+        "Video embeddings: 1B x 256 x an assumed 4 bytes is about 1 TB. User embeddings: 500M x 256 x an assumed 4 bytes is about 512 GB.",
+        "2.5B requests x 20 videos is about 50B impressions a day."
+      ]
     },
     "expectedDesign": [
       "Multiple candidate sources: two-tower embeddings with an ANN index, collaborative, subscriptions, fresh and trending.",
