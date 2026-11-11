@@ -17,6 +17,7 @@ export const REQUEST_LIMITS = {
   clientError: [30, 300, 1_000],
   viewer: [20, 50, 50],
   feedback: [5, 30, 60],
+  play: [60, 1200, 10000],
 } as const;
 export type RequestKind = keyof typeof REQUEST_LIMITS;
 type Counter = { count: number; expiresAt: number };

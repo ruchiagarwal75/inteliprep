@@ -23,7 +23,7 @@ export default async function PlayPage() {
             </div>
             {topic.available ? (
               <Link className="practice-primary" href={`/play/${topic.id}`}>
-                Play RAG
+                Play {topic.title}
               </Link>
             ) : (
               <span className={styles.chip}>Coming soon</span>

@@ -82,3 +82,84 @@ export const drillResultSchema = z.object({
   timeMs: z.number().nonnegative(),
 });
 export type DrillResult = z.infer<typeof drillResultSchema>;
+export const timeZoneSchema = z
+  .string()
+  .min(1)
+  .max(100)
+  .refine((value) => {
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: value });
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Choose a valid time zone");
+const startFields = {
+  requestId: z.uuid(),
+  topic: z.string().regex(/^[a-z0-9-]{1,80}$/u),
+  timeZone: timeZoneSchema,
+};
+export const startRoundInputSchema = z.discriminatedUnion("mode", [
+  z
+    .object({
+      ...startFields,
+      mode: z.literal("level"),
+      level: z.number().int().min(1).max(100),
+    })
+    .strict(),
+  z.object({ ...startFields, mode: z.literal("placement") }).strict(),
+  z.object({ ...startFields, mode: z.literal("review") }).strict(),
+]);
+export type StartRoundInput = z.infer<typeof startRoundInputSchema>;
+export const roundSummarySchema = z.object({
+  mode: z.enum(["level", "placement", "review"]),
+  topic: z.string(),
+  level: z.number().int().nullable(),
+  correct: z.number().int(),
+  total: z.number().int(),
+  passed: z.boolean(),
+  passedLevels: z.array(z.number().int()),
+  retryDrills: z.array(
+    z.object({
+      drillId: z.string(),
+      title: z.string(),
+      level: z.number().int(),
+    }),
+  ),
+  bonusPoints: z.number().int(),
+  earnedBadges: z.array(z.string()),
+  practiceReadyNow: z.boolean(),
+});
+export type RoundSummary = z.infer<typeof roundSummarySchema>;
+const roundFields = {
+  sessionId: z.uuid(),
+  mode: z.enum(["level", "placement", "review"]),
+  question: drillQuestionSchema,
+};
+export const roundViewSchema = z.discriminatedUnion("status", [
+  z.object({ ...roundFields, status: z.literal("answering") }),
+  z.object({
+    ...roundFields,
+    status: z.literal("grading"),
+    answer: drillAnswerSchema,
+    retryAfter: z.number().int().nonnegative(),
+  }),
+  z.object({
+    ...roundFields,
+    status: z.literal("graded"),
+    answer: drillAnswerSchema,
+    result: drillResultSchema,
+    summary: roundSummarySchema.optional(),
+  }),
+]);
+export type RoundView = z.infer<typeof roundViewSchema>;
+export const submitRoundSchema = z
+  .object({ attemptId: z.uuid(), answer: drillAnswerSchema })
+  .strict();
+export const submitRoundResultSchema = z.object({
+  result: drillResultSchema,
+  summary: roundSummarySchema.optional(),
+});
+export const advanceRoundSchema = z
+  .object({ sessionId: z.uuid(), afterAttemptId: z.uuid() })
+  .strict();

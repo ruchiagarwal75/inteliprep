@@ -17,6 +17,7 @@ const verdictSchema = z.object({
 export async function gradeWrittenAnswer(
   drill: Extract<DrillDefinition, { type: "pick_probe" | "tradeoff" }>,
   answer: Extract<DrillAnswer, { type: "pick_probe" | "tradeoff" }>,
+  signal?: AbortSignal,
 ): Promise<DrillGrade> {
   const text =
     answer.type === "pick_probe"
@@ -44,7 +45,7 @@ export async function gradeWrittenAnswer(
       }),
       text: { format: zodTextFormat(verdictSchema, "practice_drill_grade") },
     }),
-    { timeout: 30000, maxRetries: 0 },
+    { signal, timeout: 30000, maxRetries: 0 },
   );
   if (response.status !== "completed")
     throw Error("Drill grading did not finish");

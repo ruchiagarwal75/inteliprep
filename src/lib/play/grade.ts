@@ -20,6 +20,7 @@ export async function gradeDrill(
   drill: DrillDefinition,
   variant: DrillVariant,
   answer: DrillAnswer,
+  signal?: AbortSignal,
 ): Promise<DrillGrade> {
   if (drill.type !== answer.type)
     throw Error("Answer type does not match drill");
@@ -59,6 +60,6 @@ export async function gradeDrill(
     (drill.type === "pick_probe" && answer.type === "pick_probe") ||
     (drill.type === "tradeoff" && answer.type === "tradeoff")
   )
-    return gradeWrittenAnswer(drill, answer);
+    return gradeWrittenAnswer(drill, answer, signal);
   throw Error("Answer type does not match drill");
 }
