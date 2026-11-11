@@ -1,5 +1,9 @@
 import { uniqueInterviewerReply } from "@/lib/unique-interviewer-reply";
-import { publicInterviewerReply } from "@/lib/public-interviewer-reply";
+import {
+  publicInterviewerReply,
+  configuredInternalTopicIds,
+  hasInternalIdentifiers,
+} from "@/lib/public-interviewer-reply";
 import {
   closeDiscussion,
   hasWrapUpQuestion,
@@ -446,6 +450,11 @@ async function* assembledInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ): AsyncGenerator<string> {
   const interview = args[5];
+  // Plain streamed replies have no stage-wide question planning to wait for.
+  if (!interview?.phase && !interview?.progress) {
+    yield* rawInterviewerReply(...args);
+    return;
+  }
   if (interview) {
     const capped = cappedGenaiQuestions(
       interview.problem.track,
@@ -607,5 +616,33 @@ async function* assembledInterviewerReply(
 export function streamInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ) {
-  return publicInterviewerReply(assembledInterviewerReply(...args));
+  const interview = args[5];
+  const topicIds = configuredInternalTopicIds(
+    interview?.problem.reviewProbes ?? [],
+  );
+  return publicInterviewerReply(assembledInterviewerReply(...args), {
+    topicIds,
+    onEmpty: () => {
+      const probe =
+        interview?.phase?.transition !== "initial" && interview
+          ? selectReviewProbe(interview.problem, args[0], interview)
+          : undefined;
+      const question =
+        interview?.phase?.transition === "initial"
+          ? pendingRequirementsQuestion(interview, args[0])
+          : probe?.question;
+      if (interview) {
+        interview.selectedTopic = undefined;
+        interview.continuedQuestionId = undefined;
+      }
+      if (question && !hasInternalIdentifiers(question, topicIds)) {
+        if (interview) interview.selectedTopic = probe?.id;
+        return question;
+      }
+      const closing = closeDiscussion(args[0]);
+      if (closing) return closing;
+      if (interview) interview.listening = true;
+      return "I'm reading your final thoughts.";
+    },
+  });
 }

@@ -152,6 +152,7 @@ describe("streamInterviewerReply", () => {
         "empty",
         "Initial diagram",
       );
+      expect((await stream.next()).value).toContain("Partial reply.");
       await expect(stream.next()).rejects.toThrow("did not complete");
     },
   );

@@ -1230,3 +1230,16 @@ Benchmark audits account for every delivered ask, including imperatives, and
 separate app usage from candidate-simulator and independent-audit overhead.
 The resumed post-guard live acceptance is documented as incomplete after a
 provider-credit failure; beta publication with that limitation was approved.
+
+### Public reply sentence filtering
+
+The final public-reply filter releases checked sentences as they arrive. It
+recognizes generated `fresh:` hashes and literal serialized topic keys from the
+selected problem configuration. Ordinary field names, pipes between percentiles
+and bare request IDs remain eligible. Contaminated sentences are dropped without
+raising a candidate-facing error. If nothing remains, the server supplies a safe
+configured continuation or the existing final-thoughts invitation.
+
+Plain provider streams can release a checked sentence before provider completion.
+Structured question planning and stage/pacing checks still validate their result
+before releasing that question; the ID filter does not add a whole-reply buffer.

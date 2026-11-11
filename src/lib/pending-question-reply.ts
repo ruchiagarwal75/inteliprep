@@ -3,7 +3,10 @@ import type { PendingQuestion } from "@/lib/open-question-queue";
 import { questionAtEnd } from "@/lib/open-question";
 import { isGenericProbe } from "@/lib/review-probes";
 import { plainInterviewerText } from "@/lib/interviewer-reply-filter";
-import { hasInternalIdentifiers } from "@/lib/public-interviewer-reply";
+import {
+  configuredInternalTopicIds,
+  hasInternalIdentifiers,
+} from "@/lib/public-interviewer-reply";
 
 const normalized = (text: string) =>
   text.toLowerCase().replace(/\s+/gu, " ").trim();
@@ -18,9 +21,10 @@ export function resumePendingQuestion(
     messages.findLast((m) => m.role === "assistant")?.content ?? "";
   const question = plainInterviewerText(proposed ?? "").trim();
   const last = questionAtEnd(previous) ?? previous;
+  const topicIds = configuredInternalTopicIds([{ id: pending.topicId ?? "" }]);
   if (
     questionId === pending.id &&
-    !hasInternalIdentifiers(question) &&
+    !hasInternalIdentifiers(question, topicIds) &&
     questionAtEnd(question) &&
     (question.match(/[?？]/gu)?.length ?? 0) === 1 &&
     normalized(questionAtEnd(question) ?? question) !== normalized(last) &&
@@ -31,7 +35,11 @@ export function resumePendingQuestion(
     return question;
   // Ground the continuation in the actual unanswered question, never its topic ID.
   const original = questionAtEnd(pending.question);
-  if (!original || hasInternalIdentifiers(original) || isGenericProbe(original))
+  if (
+    !original ||
+    hasInternalIdentifiers(original, topicIds) ||
+    isGenericProbe(original)
+  )
     return "";
   const next = `For the design you've described, ${original.charAt(0).toLowerCase()}${original.slice(1)}`;
   return messages.some(
