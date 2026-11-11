@@ -1221,8 +1221,10 @@ rejects already asked or answered issues. Fresh questions receive their own
 server-owned IDs without reopening closed bank issues. Bank and pending asks
 also receive a direct history-budget check so aliases across stages cannot
 permit a third same-issue ask. Imperative asks count too. Retiring a rejected
-pending question does not award scoring coverage. Final exhaustion requests a
-separate grounded closing instruction, rather than another technical question.
+pending question does not award scoring coverage. Final exhaustion asks once:
+"We're close to time. Is there anything you'd change or add before we wrap up?"
+The server supplies this without a model call. Later final thoughts are saved
+while the interviewer listens, without another closing command or invitation.
 
 Benchmark audits account for every delivered ask, including imperatives, and
 separate app usage from candidate-simulator and independent-audit overhead.

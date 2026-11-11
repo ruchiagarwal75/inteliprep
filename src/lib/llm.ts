@@ -1,5 +1,11 @@
 import { uniqueInterviewerReply } from "@/lib/unique-interviewer-reply";
 import { publicInterviewerReply } from "@/lib/public-interviewer-reply";
+import {
+  closeDiscussion,
+  hasWrapUpQuestion,
+  isOrderLikeWrapUp,
+  WRAP_UP_QUESTION,
+} from "@/lib/discussion-closing";
 import { withinInterviewQuestionBudget } from "@/lib/interview-question-budget";
 import { questionAtEnd } from "@/lib/open-question";
 import { continueDiscussion } from "@/lib/discussion-exhaustion";
@@ -116,6 +122,14 @@ async function* rawInterviewerReply(
     return;
   }
   const step = interview?.progress?.step;
+  if (
+    interview?.phase?.transition === "wrap-up" &&
+    hasWrapUpQuestion(messages)
+  ) {
+    interview.listening = true;
+    yield "I'm reading your final thoughts.";
+    return;
+  }
   if (
     interview?.problem.track === "genai" &&
     !["drawing", "explaining"].includes(step ?? "")
@@ -455,6 +469,15 @@ async function* assembledInterviewerReply(
   }
   let reply = "";
   for await (const part of rawInterviewerReply(...args)) reply += part;
+  if (isOrderLikeWrapUp(reply)) reply = closeDiscussion(args[0]) ?? "";
+  if (interview?.listening) {
+    yield reply || "I'm reading your final thoughts.";
+    return;
+  }
+  if (reply === WRAP_UP_QUESTION) {
+    yield reply;
+    return;
+  }
   reply = trimAcknowledgements(reply);
   if (
     !["drawing", "explaining", "invite-drawing"].includes(
@@ -543,6 +566,7 @@ async function* assembledInterviewerReply(
     interview?.questionMemory &&
     interview.progress?.step === "review" &&
     hasAsk(reply) &&
+    reply !== WRAP_UP_QUESTION &&
     !/\b(?:end|finish|conclude) (?:the|this|your) interview\b/iu.test(reply) &&
     (!interview.selectedTopic?.startsWith("fresh:") ||
       interview.continuedQuestionId) &&
