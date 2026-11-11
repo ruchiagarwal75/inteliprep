@@ -1,0 +1,254 @@
+[
+  {
+    "problemId": "enterprise-rag-assistant",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What workload, freshness, permission and latency constraints are you designing for, and what do they imply?"
+      },
+      {
+        "role": "user",
+        "content": "The service needs fresh, permission-aware answers with source citations, predictable latency and controlled cost. I would plan ingestion and query capacity separately."
+      },
+      {
+        "role": "assistant",
+        "content": "How do documents become searchable and how will edits and deletes propagate?"
+      },
+      {
+        "role": "user",
+        "content": "Incremental connectors feed structure-aware chunking and versioned embeddings into keyword and vector indexes. Hybrid retrieval combines lexical and semantic signals."
+      },
+      {
+        "role": "assistant",
+        "content": "How do retrieval results turn into a grounded answer, and what happens with weak evidence?"
+      },
+      {
+        "role": "user",
+        "content": "ACL-filtered hybrid retrieval feeds a cross-encoder reranker and context builder. Grounded generation produces source-linked answers with citation validation and abstention."
+      },
+      {
+        "role": "assistant",
+        "content": "What happens when the vector index or model service fails, and how do replicas recover?"
+      },
+      {
+        "role": "user",
+        "content": "Replicas, circuit breakers, backpressure and replay protect the ingestion and retrieval pipeline. The generation path has timeout handling and bounded retries."
+      },
+      {
+        "role": "assistant",
+        "content": "How will you measure cost per question and trace a bad answer?"
+      },
+      {
+        "role": "user",
+        "content": "Model routing, semantic caching and prompt caching control cost. Distributed tracing records retrieval, reranking and generation, with cost per question on the dashboard."
+      },
+      {
+        "role": "assistant",
+        "content": "Which retrieval and answer metrics will you evaluate before shipping a change?"
+      },
+      {
+        "role": "user",
+        "content": "I measure faithfulness via LLM-as-judge on a golden set, retrieval Recall@k and citation precision. Human review checks the judge and regression evaluations gate releases."
+      },
+      {
+        "role": "assistant",
+        "content": "How does a revocation take effect within five minutes, how are cache keys scoped, and how do you handle malicious retrieved instructions?"
+      },
+      {
+        "role": "user",
+        "content": "Permission-aware caching, ACL invalidation and retrieval filters protect access. Guardrails, prompt isolation and audit logs protect the generation path."
+      }
+    ],
+    "nodes": [
+      "Employee",
+      "Connectors",
+      "Chunking and embeddings",
+      "Hybrid search",
+      "ACL filter",
+      "Reranker",
+      "Context builder",
+      "LLM",
+      "Cache",
+      "LLM judge and guardrails"
+    ],
+    "edges": [
+      [0, 4],
+      [1, 2],
+      [2, 3],
+      [4, 3],
+      [3, 5],
+      [5, 6],
+      [6, 7],
+      [7, 8],
+      [7, 9]
+    ]
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What workload, token and GPU capacity do you need at Senior?"
+      },
+      {
+        "role": "user",
+        "content": "I would plan capacity in input and output tokens, distinguish prefill from decode and account for peak demand. The scheduler controls GPU admission."
+      },
+      {
+        "role": "assistant",
+        "content": "How will you store conversation history and keep context bounded?"
+      },
+      {
+        "role": "user",
+        "content": "A user-partitioned conversation store backs a context builder with truncation, summarization and prompt caching. User deletion propagates to conversation records and summaries."
+      },
+      {
+        "role": "assistant",
+        "content": "How do batching, KV cache and stream recovery work in your design?"
+      },
+      {
+        "role": "user",
+        "content": "Continuous batching and KV-cache management support inference. SSE streams answers with persisted progress, reconnect handling and idempotency keys."
+      },
+      {
+        "role": "assistant",
+        "content": "What happens when GPUs are full or a node dies midway through an answer?"
+      },
+      {
+        "role": "user",
+        "content": "Bounded queues, tier-aware admission and graceful degradation protect the GPU fleet. Replicas and retries support interrupted generations."
+      },
+      {
+        "role": "assistant",
+        "content": "How will tier routing, cost per message and model rollout work?"
+      },
+      {
+        "role": "user",
+        "content": "The inference router selects large and small models by tier and task. Token accounting tracks cost per message, while canary deployment and rollback protect releases."
+      },
+      {
+        "role": "assistant",
+        "content": "Which quality and safety metrics determine whether a new model can ship?"
+      },
+      {
+        "role": "user",
+        "content": "I measure faithfulness via LLM-as-judge on a golden set, helpfulness through human ratings and quality through regression evaluations. Release gates use those signals."
+      },
+      {
+        "role": "assistant",
+        "content": "How do input/output moderation and ownership checks work without violating first-token latency?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation, streamed-output guardrails and conversation ownership checks enforce safety. The pipeline records safety decisions and protects user isolation."
+      }
+    ],
+    "nodes": [
+      "Client",
+      "Gateway",
+      "Chat service",
+      "Conversation store",
+      "Context builder",
+      "Moderation and guardrails",
+      "Inference router",
+      "GPU cluster and KV cache",
+      "Queue",
+      "LLM judge"
+    ],
+    "edges": [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [2, 4],
+      [4, 5],
+      [5, 6],
+      [6, 7],
+      [6, 8],
+      [7, 9]
+    ]
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "messages": [
+      {
+        "role": "assistant",
+        "content": "What scope, task limits and mistake constraints matter for this agent?"
+      },
+      {
+        "role": "user",
+        "content": "I would separate read and write tools, treat incorrect writes as serious incidents and apply task budgets. The orchestrator controls delegated execution."
+      },
+      {
+        "role": "assistant",
+        "content": "How does the agent loop choose and validate tools, and when does it stop?"
+      },
+      {
+        "role": "user",
+        "content": "A planner and durable agent runner use a schema-validated tool registry. Tool selection, loop detection and step limits control the execution loop."
+      },
+      {
+        "role": "assistant",
+        "content": "How do checkpoints and idempotency avoid duplicate emails after an ambiguous timeout?"
+      },
+      {
+        "role": "user",
+        "content": "Idempotency keys, durable checkpoints and an action ledger support safe retries. The runner restores persisted task state and reconciles tool outcomes."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you investigate a wrong action from yesterday?"
+      },
+      {
+        "role": "user",
+        "content": "An audit log, correlated traces and replay capture the agent run. Tool contracts, decisions and execution outcomes support incident investigation."
+      },
+      {
+        "role": "assistant",
+        "content": "What latency budget and cost per task do you expect?"
+      },
+      {
+        "role": "user",
+        "content": "Token budgets, model routing and tool latency tracing control task economics. Dashboards show cost per task and end-to-end completion latency."
+      },
+      {
+        "role": "assistant",
+        "content": "What mocked-tool scenarios and metrics gate a new model or prompt?"
+      },
+      {
+        "role": "user",
+        "content": "I measure task success, wrong-action rate and faithfulness via LLM-as-judge on a golden set. Mocked tools, human review and regression gates validate model and prompt releases."
+      },
+      {
+        "role": "assistant",
+        "content": "What exactly does the approval show, whose credentials execute the action, and what if retrieved content tries to authorize a write?"
+      },
+      {
+        "role": "user",
+        "content": "Delegated scoped credentials, exact-action approval and recipient policies protect writes. Prompt isolation, guardrails and audit trails separate retrieved content from execution authority."
+      }
+    ],
+    "nodes": [
+      "Employee and approval UI",
+      "Agent runner",
+      "Planner",
+      "Tool registry",
+      "Tool executor",
+      "Scoped tokens and guardrails",
+      "Durable task store",
+      "Email and search tools",
+      "Audit log",
+      "LLM judge and mocked tools"
+    ],
+    "edges": [
+      [0, 1],
+      [1, 2],
+      [1, 3],
+      [1, 4],
+      [4, 5],
+      [1, 6],
+      [4, 7],
+      [4, 8],
+      [1, 9]
+    ]
+  }
+]
