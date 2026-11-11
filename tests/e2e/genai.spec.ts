@@ -117,7 +117,7 @@ test("GenAI group preserves private facts and runs the normal interview flow", a
       .locator("header.live-header")
       .getByLabel("AI / ML system design", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "MockMeAI home", exact: true }).click();
+  await page.goto("/mock/history");
   await expect(
     page
       .locator(".session-title")

@@ -103,6 +103,11 @@ export function startFixtureService(key, cert, reporting) {
             url.searchParams.get("provider") ?? "google",
           ),
         );
+      if (url.pathname === "/fixture/play-answer")
+        return json(
+          200,
+          await reporting.playAnswer(url.searchParams.get("attempt")),
+        );
       if (url.pathname === "/fixture/stats") return json(200, { modelCalls });
       if (url.pathname === "/fixture/invitation" && req.method === "POST") {
         let raw = "";
@@ -140,7 +145,15 @@ export function startFixtureService(key, cert, reporting) {
       const body = JSON.parse(raw);
       let text =
         "Measuring the baseline will help you test that assumption. What workload and response-time goals would you clarify first?";
-      if (body.text?.format?.name === "unique_interviewer_reply") {
+      if (body.text?.format?.name === "practice_drill_grade") {
+        text = JSON.stringify({
+          pass: true,
+          score: 0.95,
+          concreteMechanism: true,
+          offTopic: false,
+          feedback: "Your answer names a mechanism and how to check it.",
+        });
+      } else if (body.text?.format?.name === "unique_interviewer_reply") {
         const data = inputData(body);
         text = JSON.stringify({
           reply: data.reply

@@ -50,3 +50,29 @@ it("falls back safely for new browsers, invalid preferences and unavailable old 
     briefDefaults(problems, undefined, undefined, "unknown", "made-up"),
   ).toMatchObject({ problemId: "single-server-scaling", level: "mid" });
 });
+it("keeps the readiness prompt's chosen interview level", () => {
+  expect(
+    briefDefaults(
+      problems,
+      undefined,
+      undefined,
+      "mid",
+      "url-shortener",
+      undefined,
+      undefined,
+      "senior",
+    ).level,
+  ).toBe("senior");
+  expect(
+    briefDefaults(
+      problems,
+      undefined,
+      undefined,
+      "mid",
+      "url-shortener",
+      undefined,
+      undefined,
+      "invalid",
+    ).level,
+  ).toBe("mid");
+});

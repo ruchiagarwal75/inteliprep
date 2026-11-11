@@ -19,7 +19,7 @@ test("both themes render Home, live interview and scored results; AI images stay
   await signIn(context, "theme");
   // Freeze CSS gestures for reproducible screenshots, keeping the original mascot artwork visible.
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/mock/history");
   await expect(
     page.getByRole("heading", { name: "Recent sessions", exact: true }),
   ).toBeVisible();

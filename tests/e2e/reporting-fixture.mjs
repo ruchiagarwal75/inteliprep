@@ -64,6 +64,7 @@ export async function startReportingFixture(key, cert) {
       "20261109231409_beta_funnel.sql",
       "20261108050628_beta_invitations.sql",
       "20261110072257_google_only_beta_invitations.sql",
+      "20261111221816_play_game.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
@@ -81,6 +82,44 @@ export async function startReportingFixture(key, cert) {
   return {
     connection:
       "postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres",
+    playAnswer: async (id) => {
+      const [row] =
+        await operator`select private_variant from practice_game.drill_attempts where id=${id}`;
+      if (!row) throw Error("Missing fixture drill");
+      const { definition: d, variant: v } = row.private_variant;
+      if (d.type === "spot_flaw")
+        return {
+          type: d.type,
+          option: String(v.order.indexOf(d.correctIndex)),
+        };
+      if (d.type === "pick_probe")
+        return {
+          type: d.type,
+          text: "How does this mechanism fail, and what measured check blocks rollout?",
+        };
+      if (d.type === "tradeoff")
+        return {
+          type: d.type,
+          decision: "Use a bounded check",
+          reason: "Test the failure path against a labeled set before rollout.",
+        };
+      const stack = [];
+      for (const t of d.math.expression) {
+        if (typeof t === "number") stack.push(t);
+        else if (typeof t === "object") stack.push(v.parameters[t.param]);
+        else if (t === "ceil") stack.push(Math.ceil(stack.pop() - 1e-12));
+        else {
+          const b = stack.pop(),
+            a = stack.pop();
+          stack.push(t === "add" ? a + b : t === "multiply" ? a * b : a / b);
+        }
+      }
+      return {
+        type: d.type,
+        value: stack[0] / d.math.units[0].factor,
+        unit: d.math.units[0].id,
+      };
+    },
     isInvited: async (user) =>
       operator.begin(async (tx) => {
         await tx.unsafe("set local role authenticated");

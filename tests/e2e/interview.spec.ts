@@ -13,7 +13,7 @@ test("automated browsing does not generate visitor events", async ({
       events.push(request.url());
   });
   await page.goto("/");
-  await page.getByRole("link", { name: "Start practice", exact: true }).click();
+  await page.getByRole("link", { name: "Start free", exact: true }).click();
   await expect(page).toHaveURL(/\/sign-in/);
   expect(events).toEqual([]);
 });
@@ -744,7 +744,7 @@ test("the brief remembers level and defaults to the suggested next problem", asy
     page.getByRole("heading", { name: "Too short to score", exact: true }),
   ).toBeVisible();
   await page.getByRole("link", { name: "MockMeAI home", exact: true }).click();
-  await page.getByRole("link", { name: "Start practice", exact: true }).click();
+  await page.goto("/interview/new");
   await expect(
     page.getByRole("combobox", { name: "Difficulty", exact: true }),
   ).toHaveValue("senior");

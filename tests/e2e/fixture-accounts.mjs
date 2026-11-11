@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  play: {
+    id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    email: "play@example.invalid",
+  },
   theme: {
     id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
     email: "theme@example.invalid",
