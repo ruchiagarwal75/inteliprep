@@ -1,3 +1,5 @@
+import { gradingResponse } from "@/lib/grading-response";
+import type { GradingProgressListener } from "@/lib/grading-progress";
 import { trackCurrentInterview } from "@/lib/interview-tracking";
 import { setInterviewReference } from "@/lib/reporting-context";
 import { interviewEndRequestSchema } from "@/lib/interview-end";
@@ -36,80 +38,87 @@ async function end(request: Request): Promise<Response> {
     parsed.data,
     parsed.data.resumeToken,
   );
-  try {
-    interviewSessionCheckpoint(
-      parsed.data.sessionId,
-      parsed.data,
-      parsed.data.resumeToken,
-    );
-    const scorecard = await endInterview(
-      {
-        ...parsed.data,
-        messages: verifiedEndMessages(
-          parsed.data.sessionId,
-          parsed.data.messages,
-        ),
-      },
-      request.signal,
-      async () => {
-        await shared.persist();
-        await trackCurrentInterview(parsed.data.sessionId, { grading: true });
-      },
-    );
-    await shared.persist();
-    await trackCurrentInterview(parsed.data.sessionId);
-    return Response.json(
-      {
-        ended: true,
-        scorecard,
-        resumeToken: interviewSessionCheckpoint(
-          parsed.data.sessionId,
-          parsed.data,
-        ).resumeToken,
-      },
-      {
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
-  } catch (cause) {
-    let resumeToken: string | undefined;
-    let ended = false;
+  const complete = async (
+    signal: AbortSignal,
+    onProgress: GradingProgressListener,
+  ) => {
     try {
-      const checkpoint = interviewSessionCheckpoint(
+      interviewSessionCheckpoint(
         parsed.data.sessionId,
         parsed.data,
+        parsed.data.resumeToken,
       );
-      resumeToken = checkpoint.resumeToken;
-      ended = checkpoint.ended;
-    } catch {
-      /* Another request may still hold the session. */
+      const scorecard = await endInterview(
+        {
+          ...parsed.data,
+          messages: verifiedEndMessages(
+            parsed.data.sessionId,
+            parsed.data.messages,
+          ),
+        },
+        signal,
+        async () => {
+          await shared.persist();
+          await trackCurrentInterview(parsed.data.sessionId, { grading: true });
+        },
+        onProgress,
+      );
+      await shared.persist();
+      await trackCurrentInterview(parsed.data.sessionId);
+      return Response.json(
+        {
+          ended: true,
+          scorecard,
+          resumeToken: interviewSessionCheckpoint(
+            parsed.data.sessionId,
+            parsed.data,
+          ).resumeToken,
+        },
+        {
+          headers: { "Cache-Control": "no-store" },
+        },
+      );
+    } catch (cause) {
+      let resumeToken: string | undefined;
+      let ended = false;
+      try {
+        const checkpoint = interviewSessionCheckpoint(
+          parsed.data.sessionId,
+          parsed.data,
+        );
+        resumeToken = checkpoint.resumeToken;
+        ended = checkpoint.ended;
+      } catch {
+        /* Another request may still hold the session. */
+      }
+      const status =
+        cause instanceof InterviewSessionError
+          ? cause.status
+          : cause instanceof BetaUnavailableError
+            ? 503
+            : 502;
+      return Response.json(
+        {
+          resumeToken,
+          code: cause instanceof InterviewSessionError ? cause.code : undefined,
+          error:
+            cause instanceof InterviewGradingError ||
+            cause instanceof InterviewSessionError ||
+            cause instanceof BetaUnavailableError
+              ? cause.message
+              : "Could not end the interview",
+          ended:
+            ended ||
+            cause instanceof InterviewGradingError ||
+            (cause instanceof InterviewSessionError && cause.ended),
+        },
+        { status },
+      );
+    } finally {
+      await shared.release();
     }
-    const status =
-      cause instanceof InterviewSessionError
-        ? cause.status
-        : cause instanceof BetaUnavailableError
-          ? 503
-          : 502;
-    return Response.json(
-      {
-        resumeToken,
-        code: cause instanceof InterviewSessionError ? cause.code : undefined,
-        error:
-          cause instanceof InterviewGradingError ||
-          cause instanceof InterviewSessionError ||
-          cause instanceof BetaUnavailableError
-            ? cause.message
-            : "Could not end the interview",
-        ended:
-          ended ||
-          cause instanceof InterviewGradingError ||
-          (cause instanceof InterviewSessionError && cause.ended),
-      },
-      { status },
-    );
-  } finally {
-    await shared.release();
-  }
+  };
+  return gradingResponse(request, complete);
 }
 
 export const POST = withApiRequest("end", "/api/interview/end", end);

@@ -26,9 +26,7 @@ export function modelSettings(operation: ModelOperation) {
   const setting = grading
     ? "OPENAI_SCORECARD_REASONING_EFFORT"
     : "OPENAI_INTERVIEW_REASONING_EFFORT";
-  const effort = effortSchema.safeParse(
-    process.env[setting]?.trim() || (grading ? "high" : "low"),
-  );
+  const effort = effortSchema.safeParse(process.env[setting]?.trim() || "low");
   if (
     !effort.success ||
     (effort.data === "none" && !/^gpt-6\.1-terra(?:-|$)/u.test(model))
@@ -36,7 +34,11 @@ export function modelSettings(operation: ModelOperation) {
     throw new Error(`${setting} has an unsupported value`);
   return {
     model,
-    reasoning: { effort: effort.data },
+    // Interactive grading caps old high-effort settings to keep feedback responsive.
+    reasoning: {
+      effort:
+        grading && effort.data !== "none" ? ("low" as const) : effort.data,
+    },
     // Reasoning and visible output share this budget. Existing text/input caps still apply.
     max_output_tokens: grading ? 16_000 : 4_096,
   };

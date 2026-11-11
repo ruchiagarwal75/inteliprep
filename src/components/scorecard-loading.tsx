@@ -1,10 +1,13 @@
 "use client";
 import Mascot from "@/components/mascot-art/Mascot";
 import { useMascotPreference } from "@/components/mascot-preference";
+import { GRADING_STEPS, type GradingStage } from "@/lib/grading-progress";
+import styles from "./scorecard-loading.module.css";
 
-/** The grading API has no step events, so do not pretend to report completed steps. */
-export function ScorecardLoading() {
+/** Only server events change the current step. */
+export function ScorecardLoading({ stage }: { stage?: GradingStage }) {
   const mascot = useMascotPreference();
+  const current = GRADING_STEPS.findIndex((step) => step.id === stage);
   return (
     <section className="scorecard-loading" aria-label="Preparing your feedback">
       {mascot && (
@@ -15,22 +18,25 @@ export function ScorecardLoading() {
       <div>
         <h2>Generating your scorecard…</h2>
         <p>
-          We&apos;re reviewing your answers and drawing. This can take up to two
-          minutes.
+          Your transcript and final diagram stay available while we prepare
+          feedback.
         </p>
-        <div
-          className="scorecard-progress"
-          role="progressbar"
-          aria-label="Generating feedback"
-        >
-          <span />
-        </div>
-        <p className="practice-muted">
-          Your feedback covers the transcript, the final diagram, and the
-          tradeoffs you discussed. You can review the other tabs while you wait.
-        </p>
-        <span className="sr-only" role="status">
-          Generating your scorecard
+        <ol className={styles.steps} aria-label="Scorecard progress">
+          {GRADING_STEPS.map((step, index) => (
+            <li
+              key={step.id}
+              className={`${styles.step} ${index === current ? styles.current : ""}`}
+              aria-current={index === current ? "step" : undefined}
+            >
+              <span className={styles.number} aria-hidden="true">
+                {index < current ? "✓" : index + 1}
+              </span>
+              {step.label}
+            </li>
+          ))}
+        </ol>
+        <span className="sr-only" role="status" aria-live="polite">
+          {GRADING_STEPS[current]?.label ?? "Preparing your feedback"}
         </span>
       </div>
     </section>

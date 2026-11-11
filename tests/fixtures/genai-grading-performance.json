@@ -1,0 +1,1016 @@
+[
+  {
+    "problemId": "enterprise-rag-assistant",
+    "nodes": [
+      "Employee",
+      "Auth and permissions",
+      "Incremental connectors",
+      "Parse and chunk",
+      "Embedding service",
+      "ACL vector index",
+      "ACL keyword index",
+      "Reranker",
+      "Context builder",
+      "LLM",
+      "Citation check",
+      "Scoped answer cache",
+      "Eval and tracing"
+    ],
+    "edges": [
+      [0, 1],
+      [2, 3],
+      [3, 4],
+      [4, 5],
+      [3, 6],
+      [1, 5],
+      [1, 6],
+      [5, 7],
+      [6, 7],
+      [7, 8],
+      [8, 9],
+      [9, 10],
+      [10, 11]
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many employees, documents and sources are there?"
+      },
+      {
+        "role": "assistant",
+        "content": "20,000 employees.\n\n5M documents from five sources: wiki, drive, tickets, chat and docs."
+      },
+      {
+        "role": "user",
+        "content": "How many questions per day and what is the peak factor?"
+      },
+      {
+        "role": "assistant",
+        "content": "100K questions per day, with peak traffic three times the average."
+      },
+      {
+        "role": "user",
+        "content": "How often do documents change and how quickly must edits show up?"
+      },
+      {
+        "role": "assistant",
+        "content": "About 2% of documents change daily; edits must appear within 15 minutes.\n\nIs there another requirement you want to check?"
+      },
+      {
+        "role": "user",
+        "content": "How quickly must revoked access apply, and how much content is restricted?"
+      },
+      {
+        "role": "assistant",
+        "content": "Removed access must apply within five minutes.\n\nAbout 30% of documents are restricted, with nested groups.\n\nLet's move to the whiteboard. Sketch your design, then choose Ready to explain when you're ready."
+      },
+      {
+        "role": "user",
+        "content": "What latency and cost targets apply?"
+      },
+      {
+        "role": "assistant",
+        "content": "First token under two seconds at p95, and a full answer under eight seconds.\n\nThe cost target is about two cents per question."
+      },
+      {
+        "role": "user",
+        "content": "Which languages are needed, and what search do employees use today?"
+      },
+      {
+        "role": "assistant",
+        "content": "English.\n\nToday there is keyword search only."
+      },
+      {
+        "role": "user",
+        "content": "How many chunks per document, embedding dimensions, and input/output tokens per question should I assume?"
+      },
+      {
+        "role": "assistant",
+        "content": "About ten chunks per document.\n\nUse 768-dimensional embeddings.\n\nAbout 4,000 input tokens and 500 output tokens per question."
+      },
+      {
+        "role": "user",
+        "content": "I need employee count, document count and source types, daily questions with peak factor, update frequency, permission revocation bound, latency and cost target. I will design against the disclosed Senior facts: 20,000 employees, 5M documents, 100K questions daily, 2% changes daily, 15-minute edit freshness and 5-minute revokes. I assume float32 values at four bytes each: 50M chunks times 768 times four is about 154 GB raw, before an index overhead measurement; updates require about 1M chunks daily. Questions average about 1.16 per second, 3.47 peak, and the stated 4,500 tokens imply 450M tokens daily."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Start drawing",
+        "action": "draw",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Ready to explain",
+        "action": "explain",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Write your explanation across as many messages as you need. Choose Done explaining when you're ready for questions."
+      },
+      {
+        "role": "user",
+        "content": "Incremental connectors store per-source watermarks, deduplicate by source document version and feed parsing and cleaning. I preserve PDF table rows with headings, choose chunks using a test set rather than a fixed universal size, and embed only changed chunks. Tombstones remove deleted chunks from both keyword and vector indexes; versioned publishes prevent mixed document versions. I choose hybrid keyword and vector retrieval for exact identifiers and paraphrases, then rerank a bounded candidate set because reranking every chunk would blow the latency budget."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Authenticate the employee and resolve current groups, rewrite their query, then apply their ACL filter inside both retrieval systems before fetching content or sending anything to a model. Rerank authorized results, build numbered sources with immutable document versions, and stream the answer. Check every citation points to a retrieved authorized passage; reject unsupported claims and abstain when confidence or relevance is weak. Budget 100 ms auth, 300 ms retrieval, 200 ms rerank and 200 ms context work, leaving about 1.2 seconds to first model token and measuring the full answer against eight seconds."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Done explaining",
+        "action": "review",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "How does the \"Scoped answer cache\" prevent an \"Employee\" from receiving a cached answer after access to one of its sources is revoked?"
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "What happens on a hit in the \"Scoped answer cache\" if the \"Employee\"'s access to a cited document was revoked within the last five minutes?"
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you use your test set to decide between chunk sizes?"
+      },
+      {
+        "role": "user",
+        "content": "Incremental connectors store per-source watermarks, deduplicate by source document version and feed parsing and cleaning. I preserve PDF table rows with headings, choose chunks using a test set rather than a fixed universal size, and embed only changed chunks. Tombstones remove deleted chunks from both keyword and vector indexes; versioned publishes prevent mixed document versions. I choose hybrid keyword and vector retrieval for exact identifiers and paraphrases, then rerank a bounded candidate set because reranking every chunk would blow the latency budget."
+      },
+      {
+        "role": "assistant",
+        "content": "What would you measure on the test set to compare the chunk sizes?"
+      },
+      {
+        "role": "user",
+        "content": "Incremental connectors store per-source watermarks, deduplicate by source document version and feed parsing and cleaning. I preserve PDF table rows with headings, choose chunks using a test set rather than a fixed universal size, and embed only changed chunks. Tombstones remove deleted chunks from both keyword and vector indexes; versioned publishes prevent mixed document versions. I choose hybrid keyword and vector retrieval for exact identifiers and paraphrases, then rerank a bounded candidate set because reranking every chunk would blow the latency budget."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "I would create a representative human-labeled question set with exact identifier, paraphrase, table, no-answer and denied-document cases. Measure retrieval Recall@k, citation correctness, groundedness and abstention precision independently. Calibrate any LLM judge against human labels and measure agreement and regressions, not just a fluent answer. Gate releases on no access leaks and quality non-regression, then run a canary with user feedback and per-stage tracing."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Compute cost per question from actual input and output tokens at the chosen provider rates, reranking, embeddings, index storage and connector work. Compare with two cents and adjust bounded context and duplicate work before quality compromises; no provider price has been specified. Trace each stage with document and ACL version references and latency metrics, keeping private text out of general logs. Re-embedding migrations build a versioned shadow index, evaluate it, dual-read a sampled cohort and switch an alias with rollback while the old index serves queries."
+      },
+      {
+        "role": "assistant",
+        "content": "If the \"ACL vector index\" becomes unavailable, what happens to an \"Employee\"'s question?"
+      },
+      {
+        "role": "user",
+        "content": "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content."
+      },
+      {
+        "role": "assistant",
+        "content": "If an LLM request succeeds but its response is lost, what happens when the retry runs?"
+      },
+      {
+        "role": "user",
+        "content": "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content."
+      },
+      {
+        "role": "assistant",
+        "content": "When the LLM completes a request but the response is lost, how does your retry handle the possibility of duplicate work and cost?"
+      },
+      {
+        "role": "user",
+        "content": "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content."
+      },
+      {
+        "role": "assistant",
+        "content": "What can happen between access being revoked and your next permission sync?"
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "A document contains an instruction to list salary files. What does your design do with it?"
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "If the LLM follows an instruction in an authorized document and includes misleading content in its answer, how would your \"Citation check\" catch it?"
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Pause to draw",
+        "action": "draw",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Take your time with the whiteboard. I'll hold questions while you draw. Choose Ready to explain when you're ready."
+      },
+      {
+        "role": "user",
+        "content": "Ready to explain",
+        "action": "explain",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue."
+      },
+      {
+        "role": "user",
+        "content": "I added an Evaluation rollout gate to make the release decision explicit. I would create a representative human-labeled question set with exact identifier, paraphrase, table, no-answer and denied-document cases. Measure retrieval Recall@k, citation correctness, groundedness and abstention precision independently. Calibrate any LLM judge against human labels and measure agreement and regressions, not just a fluent answer. Gate releases on no access leaks and quality non-regression, then run a canary with user feedback and per-stage tracing."
+      },
+      {
+        "role": "assistant",
+        "content": "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue."
+      },
+      {
+        "role": "user",
+        "content": "Done explaining",
+        "action": "review",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Incremental connectors store per-source watermarks, deduplicate by source document version and feed parsing and cleaning. I preserve PDF table rows with headings, choose chunks using a test set rather than a fixed universal size, and embed only changed chunks. Tombstones remove deleted chunks from both keyword and vector indexes; versioned publishes prevent mixed document versions. I choose hybrid keyword and vector retrieval for exact identifiers and paraphrases, then rerank a bounded candidate set because reranking every chunk would blow the latency budget."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you choose the candidate limit for the reranker while balancing retrieval quality against latency and cost?"
+      },
+      {
+        "role": "user",
+        "content": "Authenticate the employee and resolve current groups, rewrite their query, then apply their ACL filter inside both retrieval systems before fetching content or sending anything to a model. Rerank authorized results, build numbered sources with immutable document versions, and stream the answer. Check every citation points to a retrieved authorized passage; reject unsupported claims and abstain when confidence or relevance is weak. Budget 100 ms auth, 300 ms retrieval, 200 ms rerank and 200 ms context work, leaving about 1.2 seconds to first model token and measuring the full answer against eight seconds."
+      },
+      {
+        "role": "assistant",
+        "content": "Streaming reduces perceived latency, but checks need to happen before content reaches the \"Employee\". How would you prevent an unsupported claim from being shown before the \"Citation check\" rejects it?"
+      },
+      {
+        "role": "user",
+        "content": "I would create a representative human-labeled question set with exact identifier, paraphrase, table, no-answer and denied-document cases. Measure retrieval Recall@k, citation correctness, groundedness and abstention precision independently. Calibrate any LLM judge against human labels and measure agreement and regressions, not just a fluent answer. Gate releases on no access leaks and quality non-regression, then run a canary with user feedback and per-stage tracing."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you account for the cost per question across the request path you’ve designed?"
+      },
+      {
+        "role": "user",
+        "content": "Compute cost per question from actual input and output tokens at the chosen provider rates, reranking, embeddings, index storage and connector work. Compare with two cents and adjust bounded context and duplicate work before quality compromises; no provider price has been specified. Trace each stage with document and ACL version references and latency metrics, keeping private text out of general logs. Re-embedding migrations build a versioned shadow index, evaluate it, dual-read a sampled cohort and switch an alias with rollback while the old index serves queries."
+      },
+      {
+        "role": "assistant",
+        "content": "Two cents per question can be a working assumption. How would you decide how much to reduce the context while checking that answer quality remains acceptable?"
+      },
+      {
+        "role": "user",
+        "content": "A permission sync stream updates group and document ACL versions; all query caches are scoped by user, ACL version and document versions. Revokes invalidate cache entries and a deny ledger applies immediately while indexes catch up within five minutes. If the permission service is stale beyond that bound, fail closed. Never serve an unauthorized stale answer during index or model failure. The vector store can fall back to permission-filtered keyword search with a degraded notice; model rate limits use a bounded queue, exponential backoff with jitter and an explicit unavailable result rather than fabricated content."
+      },
+      {
+        "role": "assistant",
+        "content": "How would the deny ledger protect an \"Employee\"’s data if the permission sync stream misses a revocation event?"
+      },
+      {
+        "role": "user",
+        "content": "Retrieved documents are untrusted evidence, never instructions. A document telling us to list salary files cannot change system policy or ACLs. Separate instructions from quoted content, restrict retrieval using current permissions, validate citations and test adversarial documents and cross-user cache requests. Access controls must be enforced outside the model because prompt instructions alone cannot guarantee isolation."
+      },
+      {
+        "role": "assistant",
+        "content": "Treating documents as untrusted sets an important boundary. How would you use your adversarial test set to balance blocking injected instructions against answering legitimate questions about those documents?"
+      }
+    ]
+  },
+  {
+    "problemId": "ai-chat-assistant",
+    "nodes": [
+      "Mobile and web client",
+      "Gateway and token limits",
+      "Chat service",
+      "Context builder",
+      "Input and output moderation",
+      "Inference router",
+      "Large model GPU cluster",
+      "Small model GPU cluster",
+      "Conversation store",
+      "Stream replay log",
+      "Evaluation"
+    ],
+    "edges": [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [4, 5],
+      [5, 6],
+      [5, 7],
+      [2, 8],
+      [2, 9]
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many daily active users, messages per user and what peak factor?"
+      },
+      {
+        "role": "assistant",
+        "content": "20M daily active users.\n\nFifteen messages per user per day.\n\nPeak traffic is three times the average."
+      },
+      {
+        "role": "user",
+        "content": "Do we run our own models, and are there external provider limits?"
+      },
+      {
+        "role": "assistant",
+        "content": "You run your own models on your own GPUs, with a large model and a small model.\n\nThird-party provider limits do not apply; you run your own models."
+      },
+      {
+        "role": "user",
+        "content": "How many GPUs are available, and how fast can a new node load a model?"
+      },
+      {
+        "role": "assistant",
+        "content": "You can add GPUs; no fixed GPU count is specified. State how much capacity you would provision.\n\nA new GPU node takes about ten minutes to load a model.\n\nIs there another requirement you want to check?"
+      },
+      {
+        "role": "user",
+        "content": "What output throughput per GPU and token counts per message should I use?"
+      },
+      {
+        "role": "assistant",
+        "content": "About 2,500 output tokens per second per GPU on the large model with batching.\n\nAbout 2,000 input tokens including history, and 400 output tokens per message."
+      },
+      {
+        "role": "user",
+        "content": "What first-token latency is required, and which tiers are there?"
+      },
+      {
+        "role": "assistant",
+        "content": "First token under one second at p95.\n\nFree users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified."
+      },
+      {
+        "role": "user",
+        "content": "How long is history kept, and what moderation is required?"
+      },
+      {
+        "role": "assistant",
+        "content": "History is kept until the user deletes it.\n\nInput and output moderation are required.\n\nLet's move to the whiteboard. Sketch your design, then choose Ready to explain when you're ready."
+      },
+      {
+        "role": "user",
+        "content": "What size should I assume for one stored chat exchange?"
+      },
+      {
+        "role": "assistant",
+        "content": "That detail isn't specified. What would you assume?"
+      },
+      {
+        "role": "user",
+        "content": "I will clarify DAU, messages per user, peak factor, hosting and GPU throughput, latency, tiers, retention and safety. At Senior, 20M users times 15 messages is 300M daily, about 3,472 requests per second average and 10,417 peak. With 400 output tokens, peak decode is 4.17M tokens per second; at 2,500 per GPU this is roughly 1,667 GPUs for all-large-model peak traffic, before failure headroom and prefill capacity. I will benchmark both prefill and decode with the actual input/output distribution. I assume 3 KB per stored exchange including user text, reply and metadata, so about 900 GB daily; I do not store the full 2,000-token context again with every message."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Start drawing",
+        "action": "draw",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Ready to explain",
+        "action": "explain",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Write your explanation across as many messages as you need. Choose Done explaining when you're ready for questions."
+      },
+      {
+        "role": "user",
+        "content": "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user’s private history. Deletion removes conversation records and invalidates summaries and cache references."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Done explaining",
+        "action": "review",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "You mentioned a cache, but I don't see it labeled in the current drawing. Where does it sit on the request path?"
+      },
+      {
+        "role": "user",
+        "content": "A bounded queue prioritizes paid requests while maintaining a free-tier floor. When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue. New GPUs take ten minutes to warm, so they cannot solve the next five minutes. If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state."
+      },
+      {
+        "role": "assistant",
+        "content": "The bounded queue makes sense for overload. What happens if a worker completes a turn but the queue doesn't receive its acknowledgement and delivers the work again?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them. Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks. Auth and ownership checks are server-enforced on every history read and stream resume. Do not log private prompts in general metrics; honor deletion across store, summaries and caches, and test cross-user access attempts."
+      },
+      {
+        "role": "assistant",
+        "content": "At what point in the request path is the shared prefix cache read?"
+      },
+      {
+        "role": "user",
+        "content": "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user’s private history. Deletion removes conversation records and invalidates summaries and cache references."
+      },
+      {
+        "role": "assistant",
+        "content": "Walk me through other in your design, starting with the first decision."
+      },
+      {
+        "role": "user",
+        "content": "An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain the next step of other using a concrete example."
+      },
+      {
+        "role": "user",
+        "content": "I will use a human-labeled conversation suite covering long context, factual tasks, refusal and interrupted streams. Measure task success, user-rated usefulness, context retention, first-token p95, completion latency and safety false positives/negatives. Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions. A canary compares those metrics to control before broad traffic and supports rollback."
+      },
+      {
+        "role": "assistant",
+        "content": "Walk me through other in your design, starting with the first decision."
+      },
+      {
+        "role": "user",
+        "content": "Enforce the free limit of 20 large-model messages per three hours, then route to the small model. Higher paid limits need an explicit product assumption. Measure cost per completed message from input/output tokens, GPU seconds, utilization, context processing and storage; evaluate tier routing with quality rather than assuming every request needs the largest model. Canary a new model on a bounded cohort with instant router rollback, checking quality and safety gates plus latency and interruption rates."
+      },
+      {
+        "role": "assistant",
+        "content": "How does a request reach the shared prefix cache from the \"Inference router\"?"
+      },
+      {
+        "role": "user",
+        "content": "A bounded queue prioritizes paid requests while maintaining a free-tier floor. When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue. New GPUs take ten minutes to warm, so they cannot solve the next five minutes. If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state."
+      },
+      {
+        "role": "assistant",
+        "content": "How does your output moderation handle unsafe content that only becomes apparent across multiple streamed chunks?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them. Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks. Auth and ownership checks are server-enforced on every history read and stream resume. Do not log private prompts in general metrics; honor deletion across store, summaries and caches, and test cross-user access attempts."
+      },
+      {
+        "role": "assistant",
+        "content": "Walk me through other in your design, starting with the first decision."
+      },
+      {
+        "role": "user",
+        "content": "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user’s private history. Deletion removes conversation records and invalidates summaries and cache references."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain the next step of other using a concrete example."
+      },
+      {
+        "role": "user",
+        "content": "An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete."
+      },
+      {
+        "role": "assistant",
+        "content": "Walk me through other in your design, starting with the first decision."
+      },
+      {
+        "role": "user",
+        "content": "I will use a human-labeled conversation suite covering long context, factual tasks, refusal and interrupted streams. Measure task success, user-rated usefulness, context retention, first-token p95, completion latency and safety false positives/negatives. Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions. A canary compares those metrics to control before broad traffic and supports rollback."
+      },
+      {
+        "role": "assistant",
+        "content": "Explain the next step of other using a concrete example."
+      },
+      {
+        "role": "user",
+        "content": "Enforce the free limit of 20 large-model messages per three hours, then route to the small model. Higher paid limits need an explicit product assumption. Measure cost per completed message from input/output tokens, GPU seconds, utilization, context processing and storage; evaluate tier routing with quality rather than assuming every request needs the largest model. Canary a new model on a bounded cohort with instant router rollback, checking quality and safety gates plus latency and interruption rates."
+      },
+      {
+        "role": "assistant",
+        "content": "Walk me through other in your design, starting with the first decision."
+      },
+      {
+        "role": "user",
+        "content": "Pause to draw",
+        "action": "draw",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Take your time with the whiteboard. I'll hold questions while you draw. Choose Ready to explain when you're ready."
+      },
+      {
+        "role": "user",
+        "content": "Ready to explain",
+        "action": "explain",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue."
+      },
+      {
+        "role": "user",
+        "content": "I added an Evaluation rollout gate to make the release decision explicit. I will use a human-labeled conversation suite covering long context, factual tasks, refusal and interrupted streams. Measure task success, user-rated usefulness, context retention, first-token p95, completion latency and safety false positives/negatives. Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions. A canary compares those metrics to control before broad traffic and supports rollback."
+      },
+      {
+        "role": "assistant",
+        "content": "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue."
+      },
+      {
+        "role": "user",
+        "content": "Done explaining",
+        "action": "review",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Where does the bounded queue sit between the \"Chat service\" and the model pools?"
+      },
+      {
+        "role": "user",
+        "content": "A bounded queue prioritizes paid requests while maintaining a free-tier floor. When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue. New GPUs take ten minutes to warm, so they cannot solve the next five minutes. If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state."
+      },
+      {
+        "role": "assistant",
+        "content": "How does your choice of moderation chunk size affect time to the first streamed token?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them. Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks. Auth and ownership checks are server-enforced on every history read and stream resume. Do not log private prompts in general metrics; honor deletion across store, summaries and caches, and test cross-user access attempts."
+      },
+      {
+        "role": "assistant",
+        "content": "If you increase the output moderation chunk size, what happens to the delay before the first content reaches the user?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them. Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks. Auth and ownership checks are server-enforced on every history read and stream resume. Do not log private prompts in general metrics; honor deletion across store, summaries and caches, and test cross-user access attempts."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you decide whether the cost savings from routing free-tier traffic to the small model justify any loss in answer quality?"
+      },
+      {
+        "role": "user",
+        "content": "An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you decide how much prefill work to schedule alongside active decoding, and what would you measure to check that tradeoff?"
+      },
+      {
+        "role": "user",
+        "content": "I will use a human-labeled conversation suite covering long context, factual tasks, refusal and interrupted streams. Measure task success, user-rated usefulness, context retention, first-token p95, completion latency and safety false positives/negatives. Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions. A canary compares those metrics to control before broad traffic and supports rollback."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you choose the free-tier capacity floor during sustained overload, and how would you check its impact on paid users and cost?"
+      },
+      {
+        "role": "user",
+        "content": "Enforce the free limit of 20 large-model messages per three hours, then route to the small model. Higher paid limits need an explicit product assumption. Measure cost per completed message from input/output tokens, GPU seconds, utilization, context processing and storage; evaluate tier routing with quality rather than assuming every request needs the largest model. Canary a new model on a bounded cohort with instant router rollback, checking quality and safety gates plus latency and interruption rates."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you account for GPU work from interrupted or rejected requests when measuring cost per completed message?"
+      },
+      {
+        "role": "user",
+        "content": "A bounded queue prioritizes paid requests while maintaining a free-tier floor. When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue. New GPUs take ten minutes to warm, so they cannot solve the next five minutes. If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state."
+      },
+      {
+        "role": "assistant",
+        "content": "A bounded queue with a free-tier floor is a reasonable choice. How would you decide when the cost savings from shortening optional outputs outweigh the impact on answer quality?"
+      },
+      {
+        "role": "user",
+        "content": "Input moderation runs before inference, and output moderation evaluates bounded chunks before releasing them. Measure that buffering latency against first-token p95 and choose a conservative policy for uncertain chunks. Auth and ownership checks are server-enforced on every history read and stream resume. Do not log private prompts in general metrics; honor deletion across store, summaries and caches, and test cross-user access attempts."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you prevent an active generation from putting deleted conversation data back into the \"Stream replay log\", and how would you test that?"
+      }
+    ]
+  },
+  {
+    "problemId": "tool-using-ai-agent",
+    "nodes": [
+      "Employee and approval UI",
+      "Agent runner",
+      "Tool registry",
+      "Policy and scoped permissions",
+      "Tool executor",
+      "Durable task store",
+      "Email and search tools",
+      "Audit and tracing",
+      "Evaluation with mocked tools"
+    ],
+    "edges": [
+      [0, 1],
+      [1, 2],
+      [1, 3],
+      [3, 4],
+      [1, 5],
+      [4, 6],
+      [4, 7],
+      [0, 3]
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "How many employees and tasks per day, and how spiky is demand?"
+      },
+      {
+        "role": "assistant",
+        "content": "20,000 employees.\n\n50K tasks per day, with peak traffic three times the average."
+      },
+      {
+        "role": "user",
+        "content": "Which tools are available and which can write?"
+      },
+      {
+        "role": "assistant",
+        "content": "About 20 tools, including email, calendar, tickets, docs, chat and code search. Some are read-only and some write."
+      },
+      {
+        "role": "user",
+        "content": "How many model-call steps are typical and maximum?"
+      },
+      {
+        "role": "assistant",
+        "content": "About six model calls per task on average, with a maximum of 30.\n\nIs there another requirement you want to check?"
+      },
+      {
+        "role": "user",
+        "content": "What latency and token budget apply per task?"
+      },
+      {
+        "role": "assistant",
+        "content": "Most tasks should finish within 60 seconds.\n\nAbout 40K tokens total per task."
+      },
+      {
+        "role": "user",
+        "content": "Whose permissions are used, and how serious is sending to the wrong person?"
+      },
+      {
+        "role": "assistant",
+        "content": "The agent acts as the user, with only that user’s permissions.\n\nSending an email to the wrong person is a serious incident."
+      },
+      {
+        "role": "user",
+        "content": "Can external actions be undone?"
+      },
+      {
+        "role": "assistant",
+        "content": "Whether actions can be undone isn't specified. What would you assume?\n\nLet's move to the whiteboard. Sketch your design, then choose Ready to explain when you're ready."
+      },
+      {
+        "role": "user",
+        "content": "What availability target is specified for tool integrations?"
+      },
+      {
+        "role": "assistant",
+        "content": "That detail isn't specified. Which working assumption would you use?"
+      },
+      {
+        "role": "user",
+        "content": "I will clarify task workflow, users, daily tasks, step budgets, latency and mistake risk before designing. At Senior there are 20,000 employees, 50K tasks daily, about six model calls and 40K tokens per task, with a 30-step maximum and most tasks finished in 60 seconds. The agent acts only within the employee’s permissions, and a wrong recipient is a serious incident. Correctness, safety and recovery matter more here than pushing scale math."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Start drawing",
+        "action": "draw",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Ready to explain",
+        "action": "explain",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Write your explanation across as many messages as you need. Choose Done explaining when you're ready for questions."
+      },
+      {
+        "role": "user",
+        "content": "A durable task runner persists a task state machine around think, choose tool, call and observe. The tool registry validates typed argument and result schemas and declares read or write behavior, risk level and required scopes. Count every attempted model step against the 30-step limit, detect repeated tool-and-argument cycles and stop with a useful explanation. The model chooses among permitted tools but cannot bypass the executor’s policy checks."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Persist each intended action with a stable action ID and idempotency key before execution. The tool executor records started, confirmed-success, failed or unknown outcome states. An ambiguous email timeout triggers lookup by idempotency key or reconciliation; it must not blindly resend an irreversible write when the provider cannot deduplicate. A restarted runner loads its last persisted step and only resumes a safe pending read or an explicitly reconciled write. Approval references the immutable action payload hash so changed arguments need fresh approval."
+      },
+      {
+        "role": "assistant",
+        "content": "I'm reading your explanation."
+      },
+      {
+        "role": "user",
+        "content": "Done explaining",
+        "action": "review",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "You mentioned a model/inference service, but I don't see it labeled in the current drawing. Where does it sit on the request path?"
+      },
+      {
+        "role": "user",
+        "content": "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited."
+      },
+      {
+        "role": "assistant",
+        "content": "How does the \"Agent runner\" reach the model during its think step?"
+      },
+      {
+        "role": "user",
+        "content": "The executor uses the user’s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee’s task plus an approved exact action can authorize sending."
+      },
+      {
+        "role": "assistant",
+        "content": "How does the model connect to the \"Agent runner\" during a think step?"
+      },
+      {
+        "role": "user",
+        "content": "A durable task runner persists a task state machine around think, choose tool, call and observe. The tool registry validates typed argument and result schemas and declares read or write behavior, risk level and required scopes. Count every attempted model step against the 30-step limit, detect repeated tool-and-argument cycles and stop with a useful explanation. The model chooses among permitted tools but cannot bypass the executor’s policy checks."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Persist each intended action with a stable action ID and idempotency key before execution. The tool executor records started, confirmed-success, failed or unknown outcome states. An ambiguous email timeout triggers lookup by idempotency key or reconciliation; it must not blindly resend an irreversible write when the provider cannot deduplicate. A restarted runner loads its last persisted step and only resumes a safe pending read or an explicitly reconciled write. Approval references the immutable action payload hash so changed arguments need fresh approval."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Measure time per model step, tool call and approval wait separately and report latency per completed task; the normal path must fit the 60-second goal. Track actual input/output tokens, tool costs and total steps per task, applying chosen rates rather than inventing a provider price. Deduplicate repeated reads and bound context while preserving action evidence; reducing steps must not remove confirmation or policy checks. Stop at a deadline and preserve resumable state rather than silently continuing irreversible work."
+      },
+      {
+        "role": "assistant",
+        "content": "If the \"Tool registry\" grows to more than 200 tools, how would the model select the right tool without adding excessive context and latency?"
+      },
+      {
+        "role": "user",
+        "content": "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited."
+      },
+      {
+        "role": "assistant",
+        "content": "With hundreds of permitted tools in the \"Tool registry\", how would the model find the right one while keeping its context and selection latency manageable?"
+      },
+      {
+        "role": "user",
+        "content": "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you decide whether the scenario suite is large enough to detect a rare wrong-recipient action before rollout?"
+      },
+      {
+        "role": "user",
+        "content": "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
+      },
+      {
+        "role": "assistant",
+        "content": "If the suite finds no wrong-recipient actions, how would you judge whether it provides enough confidence to release?"
+      },
+      {
+        "role": "user",
+        "content": "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Measure time per model step, tool call and approval wait separately and report latency per completed task; the normal path must fit the 60-second goal. Track actual input/output tokens, tool costs and total steps per task, applying chosen rates rather than inventing a provider price. Deduplicate repeated reads and bound context while preserving action evidence; reducing steps must not remove confirmation or policy checks. Stop at a deadline and preserve resumable state rather than silently continuing irreversible work."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Pause to draw",
+        "action": "draw",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Take your time with the whiteboard. I'll hold questions while you draw. Choose Ready to explain when you're ready."
+      },
+      {
+        "role": "user",
+        "content": "Ready to explain",
+        "action": "explain",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue."
+      },
+      {
+        "role": "user",
+        "content": "I added an Evaluation rollout gate to make the release decision explicit. Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
+      },
+      {
+        "role": "assistant",
+        "content": "Your earlier explanation is saved. Describe just what changed, or choose Done explaining to continue."
+      },
+      {
+        "role": "user",
+        "content": "Done explaining",
+        "action": "review",
+        "source": "control"
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "The executor uses the user’s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee’s task plus an approved exact action can authorize sending."
+      },
+      {
+        "role": "assistant",
+        "content": "Please choose Pause to draw to update your design, or explain a concrete tradeoff in the current request path."
+      },
+      {
+        "role": "user",
+        "content": "A durable task runner persists a task state machine around think, choose tool, call and observe. The tool registry validates typed argument and result schemas and declares read or write behavior, risk level and required scopes. Count every attempted model step against the 30-step limit, detect repeated tool-and-argument cycles and stop with a useful explanation. The model chooses among permitted tools but cannot bypass the executor’s policy checks."
+      },
+      {
+        "role": "assistant",
+        "content": "Requiring confirmation for every write trades convenience for control. How would you measure whether that tradeoff is acceptable for employees?"
+      },
+      {
+        "role": "user",
+        "content": "Persist each intended action with a stable action ID and idempotency key before execution. The tool executor records started, confirmed-success, failed or unknown outcome states. An ambiguous email timeout triggers lookup by idempotency key or reconciliation; it must not blindly resend an irreversible write when the provider cannot deduplicate. A restarted runner loads its last persisted step and only resumes a safe pending read or an explicitly reconciled write. Approval references the immutable action payload hash so changed arguments need fresh approval."
+      },
+      {
+        "role": "assistant",
+        "content": "Reconciliation avoids a blind resend but can leave a task unresolved. How would you decide how long to attempt reconciliation before reporting the uncertain outcome to the employee?"
+      },
+      {
+        "role": "user",
+        "content": "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you use the scenario suite to decide whether blocking more legitimate tasks is an acceptable tradeoff for reducing wrong actions?"
+      },
+      {
+        "role": "user",
+        "content": "Measure time per model step, tool call and approval wait separately and report latency per completed task; the normal path must fit the 60-second goal. Track actual input/output tokens, tool costs and total steps per task, applying chosen rates rather than inventing a provider price. Deduplicate repeated reads and bound context while preserving action evidence; reducing steps must not remove confirmation or policy checks. Stop at a deadline and preserve resumable state rather than silently continuing irreversible work."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you check whether bounding context causes the agent to miss information needed for a correct action?"
+      },
+      {
+        "role": "user",
+        "content": "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you check that sanitizing diagnostic records still leaves enough information to reproduce a wrong action?"
+      },
+      {
+        "role": "user",
+        "content": "The executor uses the user’s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee’s task plus an approved exact action can authorize sending."
+      },
+      {
+        "role": "assistant",
+        "content": "How would you check whether deduplicating repeated reads causes the agent to act on stale information?"
+      }
+    ]
+  }
+]

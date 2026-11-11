@@ -67,7 +67,9 @@ function authenticatedUser(header) {
 }
 function inputData(body) {
   if (typeof body.input === "string") return JSON.parse(body.input);
-  const content = body.input?.[0]?.content;
+  const content =
+    body.input?.findLast((value) => value.role === "user")?.content ??
+    body.input?.[0]?.content;
   return JSON.parse(
     typeof content === "string"
       ? content
@@ -138,7 +140,39 @@ export function startFixtureService(key, cert, reporting) {
       const body = JSON.parse(raw);
       let text =
         "Measuring the baseline will help you test that assumption. What workload and response-time goals would you clarify first?";
-      if (body.text?.format?.name === "genai_fact_selection") {
+      if (body.text?.format?.name === "unique_interviewer_reply") {
+        const data = inputData(body);
+        text = JSON.stringify({
+          reply: data.reply
+            .split(/(?<=[.!?])\s+/u)
+            .map(
+              (sentence, index) =>
+                `For update ${data.previous.length}, point ${index + 1}, ` +
+                sentence.charAt(0).toLowerCase() +
+                sentence.slice(1),
+            )
+            .join(" "),
+        });
+      } else if (body.text?.format?.name === "interview_topic_memory") {
+        text = JSON.stringify({ covered: [], asked: [] });
+      } else if (body.text?.format?.name === "fresh_discussion_question") {
+        const data = inputData(body);
+        const options = [
+          "What happens if the durable write succeeds but its acknowledgement is lost?",
+          "How would you compare the stored revision after a reconnect?",
+          "Which event tells a retry to stop?",
+        ];
+        const question =
+          options.find(
+            (q) => !data.asked.some((previous) => previous.includes(q)),
+          ) ?? "";
+        text = JSON.stringify({
+          topicId: data.topics[0]?.id ?? "",
+          quoteId: data.candidate_quotes[0]?.quoteId ?? "",
+          question,
+          exhausted: !question,
+        });
+      } else if (body.text?.format?.name === "genai_fact_selection") {
         text = JSON.stringify({
           intent: "facts",
           factIds: ["employees", "documents"],

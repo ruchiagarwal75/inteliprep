@@ -1,4 +1,5 @@
 import "server-only";
+import type { GradingProgressListener } from "@/lib/grading-progress";
 import { APIError } from "openai";
 import type { InterviewEndRequest } from "@/lib/interview-end";
 import { getProblem } from "@/lib/problems";
@@ -25,6 +26,7 @@ export async function endInterview(
   request: InterviewEndRequest,
   signal?: AbortSignal,
   onFrozen?: () => Promise<void>,
+  onProgress?: GradingProgressListener,
 ) {
   const problem = getProblem(request.problemId);
   if (!problem)
@@ -56,6 +58,7 @@ export async function endInterview(
           {
             timing: lease.timing,
             answeredStageCount: lease.answeredStageCount,
+            onProgress,
           },
         ),
         lease.snapshot,

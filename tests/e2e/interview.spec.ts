@@ -1,3 +1,5 @@
+import { readGradingResponse } from "../../src/lib/read-grading-response";
+import { interviewEndResponseSchema } from "../../src/lib/scorecard";
 import { expect, test, type BrowserContext } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 const screenshots = "artifacts/beta-feedback";
@@ -227,8 +229,9 @@ for (const durationMinutes of [45, 60]) {
       ).toBe(true);
       await page.setViewportSize({ width: 1440, height: 900 });
       await feedback.getByRole("button", { name: "Send", exact: true }).click();
-    } else
+    } else {
       await feedback.getByRole("button", { name: "Skip", exact: true }).click();
+    }
     await expect(feedback.getByRole("status")).toHaveText("Thanks!");
     await expect(feedback).toHaveCount(0);
     await page.getByRole("tab", { name: "Transcript", exact: true }).click();
@@ -438,6 +441,9 @@ test("empty interview feedback is skippable while its scorecard is still generat
         name: "Generating your scorecard…",
         exact: true,
       }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("list", { name: "Scorecard progress", exact: true }),
     ).toBeVisible();
     await feedback.getByRole("button", { name: "Skip", exact: true }).click();
     await expect(feedback.getByRole("status")).toHaveText("Thanks!");
@@ -725,7 +731,15 @@ test("the brief remembers level and defaults to the suggested next problem", asy
     .getByRole("dialog")
     .getByRole("button", { name: "End interview", exact: true })
     .click();
-  const result = await (await grading).json();
+  const network = await grading;
+  const decoded = await readGradingResponse(
+    new Response(await network.text(), {
+      status: network.status(),
+      headers: await network.allHeaders(),
+    }),
+    () => {},
+  );
+  const result = interviewEndResponseSchema.parse(decoded.body);
   await expect(
     page.getByRole("heading", { name: "Too short to score", exact: true }),
   ).toBeVisible();

@@ -22,7 +22,7 @@ describe("workload model settings", () => {
     });
     expect(modelSettings("feedback")).toMatchObject({
       model: "gpt-6.1-sol",
-      reasoning: { effort: "high" },
+      reasoning: { effort: "low" },
     });
     vi.stubEnv("OPENAI_INTERVIEW_REASONING_EFFORT", "none");
     expect(modelSettings("reply").reasoning?.effort).toBe("none");
@@ -38,10 +38,10 @@ describe("workload model settings", () => {
       });
     },
   );
-  it("uses high reasoning and a larger budget for grading, without temperature", () => {
+  it("uses low reasoning and a larger output budget for grading, without temperature", () => {
     expect(modelSettings("feedback")).toEqual({
       model: "gpt-6.1-sol",
-      reasoning: { effort: "high" },
+      reasoning: { effort: "low" },
       max_output_tokens: 16_000,
     });
   });
@@ -49,7 +49,7 @@ describe("workload model settings", () => {
     vi.stubEnv("OPENAI_INTERVIEW_REASONING_EFFORT", " medium ");
     vi.stubEnv("OPENAI_SCORECARD_REASONING_EFFORT", " xhigh ");
     expect(modelSettings("reply").reasoning?.effort).toBe("medium");
-    expect(modelSettings("feedback").reasoning?.effort).toBe("xhigh");
+    expect(modelSettings("feedback").reasoning?.effort).toBe("low");
   });
   it("rejects unsupported effort without forwarding the value to the provider", () => {
     vi.stubEnv("OPENAI_INTERVIEW_REASONING_EFFORT", "none");
@@ -69,7 +69,7 @@ describe("workload model settings", () => {
       temperature: 0,
     });
     vi.stubEnv("OPENAI_SCORECARD_MODEL", "gpt-6.1-sol");
-    expect(modelSettings("feedback").reasoning?.effort).toBe("high");
+    expect(modelSettings("feedback").reasoning?.effort).toBe("low");
     expect(modelSettings("reply")).not.toHaveProperty("reasoning");
   });
 });

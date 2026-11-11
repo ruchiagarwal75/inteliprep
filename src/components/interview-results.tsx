@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import type { GradingStage } from "@/lib/grading-progress";
 import { InterviewFeedbackCard } from "@/components/interview-feedback-card";
 import { ScorecardViewTracker } from "@/components/scorecard-view-tracker";
 import { ScorecardLoading } from "@/components/scorecard-loading";
@@ -27,6 +28,7 @@ export function InterviewResults({
   error,
   endedAt,
   timedOut = false,
+  gradingStage,
 }: {
   scorecard?: Scorecard;
   scene?: Scene;
@@ -39,6 +41,7 @@ export function InterviewResults({
   error?: string;
   endedAt?: string;
   timedOut?: boolean;
+  gradingStage?: GradingStage;
 }) {
   const [tab, setTab] = useState<"scorecard" | "transcript" | "diagram">(
     "scorecard",
@@ -158,7 +161,7 @@ export function InterviewResults({
           (scorecard ? (
             <InterviewScorecard scorecard={scorecard} scene={scene} />
           ) : busy ? (
-            <ScorecardLoading />
+            <ScorecardLoading stage={gradingStage} />
           ) : (
             <div className="results-pending">
               <p role={error && !busy ? "alert" : "status"}>

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import type { GradingStage } from "@/lib/grading-progress";
+import { readGradingResponse } from "@/lib/read-grading-response";
 import { SCORECARD_FETCH_TIMEOUT_MS } from "@/lib/grading-budget";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { InterviewStart } from "@/lib/interview-selection";
@@ -60,6 +62,7 @@ export function useInterviewEnd({
 }) {
   const { request } = useCandidateAccount();
   const [isEnding, setIsEnding] = useState(false);
+  const [gradingStage, setGradingStage] = useState<GradingStage>();
   const [scorecard, setScorecard] = useState<Scorecard | undefined>(
     restored?.scorecard,
   );
@@ -122,10 +125,16 @@ export function useInterviewEnd({
         if (finalAnswer?.trim()) onDraftIncluded();
       }
       submitted = true;
+      setGradingStage(undefined);
       for (const path of ["/api/interview/freeze", "/api/interview/end"]) {
-        const response = await request(path, {
+        const rawResponse = await request(path, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(path.endsWith("/end")
+              ? { Accept: "application/x-ndjson" }
+              : {}),
+          },
           signal: AbortSignal.timeout(
             path.endsWith("/end") ? SCORECARD_FETCH_TIMEOUT_MS : 30_000,
           ),
@@ -134,7 +143,10 @@ export function useInterviewEnd({
             resumeToken: getResumeToken() ?? snapshotRef.current.resumeToken,
           }),
         });
-        const body: unknown = await response.json();
+        const { response, body } = await readGradingResponse(
+          rawResponse,
+          setGradingStage,
+        );
         const resumeToken =
           body &&
           typeof body === "object" &&
@@ -236,6 +248,7 @@ export function useInterviewEnd({
   return {
     end,
     isEnding,
+    gradingStage,
     scorecard,
     error,
     imageWarning,

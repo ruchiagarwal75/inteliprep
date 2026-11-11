@@ -88,7 +88,7 @@ verified branch/deployment history.
 | `OPENAI_MODEL` | Optional; default is `gpt-6.1-sol` |
 | `OPENAI_INTERVIEW_REASONING_EFFORT` | Sol interviewer, coverage and question review effort; default `low` |
 | `OPENAI_SCORECARD_MODEL` | Optional separate grading model; defaults to `OPENAI_MODEL` |
-| `OPENAI_SCORECARD_REASONING_EFFORT` | Sol grading effort; default `high` |
+| `OPENAI_SCORECARD_REASONING_EFFORT` | Sol grading effort; default and interactive maximum `low` |
 | `INTERVIEW_RESUME_SECRET` | Stable secret for browser resume tokens and rate-limit identities, at least 32 characters; generate with `openssl rand -hex 32` |
 | `UPSTASH_REDIS_REST_URL` | HTTPS Redis REST endpoint |
 | `UPSTASH_REDIS_REST_TOKEN` | Redis REST credential with read/write and scripting access |

@@ -78,11 +78,24 @@ const env = {
   KV_REST_API_TOKEN: "",
 };
 let child;
-async function stop() {
-  child?.kill("SIGTERM");
-  fixture.close();
-  await reporting.stop();
+let stopping;
+function stop() {
+  return (stopping ??= (async () => {
+    child?.kill("SIGTERM");
+    fixture.close();
+    await reporting.stop();
+  })());
 }
+const fail = (cause) => {
+  console.error(
+    "[e2e] Fixture failed:",
+    cause instanceof Error ? cause.name : "Unknown error",
+  );
+  process.exitCode = 1;
+  void stop();
+};
+process.on("uncaughtException", fail);
+process.on("unhandledRejection", fail);
 process.on("SIGTERM", () => void stop());
 process.on("SIGINT", () => void stop());
 function next(args) {

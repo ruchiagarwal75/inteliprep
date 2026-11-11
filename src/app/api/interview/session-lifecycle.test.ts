@@ -1,3 +1,5 @@
+import { readGradingResponse } from "@/lib/read-grading-response";
+import type { GradingStage } from "@/lib/grading-progress";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as start } from "@/app/api/interview/start/route";
 import { POST as chat } from "@/app/api/chat/route";
@@ -82,7 +84,8 @@ const request = (path: string, body: unknown) =>
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Accept: "application/x-ndjson",
+      Accept:
+        path === "/api/chat" ? "application/x-ndjson" : "application/json",
       "x-vercel-forwarded-for": "203.0.113.1",
     },
     body: JSON.stringify(
@@ -198,5 +201,53 @@ describe("beta lifecycle without a process session cache", () => {
       ...gradingSnapshot,
       messages: evidence.messages,
     });
+  });
+  it("keeps streamed grading inside its owner-fenced request scope after headers return", async () => {
+    const interview = await started();
+    const begun = Promise.withResolvers<void>(),
+      finished = Promise.withResolvers<void>();
+    mocks.grade.mockImplementationOnce(
+      async (
+        _problem: unknown,
+        _level: unknown,
+        _snapshot: unknown,
+        _endedAt: unknown,
+        _signal: unknown,
+        options: { onProgress?: (stage: GradingStage) => void },
+      ) => {
+        options.onProgress?.("reading");
+        options.onProgress?.("writing");
+        begun.resolve();
+        await finished.promise;
+        options.onProgress?.("checking");
+        return scorecardFixture();
+      },
+    );
+    const source = request("/api/interview/end", {
+      ...interview,
+      ...gradingSnapshot,
+      messages: [
+        interview.openingMessage,
+        ...gradingSnapshot.messages.slice(1),
+      ],
+    });
+    source.headers.set("Accept", "application/x-ndjson");
+    const response = await end(source);
+    expect(response.status).toBe(200);
+    await begun.promise;
+    expect(
+      (await resume(request("/api/interview/resume", interview))).status,
+    ).toBe(409);
+    finished.resolve();
+    const stages: string[] = [];
+    const result = await readGradingResponse(response, (stage) =>
+      stages.push(stage),
+    );
+    expect(result.response.status).toBe(200);
+    expect(stages).toEqual(["reading", "writing", "checking"]);
+    expect(interviewEndResponseSchema.safeParse(result.body).success).toBe(
+      true,
+    );
+    expect([...values.keys()].some((key) => key.endsWith(":lock"))).toBe(false);
   });
 });

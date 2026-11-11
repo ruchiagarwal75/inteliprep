@@ -858,7 +858,7 @@ probe reuse checks. Each provider call checks instructions and escaped input tex
 against a 128,000-byte limit before network work. Images are separately bounded.
 The recommended interactive model is `gpt-6.1-terra`, selected in `.env.example`;
 the unset-model compatibility fallback remains `gpt-6.1-sol`. Replies, coverage and follow-up review use low
-reasoning with a 4,096-token combined reasoning/output cap; scorecards use high
+reasoning with a 4,096-token combined reasoning/output cap; scorecards use low
 reasoning with a 16,000-token cap. Separate server-only interviewer and scorecard
 model/effort settings live in `model-settings.ts`; legacy model overrides retain
 their previous caps and sampling parameters. Sol requests omit temperature.
@@ -1188,3 +1188,10 @@ across stages on either track. Historical stage-keyed counters remain readable.
 Diagram labels are plain lowercase words inside interviewer sentences on both
 tracks. Quotation marks are removed, acronyms are preserved and sentence starts
 remain capitalized. Candidate messages and scorecard evidence quotes are unchanged.
+
+
+Scorecard generation uses low reasoning, including deployments with an older high
+effort setting. Full transcript counter-evidence, private rubrics and scoring
+weights are unchanged. Clients may request NDJSON progress events for evidence
+reading, feedback writing and evidence checking; JSON clients remain compatible.
+The UI reports server stages, not timer-based simulated progress.

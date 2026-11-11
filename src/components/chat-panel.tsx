@@ -250,6 +250,7 @@ export function ChatPanel(props: ChatPanelProps) {
           messages={messages}
           retry={() => void ending.end()}
           busy={ending.isEnding}
+          gradingStage={ending.gradingStage}
           closed={closure.closed || timedOut}
           timedOut={timedOut}
           error={timedOut ? undefined : ending.error}

@@ -1,3 +1,4 @@
+import type { GradingProgressListener } from "@/lib/grading-progress";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import "server-only";
 import { APIError, APIConnectionTimeoutError } from "openai";
@@ -47,6 +48,7 @@ const GRADING_INSTRUCTIONS = [
   "Every gap must be a complete useful observation with a consequence and a concrete improvement. Never return only a diagram label or an evidence caption such as 'In your final diagram: Clients'.",
   "Button-generated pacing controls, readiness acknowledgements, and greetings are interaction metadata, not technical evidence. They have no eligible quote IDs. Do not cite them, score their absence of reasoning, or treat Done explaining as refusing to answer a question. An area the interviewer never explored and the candidate never discussed must have score null and no gap or weakness. A numeric score with no eligible evidence is never valid; use null.",
   "Each private rubric entry includes topic_explored, a server check of whether this topic appears in candidate evidence or an interviewer follow-up. False means score null and no associated weakness. True only permits assessment; it does not establish depth or completion. A quote about redirects is not evidence of scaling, reliability, or operations just because those areas also concern redirects. If reasoning is too limited to assess an area, still use null.",
+  "Keep the summary under 45 words and each strength or gap under 40 words. Prefer the single strongest quote ID per area and finding; use another only when it adds distinct necessary evidence. Do not repeat several versions of the same claim. Still check the complete transcript for counter-evidence before naming a gap.",
   "Write feedback in plain everyday English with short complete sentences. Every area rationale must be under 30 words; aim for 15 to 25. Avoid establish and its inflections, does not establish, remained unspecified, and delegated to defaults. Say what the candidate explained, what is missing, and why it matters using ordinary words such as show, explain, check and choose. Never use em dashes in authored feedback. Keep the technical judgment, scores and evidence unchanged while shortening the copy.",
 ].join("\n\n");
 
@@ -56,7 +58,11 @@ export async function gradeInterview(
   snapshot: InterviewEndSnapshot,
   endedAt: string,
   signal?: AbortSignal,
-  session?: { timing?: InterviewTiming; answeredStageCount?: number },
+  session?: {
+    timing?: InterviewTiming;
+    answeredStageCount?: number;
+    onProgress?: GradingProgressListener;
+  },
 ) {
   signal?.throwIfAborted();
   if (session?.timing) {
@@ -85,6 +91,7 @@ export async function gradeInterview(
         ),
       ),
     );
+  session?.onProgress?.("reading");
   const text = JSON.stringify({
     problem: {
       id: problem.id,
@@ -149,6 +156,7 @@ export async function gradeInterview(
     const startedAt = Date.now();
     try {
       if (Date.now() >= deadline) throw new APIConnectionTimeoutError();
+      session?.onProgress?.("writing");
       const response = await observedModelRequest(
         "feedback",
         boundedModelRequest({
@@ -209,6 +217,7 @@ export async function gradeInterview(
         );
       signal?.throwIfAborted();
       try {
+        session?.onProgress?.("checking");
         return validateScorecard(
           problem,
           level,
