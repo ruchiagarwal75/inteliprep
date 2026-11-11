@@ -80,6 +80,7 @@ export const drillResultSchema = z.object({
   formula: z.string().optional(),
   expected: z.string().optional(),
   timeMs: z.number().nonnegative(),
+  badgesEarned: z.array(z.string()).default([]),
 });
 export type DrillResult = z.infer<typeof drillResultSchema>;
 export const timeZoneSchema = z
@@ -163,3 +164,11 @@ export const submitRoundResultSchema = z.object({
 export const advanceRoundSchema = z
   .object({ sessionId: z.uuid(), afterAttemptId: z.uuid() })
   .strict();
+
+export const BADGE_LABELS = {
+  "first-level": "First level cleared",
+  "math-five": "Caught the math",
+  "rag-practice": "RAG practice-ready",
+  "rag-interview": "RAG interview-ready",
+  "streak-seven": "7-day streak",
+} as const;

@@ -1,3 +1,4 @@
+import { rewardDrill, rewardRound } from "./rewards";
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -78,7 +79,13 @@ export async function submitRoundAnswer(
           "This check was replaced by a newer retry. Load the round again.",
           409,
         );
-      const result = { ...grade, points: 0, timeMs: claim.timeMs };
+      const rewards = await rewardDrill(sql, userId, attempt, grade);
+      const result = {
+        ...grade,
+        points: rewards.points,
+        timeMs: claim.timeMs,
+        badgesEarned: rewards.badges,
+      };
       await sql`update practice_game.drill_attempts set correct=${result.correct},score=${result.score},points_awarded=${result.points},submitted_at=now(),claim_id=null,claim_until=null,result_json=${sql.json(result)} where user_id=${userId} and id=${attemptId}`;
       const [queued] =
         await sql`select step from practice_game.review_queue where user_id=${userId} and drill_id=${attempt.drill_id}`;
@@ -97,10 +104,17 @@ export async function submitRoundAnswer(
         await sql`delete from practice_game.review_queue where user_id=${userId} and drill_id=${attempt.drill_id}`;
       if (review.kind === "schedule")
         await sql`insert into practice_game.review_queue(user_id,drill_id,topic,level,due_at,step) values(${userId},${attempt.drill_id},${attempt.topic},${attempt.level},${review.dueAt},${review.step}) on conflict(user_id,drill_id) do update set due_at=excluded.due_at,step=excluded.step,updated_at=now()`;
-      return {
-        result,
-        summary: await completeRound(sql, userId, attempt.session_id),
-      };
+      const completed = await completeRound(sql, userId, attempt.session_id);
+      const summary = completed
+        ? await rewardRound(
+            sql,
+            userId,
+            attempt.session_id,
+            completed,
+            rewards.badges,
+          )
+        : undefined;
+      return { result, summary };
     });
   } catch (cause) {
     await withPlayer(

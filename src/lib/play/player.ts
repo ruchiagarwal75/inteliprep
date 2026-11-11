@@ -1,3 +1,4 @@
+import { refreshStreak } from "./streak-store";
 import "server-only";
 import { z } from "zod";
 import { ensurePlayer, withPlayer } from "./database";
@@ -31,6 +32,7 @@ export type PlayerSnapshot = z.infer<typeof stateSchema>;
 export async function playerSnapshot(userId: string) {
   return withPlayer(userId, async (sql) => {
     await ensurePlayer(sql, userId);
+    await refreshStreak(sql, userId);
     const [row] = await sql`select jsonb_build_object(
    'points',(select coalesce(sum(delta),0) from practice_game.points_ledger),
    'streak',s.current,'freezes',s.freezes_available,'level',p.chosen_level,'timeZone',p.time_zone,

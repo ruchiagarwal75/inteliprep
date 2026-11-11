@@ -136,3 +136,40 @@ it("places independently and keeps prior passes when a later round is weaker", a
     await fixture.operator`select status from practice_game.level_progress where user_id=${user} and topic='rag' and level=4`;
   expect(level.status).toBe("open");
 });
+it("awards points, a first-try bonus and badges once, with one daily streak increment", async () => {
+  const [{ playerSnapshot }] = await Promise.all([import("@/lib/play/player")]);
+  expect((await playerSnapshot(user)).points).toBe(130);
+  const { sessionId: id } = await startRound(user, {
+    requestId: crypto.randomUUID(),
+    topic: "rag",
+    mode: "level",
+    level: 1,
+    timeZone: "UTC",
+  });
+  let view = await getRound(user, id);
+  for (let i = 0; i < 5; i++) {
+    const answer = await solve(view),
+      outcome = await submitRoundAnswer(user, view.question.attemptId, answer);
+    expect(outcome.result.points).toBe(10);
+    expect(
+      await submitRoundAnswer(user, view.question.attemptId, answer),
+    ).toEqual(outcome);
+    if (i === 4) {
+      expect(outcome.summary?.bonusPoints).toBe(0);
+      break;
+    }
+    view = await advanceRound(user, id, view.question.attemptId);
+  }
+  const state = await playerSnapshot(user);
+  expect(state).toMatchObject({ points: 180, streak: 1 });
+  expect(state.badges.map((b) => b.badge_id)).toEqual(
+    expect.arrayContaining(["first-level", "math-five"]),
+  );
+  const bonus =
+    await fixture.operator`select delta from practice_game.points_ledger where user_id=${user} and reason='first-level-pass'`;
+  expect(bonus).toHaveLength(1);
+  expect(bonus[0].delta).toBe(25);
+  expect(
+    await fixture.operator`select * from practice_game.play_events where user_id=${user} and event='streak_extended'`,
+  ).toHaveLength(1);
+});

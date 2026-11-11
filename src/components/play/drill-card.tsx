@@ -7,6 +7,7 @@ import type {
   DrillQuestion,
   DrillResult,
 } from "@/lib/play/public";
+import { Celebration } from "./celebration";
 import { DrillAnswerForm } from "./drill-answer-form";
 import styles from "./drill.module.css";
 function SoftTimer({
@@ -88,6 +89,9 @@ export function DrillCard({
       {result ? (
         <section className={styles.result} aria-label="Drill result">
           <h2>{result.correct ? "Correct" : "Try this again"}</h2>
+          {result.badgesEarned?.length > 0 && (
+            <Celebration title="Badge earned" badges={result.badgesEarned} />
+          )}
           <p>{result.feedback}</p>
           <p className={styles.points}>+{result.points} points</p>
           {result.expected && (

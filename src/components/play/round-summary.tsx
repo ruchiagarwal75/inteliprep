@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { RoundSummary } from "@/lib/play/public";
+import { Celebration } from "./celebration";
 import { StartRound } from "./start-round";
 import styles from "./play.module.css";
 export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
@@ -14,6 +15,17 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
   return (
     <section className="practice-surface" aria-label="Round results">
       <h1>{title}</h1>
+      {(summary.passedLevels.length > 0 || summary.earnedBadges.length > 0) && (
+        <Celebration
+          title={
+            summary.passedLevels.length > 0 ? "Level cleared" : "Badge earned"
+          }
+          badges={summary.earnedBadges}
+        />
+      )}
+      {summary.bonusPoints > 0 && (
+        <p>First-try pass: +{summary.bonusPoints} points</p>
+      )}
       <p>
         {summary.correct} of {summary.total} correct
       </p>
