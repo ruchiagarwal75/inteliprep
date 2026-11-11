@@ -55,9 +55,8 @@ it("answers facts quietly with occasional varied prompts and a topic-free genera
   for (const i of [0, 1, 3, 4]) expect(results[i].answer).not.toMatch(/[?？]/u);
   expect(results[2].answer).toContain("Is there another requirement");
   expect(results[5].answer).toContain("What else would you like to clarify?");
-  expect(results[6].answer).toMatch(
-    /isn't specified[\s\S]*What would you assume/u,
-  );
+  expect(results[6].answer).toContain("What would you like to know?");
+  expect(results[6].answer).not.toMatch(/specified|assum/iu);
   expect(results[6].answer).not.toMatch(
     /traffic|latency|safety|permission|source|documents/iu,
   );

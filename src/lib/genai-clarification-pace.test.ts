@@ -1,3 +1,4 @@
+import { genaiGeneralInvitation } from "@/lib/genai-clarification-pace";
 import { expect, it, vi } from "vitest";
 import type { ChatMessage } from "@/lib/chat";
 import {
@@ -77,4 +78,15 @@ it("does not let the general ending guard append a missing-topic question to a f
   ))
     reply += delta;
   expect(reply).toBe("There are 20,000 employees.");
+});
+
+it("keeps general invitations actionable, varied and topic-free", () => {
+  const first = genaiGeneralInvitation([]);
+  const second = genaiGeneralInvitation([
+    { role: "assistant", content: first },
+  ]);
+  expect(first).not.toBe(second);
+  expect(first + second).not.toMatch(
+    /specified|traffic|latency|tokens|permissions|database/iu,
+  );
 });

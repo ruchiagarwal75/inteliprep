@@ -30,3 +30,16 @@ export function genaiAssumptionInvitation(
   ];
   return choices.find((choice) => !previous.includes(choice)) ?? choices[2];
 }
+
+/** An open invitation asks for a requirement, not a missing value or suggested topic. */
+export function genaiGeneralInvitation(messages: ChatMessage[]) {
+  const previous =
+    messages.findLast((m) => m.role === "assistant")?.content ?? "";
+  return (
+    [
+      "What would you like to know? You can ask about any requirement.",
+      "Which requirement would you like to ask about?",
+      "What information would help you set the requirements?",
+    ].find((text) => !previous.includes(text)) ?? "What would you like to know?"
+  );
+}

@@ -33,7 +33,7 @@ it("returns every selected value once, in selection order", async () => {
   );
 });
 it("gives an explicit assumption invitation when no fact matches", async () => {
-  model.mockResolvedValueOnce(result([]));
+  model.mockResolvedValueOnce(result([], true));
   expect(
     (
       await genaiClarification(genaiEngineFixture(), "senior", [
@@ -74,4 +74,30 @@ it("lets design answers use the discussion path", async () => {
       { role: "user", content: "I use a cache." },
     ]),
   ).toBeUndefined();
+});
+
+it("keeps general requests separate from a specific unspecified value", async () => {
+  model.mockResolvedValueOnce({
+    status: "completed",
+    output_text: JSON.stringify({
+      intent: "general",
+      factIds: [],
+      hasUnspecified: false,
+    }),
+  });
+  const answer = await genaiClarification(genaiEngineFixture(), "senior", [
+    { role: "user", content: "What else should I know?" },
+  ]);
+  expect(answer?.text).toBe(
+    "What would you like to know? You can ask about any requirement.",
+  );
+  expect(answer?.text).not.toMatch(/specified|traffic|latency|permissions/iu);
+  model.mockResolvedValueOnce(result([]));
+  expect(
+    (
+      await genaiClarification(genaiEngineFixture(), "senior", [
+        { role: "user", content: "What else should I know?" },
+      ])
+    )?.text,
+  ).not.toContain("isn't specified");
 });

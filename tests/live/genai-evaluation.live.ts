@@ -137,7 +137,8 @@ describe.each(fixtures)("Real model $problemId", (fixture) => {
         expect(combined).toContain(fact?.answers[level]);
       }
       const noNewFacts = await turn("What else should I know?", 0);
-      expect(noNewFacts).toMatch(/isn't specified|not specified/iu);
+      expect(noNewFacts).not.toMatch(/isn't specified|not specified/iu);
+      expect(noNewFacts).toMatch(/what.*know|requirement/iu);
       for (const fact of config.facts.filter(
         (f) => !selected.some((row) => row.id === f.id),
       ))
