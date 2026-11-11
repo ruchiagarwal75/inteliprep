@@ -116,3 +116,36 @@ it("lets other intent continue without answering a fact", async () => {
   ).toHaveLength(1);
   expect(reply).not.toMatch(/20,000|5M documents/);
 });
+
+it("keeps a repeated friendly classifier-failure reply nonempty", async () => {
+  const problem = getProblem("enterprise-rag-assistant");
+  if (!problem) throw new Error("Missing problem");
+  model
+    .mockRejectedValueOnce(new Error("Timeout"))
+    .mockRejectedValueOnce(new Error("Timeout"));
+  let reply = "";
+  for await (const part of streamInterviewerReply(
+    [
+      { role: "assistant", content: "Could you rephrase that?" },
+      { role: "user", content: "Tell me the expected traffic." },
+    ],
+    "Empty whiteboard.",
+    "",
+    undefined,
+    undefined,
+    {
+      problem,
+      level: "senior",
+      phase: problem.phases[0],
+      mayInviteDrawing: false,
+      progress: {
+        step: "discussion",
+        candidateTurns: 2,
+        discussionTurnLimit: 99,
+      },
+    },
+  ))
+    reply += part;
+  expect(reply).toBe("Could you rephrase that?");
+  expect(model).toHaveBeenCalledTimes(2);
+});

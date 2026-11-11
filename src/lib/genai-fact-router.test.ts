@@ -1,3 +1,4 @@
+import { APIConnectionTimeoutError } from "openai";
 import { expect, it, vi } from "vitest";
 import { genaiEngineFixture } from "@/lib/fixtures/genai-engine-test";
 import {
@@ -50,15 +51,19 @@ it("answers known parts and acknowledges an unspecified part", async () => {
   expect(answer?.text).toContain("2,000 employees");
   expect(answer?.text).toContain("isn't specified");
 });
-it("does not invent values or silently accept malformed IDs on provider failure", async () => {
-  model.mockResolvedValueOnce(result(["not-in-config"]));
-  await expect(
-    classifyGenaiFacts(genaiEngineFixture(), "User count?"),
-  ).rejects.toThrow();
-  model.mockResolvedValueOnce({ status: "incomplete" });
-  await expect(
-    classifyGenaiFacts(genaiEngineFixture(), "User count?"),
-  ).rejects.toThrow();
+it("does not invent values for malformed IDs or incomplete provider output", async () => {
+  model
+    .mockResolvedValueOnce(result(["not-in-config"]))
+    .mockResolvedValueOnce(result(["not-in-config"]));
+  expect(
+    (await classifyGenaiFacts(genaiEngineFixture(), "User count?")).intent,
+  ).toBe("rephrase");
+  model
+    .mockResolvedValueOnce({ status: "incomplete" })
+    .mockResolvedValueOnce({ status: "incomplete" });
+  expect(
+    (await classifyGenaiFacts(genaiEngineFixture(), "User count?")).intent,
+  ).toBe("rephrase");
 });
 it("lets design answers use the discussion path", async () => {
   model.mockResolvedValueOnce({
@@ -100,4 +105,56 @@ it("keeps general requests separate from a specific unspecified value", async ()
       ])
     )?.text,
   ).not.toContain("isn't specified");
+});
+
+it("retries a classifier timeout once and returns the successful fact", async () => {
+  const before = model.mock.calls.length;
+  model
+    .mockRejectedValueOnce(new APIConnectionTimeoutError())
+    .mockResolvedValueOnce(result(["employees"]));
+  expect(
+    (
+      await genaiClarification(genaiEngineFixture(), "senior", [
+        { role: "user", content: "Users?" },
+      ])
+    )?.text,
+  ).toBe("There are 20,000 employees.");
+  expect(model.mock.calls.length - before).toBe(2);
+  expect(model.mock.lastCall?.[2]).toMatchObject({ maxRetries: 0 });
+});
+it("returns a friendly rephrase after two classifier errors", async () => {
+  const before = model.mock.calls.length;
+  model
+    .mockRejectedValueOnce(new Error("Network"))
+    .mockRejectedValueOnce(new Error("Network"));
+  expect(
+    (
+      await genaiClarification(genaiEngineFixture(), "senior", [
+        { role: "user", content: "Users?" },
+      ])
+    )?.text,
+  ).toBe("Could you rephrase that?");
+  expect(model.mock.calls.length - before).toBe(2);
+});
+it("drops fact IDs on a non-fact intent mismatch", async () => {
+  for (const factIds of [["employees"], ["not-a-real-fact"]]) {
+    model.mockResolvedValueOnce({
+      status: "completed",
+      output_text: JSON.stringify({
+        intent: "other",
+        factIds,
+        hasUnspecified: true,
+      }),
+    });
+    expect(
+      await classifyGenaiFacts(genaiEngineFixture(), "I use an API."),
+    ).toMatchObject({ intent: "other", factIds: [], hasUnspecified: false });
+  }
+});
+it("does not retry a cancelled user request", async () => {
+  const before = model.mock.calls.length;
+  await expect(
+    classifyGenaiFacts(genaiEngineFixture(), "Users?", AbortSignal.abort()),
+  ).rejects.toThrow();
+  expect(model.mock.calls.length - before).toBe(0);
 });

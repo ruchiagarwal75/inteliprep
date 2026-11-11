@@ -1,6 +1,9 @@
 import { cappedGenaiQuestions } from "@/lib/genai-probe-memory";
 import { genaiFactFollowUp } from "@/lib/genai-clarification-pace";
-import { genaiClarification } from "@/lib/genai-fact-router";
+import {
+  genaiClarification,
+  GENAI_REPHRASE_REPLY,
+} from "@/lib/genai-fact-router";
 import { genaiAssumptionReply } from "@/lib/genai-facts";
 import { genaiEstimateVerdict } from "@/lib/genai-estimation";
 import { quoteDiagramLabels } from "@/lib/diagram-label-copy";
@@ -99,6 +102,11 @@ async function* rawInterviewerReply(
   ) {
     signal?.throwIfAborted();
     yield DESIGN_REDIRECT;
+    return;
+  }
+  if (interview && classifiedClarification?.text === GENAI_REPHRASE_REPLY) {
+    interview.factAnswer = true;
+    yield GENAI_REPHRASE_REPLY;
     return;
   }
   const step = interview?.progress?.step;
@@ -438,7 +446,11 @@ export async function* streamInterviewerReply(
       interview?.diagramLabels ?? [],
       interview?.problem.track,
     );
-  if (repeatsLastQuestion(reply, args[0])) reply = withoutQuestions(reply);
+  if (
+    !(interview?.problem.track === "genai" && reply === GENAI_REPHRASE_REPLY) &&
+    repeatsLastQuestion(reply, args[0])
+  )
+    reply = withoutQuestions(reply);
   if (
     interview?.openQuestions?.length &&
     !interview.reviewQuestion &&
