@@ -169,3 +169,19 @@ describe("verified scorecard evidence", () => {
     expect(empty.nextPractice.problemId).toBe(problem.id);
   });
 });
+
+it("keeps next practice in the original track when the model suggests another", () => {
+  const problem = getProblem("single-server-scaling");
+  if (!problem) throw Error("Missing problem");
+  const result = gradingAssessmentFixture();
+  result.nextProblemId = "enterprise-rag-assistant";
+  const card = validateScorecard(
+    problem,
+    "mid",
+    gradingSnapshot,
+    endedAtFixture,
+    result,
+  );
+  expect(getProblem(card.nextPractice.problemId)?.track).toBe("core");
+  expect(card.nextPractice.problemId).toBe("url-shortener");
+});

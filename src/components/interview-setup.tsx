@@ -1,5 +1,7 @@
 "use client";
 
+import { ProblemTrackToggle } from "@/components/problem-track-toggle";
+import { problemTrack, problemsInTrack } from "@/lib/problem-track";
 import {
   INTERVIEW_LEVEL_LABELS,
   interviewLevelSchema,
@@ -86,6 +88,14 @@ export function InterviewSetup({
             onStart();
           }}
         >
+          <ProblemTrackToggle
+            value={problemTrack(selected)}
+            disabled={disabled || isStarting}
+            onChange={(track) => {
+              const first = problemsInTrack(problems, track)[0];
+              if (first) onChoice({ ...choice, problemId: first.problemId });
+            }}
+          />
           <label
             htmlFor="interview-problem"
             className="flex min-w-48 flex-1 flex-col gap-1 text-xs"
@@ -100,25 +110,13 @@ export function InterviewSetup({
               }
               className="bg-background disabled:bg-accent-soft disabled:text-foreground rounded border px-2 py-2 text-sm disabled:opacity-100"
             >
-              {(
-                [
-                  { track: "core", label: "Core system design" },
-                  { track: "genai", label: "AI / GenAI" },
-                ] as const
-              ).map((group) => {
-                const entries = problems.filter(
-                  (problem) => (problem.track ?? "core") === group.track,
-                );
-                return entries.length ? (
-                  <optgroup key={group.track} label={group.label}>
-                    {entries.map((problem) => (
-                      <option key={problem.problemId} value={problem.problemId}>
-                        {problem.title}
-                      </option>
-                    ))}
-                  </optgroup>
-                ) : null;
-              })}
+              {problemsInTrack(problems, problemTrack(selected)).map(
+                (problem) => (
+                  <option key={problem.problemId} value={problem.problemId}>
+                    {problem.title}
+                  </option>
+                ),
+              )}
             </select>
           </label>
           <label

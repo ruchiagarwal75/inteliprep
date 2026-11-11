@@ -243,6 +243,7 @@ export function ChatPanel(props: ChatPanelProps) {
       />
       {hasEnded ? (
         <InterviewResults
+          problems={props.problems}
           scorecard={ending.scorecard}
           interview={interview}
           scene={ending.scene}

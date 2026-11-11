@@ -4,9 +4,11 @@ import { interviewStageName } from "@/lib/interview-stage-names";
 export function InterviewStage({
   phase,
   ended,
+  names,
 }: {
   phase?: InterviewPhase;
   ended: boolean;
+  names?: string[];
 }) {
   return (
     <section
@@ -25,7 +27,7 @@ export function InterviewStage({
         {ended
           ? "Review your results below"
           : phase
-            ? interviewStageName(phase.position, phase.title)
+            ? interviewStageName(phase.position, phase.title, names)
             : "Start an interview to begin"}
       </span>
     </section>

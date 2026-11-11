@@ -22,6 +22,8 @@ export const interviewStartSchema = interviewSelectionSchema.extend({
   sessionId: z.uuid(),
   resumeToken: z.string().min(1).max(8_000).optional(),
   phase: interviewPhaseSchema,
+  track: z.enum(["core", "genai"]).optional(),
+  stageNames: z.array(z.string().min(1).max(100)).min(4).max(10).optional(),
   openingMessage: z.object({
     role: z.literal("assistant"),
     content: z.string().min(1).max(8_000),
@@ -37,6 +39,7 @@ export type InterviewStart = z.infer<typeof interviewStartSchema>;
 export type ProblemTrack = "core" | "genai";
 export type ProblemSummary = {
   track?: ProblemTrack;
+  stageNames?: string[];
   problemId: string;
   title: string;
   summary: string;

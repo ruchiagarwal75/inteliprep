@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { nextProblemInTrack, problemTrack } from "@/lib/problem-track";
 import type { GradingStage } from "@/lib/grading-progress";
 import { InterviewFeedbackCard } from "@/components/interview-feedback-card";
 import { ScorecardViewTracker } from "@/components/scorecard-view-tracker";
@@ -17,6 +18,7 @@ import { Whiteboard } from "@/components/whiteboard";
 import { formatInterviewTime } from "@/lib/interview-timer";
 import { INTERVIEW_STAGE_NAMES } from "@/lib/interview-stage-names";
 export function InterviewResults({
+  problems,
   scorecard,
   scene,
   whiteboard,
@@ -30,6 +32,7 @@ export function InterviewResults({
   timedOut = false,
   gradingStage,
 }: {
+  problems?: import("@/lib/interview-selection").ProblemSummary[];
   scorecard?: Scorecard;
   scene?: Scene;
   whiteboard: WhiteboardScene;
@@ -64,6 +67,25 @@ export function InterviewResults({
         }
       : undefined);
   const logRef = useRef<HTMLDivElement>(null);
+  const current = problems?.find((p) => p.problemId === interview?.problemId);
+  const suggestion = problems?.find(
+    (p) => p.problemId === scorecard?.nextPractice.problemId,
+  );
+  const next =
+    current && problems && problemTrack(suggestion) !== problemTrack(current)
+      ? nextProblemInTrack(problems, current.problemId)
+      : suggestion;
+  const displayScorecard =
+    scorecard && next && next.problemId !== scorecard.nextPractice.problemId
+      ? {
+          ...scorecard,
+          nextPractice: {
+            problemId: next.problemId,
+            title: next.title,
+            focus: next.summary,
+          },
+        }
+      : scorecard;
   const brief = (problem?: string) =>
     `/interview/new?problem=${encodeURIComponent(problem ?? interview?.problemId ?? "single-server-scaling")}`;
   return (
@@ -88,10 +110,7 @@ export function InterviewResults({
             {timedOut ? "Start a new interview" : "Retry this problem"}
           </Link>
           {!timedOut && (
-            <Link
-              className="practice-secondary"
-              href={brief(scorecard?.nextPractice.problemId)}
-            >
+            <Link className="practice-secondary" href={brief(next?.problemId)}>
               Try suggested problem
             </Link>
           )}
@@ -99,7 +118,7 @@ export function InterviewResults({
         <details className="results-stage-guide">
           <summary>Interview stages</summary>
           <ol className="results-stage-list" aria-label="Interview stages">
-            {INTERVIEW_STAGE_NAMES.map((name, i) => (
+            {(interview?.stageNames ?? INTERVIEW_STAGE_NAMES).map((name, i) => (
               <li key={name}>
                 {i + 1}. {name}
               </li>
@@ -159,7 +178,10 @@ export function InterviewResults({
       >
         {tab === "scorecard" &&
           (scorecard ? (
-            <InterviewScorecard scorecard={scorecard} scene={scene} />
+            <InterviewScorecard
+              scorecard={displayScorecard ?? scorecard}
+              scene={scene}
+            />
           ) : busy ? (
             <ScorecardLoading stage={gradingStage} />
           ) : (

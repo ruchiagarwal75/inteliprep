@@ -113,6 +113,9 @@ export function InterviewSessionWorkspace({
       ].join(" ")}
     >
       <InterviewLiveHeader
+        track={
+          problems.find((p) => p.problemId === interview?.problemId)?.track
+        }
         title={
           problems.find((p) => p.problemId === interview?.problemId)?.title
         }
@@ -214,6 +217,7 @@ export function InterviewSessionWorkspace({
             phase={phase}
             hasEnded={hasEnded}
             endControlTarget={endTarget}
+            problems={problems}
             brief={
               problems.find((p) => p.problemId === interview?.problemId)
                 ?.brief?.[interview?.level ?? "mid"]

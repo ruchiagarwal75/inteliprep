@@ -7,6 +7,9 @@ const levels = z.object({
 });
 /** All facts, reference arithmetic and model designs stay behind the server boundary. */
 export const genaiConfigSchema = z.object({
+  interviewerRules: z.string().min(1).optional(),
+  evaluationArea: z.string().min(1).default("Evaluation and quality"),
+  safetyArea: z.string().min(1).default("Safety and security"),
   facts: z
     .array(
       z.object({

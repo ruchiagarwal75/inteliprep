@@ -48,6 +48,9 @@ for (const key of [
   "estimateAnchors",
   "expectedDesign",
   "redFlags",
+  "interviewerRules",
+  "evaluationArea",
+  "safetyArea",
   "PRIVATE_ANCHOR_CANARY",
 ])
   if (content.includes(key))

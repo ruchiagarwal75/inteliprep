@@ -1,4 +1,10 @@
 import {
+  nextProblemInTrack,
+  parseProblemTrack,
+  problemTrack,
+  problemsInTrack,
+} from "@/lib/problem-track";
+import {
   interviewLevelSchema,
   type ProblemSummary,
 } from "@/lib/interview-selection";
@@ -8,23 +14,31 @@ import type {
 } from "@/lib/saved-interview";
 export const briefLevelKey = (userId: string) =>
   `mockmeai:brief-level:v1:${userId}`;
+export const briefTrackKey = (userId: string) =>
+  `mockmeai:brief-track:v1:${userId}`;
 export function briefDefaults(
   problems: ProblemSummary[],
   latest?: SavedInterview,
   summary?: SavedInterviewSummary,
   storedLevel?: unknown,
   requestedProblem?: string | null,
+  storedTrack?: unknown,
 ) {
   const lastProblem = latest?.interview.problemId ?? summary?.problemId;
-  const index = problems.findIndex((p) => p.problemId === lastProblem);
+  const requested = problems.find((p) => p.problemId === requestedProblem);
+  const previous = problems.find((p) => p.problemId === lastProblem);
+  const track = requested
+    ? problemTrack(requested)
+    : (parseProblemTrack(storedTrack) ?? problemTrack(previous));
+  const choices = problemsInTrack(problems, track);
   const suggested =
     latest?.scorecard?.nextPractice.problemId ??
-    (summary?.hasEnded && index >= 0
-      ? problems[(index + 1) % problems.length]?.problemId
+    (summary?.hasEnded && lastProblem
+      ? nextProblemInTrack(problems, lastProblem)?.problemId
       : lastProblem);
   const problemId =
-    [requestedProblem, suggested, problems[0]?.problemId].find((id) =>
-      problems.some((p) => p.problemId === id),
+    [requested?.problemId, suggested, choices[0]?.problemId].find((id) =>
+      choices.some((p) => p.problemId === id),
     ) ?? "single-server-scaling";
   const parsed = interviewLevelSchema.safeParse(storedLevel);
   const level = parsed.success

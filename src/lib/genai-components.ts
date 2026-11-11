@@ -4,12 +4,12 @@ export const genaiComponents = [
     id: "vector_store",
     name: "vector store",
     pattern:
-      /\b(?:vector\s*(?:db|database|store|index)|embeddings?\s*store|pgvector|pinecone)\b/iu,
+      /\b(?:vector\s*(?:db|database|store|index)|embeddings?\s*store|ann\s*index|pgvector|pinecone)\b/iu,
   },
   {
     id: "embedder",
     name: "embedding service",
-    pattern: /\b(?:embedding service|embedder)\b/iu,
+    pattern: /\b(?:embedding service|embedder|two[- ]tower|embeddings?)\b/iu,
   },
   {
     id: "inference",
@@ -20,7 +20,8 @@ export const genaiComponents = [
   {
     id: "reranker",
     name: "reranker",
-    pattern: /\b(?:reranker|rerank(?:ing)? service|cross[- ]encoder)\b/iu,
+    pattern:
+      /\b(?:reranker|re[- ]?rank(?:ing)?(?: service)?|cross[- ]encoder)\b/iu,
   },
   {
     id: "guardrails",
@@ -46,6 +47,43 @@ export const genaiComponents = [
     id: "context",
     name: "context builder",
     pattern: /\b(?:prompt builder|context builder)\b/iu,
+  },
+  {
+    id: "candidates",
+    name: "candidate generation",
+    pattern: /\b(?:candidate generation|candidate sources?)\b/iu,
+  },
+  {
+    id: "ranking",
+    name: "ranking service",
+    pattern: /\b(?:ranking|ranker|ranking model)\b/iu,
+  },
+  { id: "features", name: "feature store", pattern: /\b(?:feature store)\b/iu },
+  {
+    id: "training",
+    name: "training pipeline",
+    pattern: /\b(?:training pipeline|trainer)\b/iu,
+  },
+  {
+    id: "labels",
+    name: "label store",
+    pattern: /\b(?:label store|label pipeline)\b/iu,
+  },
+  {
+    id: "experiments",
+    name: "experiment platform",
+    pattern: /\b(?:experiment(?:ation)? platform|a\/b test)\b/iu,
+  },
+  { id: "auction", name: "auction", pattern: /\b(?:auction)\b/iu },
+  {
+    id: "calibration",
+    name: "calibration",
+    pattern: /\b(?:calibration|calibrator)\b/iu,
+  },
+  {
+    id: "ctr",
+    name: "CTR model",
+    pattern: /\b(?:ctr model|click prediction)\b/iu,
   },
 ];
 export const GENAI_SAFETY_SCENARIO =

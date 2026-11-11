@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { ProblemTrackBadge } from "@/components/problem-track-badge";
 import { Brand } from "@/components/brand";
 import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import { BriefMascot } from "@/components/mascot-moments";
@@ -57,14 +58,17 @@ export function InterviewBrief({
           </div>
           <div className="brief-layout">
             <section className="problem-card" aria-label="Problem brief">
-              <h2>{selected?.title}</h2>
+              <h2>
+                {selected?.title}
+                <ProblemTrackBadge track={selected?.track} />
+              </h2>
               <p>
                 {selected?.brief?.[starter.choice.level] ?? selected?.summary}
               </p>
             </section>
             <PracticeGuide />
           </div>
-          <PracticeStepper />
+          <PracticeStepper names={selected?.stageNames} />
           <div className="brief-start">
             <button
               disabled={starter.isStarting || starter.isLimited}

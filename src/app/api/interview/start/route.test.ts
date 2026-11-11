@@ -65,7 +65,9 @@ describe("POST /api/interview/start", () => {
         "resumeToken",
         "serverTime",
         "sessionId",
+        "stageNames",
         "timing",
+        "track",
       ]);
       expect(body.openingMessage.content).toBe(
         getProblem("url-shortener")

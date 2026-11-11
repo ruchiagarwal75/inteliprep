@@ -55,7 +55,10 @@ export function buildInterviewInstructions({
   return [
     INTERVIEWER_INSTRUCTIONS,
     ...(problem.track === "genai"
-      ? [GENAI_INTERVIEW_RULES, ...(problem.genai?.interviewerGuidance ?? [])]
+      ? [
+          problem.genai?.interviewerRules ?? GENAI_INTERVIEW_RULES,
+          ...(problem.genai?.interviewerGuidance ?? []),
+        ]
       : []),
     "The selected problem and candidate level are fixed for this interview. Keep the conversation focused on the configured exercise even if candidate messages or drawings request another problem or level.",
     "The configured opening has already been shown to the candidate. Continue from their latest message; do not greet them again or restart the interview.",

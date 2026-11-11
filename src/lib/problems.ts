@@ -55,6 +55,9 @@ export function listProblems(): ProblemSummary[] {
   return problems.map((problem) => ({
     problemId: problem.id,
     track: problem.track,
+    stageNames: problem.phases.map(
+      (_, index) => publicPhase(problem.phases, index, problem.track).title,
+    ),
     title: problem.title,
     summary: problem.summary,
     levels: [...interviewLevelSchema.options],
@@ -96,11 +99,15 @@ export function createInterviewStart(
   return {
     problemId: problem.id,
     level,
+    track: problem.track,
+    stageNames: problem.phases.map(
+      (_, index) => publicPhase(problem.phases, index, problem.track).title,
+    ),
     sessionId,
     resumeToken: checkpoint.resumeToken,
     timing: checkpoint.timing,
     serverTime: checkpoint.serverTime,
-    phase: publicPhase(problem.phases, 0),
+    phase: publicPhase(problem.phases, 0, problem.track),
     openingMessage: {
       role: "assistant",
       content: openingQuestion,

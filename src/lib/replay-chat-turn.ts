@@ -22,7 +22,11 @@ export async function replayChatTurn(
     input,
     input.resumeToken,
   );
-  const phase = publicPhase(problem.phases, checkpoint.phaseIndex);
+  const phase = publicPhase(
+    problem.phases,
+    checkpoint.phaseIndex,
+    problem.track,
+  );
   const framed = request.headers.get("Accept") === INTERVIEW_STREAM_TYPE;
   const deltas = (async function* () {
     yield prior.reply;

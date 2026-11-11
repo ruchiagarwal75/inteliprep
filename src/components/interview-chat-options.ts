@@ -27,6 +27,7 @@ export type InterviewChatOptions = {
 export type ChatPanelProps = InterviewChatOptions & {
   endControlTarget?: HTMLElement | null;
   brief?: string;
+  problems?: import("@/lib/interview-selection").ProblemSummary[];
   onAssistantMessage?: () => void;
   hasDrawing: boolean;
   phase?: InterviewPhase;

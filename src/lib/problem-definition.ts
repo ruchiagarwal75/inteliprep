@@ -93,9 +93,9 @@ export const problemSchema = z
       problem.track === "genai" &&
       (!problem.genai ||
         !problem.rubric.some(
-          (area) => area.area === "Evaluation and quality",
+          (area) => area.area === problem.genai?.evaluationArea,
         ) ||
-        !problem.rubric.some((area) => area.area === "Safety and security"))
+        !problem.rubric.some((area) => area.area === problem.genai?.safetyArea))
     )
       ctx.addIssue({
         code: "custom",

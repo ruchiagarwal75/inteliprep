@@ -49,12 +49,16 @@ export const phasesSchema = z
 export function publicPhase(
   phases: PhaseConfig[],
   index: number,
+  track: "core" | "genai" = "core",
 ): InterviewPhase {
   const phase = phases[index];
   if (!phase) throw new Error("Unknown interview stage");
   return {
     id: phase.id,
-    title: interviewStageName(index + 1, phase.title),
+    title:
+      track === "genai"
+        ? phase.title
+        : interviewStageName(index + 1, phase.title),
     position: index + 1,
     total: phases.length,
   };

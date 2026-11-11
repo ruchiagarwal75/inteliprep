@@ -7,6 +7,10 @@ export const INTERVIEW_STAGE_NAMES = [
   "Tradeoffs and wrap-up",
 ] as const;
 
-export function interviewStageName(position: number, fallback = "Interview") {
-  return INTERVIEW_STAGE_NAMES[position - 1] ?? fallback;
+export function interviewStageName(
+  position: number,
+  fallback = "Interview",
+  names: readonly string[] = INTERVIEW_STAGE_NAMES,
+) {
+  return names[position - 1] ?? fallback;
 }

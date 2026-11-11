@@ -1,3 +1,4 @@
+import { ProblemTrackBadge } from "@/components/problem-track-badge";
 import { Brand } from "@/components/brand";
 import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
 import type { InterviewPhase } from "@/lib/interview-phase";
@@ -9,6 +10,7 @@ import { InterviewStage } from "@/components/interview-stage";
 import { InterviewTimer } from "@/components/interview-timer";
 export function InterviewLiveHeader({
   title,
+  track,
   interview,
   phase,
   ended,
@@ -20,6 +22,7 @@ export function InterviewLiveHeader({
   save,
 }: {
   title?: string;
+  track?: "core" | "genai";
   interview?: InterviewStart;
   phase?: InterviewPhase;
   ended: boolean;
@@ -35,7 +38,10 @@ export function InterviewLiveHeader({
       <div className="live-identity">
         <Brand />
         <div className="min-w-0">
-          <h1 className="truncate text-sm font-semibold">{title}</h1>
+          <h1 className="text-sm font-semibold">
+            {title}
+            <ProblemTrackBadge track={track ?? interview?.track} />
+          </h1>
           <p className="text-xs">
             {interview ? INTERVIEW_LEVEL_LABELS[interview.level] : ""}
           </p>
@@ -43,7 +49,11 @@ export function InterviewLiveHeader({
       </div>
       {!ended && (
         <div className="order-3 col-span-2 text-center min-[900px]:order-none min-[900px]:col-span-1">
-          <InterviewStage phase={phase} ended={false} />
+          <InterviewStage
+            phase={phase}
+            ended={false}
+            names={interview?.stageNames}
+          />
         </div>
       )}
       <div className="live-controls flex flex-wrap items-center justify-end gap-2 min-[900px]:col-start-3">

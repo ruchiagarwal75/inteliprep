@@ -1,4 +1,5 @@
 "use client";
+import { ProblemTrackBadge } from "@/components/problem-track-badge";
 import { LegalLinks } from "@/components/legal-links";
 import { HomeMascot } from "@/components/mascot-moments";
 import Link from "next/link";
@@ -113,6 +114,12 @@ export function PracticeHome({
                     <div className="session-main">
                       <p className="session-title">
                         <Link href={href(e)}>{title(e)}</Link>
+                        <ProblemTrackBadge
+                          track={
+                            problems.find((p) => p.problemId === e.problemId)
+                              ?.track
+                          }
+                        />
                       </p>
                       <p className="session-meta">
                         <span>{INTERVIEW_LEVEL_LABELS[e.level]}</span>

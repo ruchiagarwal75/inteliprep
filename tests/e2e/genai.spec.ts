@@ -17,10 +17,21 @@ test("GenAI group preserves private facts and runs the normal interview flow", a
     page.getByRole("heading", { name: "Your practice brief" }),
   ).toBeVisible();
   await expect(
-    page.locator('optgroup[label="Core system design"] option'),
+    page
+      .getByRole("combobox", { name: "Problem", exact: true })
+      .locator("option"),
   ).toHaveCount(8);
-  await expect(page.locator('optgroup[label="AI / GenAI"] option')).toHaveCount(
-    3,
+  await page
+    .getByRole("radio", { name: "AI / ML system design", exact: true })
+    .check();
+  await expect(
+    page
+      .getByRole("combobox", { name: "Problem", exact: true })
+      .locator("option"),
+  ).toHaveCount(
+    (await (await page.request.get("/api/problems")).json()).problems.filter(
+      (p: { track: string }) => p.track === "genai",
+    ).length,
   );
   await page.getByLabel("Difficulty").selectOption("senior");
   for (const problemId of [
@@ -101,5 +112,16 @@ test("GenAI group preserves private facts and runs the normal interview flow", a
     page.getByRole("heading", { name: "Too short to score", exact: true }),
   ).toBeVisible({ timeout: 25000 });
   expect(starts).toBe(1);
+  await expect(
+    page
+      .locator("header.live-header")
+      .getByLabel("AI / ML system design", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "MockMeAI home", exact: true }).click();
+  await expect(
+    page
+      .locator(".session-title")
+      .getByLabel("AI / ML system design", { exact: true }),
+  ).toBeVisible();
   expect(errors).toEqual([]);
 });

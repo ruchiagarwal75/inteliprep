@@ -1,11 +1,16 @@
 "use client";
+import { problemTrack } from "@/lib/problem-track";
 import { useCallback, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import type { InterviewChoice } from "@/components/use-interview-starter";
 import type { ProblemSummary } from "@/lib/interview-selection";
 import type { SavedInterviewSummary } from "@/lib/saved-interview";
-import { briefDefaults, briefLevelKey } from "@/lib/brief-preferences";
+import {
+  briefDefaults,
+  briefLevelKey,
+  briefTrackKey,
+} from "@/lib/brief-preferences";
 export function useBriefPreferences(
   enabled: boolean,
   problems: ProblemSummary[],
@@ -19,8 +24,10 @@ export function useBriefPreferences(
     let cancelled = false;
     void (async () => {
       let stored: string | null = null;
+      let track: string | null = null;
       try {
         stored = localStorage.getItem(briefLevelKey(userId));
+        track = localStorage.getItem(briefTrackKey(userId));
       } catch {
         /* Optional browser preference. */
       }
@@ -35,6 +42,7 @@ export function useBriefPreferences(
             entries[0],
             stored,
             new URLSearchParams(window.location.search).get("problem"),
+            track,
           ),
         );
     })();
@@ -47,11 +55,15 @@ export function useBriefPreferences(
       touched.current = true;
       try {
         localStorage.setItem(briefLevelKey(userId), choice.level);
+        localStorage.setItem(
+          briefTrackKey(userId),
+          problemTrack(problems.find((p) => p.problemId === choice.problemId)),
+        );
       } catch {
         /* Starting still works without preferences. */
       }
       setChoice(choice);
     },
-    [setChoice, userId],
+    [setChoice, userId, problems],
   );
 }

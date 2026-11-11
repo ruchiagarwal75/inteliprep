@@ -56,7 +56,11 @@ async function resume(request: Request): Promise<Response> {
     await shared.persist();
     return Response.json(
       {
-        phase: publicPhase(problem.phases, checkpoint.phaseIndex),
+        phase: publicPhase(
+          problem.phases,
+          checkpoint.phaseIndex,
+          problem.track,
+        ),
         resumeToken: checkpoint.resumeToken,
         ended: checkpoint.ended,
         timing: checkpoint.timing,

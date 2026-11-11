@@ -33,6 +33,7 @@ describe("problem registry", () => {
       expect(Object.keys(summary).sort()).toEqual([
         "levels",
         "problemId",
+        "stageNames",
         "summary",
         "title",
         "track",
@@ -46,7 +47,7 @@ describe("problem registry", () => {
       "requirements",
       "phases",
     ])
-      expect(JSON.stringify(catalog)).not.toContain(privateField);
+      expect(JSON.stringify(catalog)).not.toContain(`"${privateField}":`);
     catalog[0].levels.pop();
     expect(listProblems()[0].levels).toHaveLength(3);
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import { ProblemTrackBadge } from "@/components/problem-track-badge";
 import { useState } from "react";
 import type { SavedInterviewSummary } from "@/lib/saved-interview";
 import {
@@ -92,6 +93,12 @@ export function InterviewHistory({
                     (problem) => problem.problemId === entry.problemId,
                   )?.title ?? entry.problemId}{" "}
                   · {INTERVIEW_LEVEL_LABELS[entry.level]}
+                  <ProblemTrackBadge
+                    track={
+                      problems.find((p) => p.problemId === entry.problemId)
+                        ?.track
+                    }
+                  />
                   {currentId === entry.id && (
                     <span className="bg-info-soft text-info ml-2 rounded px-2 py-0.5 text-xs">
                       Open

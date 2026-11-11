@@ -416,3 +416,16 @@ by the server. All requested facts are answered together, without unasked facts.
 are judged on their reasoning and arithmetic. Do not impose an anchor's assumed
 representation or vendor. New problem commits must preserve all eight core JSON
 files byte for byte. `postbuild` scans browser chunks for private config content.
+
+## AI / ML interview track
+
+The stored `genai` track ID covers GenAI applications and ML systems. Its display
+name is "AI / ML system design". Do not rename the stored ID or migrate sessions.
+The Brief uses native grouped radios to filter its picker and remembers track
+preferences per account. Public stage names and track tags may reach the browser;
+facts, anchors, reference designs and rubrics must stay server-only.
+
+AI / ML problems may override `genai.interviewerRules`, `evaluationArea`, and
+`safetyArea`. Preserve existing GenAI defaults and core scoring. Configured AI / ML
+phase titles are carried through the start response and public catalog, with
+optional fields for older saves. Next-practice choices stay within the track.

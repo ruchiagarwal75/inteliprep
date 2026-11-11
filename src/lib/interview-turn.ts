@@ -329,9 +329,13 @@ export async function prepareInterviewTurn(
     }
     return {
       context,
-      phase: publicPhase(problem.phases, plan.state.phaseIndex),
+      phase: publicPhase(problem.phases, plan.state.phaseIndex, problem.track),
       completedPhase: () =>
-        publicPhase(problem.phases, completedPlan.state.phaseIndex),
+        publicPhase(
+          problem.phases,
+          completedPlan.state.phaseIndex,
+          problem.track,
+        ),
       commit(reply: string) {
         if (signal.aborted) return;
         // Facts supplied in this very reply cannot become a repeated setup question.

@@ -1,8 +1,13 @@
 import "server-only";
+import { nextProblemInTrack } from "@/lib/problem-track";
 import type { InterviewLevel } from "@/lib/interview-selection";
 import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { candidateQuotes } from "@/lib/scorecard-quotes";
-import { getProblem, type ProblemDefinition } from "@/lib/problems";
+import {
+  getProblem,
+  listProblems,
+  type ProblemDefinition,
+} from "@/lib/problems";
 import {
   gradingAssessmentSchema,
   scorecardSchema,
@@ -63,8 +68,16 @@ export function validateScorecard(
     if (area.score !== null && !area.evidence.length)
       throw new Error("Numeric scores require grading evidence");
   }
-  const next = getProblem(result.nextProblemId);
-  if (!next) throw new Error("Grading suggested an unknown practice problem");
+  const suggested = getProblem(result.nextProblemId);
+  if (!suggested)
+    throw new Error("Grading suggested an unknown practice problem");
+  const next =
+    suggested.track === problem.track
+      ? suggested
+      : (getProblem(
+          nextProblemInTrack(listProblems(), problem.id)?.problemId ??
+            problem.id,
+        ) ?? problem);
   if (result.gaps.some((finding) => !isMeaningfulFinding(finding.text)))
     throw new Error(
       "Each gap must describe a specific actionable issue, not an evidence label",
@@ -103,7 +116,10 @@ export function validateScorecard(
       nextPractice: {
         problemId: next.id,
         title: next.title,
-        focus: result.practiceFocus,
+        focus:
+          suggested.track === problem.track
+            ? result.practiceFocus
+            : next.summary,
       },
     }),
   );

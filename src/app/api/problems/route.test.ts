@@ -24,6 +24,7 @@ it("serves the public problem catalog without hidden interviewer configuration",
     expect(Object.keys(problem).sort()).toEqual([
       "levels",
       "problemId",
+      "stageNames",
       "summary",
       "title",
       "track",

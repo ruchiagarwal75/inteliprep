@@ -1,5 +1,5 @@
 export const GENAI_CAPACITY =
-  /\b(?:tokens?|gpus?|gpu throughput|embeddings?|vectors?|index size|chunks?|context window|cost|model rate limits?|input|output|per request|per task|per minute|memory|ram|disk|storage|bandwidth)\b/iu;
+  /\b(?:feed requests?|ad requests?|impressions?|item scores?|predictions?|click volume|clicks?|tokens?|gpus?|gpu throughput|embeddings?|vectors?|index size|chunks?|context window|cost|model rate limits?|input|output|per request|per task|per minute|memory|ram|disk|storage|bandwidth)\b/iu;
 export function isGenaiEstimate(text: string) {
   return (
     /\d/u.test(text) &&
