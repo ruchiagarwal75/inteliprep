@@ -1,6 +1,7 @@
 import "server-only";
-import type { DrillDefinition } from "./definition";
-/** The author-supplied bank is installed in the content step. Empty content fails closed. */
-const drills: DrillDefinition[] = [];
+import { retrievalDrills } from "./rag/retrieval";
+import { mathDrills } from "./rag/scale-math";
+import { sampleDrills } from "./rag/samples";
+const drills = [...retrievalDrills, ...mathDrills, ...sampleDrills];
 export const drillsForTopic = (topic: string) =>
   drills.filter((drill) => drill.topic === topic);

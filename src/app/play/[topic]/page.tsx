@@ -31,7 +31,8 @@ export default async function TopicPage({
       <h1>{topic.title}</h1>
       <p>Build one skill at a time.</p>
       <p className={styles.note}>
-        Sample beta content. Every sample question is marked [sample].
+        Levels 1 and 2 use real drills. Levels 3 and 4 are beta samples marked
+        [sample].
       </p>
       {reviews > 0 && (
         <section className="practice-surface">

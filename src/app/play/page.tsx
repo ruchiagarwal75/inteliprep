@@ -32,8 +32,8 @@ export default async function PlayPage() {
         ))}
       </ul>
       <p className={styles.note}>
-        RAG uses clearly marked sample drills while the real content is being
-        prepared.
+        RAG Levels 1 and 2 have reviewed drills. Levels 3 and 4 use clearly
+        marked samples.
       </p>
       <Link className="practice-link" href="/mock#fundamentals">
         Fundamentals: the 8 classic system design problems
