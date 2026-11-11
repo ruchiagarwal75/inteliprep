@@ -78,6 +78,18 @@ async function* rawInterviewerReply(
   const latestCandidate = messages.findLast(
     (message) => message.role === "user",
   );
+  const classifyClarification =
+    interview?.problem.track === "genai" &&
+    interview.phase?.transition === "initial" &&
+    latestCandidate?.source !== "control";
+  const classifiedClarification = classifyClarification
+    ? await genaiClarification(
+        interview.problem,
+        interview.level,
+        messages,
+        signal,
+      )
+    : undefined;
   if (
     latestCandidate?.source !== "control" &&
     isOffTopicRequest(
@@ -130,15 +142,17 @@ async function* rawInterviewerReply(
   const clarification =
     interview &&
     latestCandidate &&
-    (interview.problem.track === "genai" &&
-    !interview.estimateAccepted &&
-    isFactualQuestion(latestCandidate.content)
-      ? await genaiClarification(
-          interview.problem,
-          interview.level,
-          messages,
-          signal,
-        )
+    (interview.problem.track === "genai" && !interview.estimateAccepted
+      ? classifyClarification
+        ? classifiedClarification
+        : isFactualQuestion(latestCandidate.content)
+          ? await genaiClarification(
+              interview.problem,
+              interview.level,
+              messages,
+              signal,
+            )
+          : undefined
       : configuredClarification(
           interview.problem,
           interview.level,

@@ -71,22 +71,35 @@ it("carries acceptance into the reply prompt without re-asking the arithmetic", 
       discussionTurnLimit: 99,
     },
   };
-  model.mockImplementation(async (operation: string) =>
-    operation === "assessment"
-      ? {
-          status: "completed",
-          output_text: JSON.stringify({
-            verdict: "reasonable",
-            evidenceQuote: content,
-          }),
-        }
-      : (async function* () {
-          yield {
-            type: "response.output_text.delta",
-            delta: "That estimate is consistent with those assumptions.",
-          };
-          yield { type: "response.completed" };
-        })(),
+  model.mockImplementation(
+    async (
+      operation: string,
+      request: { text?: { format?: { name?: string } } },
+    ) =>
+      request.text?.format?.name === "genai_fact_selection"
+        ? {
+            status: "completed",
+            output_text: JSON.stringify({
+              intent: "other",
+              factIds: [],
+              hasUnspecified: false,
+            }),
+          }
+        : operation === "assessment"
+          ? {
+              status: "completed",
+              output_text: JSON.stringify({
+                verdict: "reasonable",
+                evidenceQuote: content,
+              }),
+            }
+          : (async function* () {
+              yield {
+                type: "response.output_text.delta",
+                delta: "That estimate is consistent with those assumptions.",
+              };
+              yield { type: "response.completed" };
+            })(),
   );
   let reply = "";
   for await (const part of streamInterviewerReply(
