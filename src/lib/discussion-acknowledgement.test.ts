@@ -43,3 +43,20 @@ it("rejects invented or older-answer quote IDs", () => {
     ),
   ).toBe("");
 });
+
+it("omits GenAI judgment transitions even with a valid evidence quote", () => {
+  for (const acknowledgement of [
+    "The cache configuration remains unspecified.",
+    "That approach is incomplete.",
+    "That TTL limits cached data age.",
+  ]) {
+    expect(
+      discussionAcknowledgement(
+        messages,
+        { acknowledgement, acknowledgementQuote: quotes[0].quoteId },
+        quotes,
+        "genai",
+      ),
+    ).toBe("");
+  }
+});

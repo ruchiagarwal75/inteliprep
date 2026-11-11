@@ -81,7 +81,9 @@ it("uses old answers and never makes a third attempt at the same pending issue",
   );
   expect(context.answeredQuestionIds).toContain(queue[0].id);
   expect(reply).not.toContain(question);
-  expect(reply).toMatch(/revok|revocation|stale|delay|invalidat|lag/iu);
+  expect(reply).toMatch(
+    /revok|revocation|stale|delay|invalidat|lag|current ACL version/iu,
+  );
   const weak: ChatMessage[] = [
     { role: "assistant", content: question },
     { role: "user", content: "I use a cache." },
@@ -136,4 +138,8 @@ it("uses old answers and never makes a third attempt at the same pending issue",
   );
   expect(capped.selectedTopic).not.toBe(topic);
   expect(next).not.toContain(question);
+  expect(next).not.toMatch(
+    /remains unspecified|remained unspecified|configuration is unspecified|is incomplete|insufficient/iu,
+  );
+  expect(next).toMatch(/^(?:What|How|Which|If|When|Can|Could|Suppose)\b/u);
 });
