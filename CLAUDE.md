@@ -339,6 +339,10 @@ an assumed number of visitors.
 fixture and Chromium. It uses synthetic accounts and model replies and cannot
 reach production reporting or Redis. There is no application auth bypass.
 The normal `.next` output and port 3000 are left alone. Tests use port 3100.
+Normal Vitest tests clear `OPENAI_KEY` and use stubs. Paid model suites require
+an explicitly configured local `OPENAI_TEST_KEY`; they must never fall back to
+the application's key. Obtain approval for call count and budget before running
+them. Saved-transcript audits use `vitest.audit.config.mts` and make no model calls.
 Screenshots under `artifacts/` stay on disk but are intentionally untracked;
 verification traces and browser output are also ignored. Public guide images and
 fonts are application assets and remain tracked.

@@ -220,7 +220,11 @@ quality and Safety and security, with cost in its own problem-specific area.
 There are no numerical weights or weighted total. The eight core configurations
 and their five areas are unchanged.
 
-Real-provider evaluations are explicitly opt-in and incur cost:
+Real-provider evaluations are explicitly opt-in and incur cost. Obtain approval
+for the planned calls and budget first. The live runner requires a dedicated
+local `OPENAI_TEST_KEY` and refuses to use the application's `OPENAI_KEY`.
+Normal unit tests clear the application key and use stubs. The offline audit
+below needs no key and makes no model calls.
 
 ```sh
 node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.genai.config.mts
@@ -229,3 +233,14 @@ node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.ge
 They use synthetic transcripts and diagrams, do not create account/interview
 reporting records, and write local results under ignored `artifacts/genai/`.
 Normal checks and CI use no paid model calls.
+
+To inspect the saved retest-3 delivered transcripts without calling a model:
+
+```sh
+npx vitest run --config vitest.audit.config.mts
+```
+
+The offline runner reads existing local artifacts and writes a separate report
+under `artifacts/genai-retest-4/`. It does not overwrite the saved transcripts.
+Key selection prevents credential reuse; it does not impose a provider spending
+limit. No real-provider evaluations were run for retest 4.

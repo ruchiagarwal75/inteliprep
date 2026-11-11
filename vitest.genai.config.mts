@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
-// Explicit opt-in: real provider, no tests/setup auth or network stubs.
+// Explicit opt-in: real provider using a required test-only key, never the app key.
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,
@@ -16,6 +16,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    env: { OPENAI_KEY: "" },
+    setupFiles: ["./tests/live/setup.ts"],
     include: ["tests/live/*.live.ts"],
     maxWorkers: 1,
     fileParallelism: false,

@@ -9,7 +9,7 @@ This round uses stubbed unit tests and saved retest-3 turn records only. No live
 3. **Wrap-up:** final exhaustion uses the exact question, once: "We're close to time. Is there anything you'd change or add before we wrap up?" No model call generates this closing. Legacy model-generated ending commands are normalized to that invitation. Later final thoughts are saved while the interviewer listens, without repeating the invitation or ordering the candidate to end.
 4. **Facts:** requested GenAI fact IDs are filtered against requirements already disclosed in the verified conversation. A mixed answer contains only the new facts. The factual novelty path removes repeated sentences rather than prepending "To confirm," or paying for a rewrite. An all-known request receives a neutral invitation rather than an empty response or another copy of the facts.
 5. **Audit:** a pure transcript checker adds internal identifiers, redirects after technical narration, repeated configured facts and command-style wrap-ups. The existing opt-in semantic audit includes these checks too. The separate offline runner imports no model caller and reads only the saved retest-3 delivered-turn records.
-6. **Test credentials:** implementation and verification are recorded in the final update below.
+6. **Test credentials:** the opt-in live runner installs `OPENAI_TEST_KEY` before test imports and refuses to fall back to `OPENAI_KEY`. Missing or blank test keys clear the inherited app key and fail setup. Normal unit tests clear the app key and use stubs. Unit tests cover separate-key precedence, missing/empty/whitespace values, and secret-free errors. This is deliberately stricter than optional fallback so an accidental live invocation cannot reuse the app credential. Only a blank example entry and test documentation were added; `.env.local` and Vercel values were not changed. Key selection does not set a provider spending limit.
 
 ## Offline historical findings
 
@@ -49,6 +49,8 @@ Each item has its own beta commit, with `npm run check` and `npm run build`. The
 - Item 2: 1,574 tests passed, two existing skips; production build passed.
 - Item 3: 1,576 tests passed, two existing skips; production build passed.
 - Item 4: 1,579 tests passed, two existing skips; production build passed.
+- Item 5: 1,582 tests passed, two existing skips; production build passed.
+- Item 6: 1,587 tests passed, two existing skips; production build passed. Key-selection and provider-client tests construct no real requests.
 - The audit's focused unit tests and saved-record runner passed without model calls.
 
 ## Main files
@@ -58,5 +60,6 @@ Each item has its own beta commit, with `npm run check` and `npm run build`. The
 - `src/lib/discussion-closing.ts` and `docs/spec.md`.
 - `src/lib/genai-fact-router.ts` and `unique-interviewer-reply.ts`.
 - `src/lib/transcript-audit.ts`, `tests/audit/genai-saved-transcripts.audit.ts`, `vitest.audit.config.mts`, and the existing opt-in audit adapters.
+- `tests/helpers/test-model-key.ts`, `tests/live/setup.ts`, both Vitest runner configurations, `.env.example`, `CLAUDE.md` and `docs/problem-catalog.md`.
 
 No additional product features or storage migrations were introduced. Live-model behavior is intentionally not re-benchmarked in this round.
