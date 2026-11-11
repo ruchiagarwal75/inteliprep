@@ -35,6 +35,18 @@ for (const fixture of fixtures)
       scorecard.signal,
     );
     expect(scorecard.gaps.length).toBeGreaterThanOrEqual(2);
+    for (const area of scorecard.areas)
+      expect(area.rationale.trim().split(/\s+/u).length).toBeLessThan(30);
+    const copy = [
+      scorecard.summary,
+      scorecard.nextPractice.focus,
+      ...scorecard.areas.map((a) => a.rationale),
+      ...scorecard.strengths.map((s) => s.text),
+      ...scorecard.gaps.map((g) => g.text),
+    ].join(" ");
+    expect(copy).not.toMatch(
+      /\bestablish(?:es|ed|ing)?\b|remained unspecified|delegated to defaults/iu,
+    );
     expect(JSON.stringify(scorecard)).not.toContain("\u2014");
     expect(
       scorecard.areas.filter((a) => a.score !== null && a.score <= 2).length,

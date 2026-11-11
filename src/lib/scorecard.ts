@@ -66,6 +66,8 @@ export const gradingAssessmentSchema = z.object({
       z.object({
         areaIndex: z.number().int().min(0),
         ...areaFields,
+        // Constrain new provider output only; old saved scorecards retain their schema.
+        rationale: areaFields.rationale.regex(/^\S+(?:\s+\S+){0,28}$/u),
         evidence: z.array(gradingEvidenceSchema).max(3),
       }),
     )
