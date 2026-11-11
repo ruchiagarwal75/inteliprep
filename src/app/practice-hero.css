@@ -29,6 +29,17 @@
 .practice-hero .practice-primary {
   margin-top: var(--space-3);
 }
+.practice-hero-track {
+  max-width: 40ch;
+  margin-block: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.practice-hero-track a {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .practice-hero-brief {
   min-height: 0;
 }

@@ -23,13 +23,16 @@ export function briefDefaults(
   storedLevel?: unknown,
   requestedProblem?: string | null,
   storedTrack?: unknown,
+  requestedTrack?: string | null,
 ) {
   const lastProblem = latest?.interview.problemId ?? summary?.problemId;
   const requested = problems.find((p) => p.problemId === requestedProblem);
   const previous = problems.find((p) => p.problemId === lastProblem);
   const track = requested
     ? problemTrack(requested)
-    : (parseProblemTrack(storedTrack) ?? problemTrack(previous));
+    : (parseProblemTrack(requestedTrack) ??
+      parseProblemTrack(storedTrack) ??
+      problemTrack(previous));
   const choices = problemsInTrack(problems, track);
   const suggested =
     latest?.scorecard?.nextPractice.problemId ??

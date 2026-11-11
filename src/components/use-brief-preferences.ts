@@ -43,6 +43,7 @@ export function useBriefPreferences(
             stored,
             new URLSearchParams(window.location.search).get("problem"),
             track,
+            new URLSearchParams(window.location.search).get("track"),
           ),
         );
     })();

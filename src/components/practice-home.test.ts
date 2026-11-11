@@ -52,3 +52,22 @@ it("links expired attempts to feedback instead of offering Resume", () => {
   expect(html).toContain("View feedback");
   expect(html).not.toContain(">Resume");
 });
+
+it("links to the AI / ML track immediately below the hero subtitle", () => {
+  const html = renderToStaticMarkup(
+    createElement(PracticeHome, {
+      entries: [],
+      problems: [],
+      onDelete: async () => {},
+    }),
+  );
+  const subtitle = html.indexOf(
+    "Type your reasoning, sketch your design, and get feedback on your approach.",
+  );
+  const announcement = html.indexOf(
+    'href="/interview/new?track=genai">Now with AI / ML system design: RAG, agents, recommendations and ads ranking.',
+  );
+  expect(subtitle).toBeGreaterThan(0);
+  expect(announcement).toBeGreaterThan(subtitle);
+  expect(announcement).toBeLessThan(html.indexOf("Start practice"));
+});

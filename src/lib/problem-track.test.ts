@@ -62,3 +62,35 @@ it("keeps suggestions and retries in the selected problem's track", () => {
   ).toMatchObject({ problemId: "enterprise-rag-assistant", level: "staff" });
   expect(nextProblemInTrack([], "missing")).toBeUndefined();
 });
+
+it("honors a valid track deep link over a remembered selection", () => {
+  const problems = listProblems();
+  const selected = (stored: string, requested: string) =>
+    problems.find(
+      (p) =>
+        p.problemId ===
+        briefDefaults(
+          problems,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          stored,
+          requested,
+        ).problemId,
+    )?.track;
+  expect(selected("core", "genai")).toBe("genai");
+  expect(selected("genai", "core")).toBe("core");
+  expect(selected("core", "invalid")).toBe("core");
+  expect(
+    briefDefaults(
+      problems,
+      undefined,
+      undefined,
+      "senior",
+      "url-shortener",
+      "genai",
+      "genai",
+    ),
+  ).toMatchObject({ problemId: "url-shortener", level: "senior" });
+});
