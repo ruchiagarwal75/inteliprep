@@ -1,8 +1,6 @@
 {
   "id": "video-streaming",
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "title": "Design a video streaming service",
   "summary": "Upload on-demand videos, prepare playable versions, and stream reliably under changing network conditions.",
   "prompt": "Design an on-demand video service. Creators upload videos and viewers play and seek through published videos. Explain upload state, processing, publication, playback delivery, and recovery when processing or delivery fails.",

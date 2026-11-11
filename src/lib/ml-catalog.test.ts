@@ -30,18 +30,21 @@ const examples = [
     anchors: 4,
     flags: 7,
     senior: {
-      dau: "100M daily active users.",
-      catalog: "50M videos, with 500K new videos per day.",
-      "feed-requests":
+      "mmq7-dau": "100M daily active users.",
+      "mmq7-catalog": "50M videos, with 500K new videos per day.",
+      "mmq7-feed-requests":
         "5 feed requests per user per day, with peak traffic three times the average.",
-      "feed-size": "20 videos per feed.",
-      latency: "The full feed should arrive within 200 ms at p99.",
-      signals: "Clicks, watch time, likes, shares, skips and not interested.",
-      goal: "The goal is long-term satisfaction, not just clicks; clickbait is a known problem.",
-      freshness: "New videos must become recommendable within one hour.",
-      "new-users": "10% of daily users are new.",
-      today: "Today there is a collaborative filtering model retrained weekly.",
-      "embedding-dimensions": "Embeddings have 256 dimensions.",
+      "mmq7-feed-size": "20 videos per feed.",
+      "mmq7-latency": "The full feed should arrive within 200 ms at p99.",
+      "mmq7-signals":
+        "Clicks, watch time, likes, shares, skips and not interested.",
+      "mmq7-goal":
+        "The goal is long-term satisfaction, not just clicks; clickbait is a known problem.",
+      "mmq7-freshness": "New videos must become recommendable within one hour.",
+      "mmq7-new-users": "10% of daily users are new.",
+      "mmq7-today":
+        "Today there is a collaborative filtering model retrained weekly.",
+      "mmq7-embedding-dimensions": "Embeddings have 256 dimensions.",
     },
   },
   {
@@ -49,21 +52,22 @@ const examples = [
     anchors: 3,
     flags: 6,
     senior: {
-      dau: "300M daily active users.",
-      "ad-requests":
+      "mmq7-dau": "300M daily active users.",
+      "mmq7-ad-requests":
         "10 ad requests per user per day, with peak traffic three times the average.",
-      candidates: "500 candidate ads per request after targeting.",
-      latency: "Scoring all candidates should take at most 50 ms at p99.",
-      "click-rate": "The click rate is about 1%.",
-      pricing:
+      "mmq7-candidates": "500 candidate ads per request after targeting.",
+      "mmq7-latency":
+        "Scoring all candidates should take at most 50 ms at p99.",
+      "mmq7-click-rate": "The click rate is about 1%.",
+      "mmq7-pricing":
         "Pricing is cost per click. Ads are ranked by predicted click rate multiplied by bid in an auction.",
-      advertisers: "1M advertisers, 10M ads and 100K new ads a day.",
-      "feedback-delay":
+      "mmq7-advertisers": "1M advertisers, 10M ads and 100K new ads a day.",
+      "mmq7-feedback-delay":
         "Most clicks arrive within one hour; conversions can arrive up to seven days later.",
-      privacy:
+      "mmq7-privacy":
         "No sensitive categories. User opt-outs must apply within 24 hours.",
-      today: "Today logistic regression is retrained daily.",
-      "ads-shown": "About five ads are shown per request.",
+      "mmq7-today": "Today logistic regression is retrained daily.",
+      "mmq7-ads-shown": "About five ads are shown per request.",
     },
   },
 ];

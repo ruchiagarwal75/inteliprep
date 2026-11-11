@@ -14,7 +14,7 @@ const result = (factIds: string[], hasUnspecified = false) => ({
   output_text: JSON.stringify({ intent: "facts", factIds, hasUnspecified }),
 });
 it("sends only semantic fact definitions, never values, anchors or a reference design", async () => {
-  model.mockResolvedValueOnce(result(["employees"]));
+  model.mockResolvedValueOnce(result(["mmq7-employees"]));
   await classifyGenaiFacts(genaiEngineFixture(), "Company size?");
   const body = JSON.stringify(model.mock.lastCall);
   expect(body).toContain("Number of employees");
@@ -25,7 +25,9 @@ it("sends only semantic fact definitions, never values, anchors or a reference d
   });
 });
 it("returns every selected value once, in selection order", async () => {
-  model.mockResolvedValueOnce(result(["docs", "employees", "docs"]));
+  model.mockResolvedValueOnce(
+    result(["mmq7-docs", "mmq7-employees", "mmq7-docs"]),
+  );
   const answer = await genaiClarification(genaiEngineFixture(), "senior", [
     { role: "user", content: "Company and corpus?" },
   ]);
@@ -34,7 +36,7 @@ it("returns every selected value once, in selection order", async () => {
   );
 });
 it("returns only the new fact after earlier facts were already supplied", async () => {
-  model.mockResolvedValueOnce(result(["employees", "docs"]));
+  model.mockResolvedValueOnce(result(["mmq7-employees", "mmq7-docs"]));
   const answer = await genaiClarification(genaiEngineFixture(), "senior", [
     { role: "user", content: "How many people will use it?" },
     { role: "assistant", content: "There are 20,000 employees." },
@@ -44,7 +46,7 @@ it("returns only the new fact after earlier facts were already supplied", async 
   expect(answer?.text).not.toMatch(/20,000|confirm/iu);
 });
 it("keeps a useful invitation when every selected fact is already known", async () => {
-  model.mockResolvedValueOnce(result(["employees"]));
+  model.mockResolvedValueOnce(result(["mmq7-employees"]));
   const answer = await genaiClarification(genaiEngineFixture(), "senior", [
     { role: "assistant", content: "To confirm, there are 20,000 employees." },
     { role: "user", content: "How many employees?" },
@@ -63,7 +65,7 @@ it("gives an explicit assumption invitation when no fact matches", async () => {
   ).toBe("That detail isn't specified. What would you assume?");
 });
 it("answers known parts and acknowledges an unspecified part", async () => {
-  model.mockResolvedValueOnce(result(["employees"], true));
+  model.mockResolvedValueOnce(result(["mmq7-employees"], true));
   const answer = await genaiClarification(genaiEngineFixture(), "mid", [
     { role: "user", content: "Users and budget?" },
   ]);
@@ -72,8 +74,8 @@ it("answers known parts and acknowledges an unspecified part", async () => {
 });
 it("does not invent values for malformed IDs or incomplete provider output", async () => {
   model
-    .mockResolvedValueOnce(result(["not-in-config"]))
-    .mockResolvedValueOnce(result(["not-in-config"]));
+    .mockResolvedValueOnce(result(["mmq7-not-in-config"]))
+    .mockResolvedValueOnce(result(["mmq7-not-in-config"]));
   expect(
     (await classifyGenaiFacts(genaiEngineFixture(), "User count?")).intent,
   ).toBe("rephrase");
@@ -130,7 +132,7 @@ it("retries a classifier timeout once and returns the successful fact", async ()
   const before = model.mock.calls.length;
   model
     .mockRejectedValueOnce(new APIConnectionTimeoutError())
-    .mockResolvedValueOnce(result(["employees"]));
+    .mockResolvedValueOnce(result(["mmq7-employees"]));
   expect(
     (
       await genaiClarification(genaiEngineFixture(), "senior", [

@@ -30,13 +30,13 @@ const context = (): InterviewContext => ({
   questionMemory: {
     askedQuestions: [messages[0].content],
     coveredTopics: [],
-    topicTurns: { cache: 1 },
+    topicTurns: { "mmq7-cache": 1 },
   },
 });
 const response = (question: string, quoteId = "m1q0") => ({
   status: "completed",
   output_text: JSON.stringify({
-    topicId: "cache",
+    topicId: "mmq7-cache",
     question,
     quoteId,
     exhausted: false,
@@ -82,8 +82,8 @@ it("looks beyond exhausted bank issues for a distinct design boundary", async ()
   const state = context();
   state.questionMemory = {
     askedQuestions: [messages[0].content],
-    coveredTopics: ["issue:cache"],
-    topicTurns: { cache: 2 },
+    coveredTopics: ["issue:mmq7-cache"],
+    topicTurns: { "mmq7-cache": 2 },
   };
   model.mockResolvedValueOnce(
     response("How would permission-source loss affect recovery of this cache?"),
@@ -92,7 +92,7 @@ it("looks beyond exhausted bank issues for a distinct design boundary", async ()
     "permission-source",
   );
   expect(state.selectedTopic).toMatch(/^fresh:/u);
-  expect(state.questionMemory.topicTurns?.cache).toBe(2);
+  expect(state.questionMemory.topicTurns?.["mmq7-cache"]).toBe(2);
   expect(novelty).toHaveBeenCalledOnce();
 });
 it("rejects a semantically answered or previously asked boundary", async () => {

@@ -89,96 +89,94 @@
   "followUpStages": [2, 2, 3, 2, 2, 3, 3, 3, 3, 4],
   "reviewProbes": [
     {
-      "id": "reconnect",
+      "id": "mmq7-reconnect",
       "areaIndex": 2,
-      "topic": "stream|reconnect|resume",
+      "topic": "mmq7-topic-c0dcf3b05af10648",
       "topicPattern": "stream|reconnect|resume",
       "question": "The phone loses signal while your answer is streaming. What happens when it reconnects?",
       "stageIndex": 2,
       "requiresPattern": "stream|sse|websocket"
     },
     {
-      "id": "gpu-concurrency",
+      "id": "mmq7-gpu-concurrency",
       "areaIndex": 2,
-      "topic": "gpu|batch|kv.cache",
+      "topic": "mmq7-topic-0c4552a1564bc2dc",
       "topicPattern": "gpu|batch|kv.cache",
       "question": "What limits how many requests one of your GPUs can serve at once?",
       "stageIndex": 2,
       "requiresPattern": "gpu|inference|model server"
     },
     {
-      "id": "overload",
+      "id": "mmq7-overload",
       "areaIndex": 3,
-      "topic": "overload|capacity|degrad",
+      "topic": "mmq7-topic-7a83400ff150735a",
       "topicPattern": "overload|capacity|degrad",
       "question": "Your GPUs are full and traffic keeps rising. What do you do in the next five minutes?",
       "stageIndex": 3,
       "requiresPattern": "gpu|inference|model server"
     },
     {
-      "id": "long-context",
+      "id": "mmq7-long-context",
       "areaIndex": 1,
-      "topic": "history|context",
+      "topic": "mmq7-topic-4b3936d1e834623c",
       "topicPattern": "history|context",
       "question": "What goes into your model prompt when a conversation reaches 200 turns?",
       "stageIndex": 2,
       "requiresPattern": "context|history|prompt"
     },
     {
-      "id": "token-limits",
+      "id": "mmq7-token-limits",
       "areaIndex": 0,
-      "topic": "tokens?|rate.limit",
+      "topic": "mmq7-topic-b26d450798557282",
       "topicPattern": "tokens?|rate.limit",
       "question": "Why does your capacity or rate-limit plan use those units?",
       "stageIndex": 2,
       "requiresPattern": "token|rate.limit|gateway"
     },
     {
-      "id": "moderation",
+      "id": "mmq7-moderation",
       "areaIndex": 6,
-      "topic": "moderat|safety",
+      "topic": "mmq7-topic-1516a66032dab0f6",
       "topicPattern": "moderat|safety",
       "question": "How does your moderation path affect time to the first streamed token?",
       "stageIndex": 3
     },
     {
-      "id": "gpu-failure",
+      "id": "mmq7-gpu-failure",
       "areaIndex": 3,
-      "topic": "gpu|failure",
+      "topic": "mmq7-topic-05df33b0b77ab06b",
       "topicPattern": "gpu|failure",
       "question": "A GPU node dies while producing an answer. What does the user see?",
       "stageIndex": 3,
       "requiresPattern": "gpu|inference|model server"
     },
     {
-      "id": "quality",
+      "id": "mmq7-quality",
       "areaIndex": 5,
-      "topic": "eval|quality|rollout",
+      "topic": "mmq7-topic-b6882b9f85463e5f",
       "topicPattern": "eval|quality|rollout",
       "question": "How would you evaluate a new model or prompt before rolling it out?",
       "stageIndex": 3
     },
     {
-      "id": "model-rollout",
+      "id": "mmq7-model-rollout",
       "areaIndex": 5,
-      "topic": "eval|canary|rollback",
+      "topic": "mmq7-topic-f7f870dd548a8cf5",
       "topicPattern": "eval|canary|rollback",
       "question": "What would make you stop or roll back your new-model rollout?",
       "stageIndex": 3,
       "requiresPattern": "canary|rollout|new model|router"
     },
     {
-      "id": "cost",
+      "id": "mmq7-cost",
       "areaIndex": 4,
-      "topic": "cost|tiers?|budget",
+      "topic": "mmq7-topic-2e54f61fba712dc1",
       "topicPattern": "cost|tiers?|budget",
       "question": "How would you account for cost per message and the tradeoff between free and paid users?",
       "stageIndex": 4
     }
   ],
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "phases": [
     {
       "id": "clarify-requirements",
@@ -250,7 +248,7 @@
   "genai": {
     "facts": [
       {
-        "id": "dau",
+        "id": "mmq7-dau",
         "answers": {
           "mid": "1M daily active users.",
           "senior": "20M daily active users.",
@@ -260,7 +258,7 @@
         "description": "Expected overall consumer scale as people using the service each day or daily active users."
       },
       {
-        "id": "messages-per-user",
+        "id": "mmq7-messages-per-user",
         "answers": {
           "mid": "Ten messages per user per day.",
           "senior": "Fifteen messages per user per day.",
@@ -270,7 +268,7 @@
         "description": "How chatty a typical user is: messages each user sends per day. This is separate from total users or peak factor."
       },
       {
-        "id": "peak",
+        "id": "mmq7-peak",
         "answers": {
           "mid": "Peak traffic is three times the average.",
           "senior": "Peak traffic is three times the average.",
@@ -280,7 +278,7 @@
         "description": "Peak traffic multiplier, when explicitly asked about peaks or bursts."
       },
       {
-        "id": "model-hosting",
+        "id": "mmq7-model-hosting",
         "answers": {
           "mid": "Use a third-party model API.",
           "senior": "You run your own models on your own GPUs, with a large model and a small model.",
@@ -290,7 +288,7 @@
         "description": "Whether the exercise requires self-hosted models or a third-party inference API, the model sizes on offer, and any planned launch. This is not a GPU fleet sizing calculation."
       },
       {
-        "id": "provider-limits",
+        "id": "mmq7-provider-limits",
         "answers": {
           "mid": "The account allows 500 requests per second and 40M tokens per minute.",
           "senior": "Third-party provider limits do not apply; you run your own models.",
@@ -300,7 +298,7 @@
         "description": "External inference vendor quotas for the account, including request and token limits and whether such quotas apply to the chosen hosting arrangement."
       },
       {
-        "id": "gpu-capacity",
+        "id": "mmq7-gpu-capacity",
         "answers": {
           "mid": "GPU capacity is not applicable; use the third-party API.",
           "senior": "You can add GPUs; no fixed GPU count is specified. State how much capacity you would provision.",
@@ -310,7 +308,7 @@
         "description": "Available GPU count, a fixed fleet or procurement budget, and whether capacity can be added. This is not the derived number of GPUs needed for demand, their per-GPU throughput, or startup readiness time."
       },
       {
-        "id": "gpu-throughput",
+        "id": "mmq7-gpu-throughput",
         "answers": {
           "mid": "GPU throughput is not applicable; use the third-party API.",
           "senior": "About 2,500 output tokens per second per GPU on the large model with batching.",
@@ -320,7 +318,7 @@
         "description": "Output tokens served per second by each GPU with batching. This is a provided per-device sizing input, not the derived total fleet size."
       },
       {
-        "id": "tokens",
+        "id": "mmq7-tokens",
         "answers": {
           "mid": "About 2,000 input tokens including history, and 400 output tokens per message.",
           "senior": "About 2,000 input tokens including history, and 400 output tokens per message.",
@@ -330,7 +328,7 @@
         "description": "Typical input context per request, including conversation history, and output tokens per message. This is an average request size, not a maximum model context-window limit."
       },
       {
-        "id": "latency",
+        "id": "mmq7-latency",
         "answers": {
           "mid": "First token under two seconds.",
           "senior": "First token under one second at p95.",
@@ -340,7 +338,7 @@
         "description": "User-visible response latency, time until the first generated token or word, and full response time."
       },
       {
-        "id": "tiers",
+        "id": "mmq7-tiers",
         "answers": {
           "mid": "Free only, with a per-user daily limit; the numeric daily limit is not specified.",
           "senior": "Free users get 20 large-model messages per three hours, then the small model. Paid users have higher limits; their numeric limit is not specified.",
@@ -350,7 +348,7 @@
         "description": "Free versus paying user benefits, model access, priority and per-user message quotas."
       },
       {
-        "id": "history",
+        "id": "mmq7-history",
         "answers": {
           "mid": "History is kept until the user deletes it.",
           "senior": "History is kept until the user deletes it.",
@@ -360,7 +358,7 @@
         "description": "How long chats are kept, whether users can wipe or delete them, and regional conversation storage requirements."
       },
       {
-        "id": "safety",
+        "id": "mmq7-safety",
         "answers": {
           "mid": "Input and output moderation are required.",
           "senior": "Input and output moderation are required.",
@@ -370,7 +368,7 @@
         "description": "Required input and output moderation."
       },
       {
-        "id": "gpu-warmup",
+        "id": "mmq7-gpu-warmup",
         "description": "How fast GPU capacity can become ready during scale-out: time for a newly added node to load its model or warm up. This is a readiness delay, not the size of the available fleet.",
         "answers": {
           "mid": "GPU node warmup does not apply to the third-party model API in this exercise.",
@@ -414,7 +412,7 @@
     ],
     "assumptions": [
       {
-        "id": "stored-message-size",
+        "id": "mmq7-stored-message-size",
         "pattern": "(?:bytes|kb|size|storage).{0,30}(?:per message|each message|stored message)|message.{0,30}(?:size|bytes|kilobytes)|how (?:big|large).{0,25}message",
         "question": "What would you assume for stored message size, given the token counts?",
         "midSuggestion": "After your attempt, about 2 KB for the user message, reply and metadata is one possible assumption."

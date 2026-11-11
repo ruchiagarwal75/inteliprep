@@ -92,122 +92,120 @@
   "followUpStages": [2, 3, 2, 2, 3, 3, 2, 3, 3, 3, 3, 3, 4],
   "reviewProbes": [
     {
-      "id": "permissions",
+      "id": "mmq7-permissions",
       "areaIndex": 6,
-      "topic": "permission|acl|revok",
+      "topic": "mmq7-topic-939ed0c4f9e48635",
       "topicPattern": "permission|acl|revok",
       "question": "Where does your design enforce the user’s document permissions?",
       "stageIndex": 2
     },
     {
-      "id": "revoke",
+      "id": "mmq7-revoke",
       "areaIndex": 6,
-      "topic": "permission|acl|revok",
+      "topic": "mmq7-topic-939ed0c4f9e48635",
       "topicPattern": "permission|acl|revok",
       "question": "What can happen between access being revoked and your next permission sync?",
       "stageIndex": 3,
       "requiresPattern": "permission|acl|sync|retriev"
     },
     {
-      "id": "chunks",
+      "id": "mmq7-chunks",
       "areaIndex": 1,
-      "topic": "chunk|table|heading",
+      "topic": "mmq7-topic-f26d6b5f7de95fd2",
       "topicPattern": "chunk|table|heading",
       "question": "How would you choose chunk size for the documents you described?",
       "stageIndex": 2,
       "requiresPattern": "chunk|parse|pdf"
     },
     {
-      "id": "retrieval",
+      "id": "mmq7-retrieval",
       "areaIndex": 1,
-      "topic": "retriev|keyword|vector|hybrid",
+      "topic": "mmq7-topic-9909aadf87e46217",
       "topicPattern": "retriev|keyword|vector|hybrid",
       "question": "Why does your retrieval approach fit the kinds of questions employees ask?",
       "stageIndex": 2,
       "requiresPattern": "retriev|keyword|vector|search"
     },
     {
-      "id": "reranker",
+      "id": "mmq7-reranker",
       "areaIndex": 2,
-      "topic": "rerank|latency",
+      "topic": "mmq7-topic-09e48ccb64836a48",
       "topicPattern": "rerank|latency",
       "question": "What does your reranking step add to the latency budget?",
       "stageIndex": 3,
       "requiresPattern": "rerank|cross.encoder"
     },
     {
-      "id": "evaluation",
+      "id": "mmq7-evaluation",
       "areaIndex": 5,
-      "topic": "eval|quality|metric",
+      "topic": "mmq7-topic-c7b9822b9d7e0b88",
       "topicPattern": "eval|quality|metric",
       "question": "How would you measure whether a change improves retrieval and answer quality before launch?",
       "stageIndex": 3
     },
     {
-      "id": "empty-results",
+      "id": "mmq7-empty-results",
       "areaIndex": 2,
-      "topic": "retriev|abstain|evidence",
+      "topic": "mmq7-topic-a240377e5a649bda",
       "topicPattern": "retriev|abstain|evidence",
       "question": "What does the assistant do when your retrieval returns nothing relevant?",
       "stageIndex": 2,
       "requiresPattern": "retriev|search|index"
     },
     {
-      "id": "injection",
+      "id": "mmq7-injection",
       "areaIndex": 6,
-      "topic": "injection|untrusted|safety",
+      "topic": "mmq7-topic-ca0f6d5d416ab916",
       "topicPattern": "injection|untrusted|safety",
       "question": "A document contains an instruction to list salary files. What does your design do with it?",
       "stageIndex": 3
     },
     {
-      "id": "embedding-migration",
+      "id": "mmq7-embedding-migration",
       "areaIndex": 3,
-      "topic": "embedding|migration",
+      "topic": "mmq7-topic-1ed7e928b0069b2b",
       "topicPattern": "embedding|migration",
       "question": "How would you change the embedding model without interrupting existing queries?",
       "stageIndex": 3,
       "requiresPattern": "embed|vector"
     },
     {
-      "id": "cache-isolation",
+      "id": "mmq7-cache-isolation",
       "areaIndex": 6,
-      "topic": "cache|caching",
+      "topic": "mmq7-topic-8ed4a4d7ad4dc9a9",
       "topicPattern": "cache|caching",
       "question": "Can an answer cached for one user reach another user in your design?",
       "stageIndex": 3,
       "requiresPattern": "cache|caching"
     },
     {
-      "id": "vector-outage",
+      "id": "mmq7-vector-outage",
       "areaIndex": 3,
-      "topic": "vector|index|outage",
+      "topic": "mmq7-topic-ebe4351acc078712",
       "topicPattern": "vector|index|outage",
       "question": "What does the employee see if your vector store becomes unavailable?",
       "stageIndex": 3,
       "requiresPattern": "vector|pgvector|pinecone"
     },
     {
-      "id": "provider-limit",
+      "id": "mmq7-provider-limit",
       "areaIndex": 3,
-      "topic": "llm|model|rate.limit",
+      "topic": "mmq7-topic-3fc5b8c9e5388c25",
       "topicPattern": "llm|model|rate.limit",
       "question": "What does the employee see if your model service rate-limits your requests?",
       "stageIndex": 3,
       "requiresPattern": "llm|model|inference"
     },
     {
-      "id": "cost",
+      "id": "mmq7-cost",
       "areaIndex": 4,
-      "topic": "cost|budget",
+      "topic": "mmq7-topic-9cb39d138fda641e",
       "topicPattern": "cost|budget",
       "question": "How would you account for cost per question in the design you proposed?",
       "stageIndex": 4
     }
   ],
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "phases": [
     {
       "id": "clarify-requirements",
@@ -279,7 +277,7 @@
   "genai": {
     "facts": [
       {
-        "id": "employees",
+        "id": "mmq7-employees",
         "answers": {
           "mid": "2,000 employees.",
           "senior": "20,000 employees.",
@@ -289,7 +287,7 @@
         "description": "Company headcount, number of employees or people, and number of expected employee users."
       },
       {
-        "id": "documents",
+        "id": "mmq7-documents",
         "answers": {
           "mid": "200K documents from two sources: wiki pages and PDFs.",
           "senior": "5M documents from five sources: wiki, drive, tickets, chat and docs.",
@@ -299,7 +297,7 @@
         "description": "Total corpus size counted as source documents, plus number and kinds of sources. This is a raw input, not the number of stored chunks or vectors."
       },
       {
-        "id": "questions",
+        "id": "mmq7-questions",
         "answers": {
           "mid": "5K questions per day.",
           "senior": "100K questions per day, with peak traffic three times the average.",
@@ -309,7 +307,7 @@
         "description": "Questions or query requests per day, expected daily traffic and how spiky the load is, including its peak factor."
       },
       {
-        "id": "document-changes",
+        "id": "mmq7-document-changes",
         "answers": {
           "mid": "Document updates within one day are fine.",
           "senior": "About 2% of documents change daily; edits must appear within 15 minutes.",
@@ -319,7 +317,7 @@
         "description": "Document edit frequency and freshness deadline: how stale an answer may be after a page is edited and when changed content must appear. This concerns content edits."
       },
       {
-        "id": "permission-changes",
+        "id": "mmq7-permission-changes",
         "answers": {
           "mid": "Daily permission sync is fine.",
           "senior": "Removed access must apply within five minutes.",
@@ -329,7 +327,7 @@
         "description": "Permission removal SLA, revoked access deadline and permission synchronization. This concerns authorization freshness, not edited document content or regional storage rules."
       },
       {
-        "id": "restricted-docs",
+        "id": "mmq7-restricted-docs",
         "answers": {
           "mid": "About 30% of documents are restricted.",
           "senior": "About 30% of documents are restricted, with nested groups.",
@@ -339,7 +337,7 @@
         "description": "Fraction or percentage of documents that are private or restricted, including group permissions."
       },
       {
-        "id": "latency",
+        "id": "mmq7-latency",
         "answers": {
           "mid": "A full answer should take under five seconds.",
           "senior": "First token under two seconds at p95, and a full answer under eight seconds.",
@@ -349,7 +347,7 @@
         "description": "Response latency SLA, first-token or first-word delay, p95 latency target and full-answer completion time."
       },
       {
-        "id": "cost",
+        "id": "mmq7-cost",
         "answers": {
           "mid": "Cost is not a concern for this exercise.",
           "senior": "The cost target is about two cents per question.",
@@ -359,7 +357,7 @@
         "description": "Budget constraints and the configured cost target per question."
       },
       {
-        "id": "languages",
+        "id": "mmq7-languages",
         "answers": {
           "mid": "English.",
           "senior": "English.",
@@ -369,7 +367,7 @@
         "description": "Supported human languages and whether more than one language is required."
       },
       {
-        "id": "today",
+        "id": "mmq7-today",
         "answers": {
           "mid": "Today there is keyword search only.",
           "senior": "Today there is keyword search only.",
@@ -379,7 +377,7 @@
         "description": "What employees use today to search, the current search system or existing baseline."
       },
       {
-        "id": "chunks-per-doc",
+        "id": "mmq7-chunks-per-doc",
         "answers": {
           "mid": "About ten chunks per document.",
           "senior": "About ten chunks per document.",
@@ -389,7 +387,7 @@
         "description": "Average chunks per source document. This raw multiplier helps the candidate estimate a total; it does not directly give total chunk or vector count."
       },
       {
-        "id": "embedding-dimensions",
+        "id": "mmq7-embedding-dimensions",
         "answers": {
           "mid": "Use 768-dimensional embeddings.",
           "senior": "Use 768-dimensional embeddings.",
@@ -399,7 +397,7 @@
         "description": "Dimensionality or number of coordinates in each embedding vector, not the total count of vectors, an embedding model recommendation or bytes per coordinate."
       },
       {
-        "id": "tokens-per-question",
+        "id": "mmq7-tokens-per-question",
         "answers": {
           "mid": "About 4,000 input tokens and 500 output tokens per question.",
           "senior": "About 4,000 input tokens and 500 output tokens per question.",
@@ -409,7 +407,7 @@
         "description": "Average input and output tokens per RAG question."
       },
       {
-        "id": "data-residency",
+        "id": "mmq7-data-residency",
         "description": "Requirements for documents or processing to stay in a particular region, and whether in-region data residency rules apply. This is separate from permission removals.",
         "answers": {
           "mid": "Data residency requirements aren't specified. What would you assume?",
@@ -450,7 +448,7 @@
     ],
     "assumptions": [
       {
-        "id": "vector-representation",
+        "id": "mmq7-vector-representation",
         "pattern": "bytes per (?:float|value|dimension)|float.{0,20}bytes|vector.{0,25}(?:precision|representation)|(?:float32|float16|quantiz)",
         "question": "Which numeric representation would you assume, and how many bytes would each vector value use?",
         "midSuggestion": "After your attempt, four bytes per value is one possible assumption. Justify the representation you choose."

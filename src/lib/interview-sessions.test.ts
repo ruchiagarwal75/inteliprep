@@ -76,7 +76,7 @@ it("keeps one pending question when a continued ask is reworded", () => {
   const first = acquireInterviewSession(id, selection);
   const meta = {
     resolvedQuestionIds: [],
-    topicId: "id_allocation",
+    topicId: "mmq7-id_allocation",
     stageId: "core",
     diagramComponents: [],
     resetQuestions: false,

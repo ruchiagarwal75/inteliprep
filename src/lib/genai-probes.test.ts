@@ -5,12 +5,12 @@ import {
 } from "@/lib/genai-probes";
 const probes = [
   {
-    id: "quality",
+    id: "mmq7-quality",
     topicPattern: "eval|quality",
     question: "How would you evaluate the change?",
   },
   {
-    id: "moderation",
+    id: "mmq7-moderation",
     topicPattern: "moderat|safety",
     question: "How does moderation affect latency?",
   },

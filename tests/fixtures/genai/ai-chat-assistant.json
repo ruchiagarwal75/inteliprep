@@ -1,54 +1,33 @@
 {
   "problemId": "ai-chat-assistant",
   "facts": [
-    {
-      "ask": "How many daily active users?",
-      "id": "dau"
-    },
+    { "ask": "How many daily active users?", "id": "mmq7-dau" },
     {
       "ask": "How many messages per user per day?",
-      "id": "messages-per-user"
+      "id": "mmq7-messages-per-user"
     },
-    {
-      "ask": "What is the peak factor?",
-      "id": "peak"
-    },
+    { "ask": "What is the peak factor?", "id": "mmq7-peak" },
     {
       "ask": "Which model hosting arrangement do we use?",
-      "id": "model-hosting"
+      "id": "mmq7-model-hosting"
     },
     {
       "ask": "What are the provider account limits?",
-      "id": "provider-limits"
+      "id": "mmq7-provider-limits"
     },
     {
       "ask": "How many GPUs are available and how quickly can new nodes load?",
-      "id": "gpu-capacity"
+      "id": "mmq7-gpu-capacity"
     },
-    {
-      "ask": "What is the GPU throughput?",
-      "id": "gpu-throughput"
-    },
+    { "ask": "What is the GPU throughput?", "id": "mmq7-gpu-throughput" },
     {
       "ask": "How many input and output tokens per message?",
-      "id": "tokens"
+      "id": "mmq7-tokens"
     },
-    {
-      "ask": "What first-token latency is needed?",
-      "id": "latency"
-    },
-    {
-      "ask": "What are the free and paid tiers?",
-      "id": "tiers"
-    },
-    {
-      "ask": "How long is history kept?",
-      "id": "history"
-    },
-    {
-      "ask": "What moderation is required?",
-      "id": "safety"
-    }
+    { "ask": "What first-token latency is needed?", "id": "mmq7-latency" },
+    { "ask": "What are the free and paid tiers?", "id": "mmq7-tiers" },
+    { "ask": "How long is history kept?", "id": "mmq7-history" },
+    { "ask": "What moderation is required?", "id": "mmq7-safety" }
   ],
   "levels": ["senior", "mid"],
   "wrongEstimates": [
@@ -63,7 +42,7 @@
   ],
   "strong": [
     "I will clarify DAU, messages per user, peak factor, hosting and GPU throughput, latency, tiers, retention and safety. At Senior, 20M users times 15 messages is 300M daily, about 3,472 requests per second average and 10,417 peak. With 400 output tokens, peak decode is 4.17M tokens per second; at 2,500 per GPU this is roughly 1,667 GPUs for all-large-model peak traffic, before failure headroom and prefill capacity. I will benchmark both prefill and decode with the actual input/output distribution. I assume 3 KB per stored exchange including user text, reply and metadata, so about 900 GB daily; I do not store the full 2,000-token context again with every message.",
-    "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user\u2019s private history. Deletion removes conversation records and invalidates summaries and cache references.",
+    "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user’s private history. Deletion removes conversation records and invalidates summaries and cache references.",
     "An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete.",
     "A bounded queue prioritizes paid requests while maintaining a free-tier floor. When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue. New GPUs take ten minutes to warm, so they cannot solve the next five minutes. If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state.",
     "Enforce the free limit of 20 large-model messages per three hours, then route to the small model. Higher paid limits need an explicit product assumption. Measure cost per completed message from input/output tokens, GPU seconds, utilization, context processing and storage; evaluate tier routing with quality rather than assuming every request needs the largest model. Canary a new model on a bounded cohort with instant router rollback, checking quality and safety gates plus latency and interruption rates.",
@@ -107,7 +86,7 @@
   "responses": [
     {
       "stage": 2,
-      "text": "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user\u2019s private history. Deletion removes conversation records and invalidates summaries and cache references. An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete."
+      "text": "Authenticated clients reach a gateway that checks ownership and token budgets for their tier, then a chat service creates a durable turn ID in a conversation store partitioned by user. A context builder uses recent turns plus a versioned summary and bounded relevant history to stay within a measured context budget. Shared prefix caching contains only common instructions, never another user’s private history. Deletion removes conversation records and invalidates summaries and cache references. An inference router sends work to large or small model pools with continuous batching. GPU concurrency is constrained by KV cache memory as well as decode throughput; long prefills need scheduling so they do not starve active decodes. Stream SSE events with a turn ID and monotonically increasing sequence number, saving a bounded replay log. On reconnect the client sends its last sequence, resumes buffered events or receives an explicit interrupted-turn marker and retry option; do not silently repeat a partial answer as if complete."
     },
     {
       "stage": 3,
@@ -117,10 +96,7 @@
       "stage": 3,
       "text": "A bounded queue prioritizes paid requests while maintaining a free-tier floor. When GPUs are full, route eligible free traffic to the small model, shorten optional outputs with disclosure, and reject excess work with a clear retry rather than growing an unbounded queue. New GPUs take ten minutes to warm, so they cannot solve the next five minutes. If a GPU dies mid-answer, persist the interrupted state and let the user retry the turn with deduplicated turn IDs; recomputation can differ, so do not pretend it resumes exact hidden state."
     },
-    {
-      "stage": 3,
-      "text": "Let's examine evaluation of a model change."
-    },
+    { "stage": 3, "text": "Let's examine evaluation of a model change." },
     {
       "stage": 3,
       "text": "I will use a human-labeled conversation suite covering long context, factual tasks, refusal and interrupted streams. Measure task success, user-rated usefulness, context retention, first-token p95, completion latency and safety false positives/negatives. Compare a model judge with human labels, stratify by tier and context length, and block rollout on regressions. A canary compares those metrics to control before broad traffic and supports rollback."

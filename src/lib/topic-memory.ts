@@ -1,3 +1,4 @@
+import { normalizedTopicCounter } from "@/lib/normalize-question-keys";
 import type { ProblemDefinition } from "@/lib/problems";
 import { probeTopic } from "@/lib/probe-topics";
 
@@ -7,7 +8,8 @@ export function globalTopicCounts(
   problem?: ProblemDefinition,
 ) {
   const result: Record<string, number> = {};
-  for (const [key, count] of Object.entries(counts)) {
+  for (const [storedKey, count] of Object.entries(counts)) {
+    const key = normalizedTopicCounter(storedKey);
     const prefix = problem?.phases.find((p) => key.startsWith(p.id + ":"))?.id;
     const topic = prefix ? key.slice(prefix.length + 1) : key;
     const aliases =
@@ -20,4 +22,4 @@ export function globalTopicCounts(
   return result;
 }
 export const topicWasAnswered = (covered: string[] = [], topicId: string) =>
-  covered.includes("issue:" + topicId);
+  covered.includes("issue:" + topicId) || covered.includes(topicId);

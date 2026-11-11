@@ -165,7 +165,7 @@ export async function discussionReply(
     resolved,
   ).find(
     (q) =>
-      q.topicId === "diagram_consistency" ||
+      q.topicId === "mmq7-diagram_consistency" ||
       !q.topicId ||
       (interview.questionMemory?.topicTurns?.[q.topicId] ?? 0) < 2,
   );
@@ -197,7 +197,7 @@ export async function discussionReply(
     );
   }
   if (interview.diagramQuestion) {
-    interview.selectedTopic = "diagram_consistency";
+    interview.selectedTopic = "mmq7-diagram_consistency";
     return interview.diagramQuestion;
   }
   const filter = interviewerReplyFilter(messages);

@@ -89,86 +89,86 @@
   "followUpStages": [2, 2, 2, 2, 3, 3, 3, 3, 3, 3],
   "reviewProbes": [
     {
-      "id": "training-label",
+      "id": "mmq7-training-label",
       "areaIndex": 1,
       "stageIndex": 2,
-      "topic": "label|objective|clickbait",
+      "topic": "mmq7-topic-d2ab97e6502c6c24",
       "topicPattern": "label|objective|clickbait",
       "question": "What is your training label, and how would it avoid rewarding clickbait?"
     },
     {
-      "id": "cold-start",
+      "id": "mmq7-cold-start",
       "areaIndex": 2,
       "stageIndex": 2,
-      "topic": "cold.start|new.user|new.video",
+      "topic": "mmq7-topic-504f87b409de10c2",
       "topicPattern": "cold.start|new.user|new.video",
       "question": "How does your design handle a new user and a brand-new video?"
     },
     {
-      "id": "staging",
+      "id": "mmq7-staging",
       "areaIndex": 2,
       "stageIndex": 2,
-      "topic": "candidate|two.stage|ranking",
+      "topic": "mmq7-topic-5e1ab7cf71b78402",
       "topicPattern": "candidate|two.stage|ranking",
       "question": "Why does your design use those stages, and how would you choose the candidate count?",
       "requiresPattern": "candidate|rank|stage"
     },
     {
-      "id": "position-bias",
+      "id": "mmq7-position-bias",
       "areaIndex": 1,
       "stageIndex": 2,
-      "topic": "position.bias|training.data",
+      "topic": "mmq7-topic-8a865d752465cb5b",
       "topicPattern": "position.bias|training.data",
       "question": "Your training data comes from what you already showed. How do you account for position bias?"
     },
     {
-      "id": "offline-online",
+      "id": "mmq7-offline-online",
       "areaIndex": 4,
       "stageIndex": 3,
-      "topic": "offline|online|a/b|metric",
+      "topic": "mmq7-topic-9e24e3f8b1d31e11",
       "topicPattern": "offline|online|a/b|metric",
       "question": "Offline metrics went up, but the A/B test shows no gain. How would you investigate?"
     },
     {
-      "id": "feedback-loop",
+      "id": "mmq7-feedback-loop",
       "areaIndex": 5,
       "stageIndex": 3,
-      "topic": "feedback.loop|popularity|explor",
+      "topic": "mmq7-topic-a6866f61183369a4",
       "topicPattern": "feedback.loop|popularity|explor",
       "question": "How does your design avoid a popularity feedback loop?"
     },
     {
-      "id": "feature-skew",
+      "id": "mmq7-feature-skew",
       "areaIndex": 5,
       "stageIndex": 3,
-      "topic": "feature|skew|training.serving",
+      "topic": "mmq7-topic-07886d212faec53e",
       "topicPattern": "feature|skew|training.serving",
       "question": "How would you detect and prevent training and serving features from drifting apart?",
       "requiresPattern": "feature|train"
     },
     {
-      "id": "index-freshness",
+      "id": "mmq7-index-freshness",
       "areaIndex": 3,
       "stageIndex": 3,
-      "topic": "index|fresh|new.video",
+      "topic": "mmq7-topic-7ebcfca00e13912a",
       "topicPattern": "index|fresh|new.video",
       "question": "How does your ANN index pick up new videos within the freshness requirement you established?",
       "requiresPattern": "ann|index"
     },
     {
-      "id": "degrade",
+      "id": "mmq7-degrade",
       "areaIndex": 3,
       "stageIndex": 3,
-      "topic": "latency|peak|degrad",
+      "topic": "mmq7-topic-05ca4723db33585b",
       "topicPattern": "latency|peak|degrad",
       "question": "Ranking is slow at peak. What would you degrade first?",
       "requiresPattern": "rank"
     },
     {
-      "id": "content-safety",
+      "id": "mmq7-content-safety",
       "areaIndex": 6,
       "stageIndex": 3,
-      "topic": "safety|policy|content",
+      "topic": "mmq7-topic-681c1b8ce9b22db2",
       "topicPattern": "safety|policy|content",
       "question": "How would you keep borderline content out of recommendations?"
     }
@@ -236,9 +236,7 @@
       "interviewerGuidance": "Ask about the candidate's own choices within this stage. Never reveal a reference design, unasked facts or estimate anchors. Ask one question at a time and probe failure modes of mechanisms they add. Respect drawing and explaining pauses. Shared facts are never proof of candidate reasoning. Accept reasonable justified choices without requiring a vendor."
     }
   ],
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "gradingGuidance": [
     "Judge the supplied level bar and all seven configured areas using candidate evidence. Naming a mechanism or metric without explaining it is not enough for the Senior bar. Name demonstrated red flags, and check the transcript for counter-evidence before claiming a gap. Do not require a particular vendor or model. Grade arithmetic using disclosed inputs and the candidate's own justified assumptions. Never reveal hidden anchor answers.",
     "Apply the selected level: Mid is explicitly given more clicks as the goal. Do not penalize following that Mid goal; Senior and Staff must reason about long-term satisfaction and clickbait."
@@ -249,7 +247,7 @@
     "safetyArea": "Safety, fairness and privacy",
     "facts": [
       {
-        "id": "dau",
+        "id": "mmq7-dau",
         "description": "Daily active users, audience size and geographic reach. Raw daily users, not request throughput.",
         "answers": {
           "mid": "10M daily active users.",
@@ -259,7 +257,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "catalog",
+        "id": "mmq7-catalog",
         "description": "Number of videos in the catalog and the volume of newly added videos each day.",
         "answers": {
           "mid": "1M videos.",
@@ -269,7 +267,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "feed-requests",
+        "id": "mmq7-feed-requests",
         "description": "Feed openings or feed requests per user per day and peak-to-average traffic factor, not derived QPS.",
         "answers": {
           "mid": "3 feed requests per user per day.",
@@ -279,7 +277,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "feed-size",
+        "id": "mmq7-feed-size",
         "description": "Number of videos shown in a returned feed, not candidate count before ranking.",
         "answers": {
           "mid": "20 videos per feed.",
@@ -289,7 +287,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "latency",
+        "id": "mmq7-latency",
         "description": "End-to-end full-feed response latency target and percentile when specified.",
         "answers": {
           "mid": "The full feed should arrive within 500 ms.",
@@ -299,7 +297,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "signals",
+        "id": "mmq7-signals",
         "description": "Available user interaction signals and feedback types.",
         "answers": {
           "mid": "Clicks, watch time, likes, shares, skips and not interested.",
@@ -309,7 +307,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "goal",
+        "id": "mmq7-goal",
         "description": "Product objective, satisfaction versus click optimization, known clickbait issue and creator exposure goals.",
         "answers": {
           "mid": "The goal is more clicks.",
@@ -319,7 +317,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "freshness",
+        "id": "mmq7-freshness",
         "description": "How soon newly added or trending videos must become recommendable.",
         "answers": {
           "mid": "New videos can become recommendable within one day.",
@@ -329,7 +327,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "new-users",
+        "id": "mmq7-new-users",
         "description": "Fraction of daily users who are new and have no history; cold-start population.",
         "answers": {
           "mid": "The fraction of new users is not specified. What would you assume?",
@@ -339,7 +337,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "today",
+        "id": "mmq7-today",
         "description": "Current recommendation implementation and known organizational or model-goal situation.",
         "answers": {
           "mid": "Today the feed is a most-popular list.",
@@ -349,7 +347,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "embedding-dimensions",
+        "id": "mmq7-embedding-dimensions",
         "description": "Raw number of dimensions per embedding, not bytes per value or total vector storage.",
         "answers": {
           "mid": "Embeddings have 256 dimensions.",

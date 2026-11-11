@@ -1,9 +1,6 @@
+import { regenerateInterviewerQuestion } from "@/lib/regenerate-interviewer-question";
 import { uniqueInterviewerReply } from "@/lib/unique-interviewer-reply";
-import {
-  publicInterviewerReply,
-  configuredInternalTopicIds,
-  hasInternalIdentifiers,
-} from "@/lib/public-interviewer-reply";
+import { publicInterviewerReply } from "@/lib/public-interviewer-reply";
 import {
   closeDiscussion,
   hasWrapUpQuestion,
@@ -617,32 +614,21 @@ export function streamInterviewerReply(
   ...args: Parameters<typeof rawInterviewerReply>
 ) {
   const interview = args[5];
-  const topicIds = configuredInternalTopicIds(
-    interview?.problem.reviewProbes ?? [],
-  );
   return publicInterviewerReply(assembledInterviewerReply(...args), {
-    topicIds,
-    onEmpty: () => {
-      const probe =
-        interview?.phase?.transition !== "initial" && interview
-          ? selectReviewProbe(interview.problem, args[0], interview)
-          : undefined;
-      const question =
-        interview?.phase?.transition === "initial"
-          ? pendingRequirementsQuestion(interview, args[0])
-          : probe?.question;
-      if (interview) {
-        interview.selectedTopic = undefined;
-        interview.continuedQuestionId = undefined;
-      }
-      if (question && !hasInternalIdentifiers(question, topicIds)) {
-        if (interview) interview.selectedTopic = probe?.id;
-        return question;
-      }
-      const closing = closeDiscussion(args[0]);
-      if (closing) return closing;
-      if (interview) interview.listening = true;
-      return "I'm reading your final thoughts.";
-    },
+    regenerate:
+      interview?.listening ||
+      ["drawing", "explaining", "invite-drawing"].includes(
+        interview?.progress?.step ?? "",
+      )
+        ? undefined
+        : (published) =>
+            regenerateInterviewerQuestion({
+              messages: args[0],
+              summary: args[1],
+              changes: args[2],
+              signal: args[3],
+              interview,
+              published,
+            }),
   });
 }

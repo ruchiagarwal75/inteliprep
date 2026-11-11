@@ -1,4 +1,5 @@
 import "server-only";
+import { internalQuestionKey } from "@/lib/internal-question-key";
 import { z } from "zod";
 import { problemIdSchema } from "@/lib/interview-selection";
 import { phasesSchema } from "@/lib/phase-config";
@@ -74,10 +75,15 @@ export const problemSchema = z
     reviewProbes: z
       .array(
         z.object({
-          id: z.string().min(1),
+          id: z.string().min(1).transform(internalQuestionKey),
           areaIndex: z.number().int().min(0),
           topicPattern: z.string().min(1),
-          topic: z.string().min(1).max(80).optional(),
+          topic: z
+            .string()
+            .min(1)
+            .max(85)
+            .transform(internalQuestionKey)
+            .optional(),
           requiresPattern: z.string().min(1).max(500).optional(),
           question: z.string().min(1),
           stageIndex: z.number().int().min(2).max(4).optional(),

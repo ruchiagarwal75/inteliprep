@@ -1,8 +1,6 @@
 {
   "id": "rate-limiter",
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "title": "Design a rate limiter",
   "summary": "Protect an API from excessive requests while enforcing fair limits across multiple servers.",
   "prompt": "Design a rate limiter for an existing API. Each request has a trusted API key. Decide whether to allow or reject it according to that key's usage limit, even when requests reach different API servers.",

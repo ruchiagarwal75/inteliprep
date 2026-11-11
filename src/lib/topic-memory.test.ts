@@ -11,11 +11,11 @@ it("combines a topic's asks across stages and reads legacy keys", () => {
     },
     problem,
   );
-  expect(counts.injection).toBe(2);
+  expect(counts["mmq7-injection"]).toBe(2);
   expect(
     globalTopicCounts(
       { injection: 1, [problem.phases[3].id + ":injection"]: 1 },
       problem,
-    ).injection,
+    )["mmq7-injection"],
   ).toBe(2);
 });

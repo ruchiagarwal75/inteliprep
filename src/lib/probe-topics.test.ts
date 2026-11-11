@@ -10,16 +10,16 @@ it("moves from three cache probes to uncovered ID topics and respects an explici
   if (!problem) throw Error("Missing problem");
   const probes = problem.reviewProbes.filter((p) => p.stageIndex === 2);
   const next = availableTopicProbes(probes, { cache: 3 });
-  expect(next.some((p) => probeTopic(p) === "cache")).toBe(false);
-  expect(next.some((p) => probeTopic(p) === "id_allocation")).toBe(true);
+  expect(next.some((p) => probeTopic(p) === "mmq7-cache")).toBe(false);
+  expect(next.some((p) => probeTopic(p) === "mmq7-id_allocation")).toBe(true);
   expect(
     availableTopicProbes(probes, { cache: 3 }, "negative cache").some(
-      (p) => probeTopic(p) === "cache",
+      (p) => probeTopic(p) === "mmq7-cache",
     ),
   ).toBe(true);
 });
 it("keeps turn budgets separate for each stage", () => {
   expect(
     stageTopicCounts({ "core:cache": 3, "scaling:cache": 1 }, "core"),
-  ).toEqual({ cache: 3 });
+  ).toEqual({ "mmq7-cache": 3 });
 });

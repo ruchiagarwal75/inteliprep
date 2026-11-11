@@ -45,12 +45,12 @@ describe("chat-assistant candidate assumptions", () => {
   it("routes derived GPU requirements to estimation, not the raw available-capacity fact", () => {
     const content = "How many GPUs do I need?";
     expect(problem.genai?.facts.map((f) => f.id)).not.toContain(
-      "required-gpu-count",
+      "mmq7-required-gpu-count",
     );
     expect(
       estimationAsk([{ role: "user", content }], "senior", "genai"),
     ).toMatch(/estimate/iu);
-    expect(genaiFact(problem, "staff", ["gpu-capacity"])?.text).toContain(
+    expect(genaiFact(problem, "staff", ["mmq7-gpu-capacity"])?.text).toContain(
       "6,000",
     );
   });

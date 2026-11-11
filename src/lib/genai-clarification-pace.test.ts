@@ -53,7 +53,7 @@ it("does not let the general ending guard append a missing-topic question to a f
     status: "completed",
     output_text: JSON.stringify({
       intent: "facts",
-      factIds: ["employees"],
+      factIds: ["mmq7-employees"],
       hasUnspecified: false,
     }),
   });

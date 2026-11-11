@@ -17,13 +17,13 @@ it("prioritizes a named provider outage and never repeats its first fallback", (
   ];
   expect(requestedReviewTopic(history)).toContain("provider outage");
   const first = selectReviewProbe(p, history);
-  expect(first?.id).toBe("provider-outage");
+  expect(first?.id).toBe("mmq7-provider-outage");
   history.push(
     { role: "assistant", content: first?.question ?? "" },
     { role: "user", content: "Let's look at a provider outage." },
   );
   const second = selectReviewProbe(p, history);
-  expect(second?.id).toBe("provider-recovery");
+  expect(second?.id).toBe("mmq7-provider-recovery");
   expect(second?.question).not.toBe(first?.question);
   expect(wasProbeAsked(first?.question ?? "", history)).toBe(true);
 });
@@ -38,7 +38,7 @@ it("continues the latest revocation answer instead of jumping to upload limits",
         "I use 60-second presigned URLs, so previously issued links expire within the bound.",
     },
   ];
-  expect(selectReviewProbe(p, history)?.id).toBe("revocation-clock");
+  expect(selectReviewProbe(p, history)?.id).toBe("mmq7-revocation-clock");
   expect(
     acknowledgeAnswer(
       history,

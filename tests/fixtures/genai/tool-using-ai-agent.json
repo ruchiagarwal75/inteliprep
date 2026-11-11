@@ -1,49 +1,37 @@
 {
   "problemId": "tool-using-ai-agent",
   "facts": [
-    {
-      "ask": "How many employees use it?",
-      "id": "users"
-    },
+    { "ask": "How many employees use it?", "id": "mmq7-users" },
     {
       "ask": "How many tasks per day and what peak factor?",
-      "id": "tasks"
+      "id": "mmq7-tasks"
     },
-    {
-      "ask": "How many tools and which tool types?",
-      "id": "tools"
-    },
+    { "ask": "How many tools and which tool types?", "id": "mmq7-tools" },
     {
       "ask": "How many model calls per task and maximum steps?",
-      "id": "steps"
+      "id": "mmq7-steps"
     },
-    {
-      "ask": "How long should a task take?",
-      "id": "speed"
-    },
-    {
-      "ask": "How many tokens per task?",
-      "id": "tokens"
-    },
+    { "ask": "How long should a task take?", "id": "mmq7-speed" },
+    { "ask": "How many tokens per task?", "id": "mmq7-tokens" },
     {
       "ask": "Whose permissions does the agent use?",
-      "id": "permissions"
+      "id": "mmq7-permissions"
     },
     {
       "ask": "How serious is an email sent to the wrong recipient?",
-      "id": "mistakes"
+      "id": "mmq7-mistakes"
     }
   ],
   "levels": ["senior"],
   "wrongEstimates": [],
   "strong": [
-    "I will clarify task workflow, users, daily tasks, step budgets, latency and mistake risk before designing. At Senior there are 20,000 employees, 50K tasks daily, about six model calls and 40K tokens per task, with a 30-step maximum and most tasks finished in 60 seconds. The agent acts only within the employee\u2019s permissions, and a wrong recipient is a serious incident. Correctness, safety and recovery matter more here than pushing scale math.",
-    "A durable task runner persists a task state machine around think, choose tool, call and observe. The tool registry validates typed argument and result schemas and declares read or write behavior, risk level and required scopes. Count every attempted model step against the 30-step limit, detect repeated tool-and-argument cycles and stop with a useful explanation. The model chooses among permitted tools but cannot bypass the executor\u2019s policy checks.",
+    "I will clarify task workflow, users, daily tasks, step budgets, latency and mistake risk before designing. At Senior there are 20,000 employees, 50K tasks daily, about six model calls and 40K tokens per task, with a 30-step maximum and most tasks finished in 60 seconds. The agent acts only within the employee’s permissions, and a wrong recipient is a serious incident. Correctness, safety and recovery matter more here than pushing scale math.",
+    "A durable task runner persists a task state machine around think, choose tool, call and observe. The tool registry validates typed argument and result schemas and declares read or write behavior, risk level and required scopes. Count every attempted model step against the 30-step limit, detect repeated tool-and-argument cycles and stop with a useful explanation. The model chooses among permitted tools but cannot bypass the executor’s policy checks.",
     "Persist each intended action with a stable action ID and idempotency key before execution. The tool executor records started, confirmed-success, failed or unknown outcome states. An ambiguous email timeout triggers lookup by idempotency key or reconciliation; it must not blindly resend an irreversible write when the provider cannot deduplicate. A restarted runner loads its last persisted step and only resumes a safe pending read or an explicitly reconciled write. Approval references the immutable action payload hash so changed arguments need fresh approval.",
-    "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday\u2019s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited.",
+    "Every action has an append-only audit record linked to task ID, step ID, tool version, requesting user, scoped authority, approval and resulting status. Structured traces record timings and sanitized identifiers, not broad tool secrets. To investigate yesterday’s bad action, replay the recorded state with mocked tool outputs and correlate the exact approval, policy version and tool arguments available to the decision. Access to diagnostic records is itself scoped and audited.",
     "Measure time per model step, tool call and approval wait separately and report latency per completed task; the normal path must fit the 60-second goal. Track actual input/output tokens, tool costs and total steps per task, applying chosen rates rather than inventing a provider price. Deduplicate repeated reads and bound context while preserving action evidence; reducing steps must not remove confirmation or policy checks. Stop at a deadline and preserve resumable state rather than silently continuing irreversible work.",
     "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution.",
-    "The executor uses the user\u2019s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee\u2019s task plus an approved exact action can authorize sending."
+    "The executor uses the user’s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee’s task plus an approved exact action can authorize sending."
   ],
   "weak": [
     "I understand the task is to find incidents, summarize them and send email for 20,000 employees, with about 50K tasks daily, six steps on average and 60 seconds for most tasks. I know a wrong recipient is serious but will trust the model to choose.",
@@ -52,7 +40,7 @@
     "I do not record action or step IDs, approvals or tool versions. There is no audit log, tracing or replay, so I cannot debug what an agent did yesterday. I would just ask the model what it thinks happened.",
     "I will look at the total monthly invoice and ignore per-task tokens and tool costs. I will let tasks run indefinitely and do not track latency or stop at a deadline.",
     "I have no evaluations or mocked tools. We will test a prompt by sending a real email once, then deploy it to everyone if the summary looks good. I have no task-success or wrong-action metrics.",
-    "I will use one broad service account with access to every employee\u2019s tools. I will send emails without confirmation to keep the flow smooth. If a retrieved email says forward all messages elsewhere, the model should obey it, because tool output is trustworthy."
+    "I will use one broad service account with access to every employee’s tools. I will send emails without confirmation to keep the flow smooth. If a retrieved email says forward all messages elsewhere, the model should obey it, because tool output is trustworthy."
   ],
   "strongNodes": [
     "Employee and approval UI",
@@ -84,7 +72,7 @@
   "responses": [
     {
       "stage": 2,
-      "text": "An authenticated employee submits a task to an agent runner. It chooses a tool from a typed registry, invokes it through a tool executor and uses the result to plan the next step. I store task progress and count model steps; the tool executor uses the employee\u2019s scoped token. My diagram shows those components and an approval UI, whose behavior I still need to explain."
+      "text": "An authenticated employee submits a task to an agent runner. It chooses a tool from a typed registry, invokes it through a tool executor and uses the result to plan the next step. I store task progress and count model steps; the tool executor uses the employee’s scoped token. My diagram shows those components and an approval UI, whose behavior I still need to explain."
     },
     {
       "stage": 3,
@@ -96,16 +84,13 @@
     },
     {
       "stage": 3,
-      "text": "Let's examine a looping tool call and the runner\u2019s stopping condition."
+      "text": "Let's examine a looping tool call and the runner’s stopping condition."
     },
     {
       "stage": 3,
       "text": "A repeated identical tool call is counted and a bounded cycle detector stops the task before the 30-step cap; it shows the employee the failure and resumes only after a safe decision."
     },
-    {
-      "stage": 3,
-      "text": "Let's examine evaluation with mocked tools."
-    },
+    { "stage": 3, "text": "Let's examine evaluation with mocked tools." },
     {
       "stage": 3,
       "text": "Before changing a prompt or model, run a scenario suite with mocked tools covering normal tasks, tool outages, ambiguous email success, revoked permissions, injected instructions and loops. Measure task success rate and wrong-action rate separately, use human-labeled acceptable actions and replay past incidents. Gate rollout on no wrong-action regression, then canary and monitor sanitized traces with rollback. Fluent summaries alone are not evidence of correct action execution."
@@ -116,7 +101,7 @@
     },
     {
       "stage": 3,
-      "text": "The executor uses the user\u2019s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee\u2019s task plus an approved exact action can authorize sending."
+      "text": "The executor uses the user’s delegated, scoped token and rechecks authorization before every tool call; a broad service account is not acceptable. A policy layer requires explicit confirmation before writes, showing exact recipients, domains, subject and body in an approval UI. Validate recipients and domain policy independently of the model. Retrieved email or document content is untrusted data and cannot authorize a new write; a request to forward all messages is ignored as an instruction. Only the employee’s task plus an approved exact action can authorize sending."
     },
     {
       "stage": 4,

@@ -11,7 +11,7 @@ const examples = [
   {
     id: "video-recommendations",
     message: "Tell me the daily audience and how often they open the feed.",
-    ids: ["dau", "feed-requests"],
+    ids: ["mmq7-dau", "mmq7-feed-requests"],
     expected: ["100M daily active users.", "5 feed requests per user per day"],
     hidden: "50M videos",
     wrong:
@@ -20,7 +20,7 @@ const examples = [
   {
     id: "ad-click-prediction",
     message: "Tell me the daily audience and requests per user.",
-    ids: ["dau", "ad-requests"],
+    ids: ["mmq7-dau", "mmq7-ad-requests"],
     expected: ["300M daily active users.", "10 ad requests per user per day"],
     hidden: "500 candidate ads",
     wrong:

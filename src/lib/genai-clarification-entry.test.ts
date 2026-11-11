@@ -12,19 +12,19 @@ const examples = [
   {
     problemId: "enterprise-rag-assistant",
     message: "Tell me the expected traffic.",
-    id: "questions",
+    id: "mmq7-questions",
     expected: "100K questions",
   },
   {
     problemId: "enterprise-rag-assistant",
     message: "I'd like to know how many users there are.",
-    id: "employees",
+    id: "mmq7-employees",
     expected: "20,000 employees",
   },
   {
     problemId: "ai-chat-assistant",
     message: "Whats the dau",
-    id: "dau",
+    id: "mmq7-dau",
     expected: "20M",
   },
 ];

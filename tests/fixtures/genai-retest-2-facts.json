@@ -3,63 +3,63 @@
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "What's our headcount?",
-    "ids": ["employees"],
+    "ids": ["mmq7-employees"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "Roughly how many questions hit this daily, and how spiky is it?",
-    "ids": ["questions"],
+    "ids": ["mmq7-questions"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "Do we need to support anything besides English?",
-    "ids": ["languages"],
+    "ids": ["mmq7-languages"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "What's the SLA on permission removals?",
-    "ids": ["permission-changes"],
+    "ids": ["mmq7-permission-changes"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "How stale can an answer be after someone edits a page?",
-    "ids": ["document-changes"],
+    "ids": ["mmq7-document-changes"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "What are people using right now to search?",
-    "ids": ["today"],
+    "ids": ["mmq7-today"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "Any budget constraints?",
-    "ids": ["cost"],
+    "ids": ["mmq7-cost"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "Whats the p95 latency target",
-    "ids": ["latency"],
+    "ids": ["mmq7-latency"],
     "intent": "facts"
   },
   {
     "problemId": "enterprise-rag-assistant",
     "level": "senior",
     "message": "Tell me the corpus size.",
-    "ids": ["documents"],
+    "ids": ["mmq7-documents"],
     "intent": "facts"
   },
   {
@@ -80,42 +80,42 @@
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "How many people use this every day and how chatty are they?",
-    "ids": ["dau", "messages-per-user"],
+    "ids": ["mmq7-dau", "mmq7-messages-per-user"],
     "intent": "facts"
   },
   {
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "Are we bound by an external vendor's quotas?",
-    "ids": ["provider-limits"],
+    "ids": ["mmq7-provider-limits"],
     "intent": "facts"
   },
   {
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "How fast can we scale out GPUs?",
-    "ids": ["gpu-warmup"],
+    "ids": ["mmq7-gpu-warmup"],
     "intent": "facts"
   },
   {
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "How big is the context per request?",
-    "ids": ["tokens"],
+    "ids": ["mmq7-tokens"],
     "intent": "facts"
   },
   {
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "Do paying users get anything extra?",
-    "ids": ["tiers"],
+    "ids": ["mmq7-tiers"],
     "intent": "facts"
   },
   {
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "Can users wipe their chats?",
-    "ids": ["history"],
+    "ids": ["mmq7-history"],
     "intent": "facts"
   },
   {
@@ -129,42 +129,42 @@
     "problemId": "ai-chat-assistant",
     "level": "senior",
     "message": "I'd like to know the latency goal.",
-    "ids": ["latency"],
+    "ids": ["mmq7-latency"],
     "intent": "facts"
   },
   {
     "problemId": "tool-using-ai-agent",
     "level": "senior",
     "message": "Which systems can it touch?",
-    "ids": ["tools"],
+    "ids": ["mmq7-tools"],
     "intent": "facts"
   },
   {
     "problemId": "tool-using-ai-agent",
     "level": "senior",
     "message": "Is there a cap on how many steps it can take?",
-    "ids": ["steps"],
+    "ids": ["mmq7-steps"],
     "intent": "facts"
   },
   {
     "problemId": "tool-using-ai-agent",
     "level": "senior",
     "message": "Does it run with an admin account?",
-    "ids": ["permissions"],
+    "ids": ["mmq7-permissions"],
     "intent": "facts"
   },
   {
     "problemId": "tool-using-ai-agent",
     "level": "senior",
     "message": "How costly is a mistake?",
-    "ids": ["mistakes"],
+    "ids": ["mmq7-mistakes"],
     "intent": "facts"
   },
   {
     "problemId": "tool-using-ai-agent",
     "level": "senior",
     "message": "What's the token budget per task and how fast should it finish?",
-    "ids": ["tokens", "speed"],
+    "ids": ["mmq7-tokens", "mmq7-speed"],
     "intent": "facts"
   },
   {

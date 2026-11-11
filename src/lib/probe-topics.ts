@@ -1,3 +1,4 @@
+import { internalQuestionKey } from "@/lib/internal-question-key";
 type Probe = {
   id: string;
   question: string;
@@ -7,16 +8,17 @@ type Probe = {
 
 /** Related cache/ID probes share a turn budget, even if the wording changes. */
 export function probeTopic(probe: Probe) {
-  if (probe.topic) return probe.topic;
+  if (probe.topic) return internalQuestionKey(probe.topic);
   const text = probe.question + " " + probe.topicPattern;
   if (/idempotenc|idempotency|same.{0,35}(?:request|key)/iu.test(text))
-    return "idempotency";
+    return internalQuestionKey("idempotency");
   if (/base.?62|encod|decod|canonical/iu.test(probe.question))
-    return "id_encoding";
-  if (/cache|negative|ttl|invalidat|stale/iu.test(text)) return "cache";
+    return internalQuestionKey("id_encoding");
+  if (/cache|negative|ttl|invalidat|stale/iu.test(text))
+    return internalQuestionKey("cache");
   if (/allocat|counter|leas|range|identifier|\bids?\b|zookeeper/iu.test(text))
-    return "id_allocation";
-  return probe.id;
+    return internalQuestionKey("id_allocation");
+  return internalQuestionKey(probe.id);
 }
 
 export function availableTopicProbes<T extends Probe>(
@@ -24,6 +26,12 @@ export function availableTopicProbes<T extends Probe>(
   counts: Record<string, number> = {},
   requested?: string,
 ) {
+  counts = Object.fromEntries(
+    Object.entries(counts).map(([key, count]) => [
+      internalQuestionKey(key),
+      count,
+    ]),
+  );
   const eligible = probes.filter(
     (p) =>
       (counts[probeTopic(p)] ?? 0) < 3 ||
@@ -41,6 +49,9 @@ export function stageTopicCounts(
   return Object.fromEntries(
     Object.entries(counts)
       .filter(([key]) => key.startsWith(prefix))
-      .map(([key, count]) => [key.slice(prefix.length), count]),
+      .map(([key, count]) => [
+        internalQuestionKey(key.slice(prefix.length)),
+        count,
+      ]),
   );
 }

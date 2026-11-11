@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeQuestionKeys } from "@/lib/normalize-question-keys";
 import {
   createCipheriv,
   createDecipheriv,
@@ -11,29 +12,34 @@ import type { InterviewEndSnapshot } from "@/lib/interview-end";
 import { interviewTimingSchema } from "@/lib/interview-timer";
 import { pendingQuestionSchema } from "@/lib/open-question-queue";
 
-export const sessionCheckpointSchema = interviewSelectionSchema.extend({
-  id: z.uuid(),
-  ownerUserId: z.uuid().optional(),
-  timing: interviewTimingSchema.optional(),
-  phaseEnteredAt: z.iso.datetime().optional(),
-  openQuestion: z.string().max(1200).optional(),
-  openQuestions: z.array(pendingQuestionSchema).max(8).optional(),
-  pendingDiagramComponents: z.array(z.string().max(1000)).max(12).optional(),
-  topicTurnCounts: z
-    .record(z.string().max(200), z.number().int().min(0).max(100))
-    .refine((value) => Object.keys(value).length <= 50)
-    .optional(),
-  answeredStages: z.array(z.number().int().min(0).max(9)).max(10).optional(),
-  coveredTopics: z.array(z.string().max(500)).max(40).optional(),
-  phaseIndex: z.number().int().min(0).max(9),
-  coveredCriteria: z.array(z.number().int().min(0).max(30)).max(30),
-  ending: z
-    .object({
-      endedAt: z.iso.datetime(),
-      snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
-    })
-    .optional(),
-});
+export const sessionCheckpointSchema = interviewSelectionSchema
+  .extend({
+    id: z.uuid(),
+    ownerUserId: z.uuid().optional(),
+    timing: interviewTimingSchema.optional(),
+    phaseEnteredAt: z.iso.datetime().optional(),
+    openQuestion: z.string().max(1200).optional(),
+    openQuestions: z.array(pendingQuestionSchema).max(8).optional(),
+    pendingDiagramComponents: z.array(z.string().max(1000)).max(12).optional(),
+    topicTurnCounts: z
+      .record(z.string().max(256), z.number().int().min(0).max(100))
+      .refine((value) => Object.keys(value).length <= 50)
+      .optional(),
+    answeredStages: z.array(z.number().int().min(0).max(9)).max(10).optional(),
+    coveredTopics: z.array(z.string().max(500)).max(40).optional(),
+    phaseIndex: z.number().int().min(0).max(9),
+    coveredCriteria: z.array(z.number().int().min(0).max(30)).max(30),
+    ending: z
+      .object({
+        endedAt: z.iso.datetime(),
+        snapshotHash: z.string().regex(/^[a-f0-9]{64}$/),
+      })
+      .optional(),
+  })
+  .transform((checkpoint) => ({
+    ...checkpoint,
+    ...normalizeQuestionKeys(checkpoint),
+  }));
 export type SessionCheckpoint = z.infer<typeof sessionCheckpointSchema>;
 const CONTEXT = "inteliprep/browser-resume/v1";
 const LOCAL_DEVELOPMENT_RESUME_SECRET =

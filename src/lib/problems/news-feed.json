@@ -1,8 +1,6 @@
 {
   "id": "news-feed",
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "title": "Design a news feed",
   "summary": "Show recent posts from followed accounts with predictable ordering, bounded freshness, and popular-creator traffic.",
   "prompt": "Design a chronological home feed. Signed-in users publish short text posts and view recent posts from accounts they follow. Explain publishing, feed generation, pagination, and how the design handles popular creators, delayed updates, and failures.",

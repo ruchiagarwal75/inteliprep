@@ -1,4 +1,5 @@
 import "server-only";
+import { internalQuestionKey } from "@/lib/internal-question-key";
 import { z } from "zod";
 const levels = z.object({
   mid: z.string().min(1),
@@ -13,7 +14,7 @@ export const genaiConfigSchema = z.object({
   facts: z
     .array(
       z.object({
-        id: z.string().min(1),
+        id: z.string().min(1).transform(internalQuestionKey),
         description: z.string().min(1).max(500),
         answers: levels,
         coversCriteria: z.array(z.number().int().min(0).max(7)),
@@ -30,7 +31,7 @@ export const genaiConfigSchema = z.object({
   assumptions: z
     .array(
       z.object({
-        id: z.string(),
+        id: z.string().min(1).transform(internalQuestionKey),
         pattern: z.string().max(500),
         question: z.string().min(1),
         midSuggestion: z.string().optional(),

@@ -47,7 +47,7 @@ it("keeps problem-specific distinctions in descriptions, not classifier instruct
     status: "completed",
     output_text: JSON.stringify({
       intent: "facts",
-      factIds: ["gpu-warmup"],
+      factIds: ["mmq7-gpu-warmup"],
       hasUnspecified: false,
     }),
   });

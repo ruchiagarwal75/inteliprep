@@ -7,12 +7,12 @@ import type { InterviewContext } from "@/lib/interview-instructions";
 vi.mock("@/lib/observed-model-request", async () => import("./observed-live"));
 for (const sample of [
   {
-    id: "injection",
+    id: "mmq7-injection",
     answer:
       "Passages are inert citations. Only the employee's top-level request can authorize an operation; connector text never acquires that authority, so the embedded salary request is discarded.",
   },
   {
-    id: "revoke",
+    id: "mmq7-revoke",
     answer:
       "Each request checks the current membership revision with the access service, and cached answers are bound to that revision. If it cannot be checked, the answer is withheld. A removal is pushed immediately and the synchronous check closes the interval until the periodic refresh.",
   },

@@ -1,90 +1,34 @@
 import { exactSentences } from "@/lib/exact-sentences";
+import { hasAsk, questionAtEnd } from "@/lib/open-question";
 
-type ProbeKey = { id: string; topic?: string };
-/** Plain words such as cache are also normal design vocabulary, not serialized keys. */
-export function configuredInternalTopicIds(probes: readonly ProbeKey[]) {
-  return [
-    ...new Set(probes.flatMap((probe) => [probe.id, probe.topic ?? ""])),
-  ].filter((id) => /[|_:\\-]/u.test(id));
-}
-const tokenCharacter = (text: string) => /[\p{L}\p{N}_|:\\-]/u.test(text);
-
-/** Match literal configured keys, never arbitrary field names, pipes or request IDs. */
-export function hasInternalIdentifiers(
-  text: string,
-  topicIds: readonly string[] = [],
-): boolean {
-  if (/\bfresh:[a-f\d]{8,}\b/iu.test(text)) return true;
-  const lower = text.toLowerCase();
-  return topicIds.some((id) => {
-    if (!id) return false;
-    const key = id.toLowerCase();
-    for (
-      let at = lower.indexOf(key);
-      at >= 0;
-      at = lower.indexOf(key, at + 1)
-    ) {
-      if (
-        !tokenCharacter(lower[at - 1] ?? "") &&
-        !tokenCharacter(lower[at + key.length] ?? "")
-      )
-        return true;
-    }
-    return false;
-  });
+/** Only the reserved namespace and generated hash format are private identifiers. */
+export function hasInternalIdentifiers(text: string): boolean {
+  return /\bmmq7-|\bfresh:[a-f\d]{8,}\b/iu.test(text);
 }
 
-/** A chunk may stop at punctuation inside a serialized regex-like key. */
-function maskKeyPunctuation(text: string, ids: readonly string[]) {
-  const lower = text.toLowerCase();
-  const characters = text.split("");
-  for (const id of ids) {
-    const key = id.toLowerCase();
-    if (!key) continue;
-    for (
-      let at = lower.indexOf(key[0] ?? "");
-      at >= 0;
-      at = lower.indexOf(key[0] ?? "", at + 1)
-    ) {
-      const tail = lower.slice(at);
-      const length = lower.startsWith(key, at)
-        ? key.length
-        : key.startsWith(tail)
-          ? tail.length
-          : 0;
-      if (tokenCharacter(lower[at - 1] ?? "")) continue;
-      for (let index = at; index < at + length; index++)
-        if (/[.!?]/u.test(characters[index])) characters[index] = "·";
-    }
-  }
-  return characters.join("");
-}
-
-/** Release safe completed sentences as they arrive, dropping only contaminated ones. */
+/** Stream safe sentences immediately. Replace a removed ask with one model-generated ask. */
 export async function* publicInterviewerReply(
   parts: AsyncIterable<string>,
-  {
-    topicIds = [],
-    onEmpty,
-  }: { topicIds?: readonly string[]; onEmpty?: () => string } = {},
+  { regenerate }: { regenerate?: (published: string) => Promise<string> } = {},
 ) {
   let buffer = "",
-    emitted = false,
-    dropped = false;
+    published = "",
+    dropped = false,
+    droppedAsk = false;
   const accept = (text: string) => {
-    if (hasInternalIdentifiers(text, topicIds)) {
+    if (hasInternalIdentifiers(text)) {
       dropped = true;
+      if (hasAsk(text) || /[?？]/u.test(text)) droppedAsk = true;
       return "";
     }
-    if (!emitted && dropped) text = text.trimStart();
-    if (text) emitted = true;
+    if (!published && dropped) text = text.trimStart();
+    published += text;
     return text;
   };
   for await (const part of parts) {
     buffer += part;
     for (;;) {
-      const masked = maskKeyPunctuation(buffer, topicIds);
-      const sentence = exactSentences(masked)[0];
+      const sentence = exactSentences(buffer)[0];
       if (
         !sentence ||
         !/[.!?]["'’”)\]]*$/u.test(sentence) ||
@@ -93,7 +37,7 @@ export async function* publicInterviewerReply(
         )
       )
         break;
-      const end = masked.indexOf(sentence) + sentence.length;
+      const end = buffer.indexOf(sentence) + sentence.length;
       const length = end + (/^\s*/u.exec(buffer.slice(end))?.[0].length ?? 0);
       const text = accept(buffer.slice(0, length));
       buffer = buffer.slice(length);
@@ -102,8 +46,18 @@ export async function* publicInterviewerReply(
   }
   const tail = accept(buffer);
   if (tail) yield tail;
-  if (dropped && !emitted && onEmpty) {
-    const fallback = onEmpty();
-    if (fallback && !hasInternalIdentifiers(fallback, topicIds)) yield fallback;
+  if (
+    dropped &&
+    (droppedAsk || !published.trim()) &&
+    !questionAtEnd(published) &&
+    regenerate
+  ) {
+    const question = (await regenerate(published)).trim();
+    if (
+      question &&
+      !hasInternalIdentifiers(question) &&
+      /[?？]\s*$/u.test(question)
+    )
+      yield (published.trim() ? "\n\n" : "") + question;
   }
 }

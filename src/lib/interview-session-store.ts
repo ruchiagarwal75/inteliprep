@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeQuestionKeys } from "@/lib/normalize-question-keys";
 import { randomUUID } from "node:crypto";
 import { currentCandidateId } from "@/lib/candidate-context";
 import type { InterviewSelection } from "@/lib/interview-selection";
@@ -43,7 +44,9 @@ const SESSION_TTL = 2 * 60 * 60 * 1_000;
 const MAX_SESSIONS = 500;
 
 export function getCachedSession(id: string): Session | undefined {
-  return interviewSessionState().get(id);
+  const session = interviewSessionState().get(id);
+  if (session) Object.assign(session, normalizeQuestionKeys(session));
+  return session;
 }
 
 export class InterviewSessionError extends Error {
@@ -102,8 +105,7 @@ export function lockSession(
   allowEnded = false,
   token?: string,
 ) {
-  const sessions = interviewSessionState();
-  let session = sessions.get(id);
+  let session = getCachedSession(id);
   // Validate every supplied checkpoint, including when a local session is cached.
   if (token) {
     try {

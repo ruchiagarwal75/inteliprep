@@ -10,7 +10,7 @@ it("keeps facts disclosed when labels are quoted or text is wrapped", () => {
         content: 'There are 20,000 "employees".\n\nTHERE ARE 5M\n documents.',
       },
     ]).map((f) => f.id),
-  ).toEqual(["employees", "docs"]);
+  ).toEqual(["mmq7-employees", "mmq7-docs"]);
   expect(
     disclosedGenaiFacts(problem, "senior", [
       { role: "assistant", content: "There are 2,000 employees." },

@@ -36,7 +36,7 @@ it("uses one structured call with a stable problem/rubric prefix and current dia
   create.mockResolvedValue({
     status: "completed",
     output_text: JSON.stringify({
-      topicId: "concurrent-create",
+      topicId: "mmq7-concurrent-create",
       question: "How does a crashed allocator avoid reusing its remaining IDs?",
       acknowledgement: "Disjoint ranges separate the allocators.",
       continuesQuestionId: "",
@@ -72,13 +72,13 @@ it("checks coverage references and replaces repeated or malformed output with a 
   create.mockResolvedValue({
     status: "completed",
     output_text: JSON.stringify({
-      topicId: "concurrent-create",
+      topicId: "mmq7-concurrent-create",
       question: messages[0].content,
       acknowledgement: "",
       continuesQuestionId: "",
       acknowledgementQuote: "",
       answers: [],
-      covered: [{ topicId: "id-encoding", quoteId: "invented" }],
+      covered: [{ topicId: "mmq7-id-encoding", quoteId: "invented" }],
     }),
   });
   const reply = await discussionReply(messages, memory, board);
@@ -97,13 +97,13 @@ it("accepts only real candidate evidence for covered topics", async () => {
   create.mockResolvedValue({
     status: "completed",
     output_text: JSON.stringify({
-      topicId: "id-encoding",
+      topicId: "mmq7-id-encoding",
       question: "How do numeric IDs become base62 codes?",
       acknowledgement: "",
       continuesQuestionId: "",
       acknowledgementQuote: "",
       answers: [],
-      covered: [{ topicId: "concurrent-create", quoteId }],
+      covered: [{ topicId: "mmq7-concurrent-create", quoteId }],
     }),
   });
   await discussionReply(messages, memory, board);
@@ -126,7 +126,7 @@ it("returns the oldest unanswered question after a side response, then advances 
     answeredQuestionIds: [] as string[],
   };
   const value = {
-    topicId: "id-encoding",
+    topicId: "mmq7-id-encoding",
     question: "How do IDs become base62 codes?",
     acknowledgement: "",
     continuesQuestionId: "",
@@ -161,7 +161,7 @@ it("excludes an exhausted cache topic from structured generation", async () => {
       questionMemory: {
         askedQuestions: [],
         coveredTopics: [],
-        topicTurns: { cache: 3 },
+        topicTurns: { "mmq7-cache": 3 },
       },
     },
     board,
@@ -191,7 +191,7 @@ it("queues a diagram mismatch only after the prior answer is verified", async ()
       "You said PostgreSQL but drew Cassandra DB; which is intended?",
   };
   const body = {
-    topicId: "id-encoding",
+    topicId: "mmq7-id-encoding",
     question: "How do IDs become short codes?",
     acknowledgement: "",
     continuesQuestionId: "",
@@ -236,7 +236,7 @@ it("acknowledges a detour answer and rephrases the same pending question", async
   create.mockResolvedValue({
     status: "completed",
     output_text: JSON.stringify({
-      topicId: "concurrent-create",
+      topicId: "mmq7-concurrent-create",
       continuesQuestionId: queue[0].id,
       question: reworded,
       acknowledgement: "That TTL bounds cached data age.",

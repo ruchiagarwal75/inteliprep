@@ -12,7 +12,7 @@ export function genaiEngineFixture(): ProblemDefinition {
     genai: {
       facts: [
         {
-          id: "employees",
+          id: "mmq7-employees",
           description: "Number of employees and users.",
           answers: {
             mid: "There are 2,000 employees.",
@@ -22,7 +22,7 @@ export function genaiEngineFixture(): ProblemDefinition {
           coversCriteria: [1],
         },
         {
-          id: "docs",
+          id: "mmq7-docs",
           description: "Number of documents.",
           answers: {
             mid: "There are 200K documents.",
@@ -42,7 +42,7 @@ export function genaiEngineFixture(): ProblemDefinition {
       assumptionGuidance: [],
       assumptions: [
         {
-          id: "message-size",
+          id: "mmq7-message-size",
           pattern:
             "(?:bytes|kb|size).{0,25}message|message.{0,25}(?:bytes|kb|size)",
           question: "What would you assume, given the token counts?",
@@ -66,18 +66,18 @@ export function genaiEngineFixture(): ProblemDefinition {
     ],
     reviewProbes: [
       {
-        id: "cache",
+        id: "mmq7-cache",
         areaIndex: 3,
-        topic: "cache",
+        topic: "mmq7-cache",
         stageIndex: 3,
         topicPattern: "cache",
         requiresPattern: "cache",
         question: "What happens if your cache is unavailable?",
       },
       {
-        id: "evaluation",
+        id: "mmq7-evaluation",
         areaIndex: 5,
-        topic: "evaluation",
+        topic: "mmq7-evaluation",
         stageIndex: 3,
         topicPattern: "eval",
         question: "How would you evaluate a change before launch?",

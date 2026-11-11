@@ -1,57 +1,42 @@
 {
   "problemId": "enterprise-rag-assistant",
   "facts": [
-    {
-      "ask": "How many employees will use it?",
-      "id": "employees"
-    },
+    { "ask": "How many employees will use it?", "id": "mmq7-employees" },
     {
       "ask": "How many documents and sources are there?",
-      "id": "documents"
+      "id": "mmq7-documents"
     },
     {
       "ask": "How many questions per day and what is the peak factor?",
-      "id": "questions"
+      "id": "mmq7-questions"
     },
     {
       "ask": "How often do documents change and when must edits appear?",
-      "id": "document-changes"
+      "id": "mmq7-document-changes"
     },
     {
       "ask": "How quickly must removed access apply?",
-      "id": "permission-changes"
+      "id": "mmq7-permission-changes"
     },
     {
       "ask": "What proportion of documents is restricted?",
-      "id": "restricted-docs"
+      "id": "mmq7-restricted-docs"
     },
-    {
-      "ask": "What latency do we need?",
-      "id": "latency"
-    },
-    {
-      "ask": "What is the cost target?",
-      "id": "cost"
-    },
-    {
-      "ask": "Which languages are needed?",
-      "id": "languages"
-    },
-    {
-      "ask": "What is the current search system?",
-      "id": "today"
-    },
+    { "ask": "What latency do we need?", "id": "mmq7-latency" },
+    { "ask": "What is the cost target?", "id": "mmq7-cost" },
+    { "ask": "Which languages are needed?", "id": "mmq7-languages" },
+    { "ask": "What is the current search system?", "id": "mmq7-today" },
     {
       "ask": "How many chunks per document on average?",
-      "id": "chunks-per-doc"
+      "id": "mmq7-chunks-per-doc"
     },
     {
       "ask": "How many embedding dimensions?",
-      "id": "embedding-dimensions"
+      "id": "mmq7-embedding-dimensions"
     },
     {
       "ask": "How many input and output tokens per question?",
-      "id": "tokens-per-question"
+      "id": "mmq7-tokens-per-question"
     }
   ],
   "levels": ["senior", "mid", "staff"],

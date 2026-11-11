@@ -191,7 +191,7 @@ export function startFixtureService(key, cert, reporting) {
       } else if (body.text?.format?.name === "genai_fact_selection") {
         text = JSON.stringify({
           intent: "facts",
-          factIds: ["employees", "documents"],
+          factIds: ["mmq7-employees", "mmq7-documents"],
           hasUnspecified: false,
         });
       } else if (body.text?.format?.name === "stage_coverage") {

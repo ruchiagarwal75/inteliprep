@@ -1,8 +1,6 @@
 {
   "id": "notification-system",
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "title": "Design a notification system",
   "summary": "Accept transactional notifications and deliver email or mobile push with retries, preferences, and visible status.",
   "prompt": "Design a transactional notification service. Internal applications request email, mobile push, or both for a recipient. Explain durable acceptance, per-channel status, recipient preferences, dispatch, retries, and how delivery behaves during provider failures.",
@@ -217,49 +215,49 @@
   ],
   "reviewProbes": [
     {
-      "id": "provider-outage",
+      "id": "mmq7-provider-outage",
       "areaIndex": 4,
       "topicPattern": "outage|unavailable|provider.*down|provider.failure",
       "question": "If the email provider is unavailable for ten minutes, how will your design keep push notifications moving?",
       "stageIndex": 3
     },
     {
-      "id": "provider-recovery",
+      "id": "mmq7-provider-recovery",
       "areaIndex": 4,
       "topicPattern": "outage|unavailable|provider.*down|recover\\w*|backlog",
       "question": "When the email provider recovers, how will you drain pending sends without exceeding its rate limit?",
       "stageIndex": 3
     },
     {
-      "id": "ambiguous-send",
+      "id": "mmq7-ambiguous-send",
       "areaIndex": 3,
       "topicPattern": "timeout|uncertain|acknowledg\\w*|lost.response",
       "question": "What happens if a provider accepts a send but its response is lost?",
       "stageIndex": 3
     },
     {
-      "id": "caller-status",
+      "id": "mmq7-caller-status",
       "areaIndex": 1,
       "topicPattern": "status|caller|access|authoriz\\w*",
       "question": "How does a status lookup prevent one internal caller from reading another caller's notification?",
       "stageIndex": 2
     },
     {
-      "id": "retry-expiry",
+      "id": "mmq7-retry-expiry",
       "areaIndex": 3,
       "topicPattern": "retry|retries|deadline|expir\\w*",
       "question": "What status does a caller see once a notification's retry window expires?",
       "stageIndex": 3
     },
     {
-      "id": "fairness",
+      "id": "mmq7-fairness",
       "areaIndex": 4,
       "topicPattern": "fair\\w*|quota|rate.limit|overload|burst",
       "question": "What keeps one application's retry burst from delaying another application's notifications?",
       "stageIndex": 3
     },
     {
-      "id": "preferences",
+      "id": "mmq7-preferences",
       "areaIndex": 2,
       "topicPattern": "preference|opt.out|disabled",
       "question": "What happens to a pending email if its recipient disables email before the next retry?",

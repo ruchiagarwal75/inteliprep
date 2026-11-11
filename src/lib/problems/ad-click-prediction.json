@@ -88,77 +88,77 @@
   "followUpStages": [2, 2, 2, 2, 3, 3, 3, 3, 3],
   "reviewProbes": [
     {
-      "id": "calibration",
+      "id": "mmq7-calibration",
       "areaIndex": 2,
       "stageIndex": 2,
-      "topic": "calibrat|probability|auction",
+      "topic": "mmq7-topic-b88b5e9765fab4ab",
       "topicPattern": "calibrat|probability|auction",
       "question": "Why does calibration matter for ads beyond the ranking order?"
     },
     {
-      "id": "downsampling",
+      "id": "mmq7-downsampling",
       "areaIndex": 1,
       "stageIndex": 2,
-      "topic": "downsampl|negative|imbalance",
+      "topic": "mmq7-topic-020a218fa62c65e1",
       "topicPattern": "downsampl|negative|imbalance",
       "question": "If you downsample non-clicks, what changes in your predictions and how would you correct it?",
       "requiresPattern": "downsampl|sampl|imbalance"
     },
     {
-      "id": "delayed-labels",
+      "id": "mmq7-delayed-labels",
       "areaIndex": 1,
       "stageIndex": 2,
-      "topic": "delay|label|join",
+      "topic": "mmq7-topic-65a4a62ef129839c",
       "topicPattern": "delay|label|join",
       "question": "How do you build labels when a click arrives after the impression?"
     },
     {
-      "id": "new-ad",
+      "id": "mmq7-new-ad",
       "areaIndex": 2,
       "stageIndex": 2,
-      "topic": "new.ad|cold.start",
+      "topic": "mmq7-topic-4854ca2f2a2dfb9e",
       "topicPattern": "new.ad|cold.start",
       "question": "How does your model predict for a brand-new ad with no history?"
     },
     {
-      "id": "prediction-budget",
+      "id": "mmq7-prediction-budget",
       "areaIndex": 3,
       "stageIndex": 3,
-      "topic": "prediction|serving|latency|staging",
+      "topic": "mmq7-topic-c791811f81a02b31",
       "topicPattern": "prediction|serving|latency|staging",
       "question": "How would you fit your estimated peak prediction volume into the scoring latency budget?"
     },
     {
-      "id": "behavior-shift",
+      "id": "mmq7-behavior-shift",
       "areaIndex": 5,
       "stageIndex": 3,
-      "topic": "retrain|drift|fresh",
+      "topic": "mmq7-topic-b9545c4448622a20",
       "topicPattern": "retrain|drift|fresh",
       "question": "If your retraining cadence lags a sudden behavior shift, how does the system respond?",
       "requiresPattern": "daily|retrain|train"
     },
     {
-      "id": "auc-revenue",
+      "id": "mmq7-auc-revenue",
       "areaIndex": 4,
       "stageIndex": 3,
-      "topic": "auc|revenue|online|metric",
+      "topic": "mmq7-topic-c54e7cd47d2567d6",
       "topicPattern": "auc|revenue|online|metric",
       "question": "AUC went up but revenue dropped. How would you investigate?",
       "requiresPattern": "auc"
     },
     {
-      "id": "privacy-optout",
+      "id": "mmq7-privacy-optout",
       "areaIndex": 6,
       "stageIndex": 3,
-      "topic": "privacy|opt.out|training.data",
+      "topic": "mmq7-topic-bd544cf5bc39c469",
       "topicPattern": "privacy|opt.out|training.data",
       "question": "How would you apply a user opt-out across features and training data?"
     },
     {
-      "id": "click-fraud",
+      "id": "mmq7-click-fraud",
       "areaIndex": 6,
       "stageIndex": 3,
-      "topic": "fraud|label|click",
+      "topic": "mmq7-topic-9ad7c9292e561169",
       "topicPattern": "fraud|label|click",
       "question": "How would you stop click fraud from polluting your labels?"
     }
@@ -226,9 +226,7 @@
       "interviewerGuidance": "Ask about the candidate's own choices within this stage. Never reveal a reference design, unasked facts or estimate anchors. Ask one question at a time and probe failure modes of mechanisms they add. Respect drawing and explaining pauses. Shared facts are never proof of candidate reasoning. Accept reasonable justified choices without requiring a vendor."
     }
   ],
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "gradingGuidance": [
     "Judge the supplied level bar and all seven configured areas using candidate evidence. Naming a mechanism or metric without explaining it is not enough for the Senior bar. Name demonstrated red flags, and check the transcript for counter-evidence before claiming a gap. Do not require a particular vendor or model. Grade arithmetic using disclosed inputs and the candidate's own justified assumptions. Never reveal hidden anchor answers."
   ],
@@ -238,7 +236,7 @@
     "safetyArea": "Safety, fairness and privacy",
     "facts": [
       {
-        "id": "dau",
+        "id": "mmq7-dau",
         "description": "Daily active users and geographic reach, not derived request throughput.",
         "answers": {
           "mid": "10M daily active users.",
@@ -248,7 +246,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "ad-requests",
+        "id": "mmq7-ad-requests",
         "description": "Ad requests per user per day and peak-to-average traffic factor.",
         "answers": {
           "mid": "5 ad requests per user per day.",
@@ -258,7 +256,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "candidates",
+        "id": "mmq7-candidates",
         "description": "Candidate ads per request after targeting, before prediction or auction scoring.",
         "answers": {
           "mid": "100 candidate ads per request after targeting.",
@@ -268,7 +266,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "latency",
+        "id": "mmq7-latency",
         "description": "Scoring latency budget for all candidates in a request, with its percentile.",
         "answers": {
           "mid": "Scoring all candidates should take at most 100 ms.",
@@ -278,7 +276,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "click-rate",
+        "id": "mmq7-click-rate",
         "description": "Observed fraction of ad impressions that get a click; base click rate or class imbalance.",
         "answers": {
           "mid": "The click rate is about 1%.",
@@ -288,7 +286,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "pricing",
+        "id": "mmq7-pricing",
         "description": "Charging model, auction ranking rule and conversion-based pricing where applicable.",
         "answers": {
           "mid": "Pricing is cost per click.",
@@ -298,7 +296,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "advertisers",
+        "id": "mmq7-advertisers",
         "description": "Advertiser count, ad catalog size and volume of new ads when specified.",
         "answers": {
           "mid": "10K advertisers.",
@@ -308,7 +306,7 @@
         "coversCriteria": [1]
       },
       {
-        "id": "feedback-delay",
+        "id": "mmq7-feedback-delay",
         "description": "How long click and conversion outcomes can take to arrive after an impression.",
         "answers": {
           "mid": "Clicks arrive within minutes.",
@@ -318,7 +316,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "privacy",
+        "id": "mmq7-privacy",
         "description": "Sensitive-category restrictions, opt-out propagation deadline and regional privacy requirements.",
         "answers": {
           "mid": "Privacy constraints are not specified. What would you assume?",
@@ -328,7 +326,7 @@
         "coversCriteria": [2]
       },
       {
-        "id": "today",
+        "id": "mmq7-today",
         "description": "Current ad prediction implementation and model/calibration situation.",
         "answers": {
           "mid": "Today predictions use rules by ad category.",
@@ -338,7 +336,7 @@
         "coversCriteria": [0]
       },
       {
-        "id": "ads-shown",
+        "id": "mmq7-ads-shown",
         "description": "Number of ads shown per returned request, not the number of candidates being scored.",
         "answers": {
           "mid": "About five ads are shown per request.",

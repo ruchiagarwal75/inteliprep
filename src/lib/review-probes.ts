@@ -64,7 +64,7 @@ export function stageProbes(
     ...(problem.track === "genai"
       ? []
       : problem.followUps.map((question, index) => ({
-          id: "follow-up-" + index,
+          id: "mmq7-follow-up-" + index,
           question,
           areaIndex: Math.min(index, problem.rubric.length - 1),
           stageIndex: problem.followUpStages[index],

@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeQuestionKeys } from "@/lib/normalize-question-keys";
 import {
   getCachedSession,
   insertSession,
@@ -56,6 +57,7 @@ export function importSessionRecord(
   if (rollbackOwner && existing !== rollbackOwner) return;
   const restored: Session = {
     ...checkpoint,
+    ...normalizeQuestionKeys(checkpoint),
     updatedAt: Date.now(),
     busy: rollbackOwner?.busy ?? false,
     transcript,

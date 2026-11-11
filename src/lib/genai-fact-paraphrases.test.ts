@@ -38,22 +38,22 @@ it.each(examples)(
 );
 it("keeps residency, revocation, capacity, warmup and reversibility distinct", () => {
   const rag = getProblem("enterprise-rag-assistant")?.genai?.facts;
-  expect(rag?.find((f) => f.id === "data-residency")?.answers.senior).toBe(
+  expect(rag?.find((f) => f.id === "mmq7-data-residency")?.answers.senior).toBe(
     "There are no data residency requirements.",
   );
   expect(
-    rag?.find((f) => f.id === "permission-changes")?.answers.senior,
+    rag?.find((f) => f.id === "mmq7-permission-changes")?.answers.senior,
   ).toContain("five minutes");
   const chat = getProblem("ai-chat-assistant")?.genai?.facts;
-  expect(chat?.find((f) => f.id === "gpu-warmup")?.answers.senior).toContain(
-    "ten minutes",
-  );
-  expect(chat?.find((f) => f.id === "gpu-capacity")?.answers.staff).toContain(
-    "6,000",
-  );
+  expect(
+    chat?.find((f) => f.id === "mmq7-gpu-warmup")?.answers.senior,
+  ).toContain("ten minutes");
+  expect(
+    chat?.find((f) => f.id === "mmq7-gpu-capacity")?.answers.staff,
+  ).toContain("6,000");
   expect(
     getProblem("tool-using-ai-agent")?.genai?.facts.find(
-      (f) => f.id === "action-reversibility",
+      (f) => f.id === "mmq7-action-reversibility",
     )?.answers.staff,
   ).toContain("cannot be undone");
 });

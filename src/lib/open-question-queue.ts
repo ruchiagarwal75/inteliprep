@@ -9,7 +9,7 @@ export const pendingQuestionSchema = z.object({
   id: z.string().regex(/^[a-f0-9]{16}$/),
   question: z.string().min(1).max(1200),
   afterMessageIndex: z.number().int().min(-1).max(100),
-  topicId: z.string().max(80).optional(),
+  topicId: z.string().max(85).optional(),
 });
 export type PendingQuestion = z.infer<typeof pendingQuestionSchema>;
 export type QuestionAnswer = { questionId: string; quoteId: string };
@@ -23,7 +23,7 @@ export function enqueueQuestion(
 ): PendingQuestion[] {
   const ending = questionAtEnd(reply);
   const question =
-    ending && topicId === "diagram_consistency"
+    ending && topicId === "mmq7-diagram_consistency"
       ? reply.trim().slice(-1200)
       : ending;
   if (

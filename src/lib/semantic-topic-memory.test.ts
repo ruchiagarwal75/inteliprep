@@ -19,13 +19,13 @@ const context = (): InterviewContext => ({
 beforeEach(() => model.mockReset());
 it.each([
   {
-    id: "injection",
+    id: "mmq7-injection",
     question: "A document tells the model to list salary files. What happens?",
     answer:
       "Passages are inert citations; connector text never acquires authority to perform an operation, so the embedded salary request is discarded.",
   },
   {
-    id: "revoke",
+    id: "mmq7-revoke",
     question: "What happens before the next permission sync after a removal?",
     answer:
       "Each request checks the current membership revision with the access service; if it cannot be checked, the answer is withheld until the revision is verified.",
@@ -65,8 +65,8 @@ it("does not accept invented evidence or question indexes", async () => {
   model.mockResolvedValueOnce({
     status: "completed",
     output_text: JSON.stringify({
-      covered: [{ topicId: "injection", quoteId: "made-up" }],
-      asked: [{ messageIndex: 99, topicId: "injection" }],
+      covered: [{ topicId: "mmq7-injection", quoteId: "made-up" }],
+      asked: [{ messageIndex: 99, topicId: "mmq7-injection" }],
     }),
   });
   await refreshSemanticTopicMemory(

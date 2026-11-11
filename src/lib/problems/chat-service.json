@@ -1,8 +1,6 @@
 {
   "id": "chat-service",
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "title": "Design a chat service",
   "summary": "Build one-to-one text messaging with online delivery, saved history, and recovery after disconnects.",
   "prompt": "Design a one-to-one text chat service. Signed-in users send messages, receive them while online, and read saved conversation history after reconnecting. Explain message acceptance, delivery, ordering, and recovery when clients or servers disconnect.",

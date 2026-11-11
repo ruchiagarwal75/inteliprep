@@ -1,8 +1,6 @@
 {
   "id": "file-storage",
-  "diagramReview": {
-    "checkApplicationDataPaths": false
-  },
+  "diagramReview": { "checkApplicationDataPaths": false },
   "title": "Design a file storage service",
   "summary": "Store and share large files with resumable uploads, version checks, and controlled access.",
   "prompt": "Design a cloud file storage service. Signed-in users upload, list, download, replace, and delete files, and grant another user read access. Explain resumable transfer, publication of complete files, concurrent replacement, authorization, and recovery.",
@@ -191,63 +189,63 @@
   ],
   "reviewProbes": [
     {
-      "id": "storage-outage",
+      "id": "mmq7-storage-outage",
       "areaIndex": 4,
       "topicPattern": "outage|provider|unavailable|storage.failure",
       "question": "If byte storage is unavailable, what response will an upload-completion request return?",
       "stageIndex": 3
     },
     {
-      "id": "storage-recovery",
+      "id": "mmq7-storage-recovery",
       "areaIndex": 4,
       "topicPattern": "outage|provider|unavailable|storage.failure",
       "question": "After storage recovers, how will clients resume interrupted transfers without publishing duplicate files?",
       "stageIndex": 3
     },
     {
-      "id": "publication-crash",
+      "id": "mmq7-publication-crash",
       "areaIndex": 1,
       "topicPattern": "publish\\w*|metadata|complete|partial|incomplete|pending",
       "question": "If the process stops after byte storage succeeds but before metadata publication, what happens when the client retries completion?",
       "stageIndex": 2
     },
     {
-      "id": "revocation-clock",
+      "id": "mmq7-revocation-clock",
       "areaIndex": 3,
       "topicPattern": "revok\\w*|revocation|grant|presigned|signed.url|60.second",
       "question": "With your expiring download links, how will you test the revocation bound when clocks differ?",
       "stageIndex": 3
     },
     {
-      "id": "revocation-retry",
+      "id": "mmq7-revocation-retry",
       "areaIndex": 3,
       "topicPattern": "revok\\w*|revocation|grant|presigned|signed.url|60.second",
       "question": "What happens if a download client retries with the same link after its access expires?",
       "stageIndex": 3
     },
     {
-      "id": "conflict-client",
+      "id": "mmq7-conflict-client",
       "areaIndex": 2,
       "topicPattern": "version|conflict|compare.and.set|stale|concurrent",
       "question": "After a stale-version conflict, how can the client preserve its user's changes without overwriting the newer file?",
       "stageIndex": 2
     },
     {
-      "id": "abandoned-upload",
+      "id": "mmq7-abandoned-upload",
       "areaIndex": 4,
       "topicPattern": "cleanup|abandon\\w*|slow.upload|progress",
       "question": "How do you distinguish an abandoned upload from a slow upload that is still making progress?",
       "stageIndex": 3
     },
     {
-      "id": "part-integrity",
+      "id": "mmq7-part-integrity",
       "areaIndex": 1,
       "topicPattern": "checksum|integrity|resum\\w*|upload.part",
       "question": "If only one resumed upload part fails its integrity check, what does the client need to send again?",
       "stageIndex": 2
     },
     {
-      "id": "popular-file",
+      "id": "mmq7-popular-file",
       "areaIndex": 4,
       "topicPattern": "popular|large.file|bandwidth|throughput|egress",
       "question": "How will you measure whether repeated downloads of a popular file overload your byte-transfer path?",

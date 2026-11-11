@@ -1,152 +1,136 @@
-import { expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import {
-  configuredInternalTopicIds,
   hasInternalIdentifiers,
   publicInterviewerReply,
-} from "@/lib/public-interviewer-reply";
-import { streamInterviewerReply } from "@/lib/llm";
-import { getProblem } from "@/lib/problems";
-import type { InterviewContext } from "@/lib/interview-instructions";
+} from "./public-interviewer-reply";
+import { streamInterviewerReply } from "./llm";
 const model = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/openai-client", () => ({
   createOpenAIClient: () => ({ responses: { create: model } }),
   interviewerModel: () => "test-model",
 }));
-const problem = getProblem("enterprise-rag-assistant");
-if (!problem) throw Error("Missing problem");
-const topicIds = configuredInternalTopicIds(problem.reviewProbes);
-async function read(text: string, ids = topicIds) {
-  let reply = "";
-  for await (const part of publicInterviewerReply(
-    (async function* () {
-      for (const character of text) yield character;
-    })(),
-    { topicIds: ids },
-  ))
-    reply += part;
-  return reply;
+beforeEach(() => model.mockReset());
+async function* chunks(text: string) {
+  for (const character of text) yield character;
+}
+async function read(
+  text: string,
+  regenerate?: (published: string) => Promise<string>,
+) {
+  let result = "";
+  for await (const part of publicInterviewerReply(chunks(text), { regenerate }))
+    result += part;
+  return result;
 }
 it.each([
+  "How do you handle the cold-start problem for brand-new videos?",
+  "How would you avoid a feedback-loop that keeps showing popular videos?",
+  "How do you correct for position-bias in your training data?",
+  "Why did offline-online results disagree?",
+  "How do you stop click-fraud from polluting your labels?",
   "How would you shard the table by user_id?",
+  "What do p50 | p95 look like?",
+  "How do you handle long-context requests during a provider-outage?",
   "What happens if two writers update the same doc_id with different acl_version values?",
   "Where does the created_at index help?",
-  "What do p50 | p95 look like?",
   "What does the 3fa85f64 request ID tell you?",
-])("keeps normal interviewer text unchanged: %s", async (text) => {
-  expect(hasInternalIdentifiers(text, topicIds)).toBe(false);
+  "How does cache|caching work?",
+])("passes normal design language unchanged: %s", async (text) => {
+  expect(hasInternalIdentifiers(text)).toBe(false);
   expect(await read(text)).toBe(text);
 });
 it.each([
   "Walk me through fresh:7179b8dadc8f7599 in your design.",
-  "How does cache|caching work?",
-  "What does loop|steps?|limits? mean?",
-])("drops an internal-key sentence without throwing: %s", async (text) => {
-  const ids = [...topicIds, "loop|steps?|limits?"];
-  expect(hasInternalIdentifiers(text, ids)).toBe(true);
-  expect(await read(text, ids)).toBe("");
+  "How does mmq7-cold-start work?",
+  "How does MMQ7-unknown_future_key work?",
+])("drops a reserved key without an error: %s", async (text) => {
+  expect(hasInternalIdentifiers(text)).toBe(true);
+  expect(await read(text)).toBe("");
 });
-it("keeps surrounding safe sentences and treats configured keys literally", async () => {
+it("keeps surrounding sentences, ordinary pipes and non-hash fresh text", async () => {
   expect(
     await read(
       "How are users authenticated? Walk me through fresh:7179b8dadc8f7599 in your design. What does the cache store?",
     ),
   ).toBe("How are users authenticated? What does the cache store?");
-  expect(await read("How does cache|caching_extra work?")).toBe(
-    "How does cache|caching_extra work?",
-  );
   expect(await read("Is this fresh: fruit or a bare deadbeef value?")).toBe(
     "Is this fresh: fruit or a bare deadbeef value?",
   );
 });
-it("releases a safe sentence before the source finishes", async () => {
+it("regenerates once if a dropped question follows a safe acknowledgement", async () => {
+  const regenerate = vi.fn(
+    async () => "How does your ranker handle a video with no watch history?",
+  );
+  expect(
+    await read(
+      "The API accepts the request. How does mmq7-cold-start work?",
+      regenerate,
+    ),
+  ).toBe(
+    "The API accepts the request.\n\nHow does your ranker handle a video with no watch history?",
+  );
+  expect(regenerate).toHaveBeenCalledTimes(1);
+});
+it("does not replace an already safe question or emit a malformed repair", async () => {
+  const regenerate = vi.fn(async () => "Explain mmq7-cold-start?");
+  expect(
+    await read(
+      "What does mmq7-cold-start mean? How do users get a recommendation?",
+      regenerate,
+    ),
+  ).toBe("How do users get a recommendation?");
+  expect(regenerate).not.toHaveBeenCalled();
+  expect(await read("Explain mmq7-cold-start?", regenerate)).toBe("");
+  expect(regenerate).toHaveBeenCalledTimes(1);
+});
+it("releases a safe sentence while the source is still running", async () => {
   let release = () => {};
-  const wait = new Promise<void>((resolve) => {
+  const gate = new Promise<void>((resolve) => {
     release = resolve;
   });
   const stream = publicInterviewerReply(
     (async function* () {
-      yield "A safe sentence. ";
-      await wait;
-      yield "What comes next?";
+      yield "The requests reach the API. ";
+      await gate;
+      yield "Where does the created_at index help?";
     })(),
   );
   expect(await stream.next()).toEqual({
     done: false,
-    value: "A safe sentence. ",
+    value: "The requests reach the API. ",
   });
   release();
   expect(await stream.next()).toEqual({
     done: false,
-    value: "What comes next?",
+    value: "Where does the created_at index help?",
   });
-  expect((await stream.next()).done).toBe(true);
 });
-it("keeps a safe fallback when a stubbed model returns only an internal ID", async () => {
-  model.mockImplementation(async function* () {
-    yield {
-      type: "response.output_text.delta",
-      delta: "Walk me through fresh:7179b8dadc8f7599 in your design.",
-    };
-    yield { type: "response.completed" };
-  });
+it("replaces a malformed model question with one grounded model call, never a canned line", async () => {
+  model
+    .mockImplementationOnce(async function* () {
+      yield {
+        type: "response.output_text.delta",
+        delta: "I follow the request path. How does mmq7-cold-start work?",
+      };
+      yield { type: "response.completed" };
+    })
+    .mockResolvedValueOnce({
+      status: "completed",
+      output_text:
+        "How would your ranker score a video that has no watch history?",
+    });
   let reply = "";
   for await (const part of streamInterviewerReply(
-    [{ role: "user", content: "I filter retrieval by permissions." }],
-    "",
-    "",
+    [{ role: "user", content: "I use a ranker and an embedding index." }],
+    "A ranker connects to an embedding index.",
+    "No changes.",
   ))
     reply += part;
-  expect(reply).not.toContain("fresh:");
-  expect(reply).toMatch(/\?/u);
-});
-it("streams a checked model sentence before the model completes", async () => {
-  let release = () => {};
-  const wait = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  model.mockImplementation(async function* () {
-    yield {
-      type: "response.output_text.delta",
-      delta: "The requests reach the API. ",
-    };
-    await wait;
-    yield {
-      type: "response.output_text.delta",
-      delta: "Where does the created_at index help?",
-    };
-    yield { type: "response.completed" };
-  });
-  const stream = streamInterviewerReply(
-    [{ role: "user", content: "I store the rows." }],
-    "",
-    "",
+  expect(reply).toContain(
+    "How would your ranker score a video that has no watch history?",
   );
-  expect((await stream.next()).value).toBe("The requests reach the API.");
-  release();
-  let rest = "";
-  for await (const part of stream) rest += part;
-  expect(rest).toBe(" Where does the created_at index help?");
-});
-it("removes literal configured topic keys on the interview path", async () => {
-  let reply = "";
-  const context: InterviewContext = {
-    problem,
-    level: "senior",
-    reviewQuestion: "How does cache|caching work?",
-    selectedTopic: "fresh:7179b8dadc8f7599",
-    continuedQuestionId: "old-question",
-  };
-  for await (const part of streamInterviewerReply(
-    [{ role: "user", content: "I scope cached answers to permissions." }],
-    "",
-    "",
-    undefined,
-    undefined,
-    context,
-  ))
-    reply += part;
-  expect(reply).not.toContain("cache|caching");
-  expect(reply).toMatch(/\?/u);
-  expect(context.selectedTopic).not.toMatch(/^fresh:/u);
-  expect(context.continuedQuestionId).toBeUndefined();
+  expect(reply).not.toContain("mmq7-");
+  expect(reply).toMatch(/\?$/u);
+  expect(model).toHaveBeenCalledTimes(2);
+  expect(model.mock.lastCall?.[0].input).toContain("embedding index");
 });

@@ -20,7 +20,7 @@ it("never revives an exhausted GenAI issue, including on a named topic request",
   const memory = {
     askedQuestions: [],
     coveredTopics: [],
-    topicTurns: { cache: 2 },
+    topicTurns: { "mmq7-cache": 2 },
   };
   expect(eligibleDiscussionProbes("genai", [cache], memory, "cache")).toEqual(
     [],
@@ -109,13 +109,13 @@ it("uses earlier evidence to close an already-answered pending question and reje
   model.mockResolvedValueOnce({
     status: "completed",
     output_text: JSON.stringify({
-      topicId: "cache",
+      topicId: "mmq7-cache",
       question: cache.question,
       acknowledgement: "",
       acknowledgementQuote: "",
       continuesQuestionId: "",
       answers: [{ questionId: queue[0].id, quoteId: "m0q0" }],
-      covered: [{ topicId: "cache", quoteId: "m0q0" }],
+      covered: [{ topicId: "mmq7-cache", quoteId: "m0q0" }],
     }),
   });
   const reply = await discussionReply(messages, state, {
@@ -146,7 +146,7 @@ it("keeps a partial answer open and asks only a concrete unresolved gap", async 
     questionMemory: {
       askedQuestions: [question],
       coveredTopics: [],
-      topicTurns: { cache: 1 },
+      topicTurns: { "mmq7-cache": 1 },
     },
   };
   const gap =
@@ -154,7 +154,7 @@ it("keeps a partial answer open and asks only a concrete unresolved gap", async 
   model.mockResolvedValueOnce({
     status: "completed",
     output_text: JSON.stringify({
-      topicId: "cache",
+      topicId: "mmq7-cache",
       question: gap,
       acknowledgement: "",
       acknowledgementQuote: "",

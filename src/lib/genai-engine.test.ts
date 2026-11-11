@@ -20,7 +20,7 @@ it("answers all selected facts at every level without generating their values", 
       status: "completed",
       output_text: JSON.stringify({
         intent: "facts",
-        factIds: ["docs", "employees"],
+        factIds: ["mmq7-docs", "mmq7-employees"],
         hasUnspecified: false,
       }),
     });
@@ -47,10 +47,12 @@ it("keeps expected designs, anchors, facts and rubric definitions out of every i
 });
 it("does not probe a mechanism until the candidate has added it", () => {
   const p = genaiEngineFixture();
-  expect(stageProbes(p, p.phases[3]).map((p) => p.id)).toEqual(["evaluation"]);
+  expect(stageProbes(p, p.phases[3]).map((p) => p.id)).toEqual([
+    "mmq7-evaluation",
+  ]);
   expect(
     stageProbes(p, p.phases[3], "API -> cache").map((p) => p.id),
-  ).toContain("cache");
+  ).toContain("mmq7-cache");
 });
 it.each([
   "input tokens per request",
