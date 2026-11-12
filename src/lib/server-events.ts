@@ -48,6 +48,16 @@ type Event = {
   durationMs?: number;
   kind?: string;
   fingerprint?: string;
+  playGradingStage?: "provider" | "incomplete_output" | "validation";
+  providerCode?:
+    | "invalid_api_key"
+    | "expired_secret_key"
+    | "insufficient_quota"
+    | "model_not_found"
+    | "context_length_exceeded"
+    | "invalid_request_error"
+    | "rate_limit_exceeded";
+  validationIssueCount?: number;
   attempt?: number;
   model?: string;
   estimatedCostUsd?: number;

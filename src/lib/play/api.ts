@@ -1,3 +1,4 @@
+import { PlayGradingError, playFailureDetails } from "./grading-error";
 import "server-only";
 import { ApiRequestError, withApiRequest } from "@/lib/api-request";
 import { currentCandidateId } from "@/lib/candidate-context";
@@ -17,16 +18,25 @@ export function playEndpoint(
       const known =
           cause instanceof PlayError || cause instanceof ApiRequestError,
         status = known ? cause.status : 503;
-      if (!known)
+      if (!known) {
+        const details = playFailureDetails(cause);
         logServerEvent(
-          { event: "api_failure", route, status, kind: "play" },
-          cause,
+          {
+            event: "api_failure",
+            route,
+            status,
+            kind: "play",
+            ...details.fields,
+          },
+          details.original,
         );
+      }
       return Response.json(
         {
-          error: known
-            ? cause.message
-            : "Practice is unavailable right now. Your saved answers are safe. Please retry.",
+          error:
+            known || cause instanceof PlayGradingError
+              ? cause.message
+              : "Practice is unavailable right now. Your saved answers are safe. Please retry.",
         },
         {
           status,

@@ -1,3 +1,4 @@
+import { PlayGradingError } from "./grading-error";
 import { needsAiGrade } from "./grading-policy";
 import { checkDailyAiSpend } from "./spend";
 import "server-only";
@@ -44,10 +45,23 @@ export async function gradeWrittenAnswer(
       text: { format: zodTextFormat(verdictSchema, "practice_drill_grade") },
     }),
     { signal, timeout: 30000, maxRetries: 0 },
-  ).finally(checkDailyAiSpend);
+  )
+    .catch((cause: unknown) => {
+      throw new PlayGradingError("provider", cause);
+    })
+    .finally(checkDailyAiSpend);
   if (response.status !== "completed")
-    throw Error("Drill grading did not finish");
-  const verdict = verdictSchema.parse(JSON.parse(response.output_text ?? ""));
+    throw new PlayGradingError("incomplete_output");
+  const decoded = (() => {
+    try {
+      return JSON.parse(response.output_text ?? "");
+    } catch (cause) {
+      throw new PlayGradingError("validation", cause);
+    }
+  })();
+  const parsed = verdictSchema.safeParse(decoded);
+  if (!parsed.success) throw new PlayGradingError("validation", parsed.error);
+  const verdict = parsed.data;
   const correct =
     verdict.pass &&
     verdict.score >= 0.8 &&
