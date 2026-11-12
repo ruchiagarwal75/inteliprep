@@ -32,7 +32,9 @@ level and progress from the existing ledger sum.
 
 Placement can pass and open levels, but earns no stars because it has only two
 questions per level. Stars require a five-drill level round. Old saved rounds do
-not gain invented timing or stars. New best stars can only increase.
+not gain invented timing or stars. Legacy level progress with no star-era pass
+gets one star for a saved best score of 0.8 and two for 1. No time star is
+backfilled. Modern placement passes still earn no stars. New best stars can only increase.
 
 There are three RAG chests, one between each pair of levels. The prior pass
 unlocks the chest; opening it does not block the next level. The server hashes

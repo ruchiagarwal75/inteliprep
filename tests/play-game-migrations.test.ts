@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import {
   startPlayPostgres,
   PLAY_TEST_USER as user,
+  PLAY_OTHER_USER as other,
 } from "./fixtures/play-postgres";
 import { getRound } from "@/lib/play/rounds";
 import { playerSnapshot } from "@/lib/play/player";
@@ -63,4 +64,38 @@ it("adds game metadata twice without changing an old private attempt, timing, pa
     await fixture.operator`select relrowsecurity from pg_class c join pg_namespace n on c.relnamespace=n.oid where n.nspname='practice_game' and c.relkind='r'`;
   expect(tables).toHaveLength(12);
   expect(tables.every((t) => t.relrowsecurity)).toBe(true);
+  const backfillName = (await readdir("supabase/migrations")).find((name) =>
+    name.endsWith("_play_legacy_stars.sql"),
+  );
+  if (!backfillName) throw Error("Missing legacy star migration");
+  const backfill = await readFile(
+    `supabase/migrations/${backfillName}`,
+    "utf8",
+  );
+  await fixture.operator`insert into practice_game.level_progress(user_id,topic,level,status,best_score,passed_at,best_stars) values(${user},'rag',2,'passed',0.8,'2026-11-01T12:00:00Z',0),(${user},'rag',3,'passed',1,'2026-11-01T12:00:00Z',3),(${user},'rag',4,'passed',0.6,'2026-11-01T12:00:00Z',0),(${other},'rag',1,'passed',1,'2026-11-11T12:00:00Z',0)`;
+  // A later modern placement must not erase an older pass's entitlement.
+  for (const owner of [user, other])
+    await fixture.operator`insert into practice_game.play_sessions(id,user_id,request_id,topic,mode,created_at,completed_at,result_json) values(${crypto.randomUUID()},${owner},${crypto.randomUUID()},'rag','placement','2026-11-10T12:00:00Z','2026-11-11T12:00:00Z',${fixture.operator.json({ stars: 0, passedLevels: [1] })})`;
+  const unchangedFields =
+    await fixture.operator`select user_id,topic,level,status,best_score,passed_at from practice_game.level_progress order by user_id,level`;
+  for (let repeat = 0; repeat < 2; repeat++)
+    await fixture.operator.unsafe(backfill);
+  expect(
+    await fixture.operator`select user_id,topic,level,status,best_score,passed_at from practice_game.level_progress order by user_id,level`,
+  ).toEqual(unchangedFields);
+  expect(
+    await fixture.operator`select level,best_stars from practice_game.level_progress where user_id=${user} order by level`,
+  ).toEqual([
+    { level: 1, best_stars: 2 },
+    { level: 2, best_stars: 1 },
+    { level: 3, best_stars: 3 },
+    { level: 4, best_stars: 0 },
+  ]);
+  expect(
+    await fixture.operator`select best_stars from practice_game.level_progress where user_id=${other}`,
+  ).toEqual([{ best_stars: 0 }]);
+  expect(
+    await fixture.operator`select * from practice_game.drill_attempts where id=${attempt}`,
+  ).toEqual([before]);
+  expect((await playerSnapshot(user)).points).toBe(75);
 });
