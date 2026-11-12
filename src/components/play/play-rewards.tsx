@@ -25,7 +25,7 @@ export function PlayRewardsProvider({
   initial?: PlayTotals;
   children: ReactNode;
 }) {
-  const [levelUp, setLevelUp] = useState<number>();
+  const [levelUp, setLevelUp] = useState<NonNullable<PlayTotals["xpLevel"]>>();
   const [received, setReceived] = useState(initial),
     [totals, setTotals] = useState(initial),
     timer = useRef<number | undefined>(undefined),
@@ -49,7 +49,7 @@ export function PlayRewardsProvider({
       value.xpLevel &&
       value.xpLevel.level > previousLevel
     )
-      setLevelUp(value.xpLevel.level);
+      setLevelUp(value.xpLevel);
     pending.current = value;
     if (
       !animate ||
@@ -82,7 +82,7 @@ export function PlayRewardsProvider({
     <RewardsContext.Provider value={value}>
       {children}
       {levelUp !== undefined && (
-        <LevelUp level={levelUp} onClose={dismissLevelUp} />
+        <LevelUp progress={levelUp} onClose={dismissLevelUp} />
       )}
     </RewardsContext.Provider>
   );

@@ -130,6 +130,7 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
     /current/u,
   );
   await expect(page.locator('[data-revealed="true"]')).toHaveCount(1);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   const chestResponse = page.waitForResponse(
     (r) =>
       r.url().endsWith("/api/play/chest") && r.request().method() === "POST",
@@ -143,9 +144,15 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   const modal = page.getByRole("dialog", { name: "Level up!", exact: true });
   await expect(modal).toBeVisible();
   await expect(
-    modal.getByText("You're now Lv 2", { exact: true }),
+    modal.getByLabel("You're now Lv 2", { exact: true }),
   ).toBeVisible();
+  await expect(
+    modal.getByText("Next: Lv 3 at 300 XP", { exact: true }),
+  ).toBeVisible();
+  await expect(modal.locator("[data-confetti]")).toBeVisible();
   await capturePlay(page, "player-level-up", folder, false);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(modal.locator("[data-confetti]")).toBeHidden();
   await modal.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(
     page.getByRole("button", {
