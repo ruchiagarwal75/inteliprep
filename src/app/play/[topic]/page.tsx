@@ -9,13 +9,16 @@ import styles from "@/components/play/level-path.module.css";
 export const dynamic = "force-dynamic";
 export default async function TopicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ topic: string }>;
+  searchParams: Promise<{ unlocked?: string }>;
 }) {
   const userId = await playAccountId(),
     { topic: id } = await params,
     topic = playTopic(id);
   if (!topic?.available) notFound();
+  const reveal = Number((await searchParams).unlocked);
   const snapshot = await playerSnapshot(userId),
     levels = levelsForTopic(id),
     passed = snapshot.levels
@@ -49,6 +52,7 @@ export default async function TopicPage({
       </div>
       <LevelPath
         topic={id}
+        revealLevel={Number.isSafeInteger(reveal) ? reveal : undefined}
         levels={levels}
         passed={passed}
         chests={Object.fromEntries(

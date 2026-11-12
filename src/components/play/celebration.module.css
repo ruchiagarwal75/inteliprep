@@ -5,7 +5,7 @@
   background: var(--accent-soft);
   color: var(--foreground);
   border-radius: var(--corner-large);
-  animation: reveal 350ms ease-out both;
+  animation: reveal var(--game-motion) ease-out both;
 }
 .panel ul {
   list-style: none;
@@ -45,11 +45,11 @@
 }
 @keyframes reveal {
   from {
-    transform: translateY(8px) scale(0.98);
+    transform: perspective(600px) rotateY(-65deg);
     opacity: 0;
   }
   to {
-    transform: translateY(0) scale(1);
+    transform: perspective(600px) rotateY(0);
     opacity: 1;
   }
 }

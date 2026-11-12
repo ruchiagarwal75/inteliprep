@@ -10,12 +10,14 @@ export function LevelPath({
   levels,
   passed,
   stars = {},
+  revealLevel,
   chests = {},
 }: {
   topic: string;
   levels: readonly { level: number; title: string }[];
   passed: number[];
   stars?: Record<number, number>;
+  revealLevel?: number;
   chests?: Record<number, number>;
 }) {
   const current = levels.findIndex(
@@ -64,6 +66,10 @@ export function LevelPath({
               key={level.level}
               className={styles.step}
               data-state={state}
+              data-revealed={
+                (state === "current" && revealLevel === level.level) ||
+                undefined
+              }
               data-side={index % 2}
               aria-current={state === "current" ? "step" : undefined}
             >
@@ -72,6 +78,11 @@ export function LevelPath({
                   className={styles.node}
                   aria-label={`Level ${level.level}: ${level.title}, ${state}`}
                 >
+                  {state === "current" && revealLevel === level.level && (
+                    <span className={styles.breakLock}>
+                      <LockIcon width="28" height="28" />
+                    </span>
+                  )}
                   {complete ? (
                     <CheckIcon width="36" height="36" />
                   ) : open ? (
