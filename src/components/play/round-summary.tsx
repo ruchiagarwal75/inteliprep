@@ -1,5 +1,9 @@
 "use client";
-import { RAG_COURSE_ID, playWorldHref } from "@/lib/play/course/metadata";
+import {
+  RAG_COURSE_ID,
+  playWorldHref,
+  courseTopicHref,
+} from "@/lib/play/course/metadata";
 import Link from "next/link";
 import type { RoundSummary } from "@/lib/play/public";
 import { formatDrillTime } from "@/lib/play/drill-time";
@@ -130,6 +134,14 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
           {course && (
             <Link className="practice-secondary" href="/play/rag/notebook">
               Notebook
+            </Link>
+          )}
+          {course && summary.level !== null && (
+            <Link
+              className="practice-secondary"
+              href={courseTopicHref(summary.level)}
+            >
+              Review slides
             </Link>
           )}
           <Link className="practice-link" href="/progress">

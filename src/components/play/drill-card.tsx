@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { markRoundReady } from "./round-prefetch";
 import { DRILL_TYPE_LABELS } from "@/lib/play/public";
 import type {
@@ -11,6 +11,7 @@ import { SoftTimer } from "./soft-timer";
 import { LessonHeader } from "./lesson-header";
 import { AnswerSheet } from "./answer-sheet";
 import { DrillAnswerForm } from "./drill-answer-form";
+import { CourseSlidesOverlay } from "./course-slides-overlay";
 import styles from "./drill.module.css";
 export function DrillCard({
   topic,
@@ -41,6 +42,7 @@ export function DrillCard({
   outcomes?: (boolean | null)[];
   animatePoints?: boolean;
 }) {
+  const [slidesOpen, setSlidesOpen] = useState(false);
   useEffect(() => {
     markRoundReady();
   }, [question.attemptId]);
@@ -59,6 +61,7 @@ export function DrillCard({
         total={question.total}
         combo={combo}
         outcomes={outcomes}
+        onSlides={question.courseKind ? () => setSlidesOpen(true) : undefined}
       />
       <article
         data-drill-card
@@ -80,6 +83,7 @@ export function DrillCard({
             result={result}
             resumed={resumed}
             busy={busy || Boolean(onRetry)}
+            paused={slidesOpen}
           />
         </header>
         <h1>{question.title}</h1>
@@ -115,6 +119,12 @@ export function DrillCard({
           result={result}
           animate={animatePoints}
           onNext={onNext}
+        />
+      )}
+      {slidesOpen && (
+        <CourseSlidesOverlay
+          level={question.level}
+          onClose={() => setSlidesOpen(false)}
         />
       )}
     </div>

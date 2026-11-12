@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DrillQuestion, DrillResult } from "@/lib/play/public";
 import { drillActivityResultSchema } from "@/lib/play/public";
 import { DRILL_HEARTBEAT_MS, formatDrillTime } from "@/lib/play/drill-time";
@@ -10,29 +10,32 @@ export function SoftTimer({
   result,
   resumed,
   busy,
+  paused = false,
   onRefresh,
 }: {
   question: DrillQuestion;
   result?: DrillResult;
   resumed?: boolean;
   busy: boolean;
+  paused?: boolean;
   onRefresh?: () => void;
 }) {
   const { request } = useCandidateAccount();
   const [elapsedMs, setElapsedMs] = useState(question.elapsedMs ?? 0);
+  const checkpoint = useRef(question.elapsedMs ?? 0);
+  const queue = useRef(Promise.resolve());
   const cap = question.maxTimeMs ?? Number.MAX_SAFE_INTEGER;
   useEffect(() => {
     if (result || busy) return;
-    let base = question.elapsedMs ?? 0,
+    let base = Math.max(question.elapsedMs ?? 0, checkpoint.current),
       at = performance.now(),
-      visible = !document.hidden,
+      visible = !document.hidden && !paused,
       disposed = false,
       refreshing = false;
-    let queue = Promise.resolve();
     const value = () =>
       Math.min(cap, base + (visible ? performance.now() - at : 0));
     const pulse = (show: boolean) => {
-      queue = queue.then(async () => {
+      queue.current = queue.current.then(async () => {
         if (disposed && show) return;
         try {
           const response = await request("/api/play/activity", {
@@ -58,6 +61,7 @@ export function SoftTimer({
             return;
           }
           base = parsed.data.elapsedMs;
+          checkpoint.current = base;
           at = performance.now();
           setElapsedMs(base);
         } catch {
@@ -68,7 +72,7 @@ export function SoftTimer({
     const visibility = () => {
       base = value();
       at = performance.now();
-      visible = !document.hidden;
+      visible = !document.hidden && !paused;
       setElapsedMs(base);
       pulse(visible);
     };
@@ -84,6 +88,7 @@ export function SoftTimer({
     document.addEventListener("visibilitychange", visibility);
     window.addEventListener("pagehide", close);
     return () => {
+      checkpoint.current = value();
       disposed = true;
       clearInterval(tick);
       clearInterval(heartbeat);
@@ -99,12 +104,16 @@ export function SoftTimer({
     cap,
     result,
     busy,
+    paused,
     onRefresh,
   ]);
   return (
     <span className={styles.timer} aria-label="Time on this drill">
       {formatDrillTime(Math.min(result ? result.timeMs : elapsedMs, cap))}
-      <span> No hard stop{resumed ? " · Resumed" : ""}</span>
+      <span>
+        {paused ? " Paused for slides" : " No hard stop"}
+        {resumed ? " · Resumed" : ""}
+      </span>
     </span>
   );
 }

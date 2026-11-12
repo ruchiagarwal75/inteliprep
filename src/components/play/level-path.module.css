@@ -3,6 +3,26 @@
   max-width: 1000px;
   margin: 32px auto;
 }
+.reviewPopover[open] {
+  position: relative;
+  z-index: 6;
+}
+.reviewMenu {
+  position: absolute;
+  top: 176px;
+  left: var(--node-left);
+  transform: translateX(-50%);
+  z-index: 6;
+  display: grid;
+  gap: 12px;
+  width: min(240px, 58vw);
+  padding: 16px;
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
+  border: 2px solid var(--pixel-line-strong);
+  border-bottom-width: 4px;
+  font: 500 14px/1.5 var(--font-play-read);
+}
 .track {
   position: absolute;
   inset: 0;

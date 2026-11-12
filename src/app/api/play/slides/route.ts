@@ -1,11 +1,12 @@
 import { z } from "zod";
 import { playEndpoint } from "@/lib/play/api";
 import { readJsonBody } from "@/lib/api-request";
-import { seeCourseSlide } from "@/lib/play/course/visits";
+import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
 const inputSchema = z
   .object({
     level: z.number().int().min(1).max(9),
     index: z.number().int().min(0).max(5),
+    lastViewedIndex: z.number().int().min(0).max(5).optional(),
   })
   .strict();
 export const POST = playEndpoint(
@@ -15,7 +16,23 @@ export const POST = playEndpoint(
     if (!input.success)
       return Response.json({ error: "Choose a valid slide." }, { status: 400 });
     return Response.json(
-      await seeCourseSlide(userId, input.data.level, input.data.index),
+      await seeCourseSlide(
+        userId,
+        input.data.level,
+        input.data.index,
+        input.data.lastViewedIndex,
+      ),
     );
   },
 );
+export const GET = playEndpoint("/api/play/slides", async (request, userId) => {
+  const level = z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(9)
+    .safeParse(new URL(request.url).searchParams.get("level"));
+  if (!level.success)
+    return Response.json({ error: "Choose a valid topic." }, { status: 400 });
+  return Response.json(await courseLesson(userId, level.data));
+});

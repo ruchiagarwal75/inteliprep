@@ -10,12 +10,14 @@ export function LessonHeader({
   total,
   combo,
   outcomes,
+  onSlides,
 }: {
   topic: string;
   completed: number;
   total: number;
   combo: number;
   outcomes?: readonly (boolean | null)[];
+  onSlides?: () => void;
 }) {
   const states: BlockState[] = Array.from({ length: total }, (_, i) =>
     outcomes?.[i] === true
@@ -60,6 +62,15 @@ export function LessonHeader({
           <PixelSprite art={PIXEL_ART.flame} width="14" height="18" />
           {combo} in a row
         </span>
+      )}
+      {onSlides && (
+        <button
+          type="button"
+          className={`practice-secondary ${styles.slides}`}
+          onClick={onSlides}
+        >
+          Slides
+        </button>
       )}
       <div className={styles.theme}>
         <ThemeToggle />

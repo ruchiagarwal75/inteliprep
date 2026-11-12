@@ -15,10 +15,12 @@ export function CoursePath({
   passed,
   stars,
   chests,
+  started = [],
 }: {
   passed: number[];
   stars: Record<number, number>;
   chests: Record<number, number>;
+  started?: number[];
 }) {
   const current = RAG_COURSE_NODES.findIndex(
     (node) => node.available && !passed.includes(node.level),
@@ -68,7 +70,36 @@ export function CoursePath({
               data-side={index % 2}
               aria-current={state === "current" ? "step" : undefined}
             >
-              {open ? (
+              {open && (complete || started.includes(node.level)) ? (
+                <details
+                  className={styles.reviewPopover}
+                  data-topic-review={node.level}
+                >
+                  <summary
+                    className={styles.node}
+                    aria-label={`Topic ${node.level}: ${node.title}`}
+                  >
+                    {complete ? (
+                      <PixelSprite
+                        art={PIXEL_ART.check}
+                        width="32"
+                        height="24"
+                      />
+                    ) : (
+                      <span data-game-label>{node.level}</span>
+                    )}
+                  </summary>
+                  <div className={styles.reviewMenu}>
+                    <strong>{node.title}</strong>
+                    <Link
+                      className="practice-secondary"
+                      href={courseTopicHref(node.level)}
+                    >
+                      Review slides
+                    </Link>
+                  </div>
+                </details>
+              ) : open ? (
                 <Link
                   className={styles.node}
                   href={courseTopicHref(node.level)}

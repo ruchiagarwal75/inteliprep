@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { POST as start } from "@/app/api/play/round/route";
 import { POST as submit } from "@/app/api/play/submit/route";
-import { POST as slides } from "@/app/api/play/slides/route";
+import { POST as slides, GET as readSlides } from "@/app/api/play/slides/route";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
@@ -9,6 +9,7 @@ const calls = vi.hoisted(() => ({
   start: vi.fn(),
   submit: vi.fn(),
   slides: vi.fn(),
+  lesson: vi.fn(),
   guard: vi.fn(),
 }));
 vi.mock("@/lib/play/rounds", () => ({
@@ -16,7 +17,10 @@ vi.mock("@/lib/play/rounds", () => ({
   getRound: vi.fn(),
 }));
 vi.mock("@/lib/play/submit", () => ({ submitRoundAnswer: calls.submit }));
-vi.mock("@/lib/play/course/visits", () => ({ seeCourseSlide: calls.slides }));
+vi.mock("@/lib/play/course/visits", () => ({
+  seeCourseSlide: calls.slides,
+  courseLesson: calls.lesson,
+}));
 vi.mock("@/lib/play/course/access", async (original) => ({
   ...(await original<typeof import("@/lib/play/course/access")>()),
   requireCourseAttempt: calls.guard,
@@ -25,6 +29,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   calls.guard.mockResolvedValue(undefined);
   calls.slides.mockResolvedValue({ complete: false, seenThrough: 0 });
+  calls.lesson.mockResolvedValue({ slides: [], level: 1 });
 });
 function request(path: string, body: unknown) {
   return new Request(`http://localhost/api/play/${path}`, {
@@ -93,5 +98,27 @@ it("accepts only slide position, never a claimed score or unlock", async () => {
     "11111111-1111-4111-8111-111111111111",
     1,
     0,
+    undefined,
+  );
+});
+it("protects slide reads and always uses the signed-in owner", async () => {
+  const read = () =>
+    new Request("http://localhost/api/play/slides?level=1&userId=someone-else");
+  vi.mocked(requireCandidateIdentity).mockRejectedValueOnce(
+    new CandidateAuthError(),
+  );
+  expect((await readSlides(read())).status).toBe(401);
+  vi.mocked(requireCandidateIdentity).mockRejectedValueOnce(
+    new CandidateInviteError(),
+  );
+  expect((await readSlides(read())).status).toBe(403);
+  expect(
+    (await readSlides(new Request("http://localhost/api/play/slides?level=99")))
+      .status,
+  ).toBe(400);
+  expect((await readSlides(read())).status).toBe(200);
+  expect(calls.lesson).toHaveBeenCalledWith(
+    "11111111-1111-4111-8111-111111111111",
+    1,
   );
 });
