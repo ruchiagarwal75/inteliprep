@@ -25,7 +25,7 @@ export function AnswerSheet({
     if (animate) playGameSound(result.correct ? "correct" : "wrong");
   }, [result.correct, animate]);
   const heading = result.correct
-    ? ["Nice!", "Exactly.", "Sharp."][question.ordinal % 3]
+    ? ["Nice!", "Exactly", "Sharp"][question.ordinal % 3]
     : "Not quite";
   return (
     <section
@@ -36,19 +36,19 @@ export function AnswerSheet({
       <div className={styles.sheetTop}>
         <GameGuide pose={result.correct ? "cheer" : "encourage"} />
         <div>
-          <h2>{heading}</h2>
+          <h2 data-game-label>{heading}</h2>
           {result.correct ? (
             <EarnedPoints
               points={result.points + (result.comboBonus ?? 0)}
               animate={animate}
             />
           ) : (
-            <p>Good try. This one comes back in 2 days.</p>
+            <p>This one comes back for review in 2 days.</p>
           )}
         </div>
       </div>
       {(result.comboBonus ?? 0) > 0 && (
-        <p className={styles.burst} role="status">
+        <p className={styles.burst} role="status" data-game-label>
           {result.combo} in a row! +{result.comboBonus} XP
         </p>
       )}
@@ -82,6 +82,7 @@ export function AnswerSheet({
       </details>
       <button
         ref={next}
+        data-game-label
         className="practice-primary"
         type="button"
         onClick={onNext}

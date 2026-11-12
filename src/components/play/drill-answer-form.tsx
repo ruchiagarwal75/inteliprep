@@ -195,6 +195,7 @@ export function DrillAnswerForm({
           )}
         <button
           className="practice-primary"
+          data-game-label
           disabled={busy || !ready}
           type="submit"
           aria-label={busy ? "Checking..." : "Check answer"}

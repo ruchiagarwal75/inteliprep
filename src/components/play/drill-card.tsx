@@ -56,6 +56,7 @@ export function DrillCard({
         completed={completed}
         total={question.total}
         combo={combo}
+        outcomes={outcomes}
       />
       <article
         className={`practice-surface ${styles.card}`}

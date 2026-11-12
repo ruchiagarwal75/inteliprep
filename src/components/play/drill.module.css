@@ -1,17 +1,21 @@
 .card {
   max-width: 780px;
   margin-inline: auto;
-  border-top: 3px solid var(--accent);
+  border-top: 3px solid var(--game-world);
+  padding-bottom: 24px;
+  overflow-anchor: none;
 }
 .card h1 {
-  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 750;
+  line-height: 1.35;
 }
 .header {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--space-1);
-  color: var(--muted);
+  gap: 8px;
+  color: var(--pixel-muted);
   font-size: 0.875rem;
 }
 .timer {
@@ -21,24 +25,17 @@
 .timer span {
   font-size: 0.75rem;
 }
-.progress {
-  width: 100%;
-  height: 6px;
-  margin-block: var(--space-2) var(--space-4);
-  accent-color: var(--accent);
-}
 .prompt {
   white-space: pre-wrap;
   line-height: 1.7;
-  margin-block: var(--space-3);
+  margin-block: 24px;
 }
 .form,
-.form fieldset,
-.result {
+.form fieldset {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--space-2);
+  gap: 16px;
 }
 .form fieldset {
   border: 0;
@@ -47,13 +44,13 @@
   min-width: 0;
 }
 .legend {
-  margin-bottom: var(--space-2);
+  margin-bottom: 16px;
   font-weight: 600;
 }
 .form label {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 8px;
   font-size: 0.9375rem;
 }
 .form input:not([type="radio"]),
@@ -61,105 +58,83 @@
 .form textarea {
   width: 100%;
   min-width: 0;
-  padding: var(--space-2);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--corner-small);
-  color: var(--foreground);
-  background: var(--surface-raised);
+  padding: 16px;
+  border: 2px solid var(--pixel-line-strong);
+  border-radius: 0;
+  color: var(--pixel-text);
+  background: var(--pixel-panel);
   font: inherit;
-}
-.form button,
-.result > button {
-  align-self: flex-start;
-  margin-top: var(--space-2);
 }
 .mathInputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  gap: 16px;
 }
 .options {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 8px;
 }
 .form .option {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: var(--corner-small);
+  gap: 16px;
+  padding: 16px;
+  border: 2px solid var(--pixel-line-strong);
+  border-bottom-width: 6px;
+  border-radius: 0;
+  clip-path: var(--pixel-cut);
   line-height: 1.6;
+  font-weight: 550;
+  transition: transform 160ms steps(2, end);
+  cursor: pointer;
+  background: var(--pixel-panel);
 }
 .option input {
   margin-top: 5px;
-  accent-color: var(--accent);
+  accent-color: var(--game-world);
   flex-shrink: 0;
 }
 .option:has(input:checked) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
+  background: var(--pixel-violet-soft);
+  border-color: var(--game-world);
+  transform: translateY(-2px);
+}
+.option:has(input:focus-visible) {
+  box-shadow: inset 0 0 0 3px var(--pixel-violet-text);
 }
 .error {
-  background: var(--danger-soft);
-  color: var(--danger);
-  padding: var(--space-2);
-  border-radius: var(--corner-small);
+  background: var(--game-wrong-soft);
+  color: var(--game-wrong);
+  padding: 16px;
+  border: 2px solid var(--game-wrong);
 }
-.result {
-  border-top: 1px solid var(--border);
-  padding-top: var(--space-3);
-}
-.points {
-  color: var(--accent-text);
-  font-weight: 600;
-}
-.why {
-  border: 1px solid var(--border);
-  padding: var(--space-2);
-  border-radius: var(--corner-small);
-}
-.why summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-.why p {
-  margin-top: var(--space-2);
-}
-.why code {
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-@media (max-width: 479px) {
-  .mathInputs {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.form :disabled {
-  color: var(--muted);
-  background: var(--surface-inset);
-  opacity: 1;
-}
-.progress::-webkit-progress-bar {
-  background: var(--surface-inset);
-}
-.progress::-webkit-progress-value {
-  background: var(--accent);
-}
-.progress::-moz-progress-bar {
-  background: var(--accent);
-}
-
 .hint {
   font-size: 0.75rem;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--pixel-muted);
 }
-
-.card {
-  padding-bottom: var(--space-3);
+.form :disabled {
+  color: var(--pixel-muted);
+  background: var(--pixel-inset);
+  opacity: 1;
+}
+.checkDock {
+  position: sticky;
+  bottom: 0;
+  padding-block: 16px;
+  background: var(--pixel-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 3;
+}
+.form .checkDock button {
+  align-self: stretch;
+  width: 100%;
+  margin-top: 0;
 }
 .lesson:has([aria-label="Drill result"]) {
   padding-bottom: 64dvh;
@@ -167,44 +142,8 @@
 .card[data-result] {
   min-height: 0;
 }
-.form .option {
-  padding: var(--space-3);
-  border: 2px solid var(--border-strong);
-  border-bottom-width: 5px;
-  border-radius: 18px;
-  font-weight: 550;
-  transition: transform var(--game-motion) ease;
-  cursor: pointer;
-  background: var(--surface-raised);
-}
-.option:has(input:checked) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  transform: translateY(-3px);
-}
-.option:has(input:focus-visible) {
-  outline: 3px solid var(--focus-ring);
-  outline-offset: 3px;
-}
-.checkDock {
-  position: sticky;
-  bottom: 0;
-  padding-block: var(--space-2);
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  z-index: 3;
-}
-.form .checkDock button {
-  align-self: stretch;
-  width: 100%;
-  text-transform: uppercase;
-  margin-top: 0;
-}
 [data-wrong] .card {
-  animation: wrong var(--game-motion) ease-in-out;
+  animation: wrong 240ms steps(2, end);
 }
 @keyframes wrong {
   0%,
@@ -212,10 +151,15 @@
     transform: translateX(0);
   }
   25% {
-    transform: translateX(-5px);
+    transform: translateX(-4px);
   }
   75% {
-    transform: translateX(5px);
+    transform: translateX(4px);
+  }
+}
+@media (max-width: 479px) {
+  .mathInputs {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -225,8 +169,4 @@
     transition: none;
     transform: none;
   }
-}
-
-.card {
-  overflow-anchor: none;
 }

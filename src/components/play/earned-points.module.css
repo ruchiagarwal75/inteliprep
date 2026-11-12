@@ -1,23 +1,28 @@
 .amount {
-  color: var(--game-gold);
-  font-size: 1.75rem;
-  font-weight: 850;
+  --pixel-label-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pixel-gold-text);
   font-variant-numeric: tabular-nums;
 }
-.amount span {
-  font-size: 1rem;
+.amount svg {
+  padding: 4px;
+  width: 35px;
+  height: 29px;
+  background: var(--pixel-sprite-plate);
 }
 .amount[data-animate] {
-  animation: pop var(--game-motion) cubic-bezier(0.2, 1.6, 0.4, 1);
+  animation: pop 240ms steps(2, end);
 }
 @keyframes pop {
   from {
-    opacity: 0.3;
-    transform: translateY(8px) scale(0.85);
+    opacity: 0;
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
