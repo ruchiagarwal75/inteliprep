@@ -35,7 +35,10 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
       </header>
       <div className={styles.body}>
         {summary.passed && <PassConfetti />}
-        <GameGuide pose={summary.passed ? "celebrate" : "encourage"} />
+        <GameGuide
+          size="large"
+          pose={summary.passed ? "celebrate" : "encourage"}
+        />
         <h1 data-game-label>{title}</h1>
         {summary.levelTitle && (
           <p className={styles.levelName}>{summary.levelTitle}</p>

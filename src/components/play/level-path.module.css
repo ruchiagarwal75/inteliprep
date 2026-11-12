@@ -33,7 +33,7 @@
 }
 .step {
   position: relative;
-  height: 320px;
+  height: 440px;
   --node-left: 25%;
 }
 .step[data-side="1"] {
@@ -41,7 +41,7 @@
 }
 .node {
   position: absolute;
-  top: 24px;
+  top: 80px;
   left: var(--node-left);
   z-index: 1;
   display: grid;
@@ -68,7 +68,7 @@
   border-color: var(--game-world-edge);
 }
 .step[data-state="current"] .node {
-  top: 16px;
+  top: 72px;
   width: 96px;
   height: 96px;
   background: var(--pixel-current);
@@ -79,7 +79,7 @@
 .step[data-state="current"]::before {
   content: "";
   position: absolute;
-  top: 8px;
+  top: 64px;
   left: var(--node-left);
   transform: translateX(-50%);
   width: 112px;
@@ -102,7 +102,7 @@
 .caption {
   position: absolute;
   z-index: 2;
-  top: 118px;
+  top: 180px;
   left: var(--node-left);
   transform: translateX(-50%);
   display: grid;
@@ -136,7 +136,7 @@
   position: absolute;
   z-index: 8;
   left: 50%;
-  top: 118px;
+  top: 180px;
   transform: translateX(-50%);
   width: min(310px, calc(100% - 32px));
   padding: 24px;
@@ -159,19 +159,19 @@
 }
 .chest {
   position: absolute;
-  top: 248px;
+  top: 328px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
 }
 .guide {
   position: absolute;
-  left: 43%;
-  top: 10px;
+  left: calc(var(--node-left) + 40px);
+  top: 48px;
   z-index: 2;
 }
 .step[data-side="1"] .guide {
-  left: 10%;
+  left: calc(var(--node-left) - 180px);
 }
 .placement {
   display: flex;
@@ -235,9 +235,6 @@
   }
   .step[data-side="1"] {
     --node-left: 60%;
-  }
-  .guide {
-    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

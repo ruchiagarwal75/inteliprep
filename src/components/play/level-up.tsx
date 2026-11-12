@@ -37,7 +37,7 @@ export function LevelUp({
         <div className={styles.hero}>
           <span className={styles.burst} aria-hidden="true" />
           <div className={styles.guide}>
-            <GameGuide pose="celebrate" />
+            <GameGuide size="large" pose="celebrate" />
           </div>
         </div>
         <div className={styles.confetti} aria-hidden="true" data-confetti>

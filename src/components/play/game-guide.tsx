@@ -13,8 +13,10 @@ const visibleOnServer = () => false;
 export function GameGuide({
   message,
   pose = "idle",
+  size = "small",
 }: {
   message?: string;
+  size?: "small" | "large";
   pose?: "idle" | "cheer" | "encourage" | "thinking" | "celebrate";
 }) {
   const enabled = useMascotPreference(),
@@ -24,12 +26,16 @@ export function GameGuide({
     <aside
       className={styles.guide}
       data-pose={pose}
+      data-size={size}
       data-paused={paused || undefined}
       aria-label="Practice guide"
     >
       <div className={styles.art}>
         <PixelMascot pose={pose} />
       </div>
+      {message && size === "large" && (
+        <span className={styles.tail} aria-hidden="true" />
+      )}
       {message && (
         <p className={styles.bubble} data-game-label>
           {message}

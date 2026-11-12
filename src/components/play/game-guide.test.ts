@@ -19,3 +19,15 @@ it("uses the supplied pixel head for all five guide poses without adding control
     expect(html).toContain('aria-hidden="true"');
   }
 });
+
+it("keeps sheets small and provides an explicit large sprite size for path and rewards", () => {
+  const large = renderToStaticMarkup(
+    createElement(GameGuide, { size: "large", message: "Ready for LV 2?" }),
+  );
+  const small = renderToStaticMarkup(
+    createElement(GameGuide, { pose: "cheer" }),
+  );
+  expect(large).toContain('data-size="large"');
+  expect(small).toContain('data-size="small"');
+  expect(large).toContain("Ready for LV 2?");
+});

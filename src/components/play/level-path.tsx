@@ -28,11 +28,12 @@ export function LevelPath({
     const x = (i: number) =>
       i % 2 ? (mobile ? 360 : 450) : mobile ? 240 : 150;
     return (
-      `M ${x(0)} 64` +
+      `M ${x(0)} 120` +
       levels
         .slice(1, segments + 1)
         .map(
-          (_, i) => ` V ${i * 320 + 280} H ${x(i + 1)} V ${(i + 1) * 320 + 64}`,
+          (_, i) =>
+            ` V ${i * 440 + 364} H ${x(i + 1)} V ${(i + 1) * 440 + 120}`,
         )
         .join("")
     );
@@ -43,7 +44,7 @@ export function LevelPath({
         <svg
           key={String(mobile)}
           className={`${styles.track} ${mobile ? styles.mobileTrack : styles.desktopTrack}`}
-          viewBox={`0 0 600 ${levels.length * 320}`}
+          viewBox={`0 0 600 ${levels.length * 440}`}
           preserveAspectRatio="none"
           aria-hidden="true"
         >
@@ -136,7 +137,10 @@ export function LevelPath({
               </div>
               {state === "current" && (
                 <div className={styles.guide}>
-                  <GameGuide message={`Ready for LV ${level.level}?`} />
+                  <GameGuide
+                    size="large"
+                    message={`Ready for LV ${level.level}?`}
+                  />
                 </div>
               )}
               {index < levels.length - 1 && (

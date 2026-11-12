@@ -58,7 +58,7 @@
   }
 }
 @media (max-width: 767px) {
-  .guide[data-pose="idle"] {
+  .guide[data-pose="idle"][data-size="small"] {
     display: none;
   }
   .guide {
@@ -70,4 +70,36 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+.guide[data-size="large"] {
+  --guide-size: 140px;
+  position: relative;
+  width: 140px;
+  height: 140px;
+  max-width: none;
+}
+.guide[data-size="large"] .bubble {
+  position: absolute;
+  bottom: calc(100% - 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  margin: 0;
+}
+.tail {
+  position: absolute;
+  top: 10px;
+  left: 66px;
+  width: 12px;
+  height: 12px;
+  background: var(--pixel-line-strong);
+  clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 50%, 50% 100%, 0 100%);
+}
+.tail::after {
+  content: "";
+  position: absolute;
+  inset: 0 2px 2px;
+  background: var(--pixel-panel);
+  clip-path: inherit;
 }
