@@ -340,6 +340,10 @@ uses only `INTERVIEW_RESUME_SECRET`, with a named stable fallback for local
 
 ## Browser verification and evidence
 
+Use a separate QA account for Preview testing. Never test with the owner's
+account or change their attempts to prepare a test. Use synthetic fixture
+accounts for isolated local checks.
+
 Before opening Production in an automated or shared QA browser, block
 `/api/monitoring/viewer` or set `mockmeai:exclude-analytics=1` in that browser's
 localStorage. Signed-out testing otherwise creates unverified browser records.
