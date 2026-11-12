@@ -60,7 +60,7 @@ test("Play keeps first-drill handoff, first-try rules, daily goal and keyboard p
     page.getByRole("heading", { name: "Drills to review", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("You got 0 of 5. Get 4 to pass.", { exact: true }),
+    page.getByText("0 of 5. Get 4 to pass.", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Try again", exact: true }).click();
   await expect(

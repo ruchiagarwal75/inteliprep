@@ -59,6 +59,7 @@ export function DrillCard({
         outcomes={outcomes}
       />
       <article
+        data-drill-card
         className={`practice-surface ${styles.card}`}
         data-result={result ? true : undefined}
       >

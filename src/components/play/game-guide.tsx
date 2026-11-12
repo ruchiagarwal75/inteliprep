@@ -30,7 +30,11 @@ export function GameGuide({
       <div className={styles.art}>
         <PixelMascot pose={pose} />
       </div>
-      {message && <p className={styles.bubble}>{message}</p>}
+      {message && (
+        <p className={styles.bubble} data-game-label>
+          {message}
+        </p>
+      )}
     </aside>
   );
 }

@@ -29,7 +29,7 @@
   height: 64px;
   clip-path: var(--pixel-cut);
   background: var(--pixel-sprite-plate);
-  border: 4px solid var(--pixel-gold);
+  border: 4px solid var(--pixel-sprite-gold);
 }
 .panel .name {
   font-size: clamp(1.125rem, 4vw, 1.5rem);

@@ -12,6 +12,7 @@
   flex: none;
 }
 .bubble {
+  --pixel-label-size: 9px;
   padding: 12px;
   border: 2px solid var(--pixel-line-strong);
   clip-path: var(--pixel-cut);
@@ -19,7 +20,7 @@
   background: var(--pixel-panel);
   font: 400 9px/1.8 var(--font-play-pixel);
   text-transform: uppercase;
-  max-width: 150px;
+  max-width: 180px;
 }
 .guide[data-pose="cheer"] .art {
   animation: cheer 240ms steps(2, end) 2 alternate;

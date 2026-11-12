@@ -74,7 +74,7 @@
   background: var(--pixel-current);
   border-color: var(--game-world);
   color: var(--pixel-current-text);
-  animation: ready 1200ms steps(2, end) infinite;
+  animation: ready 280ms steps(2, end) 2;
 }
 .step[data-state="current"]::before {
   content: "";

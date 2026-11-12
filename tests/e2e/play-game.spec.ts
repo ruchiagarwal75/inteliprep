@@ -1,11 +1,7 @@
+import { capturePixel as capturePlay } from "./capture-pixel";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
-import {
-  capturePlay,
-  openPlayLevel,
-  playView,
-  fillPlayAnswer,
-} from "./play-helpers";
+import { openPlayLevel, playView, fillPlayAnswer } from "./play-helpers";
 const folder = "play-game-polish-round-3";
 test("game path, sheets, three stars, chest, HUD and player level use server outcomes", async ({
   page,
@@ -47,6 +43,10 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
     await expect(
       page.getByText(name, { exact: true }).filter({ visible: true }),
     ).toBeVisible();
+  await expect(page.locator('[aria-label="Practice guide"] p')).toHaveCSS(
+    "font-family",
+    /Press Start 2P/,
+  );
   await capturePlay(page, "rag-world-path", folder);
   await capturePlay(page, "hud", folder, false);
   await page.getByRole("button", { name: "Your profile", exact: true }).click();
@@ -66,7 +66,16 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
     const view = await playView(page);
     await fillPlayAnswer(page, view);
     const shot = !selected && view.question.type === "spot_flaw";
-    if (shot) await capturePlay(page, "answer-selected", folder, false);
+    if (shot) {
+      await expect(
+        page.getByRole("heading", { name: view.question.title, exact: true }),
+      ).toHaveCSS("font-family", /Inter/);
+      await expect(page.getByRole("radio").first().locator("..")).toHaveCSS(
+        "font-family",
+        /Inter/,
+      );
+      await capturePlay(page, "answer-selected", folder, false);
+    }
     const response = page.waitForResponse(
       (r) =>
         r.url().endsWith("/api/play/submit") && r.request().method() === "POST",
@@ -122,6 +131,9 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   ).toBeVisible();
   await expect(page.getByLabel("3 of 3 stars", { exact: true })).toBeVisible();
   await expect(page.getByLabel("90 XP earned", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Retrieval basics", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Best combo", { exact: true })).toBeVisible();
   await capturePlay(page, "level-complete-3-stars", folder);
   await page.getByRole("link", { name: "Continue", exact: true }).click();
@@ -147,7 +159,10 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
         "width",
         width === 375 ? "96px" : "96px",
       );
-      const label = page.getByText("LV 1", { exact: true }).locator("..");
+      const label = page
+        .getByRole("list", { name: "Level path" })
+        .getByText("LV 1", { exact: true })
+        .locator("..");
       expect(
         await label.evaluate((el) => getComputedStyle(el).backgroundColor),
       ).not.toBe("rgba(0, 0, 0, 0)");
