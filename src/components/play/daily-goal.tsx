@@ -12,23 +12,21 @@ export function DailyGoal({ complete }: { complete?: boolean }) {
       }
     >
       <svg
-        width="24"
-        height="24"
-        viewBox="0 0 28 28"
-        fill="none"
+        width="18"
+        height="18"
+        viewBox="0 0 8 8"
+        shapeRendering="crispEdges"
         aria-hidden="true"
       >
-        <circle cx="14" cy="14" r="11" className={styles.track} />
-        <circle
-          cx="14"
-          cy="14"
-          r="11"
-          pathLength="1"
-          className={styles.fill}
-          strokeDasharray="1"
-          strokeDashoffset={complete ? 0 : 1}
+        <rect width="8" height="8" className={styles.frame} />
+        <rect
+          x="1"
+          y="1"
+          width="6"
+          height="6"
+          className={styles.square}
+          data-complete={complete || undefined}
         />
-        {complete && <path d="m9 14 3 3 7-7" className={styles.check} />}
       </svg>
       <span role="tooltip" className={styles.tooltip}>
         Daily goal: 1 round

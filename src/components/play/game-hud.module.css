@@ -2,82 +2,92 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  font-size: 0.8125rem;
-  font-weight: 750;
+  gap: 12px;
+  font: 500 12px/1.5 var(--font-play-read);
+  --pixel-label-size: 9px;
+}
+.hud [data-game-label] {
+  font: 400 9px/1.7 var(--font-play-pixel);
+  text-transform: uppercase;
+  font-synthesis: none;
 }
 .flame,
 .xp,
 .daily {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
 }
 .flame svg {
   color: var(--streak-flame);
 }
+.flame {
+  color: var(--pixel-text);
+}
 .daily {
-  color: var(--muted);
-  font-size: 0.75rem;
+  color: var(--pixel-muted);
 }
 .xp {
-  background: var(--game-gold-soft);
-  color: var(--game-gold);
-  border-radius: var(--game-round);
-  padding: 8px 12px;
-  font-variant-numeric: tabular-nums;
+  color: var(--pixel-gold-text);
+  padding: 6px;
+  background: var(--pixel-card);
+  clip-path: var(--pixel-cut);
+}
+.star {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  background: var(--pixel-sprite-plate);
 }
 .level {
   display: grid;
-  grid-template-columns: auto 72px;
+  grid-template-columns: auto 80px;
   align-items: center;
   gap: 6px 8px;
-  color: var(--foreground);
+  color: var(--pixel-text);
 }
 .level strong {
-  background: var(--game-reward-soft);
-  color: var(--game-reward);
-  padding: 5px 8px;
-  border-radius: 8px;
+  background: var(--pixel-violet-soft);
+  color: var(--pixel-violet-text);
+  padding: 4px 6px;
+  clip-path: var(--pixel-cut);
 }
 .track {
   display: block;
-  height: 6px;
-  overflow: hidden;
-  background: var(--border);
-  border-radius: var(--game-round);
+  width: 80px;
 }
-.track > span {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: var(--accent);
-  transform-origin: left;
-  transition: transform var(--game-motion) ease;
+.track [role="progressbar"] {
+  height: 10px;
+  gap: 2px;
+}
+.track [data-pixel-block] {
+  border-width: 1px;
+}
+.track [data-pixel-block][data-state="done"] {
+  background: var(--pixel-sprite-gold);
+  border-color: var(--pixel-sprite-gold);
 }
 .next {
-  grid-column: 1 / -1;
-  font-size: 0.625rem;
-  color: var(--muted);
-  font-weight: 500;
+  grid-column: 1/-1;
+  font: 500 10px/1.4 var(--font-play-read);
+  color: var(--pixel-muted);
   text-align: right;
 }
 @media (max-width: 479px) {
   .hud {
-    gap: 12px;
+    gap: 8px;
     width: 100%;
     justify-content: space-between;
   }
   .level {
-    grid-template-columns: auto 48px;
+    grid-template-columns: auto 72px;
+  }
+  .track {
+    width: 72px;
   }
   .xp {
-    padding: 6px 8px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .track > span {
-    transition: none;
+    padding: 4px;
   }
 }

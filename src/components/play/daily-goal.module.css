@@ -2,36 +2,26 @@
   display: inline-flex;
   position: relative;
   align-items: center;
-  border-radius: var(--corner-small);
   outline-offset: 4px;
 }
-.track {
-  stroke: var(--border-strong);
-  stroke-width: 2.5;
+.frame {
+  fill: var(--pixel-line-strong);
 }
-.fill {
-  stroke: var(--accent);
-  stroke-width: 3;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  transition: stroke-dashoffset 400ms ease;
+.square {
+  fill: var(--pixel-inset);
 }
-.check {
-  stroke: var(--accent-text);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.square[data-complete] {
+  fill: var(--pixel-good);
 }
 .tooltip {
   position: absolute;
   right: 0;
-  top: calc(100% + var(--space-1));
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: var(--corner-small);
-  background: var(--surface-raised);
-  color: var(--foreground);
-  font-size: 0.75rem;
+  top: calc(100% + 8px);
+  padding: 8px;
+  border: 2px solid var(--pixel-line);
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
+  font: 500 12px/1.4 var(--font-play-read);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -40,9 +30,4 @@
 .goal:hover .tooltip,
 .goal:focus .tooltip {
   opacity: 1;
-}
-@media (prefers-reduced-motion: reduce) {
-  .fill {
-    transition: none;
-  }
 }
