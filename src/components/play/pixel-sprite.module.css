@@ -35,13 +35,13 @@
   opacity: 0;
 }
 .chest[data-animate] .closed {
-  animation: closed 240ms steps(1, end) both;
+  animation: closed 600ms steps(1, end) both;
 }
 .chest[data-animate] .half {
-  animation: half 240ms steps(1, end) both;
+  animation: half 600ms steps(1, end) both;
 }
 .chest[data-animate] .open {
-  animation: opened 240ms steps(1, end) both;
+  animation: opened 600ms steps(1, end) both;
 }
 @keyframes closed {
   0% {

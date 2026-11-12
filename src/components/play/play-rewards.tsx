@@ -13,7 +13,11 @@ import type { ReactNode } from "react";
 import type { PlayTotals } from "@/lib/play/public";
 type Rewards = {
   totals: PlayTotals | undefined;
-  applyTotals: (totals: PlayTotals, animate: boolean) => void;
+  applyTotals: (
+    totals: PlayTotals,
+    animate: boolean,
+    options?: { levelUpDelayMs: number },
+  ) => void;
 };
 const RewardsContext = createContext<Rewards | undefined>(undefined);
 export const usePlayRewards = () => useContext(RewardsContext);
@@ -29,7 +33,8 @@ export function PlayRewardsProvider({
   const [received, setReceived] = useState(initial),
     [totals, setTotals] = useState(initial),
     timer = useRef<number | undefined>(undefined),
-    pending = useRef(initial);
+    pending = useRef(initial),
+    levelTimer = useRef<number | undefined>(undefined);
   if (
     initial?.points !== received?.points ||
     initial?.streak !== received?.streak ||
@@ -41,31 +46,52 @@ export function PlayRewardsProvider({
   useEffect(() => {
     pending.current = initial;
   }, [initial]);
-  const applyTotals = useCallback((value: PlayTotals, animate: boolean) => {
-    window.clearTimeout(timer.current);
-    const previousLevel = pending.current?.xpLevel?.level;
-    if (
-      previousLevel !== undefined &&
-      value.xpLevel &&
-      value.xpLevel.level > previousLevel
-    )
-      setLevelUp(value.xpLevel);
-    pending.current = value;
-    if (
-      !animate ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      setTotals(value);
-      return;
-    }
-    setTotals((old) =>
-      old
-        ? { ...old, streak: value.streak, dailyGoal: value.dailyGoal }
-        : value,
-    );
-    timer.current = window.setTimeout(() => setTotals(pending.current), 220);
-  }, []);
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const applyTotals = useCallback(
+    (
+      value: PlayTotals,
+      animate: boolean,
+      options?: { levelUpDelayMs: number },
+    ) => {
+      window.clearTimeout(timer.current);
+      const previousLevel = pending.current?.xpLevel?.level;
+      if (
+        previousLevel !== undefined &&
+        value.xpLevel &&
+        value.xpLevel.level > previousLevel
+      ) {
+        window.clearTimeout(levelTimer.current);
+        const progress = value.xpLevel;
+        if (options?.levelUpDelayMs)
+          levelTimer.current = window.setTimeout(
+            () => setLevelUp(progress),
+            options.levelUpDelayMs,
+          );
+        else setLevelUp(progress);
+      }
+      pending.current = value;
+      if (
+        !animate ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        setTotals(value);
+        return;
+      }
+      setTotals((old) =>
+        old
+          ? { ...old, streak: value.streak, dailyGoal: value.dailyGoal }
+          : value,
+      );
+      timer.current = window.setTimeout(() => setTotals(pending.current), 220);
+    },
+    [],
+  );
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current);
+      window.clearTimeout(levelTimer.current);
+    },
+    [],
+  );
   function dismissLevelUp() {
     setLevelUp(undefined);
     requestAnimationFrame(() => {

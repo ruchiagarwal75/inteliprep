@@ -1,9 +1,10 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { chestResultSchema } from "@/lib/play/public";
 import { usePlayRewards } from "./play-rewards";
 import { prepareGameSounds, playGameSound } from "./game-sounds";
+import { ChestPrize, CHEST_CELEBRATION_MS } from "./chest-prize";
 import { PixelChest } from "./pixel-chest";
 import styles from "./chest-node.module.css";
 export function ChestNode({
@@ -24,6 +25,14 @@ export function ChestNode({
     [justOpened, setJustOpened] = useState(false),
     [error, setError] = useState("");
   const lock = useRef(false);
+  useEffect(() => {
+    if (!justOpened) return;
+    const timer = window.setTimeout(
+      () => setJustOpened(false),
+      CHEST_CELEBRATION_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [justOpened]);
   async function open() {
     if (lock.current || xp !== undefined || !unlocked) return;
     prepareGameSounds();
@@ -41,7 +50,9 @@ export function ChestNode({
       setXp(parsed.data.xp);
       setJustOpened(true);
       playGameSound("chest");
-      rewards?.applyTotals(parsed.data.totals, true);
+      rewards?.applyTotals(parsed.data.totals, true, {
+        levelUpDelayMs: CHEST_CELEBRATION_MS,
+      });
     } catch {
       setError("Could not open this chest. Please retry.");
     } finally {
@@ -63,6 +74,7 @@ export function ChestNode({
       >
         <PixelChest open={xp !== undefined} animate={justOpened} />
       </button>
+      {justOpened && xp !== undefined && <ChestPrize xp={xp} />}
       {justOpened && (
         <span className={styles.gold} aria-hidden="true">
           <i />
