@@ -239,3 +239,21 @@
     animation: none;
   }
 }
+
+.world:has([data-revealed]) .filled {
+  stroke-dasharray: 1;
+  animation: fillPath var(--game-motion) ease-out;
+}
+@keyframes fillPath {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world .filled {
+    animation: none;
+  }
+}

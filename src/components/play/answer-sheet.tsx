@@ -21,6 +21,7 @@ export function AnswerSheet({
   const next = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     next.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
     if (animate) playGameSound(result.correct ? "correct" : "wrong");
   }, [result.correct, animate]);
   const heading = result.correct

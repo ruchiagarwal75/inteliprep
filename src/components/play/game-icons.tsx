@@ -82,7 +82,7 @@ export function StarIcon(props: SVGProps<SVGSVGElement>) {
       width="24"
       height="24"
       viewBox="0 0 24 24"
-      fill="currentColor"
+      fill="var(--amber)"
       stroke="currentColor"
       strokeWidth="1.5"
       strokeLinejoin="round"
@@ -106,16 +106,17 @@ export function ChestIcon(props: SVGProps<SVGSVGElement>) {
       aria-hidden="true"
       {...props}
     >
-      <path
-        d="M6 19V14C6 5 42 5 42 14v5M5 19h38v21H5Z"
-        fill="var(--game-chest-soft)"
-      />
-      <path d="M14 9v30m20-30v30M5 26h38" />
+      <path d="M5 21h38v19H5Z" fill="var(--game-chest-soft)" />
+      <path d="M14 22v17m20-17v17M5 27h38" />
+      <g data-chest-lid>
+        <path d="M6 21V14C6 4 42 4 42 14v7Z" fill="var(--game-chest-soft)" />
+        <path d="M14 10v11m20-11v11" />
+      </g>
       <rect
         x="20"
-        y="22"
+        y="23"
         width="8"
-        height="11"
+        height="10"
         rx="2"
         fill="var(--game-gold-soft)"
       />

@@ -82,23 +82,25 @@ export function DrillCard({
             )}
           </div>
         )}
-        {result ? (
-          <AnswerSheet
-            question={question}
-            result={result}
-            animate={animatePoints}
-            onNext={onNext}
-          />
-        ) : onRetry ? (
-          <p>Your answer is saved. Retry grading to continue.</p>
-        ) : (
-          <DrillAnswerForm
-            question={question}
-            busy={busy}
-            onAnswer={onAnswer}
-          />
-        )}
+        {!result &&
+          (onRetry ? (
+            <p>Your answer is saved. Retry grading to continue.</p>
+          ) : (
+            <DrillAnswerForm
+              question={question}
+              busy={busy}
+              onAnswer={onAnswer}
+            />
+          ))}
       </article>
+      {result && (
+        <AnswerSheet
+          question={question}
+          result={result}
+          animate={animatePoints}
+          onNext={onNext}
+        />
+      )}
     </div>
   );
 }

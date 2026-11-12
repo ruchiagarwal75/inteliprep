@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
-import { capturePlay, finishPlayRound } from "./play-helpers";
+import { capturePlay, finishPlayRound, openPlayLevel } from "./play-helpers";
 test("Play placement, four drill types, rewards, readiness and Mock prompt use only stubs", async ({
   page,
   context,
@@ -28,23 +28,15 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   await expect(page.getByText(/Levels cleared:/)).toHaveCount(0);
   await page.getByRole("link", { name: "Back to levels", exact: true }).click();
   await expect(
-    page.getByLabel("Level 1: passed", { exact: true }),
+    page.getByLabel(/^Level 1: .*passed$/u, { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("Level 2: passed", { exact: true }),
+    page.getByLabel(/^Level 2: .*passed$/u, { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("Level 3: passed", { exact: true }),
+    page.getByLabel(/^Level 3: .*passed$/u, { exact: true }),
   ).toBeVisible();
-  const first = page.locator("li").filter({
-    has: page.getByRole("heading", {
-      name: "Retrieval basics",
-      exact: true,
-    }),
-  });
-  await first
-    .getByRole("button", { name: "Replay level", exact: true })
-    .click();
+  await openPlayLevel(page, 1);
   await page.waitForURL(/\/play\/rag\/drill\?session=/);
   await finishPlayRound(page, true);
   await expect(
@@ -52,15 +44,7 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   ).toBeVisible();
   await capturePlay(page, "level-passed");
   await page.getByRole("link", { name: "Back to levels", exact: true }).click();
-  const fourth = page.locator("li").filter({
-    has: page.getByRole("heading", {
-      name: "Quality and safety",
-      exact: true,
-    }),
-  });
-  await fourth
-    .getByRole("button", { name: "Start level", exact: true })
-    .click();
+  await openPlayLevel(page, 4);
   await page.waitForURL(/\/play\/rag\/drill\?session=/);
   await finishPlayRound(page, true);
   await expect(
@@ -73,7 +57,7 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   await page.getByRole("link", { name: "Open Progress", exact: true }).click();
   await expect(page.getByText("Practice ready", { exact: true })).toBeVisible();
   await expect(page.getByLabel("1-day streak", { exact: true })).toBeVisible();
-  await expect(page.getByText(/\d+ points/)).toBeVisible();
+  await expect(page.getByText(/^[\d,]+ XP$/u)).toBeVisible();
   await capturePlay(page, "progress");
   await page.reload();
   await expect(page.getByText("Practice ready", { exact: true })).toBeVisible();

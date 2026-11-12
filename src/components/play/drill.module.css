@@ -160,7 +160,7 @@
 .card {
   padding-bottom: var(--space-3);
 }
-.card:has([aria-label="Drill result"]) {
+[data-lesson]:has([aria-label="Drill result"]) .card {
   min-height: 70dvh;
   padding-bottom: 50dvh;
 }
@@ -176,7 +176,7 @@
 }
 .option:has(input:checked) {
   background: var(--accent-soft);
-  border-color: var(--teal);
+  border-color: var(--accent);
   transform: translateY(-3px);
 }
 .option:has(input:focus-visible) {
@@ -200,7 +200,7 @@
   text-transform: uppercase;
   margin-top: 0;
 }
-[data-wrong] .card > h1 {
+[data-wrong] .card {
   animation: wrong var(--game-motion) ease-in-out;
 }
 @keyframes wrong {
@@ -217,9 +217,13 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .form .option,
-  [data-wrong] .card > h1 {
+  [data-wrong] .card {
     animation: none;
     transition: none;
     transform: none;
   }
+}
+
+.card {
+  overflow-anchor: none;
 }

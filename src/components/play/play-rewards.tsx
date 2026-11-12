@@ -66,12 +66,23 @@ export function PlayRewardsProvider({
     timer.current = window.setTimeout(() => setTotals(pending.current), 220);
   }, []);
   useEffect(() => () => window.clearTimeout(timer.current), []);
+  function dismissLevelUp() {
+    setLevelUp(undefined);
+    requestAnimationFrame(() => {
+      const target =
+        document.querySelector<HTMLElement>(
+          '[aria-label="Drill result"] > button',
+        ) ??
+        document.querySelector<HTMLElement>('[aria-current="step"] summary');
+      target?.focus({ preventScroll: true });
+    });
+  }
   const value = useMemo(() => ({ totals, applyTotals }), [totals, applyTotals]);
   return (
     <RewardsContext.Provider value={value}>
       {children}
       {levelUp !== undefined && (
-        <LevelUp level={levelUp} onClose={() => setLevelUp(undefined)} />
+        <LevelUp level={levelUp} onClose={dismissLevelUp} />
       )}
     </RewardsContext.Provider>
   );

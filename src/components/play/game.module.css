@@ -106,3 +106,9 @@
 .game:has([data-lesson]) [aria-label="Legal"] {
   display: none;
 }
+
+.game[data-lesson-route] :global(.practice-nav),
+.game[data-lesson-route] [data-mode-bar],
+.game[data-lesson-route] [aria-label="Legal"] {
+  display: none;
+}

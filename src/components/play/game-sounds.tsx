@@ -6,7 +6,8 @@ let memory = false;
 let audio: AudioContext | undefined;
 function enabled() {
   try {
-    return localStorage.getItem(key) === "true";
+    const stored = localStorage.getItem(key);
+    return stored === null ? memory : stored === "true";
   } catch {
     return memory;
   }

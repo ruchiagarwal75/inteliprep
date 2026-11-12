@@ -48,7 +48,7 @@ export function LevelPath({
         aria-hidden="true"
       >
         <path d={path} />
-        <path d={filled} className={styles.filled} />
+        <path d={filled} pathLength="1" className={styles.filled} />
       </svg>
       <ol className={styles.path} aria-label="Level path">
         {levels.map((level, index) => {

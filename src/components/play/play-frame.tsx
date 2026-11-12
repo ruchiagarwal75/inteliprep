@@ -12,7 +12,11 @@ export function PlayFrame({
   const pathname = usePathname();
   const world = active === "play" ? pathname.split("/")[2] || "rag" : undefined;
   return (
-    <main className={`practice-page ${game.game}`} data-world={world}>
+    <main
+      className={`practice-page ${game.game}`}
+      data-world={world}
+      data-lesson-route={pathname.endsWith("/drill") || undefined}
+    >
       {children}
     </main>
   );

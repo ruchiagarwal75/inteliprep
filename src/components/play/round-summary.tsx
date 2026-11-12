@@ -28,11 +28,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
   return (
     <section className={styles.complete} aria-label="Round results" data-lesson>
       <header className={styles.top}>
-        <Link
-          className="practice-link"
-          href={`/play/${summary.topic}`}
-          aria-label="Close round results"
-        >
+        <Link className="practice-link" href={`/play/${summary.topic}`}>
           Back to levels
         </Link>
         <ThemeToggle />

@@ -52,3 +52,15 @@
     animation: none !important;
   }
 }
+
+.chest[data-open="true"] [data-chest-lid] {
+  transform-box: fill-box;
+  transform-origin: left bottom;
+  transform: translateY(-5px) rotate(-12deg);
+  transition: transform var(--game-motion) ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chest [data-chest-lid] {
+    transition: none;
+  }
+}
