@@ -3,8 +3,6 @@
   flex-direction: column;
   gap: 12px;
   max-width: 760px;
-  height: calc(100dvh - 272px);
-  min-height: 340px;
   margin: 0 auto;
   font: 400 16px/1.7 var(--font-play-read);
 }
@@ -31,7 +29,13 @@
   margin: 0;
 }
 .controls {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
   justify-content: space-between;
+  padding-block: 16px;
+  background: var(--pixel-sky);
+  border-top: 2px solid var(--pixel-line);
 }
 .controls .back {
   color: var(--pixel-text);
@@ -52,8 +56,6 @@
 }
 @media (max-width: 600px) {
   .lesson {
-    height: calc(100dvh - 328px);
-    min-height: 300px;
     gap: 8px;
   }
   .lesson h1 {

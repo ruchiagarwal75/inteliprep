@@ -1,6 +1,6 @@
 .frame {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
   padding: clamp(16px, 3vw, 32px);
@@ -18,14 +18,13 @@
   color: var(--pixel-muted);
 }
 .body {
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 280px;
   width: 100%;
   max-width: 640px;
   margin-inline: auto;
   padding-inline-end: 8px;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  overflow: visible;
   overflow-wrap: anywhere;
   font: 400 16px/1.75 var(--font-play-read);
 }
