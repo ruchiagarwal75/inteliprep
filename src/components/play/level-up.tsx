@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { PlayTotals } from "@/lib/play/public";
+import pixel from "./pixel.module.css";
 import game from "./game.module.css";
 import { GameGuide } from "./game-guide";
 import styles from "./level-up.module.css";
@@ -23,8 +24,9 @@ export function LevelUp({
   return (
     <dialog
       ref={dialog}
-      className={`${styles.dialog} ${game.game}`}
+      className={`${styles.dialog} ${game.game} ${pixel.page}`}
       data-world={world}
+      data-pixel-play
       aria-labelledby="player-level-title"
       onCancel={onClose}
       onClose={onClose}
@@ -48,9 +50,12 @@ export function LevelUp({
             />
           ))}
         </div>
-        <h1 id="player-level-title">Level up!</h1>
+        <h1 id="player-level-title" data-game-label>
+          Level up!
+        </h1>
         <p
           className={styles.badge}
+          data-game-label
           aria-label={`You're now Lv ${progress.level}`}
         >
           <span>Lv</span>

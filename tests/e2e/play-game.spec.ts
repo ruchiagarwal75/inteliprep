@@ -250,7 +250,7 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   }
   expect(wrong).toBe(true);
   await expect(
-    page.getByText("You got 0 of 5. Get 4 to pass.", { exact: true }),
+    page.getByText("0 of 5. Get 4 to pass.", { exact: true }),
   ).toBeVisible();
   await capturePlay(page, "level-failed", folder);
   await page.getByRole("button", { name: "Try again", exact: true }).click();

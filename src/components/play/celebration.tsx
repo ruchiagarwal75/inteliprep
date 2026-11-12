@@ -1,6 +1,7 @@
 import { BADGE_LABELS } from "@/lib/play/public";
 import { BADGE_REWARDS } from "./badge-rewards";
-import { BadgeIcon } from "./game-icons";
+import { PixelSprite } from "./pixel-sprite";
+import { PIXEL_ART } from "./pixel-art";
 import styles from "./celebration.module.css";
 export function Celebration({
   title,
@@ -17,7 +18,7 @@ export function Celebration({
         {earned.map((badge) => (
           <li key={badge.id} className={styles.reward}>
             <span className={styles.icon}>
-              <BadgeIcon />
+              <PixelSprite art={PIXEL_ART.star} width="36" height="28" />
             </span>
             <div>
               <h2 className={styles.name}>{BADGE_LABELS[badge.id]}</h2>

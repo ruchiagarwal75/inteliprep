@@ -59,7 +59,10 @@ async function finish(view: RoundView, replay: boolean) {
       (replay ? i : i + 1) === 3 ? 5 : (replay ? i : i + 1) === 5 ? 10 : 0,
     );
     if (replay && i > 0) expect(saved.result.points).toBe(5);
-    if (i === 4) return saved;
+    if (i === 4) {
+      expect(saved.summary?.levelTitle).toBe("Retrieval basics");
+      return saved;
+    }
     view = await advanceRound(user, view.sessionId, view.question.attemptId);
   }
   throw Error("No result");

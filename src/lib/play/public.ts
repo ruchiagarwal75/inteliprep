@@ -115,6 +115,7 @@ export const startRoundInputSchema = z.discriminatedUnion("mode", [
 ]);
 export type StartRoundInput = z.infer<typeof startRoundInputSchema>;
 export const roundSummarySchema = z.object({
+  levelTitle: z.string().optional(),
   bestCombo: z.number().int().nonnegative().optional(),
   stars: z.number().int().min(0).max(3).optional(),
   bestStars: z.number().int().min(0).max(3).optional(),

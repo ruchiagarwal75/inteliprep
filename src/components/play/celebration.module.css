@@ -1,23 +1,24 @@
 .panel {
-  padding: var(--space-3);
-  margin-block: var(--space-3);
-  border: 1px solid var(--accent);
-  background: var(--accent-soft);
-  color: var(--foreground);
-  border-radius: var(--corner-large);
-  animation: reveal var(--game-motion) ease-out both;
+  padding: 24px;
+  margin-block: 24px;
+  border: 2px solid var(--pixel-line-strong);
+  border-bottom-width: 8px;
+  clip-path: var(--pixel-cut);
+  background: var(--pixel-card);
+  color: var(--pixel-text);
+  animation: reveal 240ms steps(3, end) both;
 }
 .panel ul {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  gap: var(--space-3);
+  gap: 24px;
 }
 .reward {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 16px;
   min-width: 0;
 }
 .icon {
@@ -26,26 +27,22 @@
   flex: 0 0 64px;
   width: 64px;
   height: 64px;
-  border-radius: 50%;
-  background: var(--amber-soft);
-  color: var(--streak-flame);
-}
-.icon svg {
-  width: 40px;
-  height: 40px;
+  clip-path: var(--pixel-cut);
+  background: var(--pixel-sprite-plate);
+  border: 4px solid var(--pixel-gold);
 }
 .panel .name {
-  font-size: clamp(1.25rem, 4vw, 1.75rem);
-  line-height: 1.25;
-  margin: 0 0 var(--space-1);
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  line-height: 1.4;
+  margin: 0 0 8px;
 }
 .meaning {
   font-size: 0.9375rem;
-  color: var(--muted);
+  color: var(--pixel-muted);
 }
 @keyframes reveal {
   from {
-    transform: perspective(600px) rotateY(-65deg);
+    transform: perspective(600px) rotateY(-70deg);
     opacity: 0;
   }
   to {
@@ -60,7 +57,7 @@
 }
 @media (max-width: 479px) {
   .panel {
-    padding: var(--space-2);
+    padding: 16px;
   }
   .icon {
     flex-basis: 48px;
@@ -68,7 +65,7 @@
     height: 48px;
   }
   .icon svg {
-    width: 32px;
-    height: 32px;
+    width: 27px;
+    height: 21px;
   }
 }

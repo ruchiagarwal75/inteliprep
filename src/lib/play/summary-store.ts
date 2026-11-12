@@ -30,12 +30,18 @@ export async function displayRoundSummary(
   id: string,
   summary: RoundSummary,
 ) {
-  if (summary.pointsEarned !== undefined) return summary;
+  const display = {
+    ...summary,
+    levelTitle: levelsForTopic(summary.topic).find(
+      (l) => l.level === summary.level,
+    )?.title,
+  };
+  if (summary.pointsEarned !== undefined) return display;
   const [row] =
     await sql`select coalesce(sum(points_awarded),0)::integer as points from practice_game.drill_attempts where session_id=${id} and user_id=${userId}`;
   const points = z.object({ points: z.number().int() }).parse(row).points;
   return {
-    ...summary,
+    ...display,
     pointsEarned: points + summary.bonusPoints,
     nextLevel: summary.passed
       ? await nextRoundLevel(sql, userId, summary.topic)

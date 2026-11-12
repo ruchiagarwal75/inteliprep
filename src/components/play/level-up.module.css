@@ -6,10 +6,10 @@
   max-width: none;
   max-height: none;
   margin: 0;
-  padding: var(--space-3);
+  padding: 24px;
   border: 0;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--pixel-sky);
+  color: var(--pixel-text);
   z-index: 50;
 }
 .dialog::backdrop {
@@ -25,11 +25,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: 24px;
   text-align: center;
 }
 .content h1 {
-  font-size: clamp(2.75rem, 8vw, 5rem);
+  --pixel-label-size: clamp(24px, 5vw, 36px);
   margin: 0;
 }
 .hero {
@@ -37,53 +37,50 @@
   isolation: isolate;
   display: grid;
   place-items: center;
-  width: 240px;
-  height: 160px;
+  width: 224px;
+  height: 144px;
 }
 .burst {
   position: absolute;
   z-index: 0;
-  inset: -40px 0;
-  border-radius: 50%;
-  background: repeating-conic-gradient(
-    var(--game-world) 0deg 14deg,
-    var(--transparent) 14deg 28deg
-  );
-  mask-image: radial-gradient(
-    closest-side,
-    var(--foreground) 65%,
-    var(--transparent)
-  );
-  animation: burst 300ms ease-out both;
-  opacity: 0.18;
+  width: 160px;
+  height: 112px;
+  clip-path: var(--pixel-cut);
+  border: 16px solid var(--pixel-sprite-gold);
+  animation: burst 240ms steps(3, end) both;
+  opacity: 0.2;
   pointer-events: none;
 }
 .guide {
   position: relative;
   z-index: 1;
+  --guide-size: 112px;
 }
 .badge {
-  display: grid;
-  justify-items: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   min-width: 144px;
-  padding: var(--space-2) var(--space-4);
+  justify-content: center;
+  padding: 24px 32px;
   margin: 0;
   border: 3px solid var(--game-world-edge);
   border-bottom-width: 10px;
-  border-radius: 36px;
+  clip-path: var(--pixel-cut);
   background: var(--game-world);
-  color: var(--game-on-world);
-  animation: arrive 280ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  color: var(--pixel-on-world);
+  animation: arrive 240ms steps(3, end) both;
 }
 .badge span {
-  font: 750 1.25rem var(--font-ui);
+  font-size: 24px;
 }
 .badge strong {
-  font: 900 clamp(4.5rem, 16vw, 6.5rem)/1 var(--font-ui);
+  font: inherit;
+  font-size: 48px;
 }
 .next {
-  color: var(--accent-text);
-  font-weight: 650;
+  color: var(--pixel-muted);
+  font-weight: 600;
 }
 .confetti {
   position: absolute;
@@ -95,25 +92,24 @@
 .confetti i {
   position: absolute;
   top: 18%;
-  width: 10px;
-  height: 16px;
-  border-radius: 3px;
+  width: 8px;
+  height: 8px;
   opacity: 0;
-  animation: fall 900ms ease-out both;
+  animation: fall 280ms steps(3, end) both;
 }
 @keyframes burst {
   from {
-    transform: scale(0.6);
+    transform: scale(0.5);
     opacity: 0;
   }
   to {
     transform: scale(1);
-    opacity: 0.18;
+    opacity: 0.2;
   }
 }
 @keyframes arrive {
   from {
-    transform: scale(0.7);
+    transform: scale(0.75);
     opacity: 0;
   }
   to {
@@ -123,14 +119,14 @@
 }
 @keyframes fall {
   0% {
-    transform: translateY(-30px) rotate(0);
+    transform: translateY(-32px);
     opacity: 0;
   }
-  15% {
+  25% {
     opacity: 1;
   }
   100% {
-    transform: translateY(420px) rotate(220deg);
+    transform: translateY(320px);
     opacity: 0;
   }
 }

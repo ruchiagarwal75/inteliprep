@@ -36,19 +36,22 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
       <div className={styles.body}>
         {summary.passed && <PassConfetti />}
         <GameGuide pose={summary.passed ? "celebrate" : "encourage"} />
-        <h1>{title}</h1>
+        <h1 data-game-label>{title}</h1>
+        {summary.levelTitle && (
+          <p className={styles.levelName}>{summary.levelTitle}</p>
+        )}
         {summary.mode === "level" && summary.stars !== undefined && (
           <div className={styles.stars}>
             <Stars count={summary.stars} animate />
           </div>
         )}
         {summary.mode === "level" && !summary.passed && (
-          <p className={styles.retry}>
-            You got {summary.correct} of {summary.total}. Get 4 to pass.
+          <p className={styles.retry} data-game-label>
+            {summary.correct} of {summary.total}. Get 4 to pass.
           </p>
         )}
         {summary.pointsEarned !== undefined && (
-          <p className={styles.xp}>
+          <p className={styles.xp} data-game-label>
             <CountedXp value={summary.pointsEarned} />
           </p>
         )}
@@ -60,7 +63,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
         <dl className={styles.stats}>
           <div>
             <dt>Accuracy</dt>
-            <dd>
+            <dd data-game-label>
               {summary.total
                 ? `${Math.round((summary.correct / summary.total) * 100)}%`
                 : "Unavailable"}
@@ -71,7 +74,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
           </div>
           <div>
             <dt>Answer time</dt>
-            <dd>
+            <dd data-game-label>
               {seconds === undefined
                 ? "Unavailable"
                 : `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`}
@@ -79,7 +82,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
           </div>
           <div>
             <dt>Best combo</dt>
-            <dd>{summary.bestCombo ?? "Unavailable"}</dd>
+            <dd data-game-label>{summary.bestCombo ?? "Unavailable"}</dd>
           </div>
         </dl>
         {summary.earnedBadges.length > 0 && (

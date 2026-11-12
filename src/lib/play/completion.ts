@@ -94,6 +94,8 @@ export async function completeRound(
       ? []
       : await sql`select best_stars from practice_game.level_progress where user_id=${userId} and topic=${round.topic} and level=${round.level}`;
   const summary = roundSummarySchema.parse({
+    levelTitle: levelsForTopic(round.topic).find((l) => l.level === round.level)
+      ?.title,
     bestCombo: round.best_combo,
     stars,
     bestStars: best?.best_stars ?? 0,
