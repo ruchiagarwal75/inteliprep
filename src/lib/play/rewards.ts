@@ -64,7 +64,7 @@ export async function rewardRound(
   summary: RoundSummary,
   already: BadgeId[],
 ) {
-  const badges = [...already];
+  const badges = [...new Set([...summary.earnedBadges, ...already])];
   let bonusPoints = 0;
   if (summary.passedLevels.length) {
     const badge = await awardBadge(sql, userId, "first-level");
@@ -82,7 +82,12 @@ export async function rewardRound(
         `${summary.topic}:${summary.level}`,
       );
   }
-  const result = { ...summary, bonusPoints, earnedBadges: badges };
+  const result = {
+    ...summary,
+    bonusPoints,
+    pointsEarned: (summary.pointsEarned ?? 0) + bonusPoints,
+    earnedBadges: badges,
+  };
   await sql`update practice_game.play_sessions set result_json=${sql.json(result)} where user_id=${userId} and id=${id}`;
   return result;
 }

@@ -1,3 +1,4 @@
+import { displayRoundSummary } from "./summary-store";
 import { recordPlayEvent } from "./events";
 import "server-only";
 import { z } from "zod";
@@ -111,7 +112,16 @@ export async function roundView(
       status: "graded",
       answer: attempt.answer,
       result: attempt.result_json,
-      ...(round.result_json ? { summary: round.result_json } : {}),
+      ...(round.result_json
+        ? {
+            summary: await displayRoundSummary(
+              sql,
+              userId,
+              id,
+              round.result_json,
+            ),
+          }
+        : {}),
     });
   if (attempt.answer)
     return roundViewSchema.parse({

@@ -1,3 +1,5 @@
+import { nextRoundLevel } from "./summary-store";
+import { drillResultSchema } from "./public";
 import { recordPlayEvent } from "./events";
 import "server-only";
 import { z } from "zod";
@@ -31,7 +33,7 @@ export async function completeRound(
   const round = await storedRound(sql, userId, id);
   if (round.completed_at) return round.result_json ?? undefined;
   const rows =
-    await sql`select drill_id,level,correct,submitted_at,private_variant->'definition'->>'title' as title from practice_game.drill_attempts where user_id=${userId} and session_id=${id} order by ordinal`;
+    await sql`select drill_id,level,correct,submitted_at,points_awarded,result_json,private_variant->'definition'->>'title' as title from practice_game.drill_attempts where user_id=${userId} and session_id=${id} order by ordinal`;
   if (!rows.length || rows.some((row) => !row.submitted_at)) return;
   const attempts = z
     .array(
@@ -40,6 +42,8 @@ export async function completeRound(
         level: z.number(),
         correct: z.boolean(),
         title: z.string(),
+        points_awarded: z.number().int(),
+        result_json: drillResultSchema,
       }),
     )
     .parse(rows);
@@ -90,7 +94,13 @@ export async function completeRound(
         level: row.level,
       })),
     bonusPoints: 0,
-    earnedBadges: [],
+    pointsEarned: attempts.reduce((sum, row) => sum + row.points_awarded, 0),
+    nextLevel: passedLevels.length
+      ? await nextRoundLevel(sql, userId, round.topic)
+      : undefined,
+    earnedBadges: [
+      ...new Set(attempts.flatMap((row) => row.result_json.badgesEarned)),
+    ],
     practiceReadyNow: false,
   });
   await sql`update practice_game.play_sessions set completed_at=now(),result_json=${sql.json(summary)} where user_id=${userId} and id=${id} and completed_at is null`;

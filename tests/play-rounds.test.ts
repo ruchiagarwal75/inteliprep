@@ -97,6 +97,9 @@ it("saves the first answer, handles retries and duplicate next, and passes four 
         correct: 4,
         total: 5,
         passedLevels: [1],
+        pointsEarned: 65,
+        nextLevel: { level: 2, title: "Scale math" },
+        earnedBadges: expect.arrayContaining(["first-level"]),
       });
       break;
     }
