@@ -1,3 +1,4 @@
+import { courseQuestionTitle } from "./course/titles";
 import { RAG_COURSE_ID } from "./course/metadata";
 import { coursePassed, courseStars } from "./course/rules";
 import { GAME_RULES } from "./game-rules";
@@ -124,7 +125,7 @@ export async function completeRound(
       .filter((row) => !row.correct)
       .map((row) => ({
         drillId: row.drill_id,
-        title: row.title,
+        title: courseQuestionTitle(row.drill_id, row.title),
         level: row.level,
       })),
     bonusPoints: 0,

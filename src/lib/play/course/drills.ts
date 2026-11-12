@@ -9,7 +9,7 @@ export const courseDrills = ragCourse.flatMap((topic) =>
       id: `rag-course-${question.id.toLowerCase()}`,
       topic: RAG_COURSE_ID,
       level: topic.level,
-      title: question.id,
+      title: question.title,
       prompt: question.prompt,
       why: question.why,
       sample: false,

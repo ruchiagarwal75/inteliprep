@@ -29,6 +29,8 @@ export function parseCourseMarkdown(markdown) {
             throw Error("A question needs four options and one correct answer");
           const options = optionRows.map((m) => m[2]);
           const correctIndex = optionRows.findIndex((m) => m[1]);
+          const title = /^Title: (.+)$/mu.exec(source)?.[1];
+          if (!title) throw Error("Missing question title");
           const keyIdea = /^Key idea: (.+)$/mu.exec(source)?.[1];
           const why = /^Why: (.+)$/mu.exec(source)?.[1];
           if (!keyIdea || !why) throw Error("Missing teaching feedback");
@@ -46,6 +48,7 @@ export function parseCourseMarkdown(markdown) {
           }
           return {
             id: first[1],
+            title,
             type: first[2]
               ? "math"
               : first[3].startsWith("Spot the flaw:")

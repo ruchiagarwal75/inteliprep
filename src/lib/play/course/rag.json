@@ -37,6 +37,7 @@
     "questions": [
       {
         "id": "T1-Q1",
+        "title": "Big chunks",
         "type": "concept",
         "prompt": "Why do very large chunks hurt retrieval?",
         "options": [
@@ -52,6 +53,7 @@
       },
       {
         "id": "T1-Q2",
+        "title": "Cut sentences",
         "type": "concept",
         "prompt": "You split every 300 tokens with no overlap, and a key sentence is cut in half. Best fix?",
         "options": [
@@ -67,6 +69,7 @@
       },
       {
         "id": "T1-Q3",
+        "title": "Split tables",
         "type": "flaw",
         "prompt": "Spot the flaw: Markdown docs are cut every 500 tokens, splitting a pricing table in the middle.",
         "options": [
@@ -82,6 +85,7 @@
       },
       {
         "id": "T1-Q4",
+        "title": "Citation metadata",
         "type": "concept",
         "prompt": "Which metadata lets the answer show \"Source: HR Handbook, updated Mar 2026\"?",
         "options": [
@@ -97,6 +101,7 @@
       },
       {
         "id": "T1-Q5",
+        "title": "Chunk count",
         "type": "math",
         "prompt": "2M documents, about 4,000 tokens each, 500-token chunks with 100-token overlap. About how many chunks?",
         "options": ["16M", "20M", "2M", "200M"],
@@ -110,6 +115,7 @@
       },
       {
         "id": "T1-Q6",
+        "title": "Stale chunks",
         "type": "flaw",
         "prompt": "Spot the flaw: when a document is edited, its new chunks are added but its old chunks stay in the index.",
         "options": [
@@ -125,6 +131,7 @@
       },
       {
         "id": "T1-Q7",
+        "title": "Changed chunks",
         "type": "math",
         "prompt": "100K documents are edited per day, 10 chunks each, and about 2 chunks actually change per edit. With chunk hashes, how many chunks do you re-embed daily?",
         "options": ["1M", "200K", "100K", "2M"],
@@ -175,6 +182,7 @@
     "questions": [
       {
         "id": "T2-Q1",
+        "title": "Fast search",
         "type": "concept",
         "prompt": "Why is bi-encoder retrieval fast enough for millions of documents?",
         "options": [
@@ -190,6 +198,7 @@
       },
       {
         "id": "T2-Q2",
+        "title": "Cosine score",
         "type": "concept",
         "prompt": "Two embeddings have cosine similarity 0.92. What does that mean?",
         "options": [
@@ -205,6 +214,7 @@
       },
       {
         "id": "T2-Q3",
+        "title": "Float32 memory",
         "type": "math",
         "prompt": "10M chunks, 1,024 dimensions, float32. About how much raw vector memory?",
         "options": ["10 GB", "41 GB", "82 GB", "4 GB"],
@@ -217,6 +227,7 @@
       },
       {
         "id": "T2-Q4",
+        "title": "Int8 memory",
         "type": "math",
         "prompt": "The same 10M x 1,024 vectors stored as int8 instead of float32. About how much memory?",
         "options": ["41 GB", "20 GB", "10 GB", "5 GB"],
@@ -229,6 +240,7 @@
       },
       {
         "id": "T2-Q5",
+        "title": "HNSW vs IVF",
         "type": "concept",
         "prompt": "Which statement about HNSW and IVF is true?",
         "options": [
@@ -244,6 +256,7 @@
       },
       {
         "id": "T2-Q6",
+        "title": "Model mismatch",
         "type": "flaw",
         "prompt": "Spot the flaw: queries now use a new embedding model, but document vectors were made with the old one.",
         "options": [
@@ -259,6 +272,7 @@
       },
       {
         "id": "T2-Q7",
+        "title": "IVF recall",
         "type": "concept",
         "prompt": "Your IVF index has low recall@10. Which knob helps most?",
         "options": [
@@ -312,6 +326,7 @@
     "questions": [
       {
         "id": "T3-Q1",
+        "title": "Error codes",
         "type": "concept",
         "prompt": "A user searches \"ERR_4012 timeout\" and dense-only search misses the right doc. Why?",
         "options": [
@@ -327,6 +342,7 @@
       },
       {
         "id": "T3-Q2",
+        "title": "Meaning match",
         "type": "concept",
         "prompt": "Which query is dense search better at than keyword search?",
         "options": [
@@ -342,6 +358,7 @@
       },
       {
         "id": "T3-Q3",
+        "title": "RRF score",
         "type": "math",
         "prompt": "With RRF and k = 60, a document is rank 1 in keyword search and rank 3 in dense search. Its fused score?",
         "options": ["About 0.032", "About 0.016", "About 1.33", "About 0.5"],
@@ -355,6 +372,7 @@
       },
       {
         "id": "T3-Q4",
+        "title": "Follow-up queries",
         "type": "flaw",
         "prompt": "Spot the flaw: in a chat, the user's follow-up is \"what about contractors?\" and retrieval searches just that text.",
         "options": [
@@ -370,6 +388,7 @@
       },
       {
         "id": "T3-Q5",
+        "title": "Multi-query cost",
         "type": "concept",
         "prompt": "What's the main trade-off of multi-query expansion?",
         "options": [
@@ -385,6 +404,7 @@
       },
       {
         "id": "T3-Q6",
+        "title": "Old pricing",
         "type": "flaw",
         "prompt": "Spot the flaw: a user asks about 2026 pricing, and the 2023 pricing page ranks first.",
         "options": [
@@ -400,6 +420,7 @@
       },
       {
         "id": "T3-Q7",
+        "title": "Multi-query latency",
         "type": "math",
         "prompt": "Multi-query: an LLM rewrite takes 300 ms, then 4 searches of 40 ms each run in parallel, then merging takes 10 ms. How much latency does this add compared with one 40 ms search?",
         "options": [

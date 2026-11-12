@@ -166,6 +166,7 @@ it("the notebook shows all slides but only the owner's answered questions and so
       expect(Object.keys(question).sort()).toEqual([
         "answered",
         "href",
+        "id",
         "title",
       ]);
     }

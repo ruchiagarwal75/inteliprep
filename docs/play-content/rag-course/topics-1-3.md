@@ -17,6 +17,7 @@ Shuffle options per attempt. Math questions are multiple choice; their wrong opt
 
 ### Questions
 T1-Q1. Why do very large chunks hurt retrieval?
+Title: Big chunks
 - ✓ One embedding averages many topics, so the match is diluted
 - Vector databases can't store them
 - LLMs can't read more than 1,000 tokens
@@ -25,6 +26,7 @@ Key idea: One vector per chunk. The more ideas in a chunk, the blurrier its vect
 Why: Large chunks mix topics, so similarity to any one question drops, and they waste context tokens.
 
 T1-Q2. You split every 300 tokens with no overlap, and a key sentence is cut in half. Best fix?
+Title: Cut sentences
 - ✓ Add 10 to 20% overlap, or split on sentence boundaries
 - Use more embedding dimensions
 - Use a bigger LLM
@@ -33,6 +35,7 @@ Key idea: Overlap and sentence-aware splits keep ideas whole.
 Why: Neither half of a split sentence carries the full meaning. Overlap repeats the boundary text in both chunks.
 
 T1-Q3. Spot the flaw: Markdown docs are cut every 500 tokens, splitting a pricing table in the middle.
+Title: Split tables
 - ✓ Rows lose their header row, so answers about the table come out wrong
 - 500 tokens is too small for Markdown
 - Tables can't be embedded
@@ -41,6 +44,7 @@ Key idea: Keep tables with their headers.
 Why: A row like "Pro | 49 | 10" means nothing without "Plan | Price | Seats".
 
 T1-Q4. Which metadata lets the answer show "Source: HR Handbook, updated Mar 2026"?
+Title: Citation metadata
 - ✓ Title, source and timestamp
 - The embedding vector
 - The chunk overlap
@@ -49,6 +53,7 @@ Key idea: Citations and freshness come from metadata, not from the vector.
 Why: The vector is only for matching. Display info must be stored alongside it.
 
 T1-Q5 (math). 2M documents, about 4,000 tokens each, 500-token chunks with 100-token overlap. About how many chunks?
+Title: Chunk count
 - 16M
 - ✓ 20M
 - 2M
@@ -59,6 +64,7 @@ If wrong (16M): That forgets the overlap: 4,000 / 500 = 8.
 If wrong (2M): That's one chunk per document.
 
 T1-Q6. Spot the flaw: when a document is edited, its new chunks are added but its old chunks stay in the index.
+Title: Stale chunks
 - ✓ Outdated text still gets retrieved; replace a document's chunks by document ID
 - The embedding model needs retraining
 - Edits should be ignored
@@ -67,6 +73,7 @@ Key idea: Updates must replace, not just add.
 Why: Old chunks still match questions and return stale or conflicting answers.
 
 T1-Q7 (math). 100K documents are edited per day, 10 chunks each, and about 2 chunks actually change per edit. With chunk hashes, how many chunks do you re-embed daily?
+Title: Changed chunks
 - 1M
 - ✓ 200K
 - 100K
@@ -88,6 +95,7 @@ If wrong (1M): That re-embeds every chunk of every edited document.
 
 ### Questions
 T2-Q1. Why is bi-encoder retrieval fast enough for millions of documents?
+Title: Fast search
 - ✓ Document vectors are computed ahead of time; a query is compared with a dot product
 - It reads the full text of every document per query
 - It runs the model on every document per query
@@ -96,6 +104,7 @@ Key idea: Precompute document vectors once; only the query is encoded at search 
 Why: Comparing vectors is cheap. Running a model on every document per query is not.
 
 T2-Q2. Two embeddings have cosine similarity 0.92. What does that mean?
+Title: Cosine score
 - ✓ The model sees them as very close in meaning
 - 92% of their words overlap
 - There's a 92% chance the answer is correct
@@ -104,6 +113,7 @@ Key idea: Cosine similarity measures direction of meaning, not word overlap or c
 Why: Two texts with different words can still score high if they mean the same thing.
 
 T2-Q3 (math). 10M chunks, 1,024 dimensions, float32. About how much raw vector memory?
+Title: Float32 memory
 - 10 GB
 - ✓ 41 GB
 - 82 GB
@@ -113,6 +123,7 @@ Why: 10M x 1,024 x 4 bytes = about 41 GB.
 If wrong (10 GB): That forgets the 4 bytes per float32 number.
 
 T2-Q4 (math). The same 10M x 1,024 vectors stored as int8 instead of float32. About how much memory?
+Title: Int8 memory
 - 41 GB
 - 20 GB
 - ✓ 10 GB
@@ -122,6 +133,7 @@ Why: 10M x 1,024 x 1 byte = about 10 GB.
 If wrong (20 GB): That's float16 (2 bytes).
 
 T2-Q5. Which statement about HNSW and IVF is true?
+Title: HNSW vs IVF
 - ✓ HNSW usually gives high recall at low latency but uses more memory
 - IVF compares the query with every vector
 - HNSW is an exact search
@@ -130,6 +142,7 @@ Key idea: Every ANN index trades recall, speed and memory.
 Why: HNSW keeps a graph in memory. IVF searches only nearby clusters and is tuned with nprobe.
 
 T2-Q6. Spot the flaw: queries now use a new embedding model, but document vectors were made with the old one.
+Title: Model mismatch
 - ✓ Vectors from different models aren't comparable; re-embed the documents
 - It just runs a bit slower
 - Only the query cache needs clearing
@@ -138,6 +151,7 @@ Key idea: Queries and documents must share one embedding model.
 Why: Each model has its own vector space. Mixing them gives near-random results.
 
 T2-Q7. Your IVF index has low recall@10. Which knob helps most?
+Title: IVF recall
 - ✓ Increase nprobe to search more clusters (costs latency)
 - Lower the embedding dimensions
 - Shorten the chunks
@@ -158,6 +172,7 @@ Why: Searching more clusters finds more true neighbors, at the cost of more comp
 
 ### Questions
 T3-Q1. A user searches "ERR_4012 timeout" and dense-only search misses the right doc. Why?
+Title: Error codes
 - ✓ Exact rare tokens like error codes aren't captured well by embeddings; add keyword search
 - The embedding dimension is too small
 - The chunk overlap is too large
@@ -166,6 +181,7 @@ Key idea: Keyword search catches exact strings that vectors blur.
 Why: Embeddings capture meaning. "ERR_4012" has little meaning, but it is an exact match.
 
 T3-Q2. Which query is dense search better at than keyword search?
+Title: Meaning match
 - ✓ "how do I get my money back" finding a doc titled "Refund policy"
 - "SKU-88213"
 - "RFC 7231"
@@ -174,6 +190,7 @@ Key idea: Dense search matches meaning even with no shared words.
 Why: "money back" and "refund" share no words but mean the same thing.
 
 T3-Q3 (math). With RRF and k = 60, a document is rank 1 in keyword search and rank 3 in dense search. Its fused score?
+Title: RRF score
 - ✓ About 0.032
 - About 0.016
 - About 1.33
@@ -184,6 +201,7 @@ If wrong (0.016): That counts only one list.
 If wrong (1.33): That forgets k: 1/1 + 1/3.
 
 T3-Q4. Spot the flaw: in a chat, the user's follow-up is "what about contractors?" and retrieval searches just that text.
+Title: Follow-up queries
 - ✓ The query lacks context; rewrite it into a standalone query using the conversation
 - Contractors should be filtered out
 - The chunk size is wrong
@@ -192,6 +210,7 @@ Key idea: Rewrite follow-ups into standalone queries before searching.
 Why: "what about contractors?" alone matches almost anything.
 
 T3-Q5. What's the main trade-off of multi-query expansion?
+Title: Multi-query cost
 - ✓ Better recall, but more latency and cost
 - Better precision, but lower recall
 - Lower cost, but worse answers
@@ -200,6 +219,7 @@ Key idea: More searches find more, but each one costs time and tokens.
 Why: You add an LLM call to write the variants plus several searches to run and merge.
 
 T3-Q6. Spot the flaw: a user asks about 2026 pricing, and the 2023 pricing page ranks first.
+Title: Old pricing
 - ✓ No date or version filter; filter or boost by date and version metadata
 - The embedding model is broken
 - The chunks are too small
@@ -208,6 +228,7 @@ Key idea: Use metadata to keep results current.
 Why: Old and new pricing pages look almost identical to an embedding.
 
 T3-Q7 (math). Multi-query: an LLM rewrite takes 300 ms, then 4 searches of 40 ms each run in parallel, then merging takes 10 ms. How much latency does this add compared with one 40 ms search?
+Title: Multi-query latency
 - ✓ About 310 ms
 - About 430 ms
 - About 120 ms

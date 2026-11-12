@@ -1,4 +1,5 @@
 import "server-only";
+import { courseQuestionTitle } from "./course/titles";
 import { randomInt } from "node:crypto";
 import type { DrillDefinition, DrillVariant } from "./definition";
 import { chooseParameters, fillNumbers } from "./math";
@@ -34,7 +35,7 @@ export function publicQuestion(
     level: drill.level,
     type: drill.type,
     courseKind: drill.type === "spot_flaw" ? drill.course?.kind : undefined,
-    title: drill.title,
+    title: courseQuestionTitle(drill.id, drill.title),
     prompt:
       drill.type === "math"
         ? fillNumbers(drill.prompt, variant.parameters)

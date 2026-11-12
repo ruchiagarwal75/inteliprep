@@ -7,6 +7,7 @@ export const courseSlideSchema = z.object({
 });
 export const courseQuestionSchema = z.object({
   id: z.string().regex(/^T[1-9]-Q[1-9]$/u),
+  title: z.string().min(1),
   type: z.enum(["concept", "flaw", "math"]),
   prompt: z.string().min(1),
   options: z.array(z.string().min(1)).length(4),

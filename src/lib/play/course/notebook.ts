@@ -30,15 +30,16 @@ export async function courseNotebook(userId: string) {
         slides: content?.slides ?? [],
         questions: (content?.questions ?? []).map((question) => {
           const row = answered.get(`rag-course-${question.id.toLowerCase()}`);
-          const title = question.id,
+          const title = question.title,
             href = courseTopicHref(node.level);
           if (
             !row ||
             row.definition.type !== "spot_flaw" ||
             !row.definition.course
           )
-            return { title, href, answered: false as const };
+            return { id: question.id, title, href, answered: false as const };
           return {
+            id: question.id,
             title,
             href,
             answered: true as const,

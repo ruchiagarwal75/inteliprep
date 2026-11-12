@@ -1,3 +1,4 @@
+import { courseQuestionTitle } from "./course/titles";
 import "server-only";
 import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./course/metadata";
 import { z } from "zod";
@@ -28,6 +29,15 @@ export async function nextRoundLevel(
   );
   return next ? { level: next.level, title: next.title } : undefined;
 }
+export function summaryTitles(summary: RoundSummary): RoundSummary {
+  return {
+    ...summary,
+    retryDrills: summary.retryDrills.map((drill) => ({
+      ...drill,
+      title: courseQuestionTitle(drill.drillId, drill.title),
+    })),
+  };
+}
 /** Enrich older saved results without rewriting or discarding them. */
 export async function displayRoundSummary(
   sql: PlayTransaction,
@@ -36,7 +46,7 @@ export async function displayRoundSummary(
   summary: RoundSummary,
 ) {
   const display = {
-    ...summary,
+    ...summaryTitles(summary),
     levelTitle: levelsForTopic(summary.topic).find(
       (l) => l.level === summary.level,
     )?.title,

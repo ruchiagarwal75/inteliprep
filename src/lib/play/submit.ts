@@ -1,3 +1,4 @@
+import { summaryTitles } from "./summary-store";
 import { presentDrillResult } from "./math-presentation";
 import { activeDrillMs } from "./drill-time";
 import { GAME_RULES } from "./game-rules";
@@ -42,7 +43,9 @@ export async function submitRoundAnswer(
           attempt.private_variant.variant,
           attempt.result_json,
         ),
-        summary: round.result_json ?? undefined,
+        summary: round.result_json
+          ? summaryTitles(round.result_json)
+          : undefined,
       };
     if (round.active_ordinal !== attempt.ordinal || !attempt.started_at)
       throw new PlayError("Open the current drill before answering.", 409);
@@ -115,7 +118,9 @@ export async function submitRoundAnswer(
             attempt.private_variant.variant,
             attempt.result_json,
           ),
-          summary: round.result_json ?? undefined,
+          summary: round.result_json
+            ? summaryTitles(round.result_json)
+            : undefined,
         };
       if (attempt.claim_id !== claim.id)
         throw new PlayError(

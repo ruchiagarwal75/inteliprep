@@ -50,9 +50,9 @@ export default async function NotebookPage() {
               <ol className={styles.questions}>
                 {topic.questions.map((question) => (
                   <li
-                    key={question.title}
+                    key={question.id}
                     className={styles.question}
-                    data-notebook-question={question.title}
+                    data-notebook-question={question.id}
                     data-answered={question.answered}
                   >
                     <h4 data-game-label>{question.title}</h4>

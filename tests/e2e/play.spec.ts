@@ -113,7 +113,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   await expect(page.locator('[data-answered="true"]')).toHaveCount(7);
   await expect(page.locator('[data-answered="false"]')).toHaveCount(14);
   await expect(page.locator('[data-notebook-question="T2-Q1"]')).toHaveText(
-    "T2-Q1Try it first",
+    "Fast searchTry it first",
   );
   await captureCourse(page, "notebook");
   const foreign = await browser.newContext();
