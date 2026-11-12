@@ -57,3 +57,24 @@ The SVGs use Inter labels, square boxes, 2 px strokes and clear arrowheads.
 Violet shows the structure and gold marks the point to notice. Slide 8's red X
 follows the supplied diagram instruction. All paints use theme tokens and every
 diagram has descriptive alt text. Compact versions keep labels readable on phones.
+
+## 5. Acceptance coverage
+
+Database tests use isolated Postgres accounts to verify ownership, legacy rows,
+idempotent migrations and 13-slide gating. A seven-question course quiz includes
+repeated one-minute slide pauses and still receives the same answer times,
+three stars and 120 XP. No grading call is made for course choices.
+
+Browser coverage checks the selected radio through open, close, Escape and reopen,
+last-viewed position, a failed lesson load followed by Retry, a stationary timer
+while reading, and review links on passed and failed results and the topic path.
+Long-reader and diagram checks cover 1440 px and 375 px, plus both themes for SVGs.
+Screenshots are saved locally under `artifacts/rag-course-2/`, outside Git.
+Screenshot review caught the native dialog's default maximum width and the CSS
+reset's zero margin. Explicit viewport bounds and automatic margins center it.
+The deliberately slow network story now waits for all 13 checkpoints rather than
+assuming the old five-slide save time. Production request limits are unchanged.
+
+Both additive database migrations were applied with existing-row checksums
+unchanged. RLS and the two existing owner/service policies remain enabled;
+browser writes remain revoked. No progress or interview history was reset.

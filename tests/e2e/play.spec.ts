@@ -109,6 +109,9 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   ).toBeVisible();
   await expect(page.getByText("6 of 7 correct", { exact: true })).toBeVisible();
   await expect(
+    page.getByRole("link", { name: "Review slides", exact: true }),
+  ).toBeVisible();
+  await expect(
     page.getByRole("img", { name: "1 of 3 stars", exact: true }),
   ).toBeVisible();
   await captureCourse(page, "topic-complete");

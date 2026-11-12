@@ -8,6 +8,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
   context,
 }) => {
   await signIn(context, "courseDiagrams");
+  await page.emulateMedia({ reducedMotion: "reduce" });
   mkdirSync("artifacts/rag-course-2", { recursive: true });
   for (const theme of ["light", "dark"]) {
     await context.addCookies([
@@ -51,13 +52,23 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
             () => document.documentElement.scrollWidth <= innerWidth,
           ),
         ).toBe(true);
+        if (width === 1440) await page.setViewportSize({ width, height: 1100 });
         await page.screenshot({
           path: `artifacts/rag-course-2/S${number}-${kind}-${theme}-${width}.png`,
           fullPage: true,
         });
+        await page.setViewportSize({ width, height: 900 });
       }
       await page.goto("/play/rag/notebook");
-      for (const kind of ["two-tower", "ann", "rrf"]) {
+      for (const kind of [
+        "pipeline",
+        "overlap",
+        "split-table",
+        "small-to-big",
+        "two-tower",
+        "ann",
+        "rrf",
+      ]) {
         const diagram = page.locator(`[data-course-diagram="${kind}"]`);
         await expectReadableDiagram(diagram);
         await diagram.screenshot({

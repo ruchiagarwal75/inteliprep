@@ -49,7 +49,7 @@ export async function openPlayLevel(page: Page, level: number) {
   }
   await expect(
     page.getByRole("button", { name: "Check answer", exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 30000 });
 }
 export async function playView(page: Page) {
   const session = new URL(page.url()).searchParams.get("session");
