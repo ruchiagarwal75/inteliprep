@@ -27,7 +27,7 @@
 }
 .step {
   position: relative;
-  height: 240px;
+  height: 280px;
 }
 .details {
   position: static;
@@ -86,6 +86,10 @@
   font-weight: 650;
   width: 200px;
   max-width: 56%;
+  z-index: 1;
+  padding: 4px 8px;
+  border-radius: 16px;
+  background: var(--game-world-bg);
   text-align: center;
 }
 .levelNumber {
@@ -128,7 +132,7 @@
 .chest {
   position: absolute;
   left: 50%;
-  top: 168px;
+  top: 208px;
   transform: translateX(-50%);
   display: grid;
   justify-items: center;

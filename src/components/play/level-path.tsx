@@ -25,7 +25,7 @@ export function LevelPath({
   );
   const x = (i: number) => (i % 2 === 0 ? 210 : 390);
   const curve = (i: number) =>
-    ` C ${x(i)} ${i * 240 + 184} ${x(i + 1)} ${i * 240 + 184} ${x(i + 1)} ${(i + 1) * 240 + 64}`;
+    ` C ${x(i)} ${i * 280 + 184} ${x(i + 1)} ${i * 280 + 184} ${x(i + 1)} ${(i + 1) * 280 + 64}`;
   const start = `M ${x(0)} 64`,
     path =
       start +
@@ -43,7 +43,7 @@ export function LevelPath({
     <div className={styles.world}>
       <svg
         className={styles.track}
-        viewBox={`0 0 600 ${levels.length * 240}`}
+        viewBox={`0 0 600 ${levels.length * 280}`}
         preserveAspectRatio="none"
         aria-hidden="true"
       >
