@@ -273,3 +273,69 @@
     animation: none;
   }
 }
+
+@media (min-width: 768px) {
+  .world {
+    max-width: 900px;
+  }
+  .node {
+    width: 106px;
+    height: 106px;
+    top: 11px;
+    font-size: 2.4rem;
+  }
+  .step[data-state="current"] .node {
+    width: 116px;
+    height: 116px;
+    top: 6px;
+  }
+  .caption {
+    top: 130px;
+  }
+  .card {
+    top: 136px;
+  }
+  .world::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        circle at 8% 23%,
+        var(--transparent) 19px,
+        var(--game-dots) 20px,
+        var(--game-dots) 22px,
+        var(--transparent) 23px
+      ),
+      radial-gradient(
+        circle at 94% 58%,
+        var(--transparent) 27px,
+        var(--game-dots) 28px,
+        var(--game-dots) 30px,
+        var(--transparent) 31px
+      ),
+      radial-gradient(
+        circle at 10% 82%,
+        var(--transparent) 14px,
+        var(--game-dots) 15px,
+        var(--game-dots) 17px,
+        var(--transparent) 18px
+      ),
+      radial-gradient(
+        circle at 92% 8%,
+        var(--game-dots) 5px,
+        var(--transparent) 6px
+      ),
+      radial-gradient(
+        circle at 4% 48%,
+        var(--game-dots) 4px,
+        var(--transparent) 5px
+      ),
+      radial-gradient(
+        circle at 88% 88%,
+        var(--game-dots) 4px,
+        var(--transparent) 5px
+      );
+  }
+}

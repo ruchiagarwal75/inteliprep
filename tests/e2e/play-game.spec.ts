@@ -28,6 +28,11 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
     "aria-label",
     /locked/u,
   );
+  await expect(first).toHaveCSS("width", "116px");
+  await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveCSS(
+    "width",
+    "106px",
+  );
   await expect(first).not.toHaveCSS("animation-name", "none");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(first).toHaveCSS("animation-name", "none");
