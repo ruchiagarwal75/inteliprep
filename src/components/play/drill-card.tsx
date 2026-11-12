@@ -46,14 +46,21 @@ export function DrillCard({
     outcomes?.filter((row) => row !== null).length ??
     question.ordinal + (result ? 1 : 0);
   return (
-    <div data-lesson data-wrong={result && !result.correct ? true : undefined}>
+    <div
+      className={styles.lesson}
+      data-lesson
+      data-wrong={result && !result.correct ? true : undefined}
+    >
       <LessonHeader
         topic={topic}
         completed={completed}
         total={question.total}
         combo={combo}
       />
-      <article className={`practice-surface ${styles.card}`}>
+      <article
+        className={`practice-surface ${styles.card}`}
+        data-result={result ? true : undefined}
+      >
         <header className={styles.header}>
           <p>
             {DRILL_TYPE_LABELS[question.type]} · {question.ordinal + 1} of{" "}

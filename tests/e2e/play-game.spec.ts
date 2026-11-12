@@ -86,6 +86,14 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
       page.getByRole("progressbar", { name: "Round progress" }),
     ).toHaveAttribute("aria-valuenow", String(i + 1));
     if (shot) {
+      await expect(page.locator("article[data-result]")).toHaveCSS(
+        "min-height",
+        "0px",
+      );
+      await expect(page.locator("article[data-result]")).toHaveCSS(
+        "border-top-width",
+        "3px",
+      );
       await expect(
         page.getByRole("heading", { name: view.question.title, exact: true }),
       ).toBeInViewport();
