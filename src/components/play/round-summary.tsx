@@ -127,6 +127,11 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
               Continue
             </Link>
           )}
+          {course && (
+            <Link className="practice-secondary" href="/play/rag/notebook">
+              Notebook
+            </Link>
+          )}
           <Link className="practice-link" href="/progress">
             Open Progress
           </Link>

@@ -1,3 +1,4 @@
+import { courseNotebook } from "@/lib/play/course/notebook";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import {
   startPlayPostgres,
@@ -145,4 +146,27 @@ it("allows the quiz immediately on a revisit and halves replay XP", async () => 
   const result = await submitRoundAnswer(user, view.question.attemptId, answer);
   expect(result.result.points).toBe(5);
   expect(gradeWrittenAnswer).not.toHaveBeenCalled();
+});
+
+it("the notebook shows all slides but only the owner's answered questions and solutions", async () => {
+  const mine = await courseNotebook(user),
+    theirs = await courseNotebook(other);
+  expect(mine.map((row) => row.level)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  expect(mine[0].slides).toHaveLength(5);
+  expect(theirs[0].slides).toHaveLength(5);
+  expect(mine[0].questions.every((q) => q.answered)).toBe(true);
+  const answered = mine[0].questions[4];
+  if (!answered.answered) throw Error("Expected saved answer");
+  expect(answered.correct).toBe(false);
+  expect(answered.expected).toBe("20M");
+  expect(answered.why).toContain("4,000 / 400 = 10");
+  for (const group of [mine[1], ...theirs])
+    for (const question of group.questions) {
+      expect(question.answered).toBe(false);
+      expect(Object.keys(question).sort()).toEqual([
+        "answered",
+        "href",
+        "title",
+      ]);
+    }
 });
