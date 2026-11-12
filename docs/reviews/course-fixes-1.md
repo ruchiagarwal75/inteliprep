@@ -30,6 +30,11 @@ The owner confirmed that the 25 XP bonus applies only when the topic's very
 first attempt passes. A pass after any failed attempt receives no bonus. The
 existing saved failed attempt must remain unchanged.
 
+The reward rule is unchanged. The regression finishes a 3/7 attempt, then a
+6/7 pass and verifies 70 XP with no bonus. A separate fresh account receives
+95 XP for its first-attempt 6/7 pass, including the 25 XP bonus. Replays and
+repeated submissions cannot add another bonus.
+
 ## QA account rule
 
 Preview checks must use a separate QA account, never the owner's account.
