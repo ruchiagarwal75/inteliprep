@@ -1,0 +1,420 @@
+[
+  {
+    "level": 1,
+    "title": "Ingestion and chunking",
+    "slides": [
+      {
+        "title": "From documents to chunks.",
+        "lines": [
+          "Source, parse, clean, chunk, add metadata, embed, index. Search returns chunks, not whole documents."
+        ]
+      },
+      {
+        "title": "Size and overlap.",
+        "lines": [
+          "Too big: one embedding averages many ideas, so the match is weak and tokens are wasted. Too small: the chunk loses its context. A common start: 200 to 500 tokens, 10 to 20% overlap. Tune with recall@k on your own questions."
+        ]
+      },
+      {
+        "title": "Respect structure.",
+        "lines": [
+          "Split on headings. Keep tables with their header row, code blocks whole, list items with their intro line. Trick: search small chunks, send the parent section to the LLM."
+        ]
+      },
+      {
+        "title": "Metadata.",
+        "lines": [
+          "Attach source, title, section, timestamp, version and permissions to each chunk. Metadata powers filters, citations, freshness and access control."
+        ]
+      },
+      {
+        "title": "Updates and deletes.",
+        "lines": [
+          "Track chunks by document ID. Hash chunks so only changed ones are re-embedded. Deleting a document must remove its chunks. Interview tip: always say how a deleted document disappears from the index."
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "id": "T1-Q1",
+        "type": "concept",
+        "prompt": "Why do very large chunks hurt retrieval?",
+        "options": [
+          "One embedding averages many topics, so the match is diluted",
+          "Vector databases can't store them",
+          "LLMs can't read more than 1,000 tokens",
+          "They need more embedding dimensions"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "One vector per chunk. The more ideas in a chunk, the blurrier its vector.",
+        "why": "Large chunks mix topics, so similarity to any one question drops, and they waste context tokens.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T1-Q2",
+        "type": "concept",
+        "prompt": "You split every 300 tokens with no overlap, and a key sentence is cut in half. Best fix?",
+        "options": [
+          "Add 10 to 20% overlap, or split on sentence boundaries",
+          "Use more embedding dimensions",
+          "Use a bigger LLM",
+          "Remove stop words"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Overlap and sentence-aware splits keep ideas whole.",
+        "why": "Neither half of a split sentence carries the full meaning. Overlap repeats the boundary text in both chunks.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T1-Q3",
+        "type": "flaw",
+        "prompt": "Spot the flaw: Markdown docs are cut every 500 tokens, splitting a pricing table in the middle.",
+        "options": [
+          "Rows lose their header row, so answers about the table come out wrong",
+          "500 tokens is too small for Markdown",
+          "Tables can't be embedded",
+          "The overlap is too large"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Keep tables with their headers.",
+        "why": "A row like \"Pro | 49 | 10\" means nothing without \"Plan | Price | Seats\".",
+        "ifWrong": {}
+      },
+      {
+        "id": "T1-Q4",
+        "type": "concept",
+        "prompt": "Which metadata lets the answer show \"Source: HR Handbook, updated Mar 2026\"?",
+        "options": [
+          "Title, source and timestamp",
+          "The embedding vector",
+          "The chunk overlap",
+          "The token count"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Citations and freshness come from metadata, not from the vector.",
+        "why": "The vector is only for matching. Display info must be stored alongside it.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T1-Q5",
+        "type": "math",
+        "prompt": "2M documents, about 4,000 tokens each, 500-token chunks with 100-token overlap. About how many chunks?",
+        "options": ["16M", "20M", "2M", "200M"],
+        "correctIndex": 1,
+        "keyIdea": "Chunks per doc is roughly doc tokens divided by (chunk size minus overlap).",
+        "why": "Each new chunk moves forward 400 tokens, so 4,000 / 400 = 10 chunks per doc, and 2M x 10 = 20M.",
+        "ifWrong": {
+          "0": "That forgets the overlap: 4,000 / 500 = 8.",
+          "2": "That's one chunk per document."
+        }
+      },
+      {
+        "id": "T1-Q6",
+        "type": "flaw",
+        "prompt": "Spot the flaw: when a document is edited, its new chunks are added but its old chunks stay in the index.",
+        "options": [
+          "Outdated text still gets retrieved; replace a document's chunks by document ID",
+          "The embedding model needs retraining",
+          "Edits should be ignored",
+          "Overlap causes this"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Updates must replace, not just add.",
+        "why": "Old chunks still match questions and return stale or conflicting answers.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T1-Q7",
+        "type": "math",
+        "prompt": "100K documents are edited per day, 10 chunks each, and about 2 chunks actually change per edit. With chunk hashes, how many chunks do you re-embed daily?",
+        "options": ["1M", "200K", "100K", "2M"],
+        "correctIndex": 1,
+        "keyIdea": "Hash chunks and re-embed only what changed.",
+        "why": "100K edits x 2 changed chunks = 200K.",
+        "ifWrong": {
+          "0": "That re-embeds every chunk of every edited document."
+        }
+      }
+    ]
+  },
+  {
+    "level": 2,
+    "title": "Embeddings and the vector store",
+    "slides": [
+      {
+        "title": "What an embedding is.",
+        "lines": [
+          "A list of numbers that captures meaning. Similar meaning, nearby vectors. Documents and queries must use the same model."
+        ]
+      },
+      {
+        "title": "Bi-encoder retrieval.",
+        "lines": [
+          "Query and documents are encoded separately (two towers) and compared with a dot product or cosine similarity. Document vectors are computed ahead of time, which is why you can search millions in milliseconds."
+        ]
+      },
+      {
+        "title": "Dimensions and memory.",
+        "lines": [
+          "Raw size = vectors x dimensions x bytes per number (float32 = 4, float16 = 2, int8 = 1). More dimensions is not always better. Quantization saves memory for a small recall cost."
+        ]
+      },
+      {
+        "title": "Approximate search (ANN).",
+        "lines": [
+          "Exact search compares every vector: too slow at scale. HNSW: a graph, fast with high recall, memory heavy. IVF: clusters, searches only a few (nprobe trades recall for speed). ScaNN: quantization plus re-scoring. Tune recall@k against p95 latency."
+        ]
+      },
+      {
+        "title": "Choosing and changing models.",
+        "lines": [
+          "Pick by evaluating on your own questions, not just a leaderboard: domain, languages, max input length, cost. A new model means re-embedding everything; run old and new indexes side by side and switch after evaluation."
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "id": "T2-Q1",
+        "type": "concept",
+        "prompt": "Why is bi-encoder retrieval fast enough for millions of documents?",
+        "options": [
+          "Document vectors are computed ahead of time; a query is compared with a dot product",
+          "It reads the full text of every document per query",
+          "It runs the model on every document per query",
+          "It only searches titles"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Precompute document vectors once; only the query is encoded at search time.",
+        "why": "Comparing vectors is cheap. Running a model on every document per query is not.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T2-Q2",
+        "type": "concept",
+        "prompt": "Two embeddings have cosine similarity 0.92. What does that mean?",
+        "options": [
+          "The model sees them as very close in meaning",
+          "92% of their words overlap",
+          "There's a 92% chance the answer is correct",
+          "They share 92% of their tokens"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Cosine similarity measures direction of meaning, not word overlap or correctness.",
+        "why": "Two texts with different words can still score high if they mean the same thing.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T2-Q3",
+        "type": "math",
+        "prompt": "10M chunks, 1,024 dimensions, float32. About how much raw vector memory?",
+        "options": ["10 GB", "41 GB", "82 GB", "4 GB"],
+        "correctIndex": 1,
+        "keyIdea": "Size = vectors x dimensions x bytes per number.",
+        "why": "10M x 1,024 x 4 bytes = about 41 GB.",
+        "ifWrong": {
+          "0": "That forgets the 4 bytes per float32 number."
+        }
+      },
+      {
+        "id": "T2-Q4",
+        "type": "math",
+        "prompt": "The same 10M x 1,024 vectors stored as int8 instead of float32. About how much memory?",
+        "options": ["41 GB", "20 GB", "10 GB", "5 GB"],
+        "correctIndex": 2,
+        "keyIdea": "int8 uses 1 byte per number, a quarter of float32.",
+        "why": "10M x 1,024 x 1 byte = about 10 GB.",
+        "ifWrong": {
+          "1": "That's float16 (2 bytes)."
+        }
+      },
+      {
+        "id": "T2-Q5",
+        "type": "concept",
+        "prompt": "Which statement about HNSW and IVF is true?",
+        "options": [
+          "HNSW usually gives high recall at low latency but uses more memory",
+          "IVF compares the query with every vector",
+          "HNSW is an exact search",
+          "IVF can't be tuned"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Every ANN index trades recall, speed and memory.",
+        "why": "HNSW keeps a graph in memory. IVF searches only nearby clusters and is tuned with nprobe.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T2-Q6",
+        "type": "flaw",
+        "prompt": "Spot the flaw: queries now use a new embedding model, but document vectors were made with the old one.",
+        "options": [
+          "Vectors from different models aren't comparable; re-embed the documents",
+          "It just runs a bit slower",
+          "Only the query cache needs clearing",
+          "The LLM will correct the mismatch"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Queries and documents must share one embedding model.",
+        "why": "Each model has its own vector space. Mixing them gives near-random results.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T2-Q7",
+        "type": "concept",
+        "prompt": "Your IVF index has low recall@10. Which knob helps most?",
+        "options": [
+          "Increase nprobe to search more clusters (costs latency)",
+          "Lower the embedding dimensions",
+          "Shorten the chunks",
+          "Raise the LLM temperature"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "nprobe is IVF's recall-versus-speed dial.",
+        "why": "Searching more clusters finds more true neighbors, at the cost of more comparisons.",
+        "ifWrong": {}
+      }
+    ]
+  },
+  {
+    "level": 3,
+    "title": "Retrieval strategy",
+    "slides": [
+      {
+        "title": "Dense vs sparse.",
+        "lines": [
+          "Dense (vectors) catches meaning and synonyms. Sparse (BM25 keyword search) catches exact terms: IDs, error codes, acronyms, rare names."
+        ]
+      },
+      {
+        "title": "Why hybrid wins.",
+        "lines": [
+          "Run both and merge. Reciprocal Rank Fusion (RRF): each list adds 1 / (k + rank), with k often 60. It merges by rank, so you never need to compare raw scores."
+        ]
+      },
+      {
+        "title": "Query rewriting.",
+        "lines": [
+          "Turn chatty follow-ups into standalone queries (\"what about contractors?\" becomes \"PTO policy for contractors\"). Fix typos, expand acronyms."
+        ]
+      },
+      {
+        "title": "Multi-query expansion.",
+        "lines": [
+          "Generate 3 to 5 versions of the question, search each, merge. Better recall, more latency and cost."
+        ]
+      },
+      {
+        "title": "Metadata filtering.",
+        "lines": [
+          "Restrict by product, date range, language or permissions. Filter inside the search, not after it, or you can lose all your top results."
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "id": "T3-Q1",
+        "type": "concept",
+        "prompt": "A user searches \"ERR_4012 timeout\" and dense-only search misses the right doc. Why?",
+        "options": [
+          "Exact rare tokens like error codes aren't captured well by embeddings; add keyword search",
+          "The embedding dimension is too small",
+          "The chunk overlap is too large",
+          "The LLM is too small"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Keyword search catches exact strings that vectors blur.",
+        "why": "Embeddings capture meaning. \"ERR_4012\" has little meaning, but it is an exact match.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T3-Q2",
+        "type": "concept",
+        "prompt": "Which query is dense search better at than keyword search?",
+        "options": [
+          "\"how do I get my money back\" finding a doc titled \"Refund policy\"",
+          "\"SKU-88213\"",
+          "\"RFC 7231\"",
+          "\"ERR_4012\""
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Dense search matches meaning even with no shared words.",
+        "why": "\"money back\" and \"refund\" share no words but mean the same thing.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T3-Q3",
+        "type": "math",
+        "prompt": "With RRF and k = 60, a document is rank 1 in keyword search and rank 3 in dense search. Its fused score?",
+        "options": ["About 0.032", "About 0.016", "About 1.33", "About 0.5"],
+        "correctIndex": 0,
+        "keyIdea": "RRF adds 1 / (k + rank) from each list.",
+        "why": "1/61 + 1/63 = 0.0164 + 0.0159 = about 0.032.",
+        "ifWrong": {
+          "1": "That counts only one list.",
+          "2": "That forgets k: 1/1 + 1/3."
+        }
+      },
+      {
+        "id": "T3-Q4",
+        "type": "flaw",
+        "prompt": "Spot the flaw: in a chat, the user's follow-up is \"what about contractors?\" and retrieval searches just that text.",
+        "options": [
+          "The query lacks context; rewrite it into a standalone query using the conversation",
+          "Contractors should be filtered out",
+          "The chunk size is wrong",
+          "The reranker is missing"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Rewrite follow-ups into standalone queries before searching.",
+        "why": "\"what about contractors?\" alone matches almost anything.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T3-Q5",
+        "type": "concept",
+        "prompt": "What's the main trade-off of multi-query expansion?",
+        "options": [
+          "Better recall, but more latency and cost",
+          "Better precision, but lower recall",
+          "Lower cost, but worse answers",
+          "No trade-off"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "More searches find more, but each one costs time and tokens.",
+        "why": "You add an LLM call to write the variants plus several searches to run and merge.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T3-Q6",
+        "type": "flaw",
+        "prompt": "Spot the flaw: a user asks about 2026 pricing, and the 2023 pricing page ranks first.",
+        "options": [
+          "No date or version filter; filter or boost by date and version metadata",
+          "The embedding model is broken",
+          "The chunks are too small",
+          "The LLM temperature is too high"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Use metadata to keep results current.",
+        "why": "Old and new pricing pages look almost identical to an embedding.",
+        "ifWrong": {}
+      },
+      {
+        "id": "T3-Q7",
+        "type": "math",
+        "prompt": "Multi-query: an LLM rewrite takes 300 ms, then 4 searches of 40 ms each run in parallel, then merging takes 10 ms. How much latency does this add compared with one 40 ms search?",
+        "options": [
+          "About 310 ms",
+          "About 430 ms",
+          "About 120 ms",
+          "No added latency"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Parallel searches cost the slowest one, not the sum.",
+        "why": "300 + 40 + 10 = 350 ms total, versus 40 ms before, so about 310 ms more.",
+        "ifWrong": {
+          "1": "That runs the 4 searches one after another."
+        }
+      }
+    ]
+  }
+]

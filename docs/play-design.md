@@ -1,3 +1,7 @@
+## RAG course update
+
+The [RAG course specification](play-content/rag-course-build.md) supersedes the four-level RAG content and typed Play drill flow below. The course uses a separate persisted `rag-course` identity, preserving all old `rag` attempts, XP and badges. Course content is compiled from the authored Markdown into a server-only module. Slides are public; solutions and explanations are projected only after the owning player answers. Mock is unchanged.
+
 # Play beta design
 
 ## Existing app
