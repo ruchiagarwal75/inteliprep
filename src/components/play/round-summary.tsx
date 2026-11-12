@@ -39,9 +39,6 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
       {summary.earnedBadges.length > 0 && (
         <Celebration title="New badges" badges={summary.earnedBadges} />
       )}
-      {summary.passedLevels.length > 0 && (
-        <p>Levels cleared: {summary.passedLevels.join(", ")}</p>
-      )}
       {summary.retryDrills.length > 0 && (
         <div className={styles.review}>
           <h2>Drills to review</h2>

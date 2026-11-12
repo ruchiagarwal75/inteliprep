@@ -25,10 +25,17 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   await expect(
     page.getByRole("heading", { name: "Placement complete", exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByText("Levels cleared: 1, 2, 3", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText(/Levels cleared:/)).toHaveCount(0);
   await page.getByRole("link", { name: "Back to levels", exact: true }).click();
+  await expect(
+    page.getByLabel("Level 1: passed", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Level 2: passed", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Level 3: passed", { exact: true }),
+  ).toBeVisible();
   const first = page.locator("li").filter({
     has: page.getByRole("heading", {
       name: "Retrieval basics",
