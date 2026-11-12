@@ -1,7 +1,8 @@
 # AI System Design Interviewer: Phase 1 Tech Spec
 
 The new Play beta and its boundary with the existing Mock engine are specified in
-[Play beta design](play-design.md). The interview behavior below remains the Mock
+[Play beta design](play-design.md). The path, rewards and lesson UI follow
+[Play game redesign](play-game-design.md). The interview behavior below remains the Mock
 mode; its rubrics, weights and whiteboard are unchanged by Play.
 
 Oct 2, 2026 · @Ruchi Agarwal

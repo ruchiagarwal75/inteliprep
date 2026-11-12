@@ -1,0 +1,102 @@
+.game[data-world] {
+  --game-world: var(--game-violet);
+  --game-world-soft: var(--game-violet-soft);
+  --game-world-text: var(--game-violet-text);
+  --game-world-edge: var(--game-violet-edge);
+  --game-world-bg: var(--game-violet-bg);
+  --accent: var(--game-world);
+  --accent-soft: var(--game-world-soft);
+  --accent-text: var(--game-world-text);
+  --on-accent: var(--game-on-world);
+  --focus-ring: var(--game-world);
+  --game-button-edge: var(--game-world-edge);
+  --game-ring: var(--game-world-soft);
+  background: var(--game-world-bg);
+}
+.game[data-world="chat-serving"] {
+  --game-world: var(--game-sky);
+  --game-world-soft: var(--game-sky-soft);
+  --game-world-text: var(--game-sky-text);
+  --game-world-edge: var(--game-sky-edge);
+  --game-world-bg: var(--game-sky-bg);
+}
+.game[data-world="agents"] {
+  --game-world: var(--game-coral);
+  --game-world-soft: var(--game-coral-soft);
+  --game-world-text: var(--game-coral-text);
+  --game-world-edge: var(--game-coral-edge);
+  --game-world-bg: var(--game-coral-bg);
+}
+.game[data-world="final-loop"] {
+  --game-world: var(--game-world-gold);
+  --game-world-soft: var(--game-world-gold-soft);
+  --game-world-text: var(--game-world-gold-text);
+  --game-world-edge: var(--game-world-gold-edge);
+  --game-world-bg: var(--game-world-gold-bg);
+}
+.game[data-world] :global(.practice-primary) {
+  background: var(--game-world);
+  border-color: var(--game-world);
+  border-bottom-color: var(--game-world-edge);
+  color: var(--game-on-world);
+}
+.game[data-world] :global(.practice-primary):hover {
+  background: var(--game-world);
+}
+.game nav[aria-label="Practice modes"] {
+  --accent: var(--brand);
+  --accent-text: var(--teal-deep);
+  --accent-soft: var(--teal-soft);
+}
+.game :global(.practice-primary) {
+  min-height: 52px;
+  border: 2px solid var(--accent);
+  border-bottom: 6px solid var(--game-button-edge);
+  border-radius: 16px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  transition:
+    transform var(--game-motion) ease,
+    border-bottom-width var(--game-motion) ease;
+  cursor: pointer;
+}
+.game :global(.practice-primary):active:not(:disabled) {
+  transform: translateY(4px);
+  border-bottom-width: 2px;
+}
+.game :global(.practice-primary):disabled {
+  color: var(--muted);
+  background: var(--surface-inset);
+  border-color: var(--border-strong);
+  opacity: 1;
+  cursor: not-allowed;
+}
+.game :global(.practice-secondary) {
+  border: 2px solid var(--border-strong);
+  border-bottom-width: 4px;
+  border-radius: 14px;
+  font-weight: 650;
+}
+.game button:focus-visible,
+.game a:focus-visible,
+.game summary:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+}
+.number {
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .game *,
+  .game *::before,
+  .game *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .game :global(.practice-primary):active:not(:disabled) {
+    transform: none;
+  }
+}

@@ -6,6 +6,7 @@ import { CandidateAccountProvider } from "@/components/candidate-account-provide
 import { LegalLinks } from "@/components/legal-links";
 import { ModeNav } from "./mode-nav";
 import styles from "./play.module.css";
+import { PlayFrame } from "./play-frame";
 import type { PlayerSnapshot } from "@/lib/play/player";
 import { playerSnapshot } from "@/lib/play/player";
 import { PlayerBootstrap } from "./player-bootstrap";
@@ -45,7 +46,7 @@ export async function PlayShell({
             : undefined
         }
       >
-        <main className="practice-page">
+        <PlayFrame active={active}>
           <div className="practice-shell">
             {initializeTimeZone && <PlayerBootstrap />}
             <header className="practice-nav">
@@ -64,7 +65,7 @@ export async function PlayShell({
             </div>
             <LegalLinks />
           </div>
-        </main>
+        </PlayFrame>
       </PlayRewardsProvider>
     </CandidateAccountProvider>
   );
