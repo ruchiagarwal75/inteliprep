@@ -1,5 +1,6 @@
 "use client";
 import { z } from "zod";
+import styles from "./level-path.module.css";
 import { startRoundResultSchema } from "@/lib/play/public";
 import { primeRound, markRoundClick } from "./round-prefetch";
 import { useRef, useState } from "react";
@@ -11,12 +12,14 @@ export function StartRound({
   level,
   label,
   disabled = false,
+  variant = "primary",
 }: {
   topic: string;
   mode: "level" | "placement" | "review";
   level?: number;
   label: string;
   disabled?: boolean;
+  variant?: "primary" | "secondary" | "link";
 }) {
   const { request, userId } = useCandidateAccount(),
     router = useRouter(),
@@ -65,7 +68,13 @@ export function StartRound({
     <div>
       <button
         type="button"
-        className="practice-primary"
+        className={
+          variant === "link"
+            ? styles.skipLink
+            : variant === "secondary"
+              ? "practice-secondary"
+              : "practice-primary"
+        }
         disabled={disabled || busy}
         onPointerEnter={() => void import("./drill-runner").catch(() => {})}
         onFocus={() => void import("./drill-runner").catch(() => {})}

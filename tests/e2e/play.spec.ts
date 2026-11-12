@@ -19,9 +19,7 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   ).toBeVisible();
   await capturePlay(page, "topic-map");
   await page.getByRole("link", { name: "Play RAG", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Try placement", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Skip ahead", exact: true }).click();
   await page.waitForURL(/\/play\/rag\/drill\?session=/);
   await finishPlayRound(page, true);
   await expect(
@@ -33,7 +31,7 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   await page.getByRole("link", { name: "Back to levels", exact: true }).click();
   const first = page.locator("li").filter({
     has: page.getByRole("heading", {
-      name: "1. Retrieval basics",
+      name: "Retrieval basics",
       exact: true,
     }),
   });
@@ -49,7 +47,7 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   await page.getByRole("link", { name: "Back to levels", exact: true }).click();
   const fourth = page.locator("li").filter({
     has: page.getByRole("heading", {
-      name: "4. Quality and safety",
+      name: "Quality and safety",
       exact: true,
     }),
   });

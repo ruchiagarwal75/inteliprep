@@ -1,12 +1,11 @@
-import { LockIcon } from "@/components/play/game-icons";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
 import { playTopic, levelsForTopic } from "@/lib/play/catalog";
 import { playerSnapshot } from "@/lib/play/player";
-import { levelUnlocked } from "@/lib/play/round-rules";
 import { StartRound } from "@/components/play/start-round";
-import styles from "@/components/play/play.module.css";
+import { LevelPath } from "@/components/play/level-path";
+import styles from "@/components/play/level-path.module.css";
 export const dynamic = "force-dynamic";
 export default async function TopicPage({
   params,
@@ -39,47 +38,16 @@ export default async function TopicPage({
           <StartRound topic={id} mode="review" label="Start review" />
         </section>
       )}
-      <section className={styles.intro}>
-        <h2>Find your starting point</h2>
-        <p>
-          Optional placement takes about 5 minutes. Try 2 drills from each of
-          the first 3 levels.
-        </p>
-        <StartRound topic={id} mode="placement" label="Try placement" />
-      </section>
-      <ul className={styles.topicList}>
-        {levels.map((level, index) => (
-          <li className={styles.topic} key={level.level}>
-            <div>
-              <h2>
-                {level.level}. {level.title}
-              </h2>
-              <p>5 drills. Pass with 4 correct answers.</p>
-              <span className={styles.chip}>
-                {passed.includes(level.level)
-                  ? "Passed"
-                  : levelUnlocked(level.level, levels, passed)
-                    ? "Open"
-                    : "Locked"}
-              </span>
-            </div>
-            {levelUnlocked(level.level, levels, passed) ? (
-              <StartRound
-                topic={id}
-                mode="level"
-                level={level.level}
-                label={
-                  passed.includes(level.level) ? "Replay level" : "Start level"
-                }
-              />
-            ) : (
-              <p>
-                <LockIcon /> Pass Level {levels[index - 1]?.level} to unlock
-              </p>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className={styles.placement}>
+        <StartRound
+          topic={id}
+          mode="placement"
+          label="Skip ahead"
+          variant="link"
+        />
+        <p>Placement takes about 5 minutes.</p>
+      </div>
+      <LevelPath topic={id} levels={levels} passed={passed} />
     </>
   );
 }

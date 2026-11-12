@@ -1,0 +1,115 @@
+.path {
+  list-style: none;
+  padding: 0;
+  margin-block: var(--space-4);
+}
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  align-items: start;
+}
+.step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 48px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-strong);
+}
+.node {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 600;
+}
+.card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--corner-large);
+  background: var(--surface);
+  min-width: 0;
+}
+.card p {
+  margin-top: var(--space-1);
+  color: var(--muted);
+}
+.step[data-state="passed"] .node {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.step[data-state="current"] .node {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 0 0 5px var(--accent-soft);
+}
+.step[data-state="current"] .card {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.step[data-state="locked"] .node {
+  background: var(--surface-inset);
+}
+.status {
+  font-size: 0.8125rem;
+  color: var(--accent-text);
+}
+.locked {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  font-size: 0.875rem;
+}
+.placement {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.placement p {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+@media (max-width: 479px) {
+  .step {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .node {
+    width: 40px;
+    height: 40px;
+  }
+  .step:not(:last-child)::before {
+    left: 19px;
+    top: 40px;
+  }
+  .card {
+    padding: var(--space-2);
+  }
+}
+
+.skipLink {
+  border: 0;
+  padding: var(--space-1) 0;
+  background: var(--transparent);
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font: inherit;
+  cursor: pointer;
+}
