@@ -62,3 +62,47 @@ export function fillNumbers(text: string, parameters: Record<string, number>) {
     return mathNumber(value);
   });
 }
+
+/** Check the authored grid as well as the range: old saved variants may use step=1. */
+export function sameMathParameters(
+  a: MathTemplate["parameters"],
+  b: MathTemplate["parameters"],
+) {
+  const keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every((key) => {
+    const left = a[key],
+      right = b[key];
+    if (!right || left.kind !== right.kind) return false;
+    if (left.kind === "range" && right.kind === "range")
+      return (
+        left.min === right.min &&
+        left.max === right.max &&
+        left.step === right.step
+      );
+    return (
+      left.kind === "choices" &&
+      right.kind === "choices" &&
+      left.values.length === right.values.length &&
+      left.values.every((value, index) => value === right.values[index])
+    );
+  });
+}
+export function parametersMatch(
+  template: MathTemplate,
+  values: Record<string, number>,
+) {
+  if (Object.keys(values).length !== Object.keys(template.parameters).length)
+    return false;
+  return Object.entries(template.parameters).every(([key, p]) => {
+    const value = values[key];
+    if (value === undefined || !Number.isFinite(value)) return false;
+    if (p.kind === "choices") return p.values.includes(value);
+    const steps = (value - p.min) / p.step;
+    return (
+      value >= p.min &&
+      value <= p.max &&
+      Math.abs(steps - Math.round(steps)) < 1e-8
+    );
+  });
+}

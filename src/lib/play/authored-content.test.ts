@@ -68,3 +68,20 @@ it("grades shuffled options on the server and omits answers, why and rubrics bef
     }
   }
 });
+
+it("keeps every generated L2 input on the authored grid, including questions in steps of 10000", async () => {
+  const { mathDrills } = await import("./rag/scale-math");
+  const { chooseParameters, parametersMatch } = await import("./math");
+  for (const drill of mathDrills) {
+    if (drill.type !== "math") throw Error("Expected math");
+    if (drill.math.parameters.q)
+      expect(drill.math.parameters.q).toMatchObject({
+        kind: "range",
+        step: 10000,
+      });
+    for (let i = 0; i < 20; i++)
+      expect(parametersMatch(drill.math, chooseParameters(drill.math))).toBe(
+        true,
+      );
+  }
+});

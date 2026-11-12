@@ -191,8 +191,7 @@ export function DrillRunner({
       {loadError && <p role="alert">{loadError}</p>}
       {refreshed && (
         <p role="status">
-          This round was refreshed after time away. Your answered drills are
-          kept.
+          Your unanswered drills were refreshed. Your saved answers are kept.
         </p>
       )}
       <DrillCard

@@ -83,7 +83,7 @@ export async function submitRoundAnswer(
   });
   if (claim.kind === "refreshed")
     throw new PlayError(
-      "This drill was refreshed after time away. Reload the round before answering.",
+      "This drill was refreshed. Reload the round before answering.",
       409,
     );
   if (claim.kind === "cached")

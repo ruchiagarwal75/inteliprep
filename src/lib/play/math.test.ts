@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
 import {
+  parametersMatch,
+  sameMathParameters,
   calculateMath,
   chooseParameters,
   fillNumbers,
@@ -37,4 +39,25 @@ it("computes the provided vector example and generates valid parameters", () => 
   expect(() =>
     calculateMath({ ...template, expression: [1, 0, "divide"] }, {}),
   ).toThrow();
+});
+
+it("rejects messy legacy inputs, off-grid decimals and missing values", () => {
+  if (mathFixture.type !== "math") throw Error("Wrong fixture");
+  const template = {
+    ...mathFixture.math,
+    parameters: {
+      q: { kind: "range" as const, min: 10000, max: 2000000, step: 10000 },
+      c: { kind: "range" as const, min: 0.2, max: 5, step: 0.1 },
+    },
+  };
+  expect(parametersMatch(template, { q: 841167, c: 0.6 })).toBe(false);
+  expect(parametersMatch(template, { q: 840000, c: 0.61 })).toBe(false);
+  expect(
+    sameMathParameters(template.parameters, {
+      c: template.parameters.c,
+      q: template.parameters.q,
+    }),
+  ).toBe(true);
+  expect(parametersMatch(template, { q: 840000, c: 0.6 })).toBe(true);
+  expect(parametersMatch(template, { q: 840000 })).toBe(false);
 });

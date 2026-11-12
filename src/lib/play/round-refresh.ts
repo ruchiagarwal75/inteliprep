@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { PlayTransaction } from "./database";
 import { drillDefinitionSchema, drillVariantSchema } from "./definition";
 import { drillsForTopic } from "./content";
+import { parametersMatch, sameMathParameters } from "./math";
 import { createVariant } from "./question";
 import { ROUND_STALE_MS } from "./drill-time";
 type RoundToRefresh = {
@@ -31,7 +32,8 @@ export async function refreshUnanswered(
         round.created_at.getTime(),
       ),
     );
-  if (now.getTime() - last.getTime() < ROUND_STALE_MS) return false;
+  const stale = now.getTime() - last.getTime() >= ROUND_STALE_MS;
+  let renewed = false;
   const rows =
     await sql`select id,ordinal,private_variant from practice_game.drill_attempts where user_id=${userId} and session_id=${round.id} and answer is null and submitted_at is null order by ordinal`;
   const bank = drillsForTopic(round.topic);
@@ -45,9 +47,20 @@ export async function refreshUnanswered(
     const definition =
       bank.find((drill) => drill.id === snapshot.definition.id) ??
       snapshot.definition;
+    const outdatedMath =
+      definition.type === "math" &&
+      (snapshot.definition.type !== "math" ||
+        !sameMathParameters(
+          snapshot.definition.math.parameters,
+          definition.math.parameters,
+        ) ||
+        !parametersMatch(definition.math, snapshot.variant.parameters));
+    if (!stale && !outdatedMath) continue;
+    renewed = true;
     const variant = { definition, variant: createVariant(definition) };
     await sql`update practice_game.drill_attempts set private_variant=${sql.json(variant)},variant_revision=variant_revision+1,active_elapsed_ms=0,active_since=null,started_at=${row.ordinal === round.active_ordinal ? now : null} where user_id=${userId} and id=${row.id} and answer is null and submitted_at is null`;
   }
-  await sql`update practice_game.play_sessions set last_activity_at=${now} where user_id=${userId} and id=${round.id}`;
-  return rows.length > 0;
+  if (renewed)
+    await sql`update practice_game.play_sessions set last_activity_at=${now} where user_id=${userId} and id=${round.id}`;
+  return renewed;
 }
