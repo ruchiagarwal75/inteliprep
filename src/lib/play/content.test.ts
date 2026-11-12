@@ -55,3 +55,37 @@ it("randomized choice positions never expose the original correct option", () =>
     /correctIndex|seniorAnswer|rubric|expression|formula/,
   );
 });
+
+it("uses round inputs across every math template, not arbitrary integer document or query counts", () => {
+  const steps: Record<string, number> = {
+    docs: 1000000,
+    q: 10000,
+    n: 10000000,
+    tin: 500,
+    tout: 100,
+    raw: 20,
+  };
+  for (const drill of bank) {
+    if (drill.type !== "math") continue;
+    for (const [name, parameter] of Object.entries(drill.math.parameters)) {
+      if (parameter.kind !== "range" || !(name in steps)) continue;
+      expect(parameter.step, `${drill.id}: ${name}`).toBe(steps[name]);
+    }
+    for (let index = 0; index < 100; index++) {
+      const parameters = chooseParameters(drill.math);
+      for (const [name, value] of Object.entries(parameters)) {
+        const parameter = drill.math.parameters[name];
+        if (parameter.kind === "choices") {
+          expect(parameter.values).toContain(value);
+          continue;
+        }
+        expect(value).toBeGreaterThanOrEqual(parameter.min);
+        expect(value).toBeLessThanOrEqual(parameter.max);
+        expect((value - parameter.min) / parameter.step).toBeCloseTo(
+          Math.round((value - parameter.min) / parameter.step),
+          7,
+        );
+      }
+    }
+  }
+});

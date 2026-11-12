@@ -75,7 +75,6 @@ test("Play round fixes: first-drill handoff, dots, fail, pass, rewards, daily go
   });
   let checking = false;
   await page.route("**/api/play/submit", async (route) => {
-    const answer = route.request().postDataJSON()?.answer;
     if (!checking) {
       checking = true;
       await expect(

@@ -88,7 +88,7 @@ export const mathDrills = [
           kind: "range",
           min: 1000000,
           max: 20000000,
-          step: 1,
+          step: 1000000,
         },
         pct: {
           kind: "range",
@@ -156,7 +156,7 @@ export const mathDrills = [
           kind: "range",
           min: 10000,
           max: 2000000,
-          step: 1,
+          step: 10000,
         },
         k: {
           kind: "range",
@@ -213,7 +213,7 @@ export const mathDrills = [
           kind: "range",
           min: 10000,
           max: 2000000,
-          step: 1,
+          step: 10000,
         },
         tin: {
           kind: "range",
@@ -281,13 +281,13 @@ export const mathDrills = [
           kind: "range",
           min: 1000,
           max: 8000,
-          step: 1,
+          step: 500,
         },
         tout: {
           kind: "range",
           min: 200,
           max: 1000,
-          step: 1,
+          step: 100,
         },
         pin: {
           kind: "range",
@@ -360,7 +360,7 @@ export const mathDrills = [
           kind: "range",
           min: 10000,
           max: 2000000,
-          step: 1,
+          step: 10000,
         },
         c: {
           kind: "range",
@@ -419,7 +419,7 @@ export const mathDrills = [
           kind: "range",
           min: 10000000,
           max: 500000000,
-          step: 1,
+          step: 10000000,
         },
         t: {
           kind: "range",
@@ -487,7 +487,7 @@ export const mathDrills = [
           kind: "range",
           min: 20,
           max: 2000,
-          step: 1,
+          step: 20,
         },
         ov: {
           kind: "choices",
