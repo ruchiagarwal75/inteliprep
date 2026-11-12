@@ -1,0 +1,33 @@
+.stars {
+  display: inline-flex;
+  gap: 4px;
+  color: var(--game-gold);
+}
+.stars svg[data-earned="false"] {
+  fill: var(--surface-inset);
+  stroke: var(--border-strong);
+}
+.stars[data-animate] svg[data-earned="true"] {
+  animation: arrive var(--game-motion) cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.stars[data-animate] svg:nth-child(2) {
+  animation-delay: 180ms;
+}
+.stars[data-animate] svg:nth-child(3) {
+  animation-delay: 360ms;
+}
+@keyframes arrive {
+  from {
+    transform: translateY(-18px) scale(0.4);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stars svg {
+    animation: none !important;
+  }
+}

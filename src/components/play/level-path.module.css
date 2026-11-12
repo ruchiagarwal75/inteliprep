@@ -1,115 +1,187 @@
+.world {
+  position: relative;
+  max-width: 600px;
+  margin: var(--space-4) auto;
+}
+.track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.track path {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+.track .filled {
+  stroke: var(--accent);
+}
 .path {
   list-style: none;
   padding: 0;
-  margin-block: var(--space-4);
+  margin: 0;
 }
 .step {
   position: relative;
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: var(--space-3);
-  padding-bottom: var(--space-3);
-  align-items: start;
+  height: 240px;
 }
-.step:not(:last-child)::before {
-  content: "";
-  position: absolute;
-  left: 23px;
-  top: 48px;
-  bottom: 0;
-  width: 2px;
-  background: var(--border-strong);
+.details {
+  position: static;
 }
 .node {
-  width: 48px;
-  height: 48px;
-  border: 2px solid var(--border-strong);
-  border-radius: 50%;
+  position: absolute;
+  top: 20px;
+  left: 35%;
   display: grid;
   place-items: center;
-  background: var(--surface);
+  width: 88px;
+  height: 88px;
+  transform: translateX(-50%);
+  border-radius: var(--game-round);
+  border: 3px solid var(--border-strong);
+  border-bottom-width: 8px;
+  background: var(--surface-inset);
   color: var(--muted);
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 850;
+  cursor: pointer;
+  list-style: none;
 }
-.card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--corner-large);
-  background: var(--surface);
-  min-width: 0;
+.node::-webkit-details-marker {
+  display: none;
 }
-.card p {
-  margin-top: var(--space-1);
-  color: var(--muted);
+.step[data-side="1"] .node,
+.step[data-side="1"] .caption {
+  left: 65%;
 }
-.step[data-state="passed"] .node {
+.step[data-state="passed"] .node,
+.step[data-state="current"] .node {
   background: var(--accent);
-  border-color: var(--accent);
+  border-color: var(--game-button-edge);
   color: var(--on-accent);
 }
 .step[data-state="current"] .node {
-  border-color: var(--accent);
-  color: var(--accent-text);
-  box-shadow: 0 0 0 5px var(--accent-soft);
+  width: 96px;
+  height: 96px;
+  top: 16px;
+  outline: 8px solid var(--game-ring);
+  animation: ready 2s ease-in-out infinite;
 }
-.step[data-state="current"] .card {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+.node:active {
+  border-bottom-width: 4px;
 }
-.step[data-state="locked"] .node {
-  background: var(--surface-inset);
+.caption {
+  position: absolute;
+  top: 118px;
+  left: 35%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  color: var(--muted);
+  font-weight: 650;
+  white-space: nowrap;
 }
-.status {
-  font-size: 0.8125rem;
-  color: var(--accent-text);
+.card {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  top: 118px;
+  transform: translateX(-50%);
+  width: min(310px, calc(100% - 32px));
+  padding: var(--space-3);
+  background: var(--surface-raised);
+  color: var(--foreground);
+  border: 2px solid var(--accent);
+  border-radius: var(--corner-large);
+  box-shadow: var(--shadow-card);
 }
-.locked {
-  display: flex;
-  gap: var(--space-1);
-  align-items: center;
+.card h2 {
+  font-family: var(--font-ui);
+  font-weight: 750;
+  font-size: 1.125rem;
+}
+.card p {
+  color: var(--muted);
   font-size: 0.875rem;
+  margin-block: var(--space-1) var(--space-2);
+}
+.card button {
+  width: 100%;
+}
+.chest {
+  position: absolute;
+  left: 50%;
+  top: 168px;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--game-reward);
+  padding: var(--space-1);
+  border-radius: 16px;
+  background: var(--game-reward-soft);
+  font-size: 0.6875rem;
+}
+.guide {
+  position: absolute;
+  left: 54%;
+  top: 16px;
+}
+.step[data-side="1"] .guide {
+  left: 0;
 }
 .placement {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
   margin-top: var(--space-3);
 }
 .placement p {
   color: var(--muted);
   font-size: 0.875rem;
 }
-@media (max-width: 479px) {
-  .step {
-    grid-template-columns: 40px minmax(0, 1fr);
-    gap: var(--space-2);
+.skipLink {
+  border: 2px solid var(--border-strong);
+  border-radius: 14px;
+  padding: 10px 16px;
+  background: var(--surface-raised);
+  color: var(--accent-text);
+  font: 650 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+@keyframes ready {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
   }
-  .node {
-    width: 40px;
-    height: 40px;
-  }
-  .step:not(:last-child)::before {
-    left: 19px;
-    top: 40px;
-  }
-  .card {
-    padding: var(--space-2);
+  50% {
+    transform: translateX(-50%) translateY(-5px);
   }
 }
-
-.skipLink {
-  border: 0;
-  padding: var(--space-1) 0;
-  background: var(--transparent);
-  color: var(--accent-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  font: inherit;
-  cursor: pointer;
+@media (max-width: 767px) {
+  .guide {
+    display: none;
+  }
+  .node {
+    width: 76px;
+    height: 76px;
+    top: 26px;
+  }
+  .step[data-state="current"] .node {
+    width: 84px;
+    height: 84px;
+    top: 22px;
+    outline-width: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .node {
+    animation: none !important;
+  }
 }

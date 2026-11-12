@@ -75,3 +75,51 @@ export function BadgeIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function StarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="m12 2 3 6 7 1-5 5 1.2 7-6.2-3.2L5.8 21 7 14 2 9l7-1Z" />
+    </svg>
+  );
+}
+export function ChestIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="42"
+      height="38"
+      viewBox="0 0 48 44"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path
+        d="M6 19V14C6 5 42 5 42 14v5M5 19h38v21H5Z"
+        fill="var(--game-reward-soft)"
+      />
+      <path d="M14 9v30m20-30v30M5 26h38" />
+      <rect
+        x="20"
+        y="22"
+        width="8"
+        height="11"
+        rx="2"
+        fill="var(--game-gold-soft)"
+      />
+      <path d="M24 26v3" />
+    </svg>
+  );
+}

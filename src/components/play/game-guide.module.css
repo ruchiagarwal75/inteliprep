@@ -1,0 +1,31 @@
+.guide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  pointer-events: none;
+  max-width: 250px;
+}
+.art {
+  width: 88px;
+  height: 96px;
+  flex: none;
+}
+.bubble {
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  color: var(--foreground);
+  background: var(--surface-raised);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.guide[data-pose="idle"] :global(.mm-svg) * {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .guide *,
+  .guide :global(.mm-svg) * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
