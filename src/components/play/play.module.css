@@ -136,3 +136,8 @@
 .streak svg {
   color: var(--streak-flame);
 }
+
+.topic .starTotal {
+  color: var(--game-gold);
+  font-weight: 750;
+}

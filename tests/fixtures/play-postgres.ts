@@ -1,6 +1,6 @@
 import EmbeddedPostgres from "embedded-postgres";
 import postgres from "postgres";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createServer } from "node:net";
@@ -38,12 +38,12 @@ export async function startPlayPostgres() {
       `create role anon; create role authenticated; create role mockmeai_reporting login password 'test-only' nobypassrls; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$select (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid$$;grant usage on schema auth to authenticated;`,
     );
     await operator`insert into auth.users(id) values(${PLAY_TEST_USER}),(${PLAY_OTHER_USER})`;
-    await operator.unsafe(
-      await readFile(
-        "supabase/migrations/20261111221816_play_game.sql",
-        "utf8",
-      ),
-    );
+    for (const name of (await readdir("supabase/migrations"))
+      .filter((name) => name.includes("_play_") && name.endsWith(".sql"))
+      .sort())
+      await operator.unsafe(
+        await readFile(`supabase/migrations/${name}`, "utf8"),
+      );
   } catch (cause) {
     await operator.end({ timeout: 1 });
     await pg.stop();

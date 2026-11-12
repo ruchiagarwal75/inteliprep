@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { playerSnapshot } from "@/lib/play/player";
 import { playAccountId } from "@/lib/play/access";
 import { PLAY_TOPICS } from "@/lib/play/catalog";
 import { BRAND } from "@/lib/brand";
 import styles from "@/components/play/play.module.css";
 export const dynamic = "force-dynamic";
 export default async function PlayPage() {
-  await playAccountId();
+  const snapshot = await playerSnapshot(await playAccountId());
   return (
     <>
       <h1>{BRAND.tagline}</h1>
@@ -19,6 +20,14 @@ export default async function PlayPage() {
             <div>
               <h2>{topic.title}</h2>
               <p>{topic.description}</p>
+              {topic.available && (
+                <p className={styles.starTotal}>
+                  {snapshot.levels
+                    .filter((row) => row.topic === topic.id)
+                    .reduce((sum, row) => sum + row.best_stars, 0)}{" "}
+                  / {topic.levels.length * 3} stars
+                </p>
+              )}
             </div>
             {topic.available ? (
               <Link className="practice-primary" href={`/play/${topic.id}`}>

@@ -21,6 +21,7 @@ const roundSchema = z.object({
   active_ordinal: z.number().int(),
   completed_at: z.coerce.date().nullable(),
   result_json: roundSummarySchema.nullable(),
+  replay: z.boolean().default(false),
 });
 const attemptSchema = z.object({
   id: z.uuid(),

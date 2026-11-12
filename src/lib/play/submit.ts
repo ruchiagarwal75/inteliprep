@@ -92,7 +92,7 @@ export async function submitRoundAnswer(
           "This check was replaced by a newer retry. Load the round again.",
           409,
         );
-      const rewards = await rewardDrill(sql, userId, attempt, grade);
+      const rewards = await rewardDrill(sql, userId, attempt, grade, round);
       const result = {
         ...grade,
         points: rewards.points,

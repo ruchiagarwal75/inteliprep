@@ -47,7 +47,16 @@ export default async function TopicPage({
         />
         <p>Placement takes about 5 minutes.</p>
       </div>
-      <LevelPath topic={id} levels={levels} passed={passed} />
+      <LevelPath
+        topic={id}
+        levels={levels}
+        passed={passed}
+        stars={Object.fromEntries(
+          snapshot.levels
+            .filter((row) => row.topic === id)
+            .map((row) => [row.level, row.best_stars]),
+        )}
+      />
     </>
   );
 }

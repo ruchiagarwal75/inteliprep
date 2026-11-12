@@ -1,4 +1,5 @@
 import "server-only";
+import { drillXp } from "./game-rules";
 import { randomUUID } from "node:crypto";
 import type { PlayTransaction } from "./database";
 import { levelsForTopic } from "./catalog";
@@ -30,13 +31,22 @@ export async function rewardDrill(
     private_variant: { definition: { type: string } };
   },
   grade: DrillGrade,
+  round: { replay: boolean; mode: "level" | "review" | "placement" },
 ) {
+  const [cleared] =
+    round.mode === "review"
+      ? await sql`select status from practice_game.level_progress where user_id=${userId} and topic=${attempt.topic} and level=${attempt.level}`
+      : [];
+  const replay = round.replay || cleared?.status === "passed";
   const points = await grantPoints(
       sql,
       userId,
       grade.correct
-        ? (levelsForTopic(attempt.topic).find((l) => l.level === attempt.level)
-            ?.points ?? 0)
+        ? drillXp(
+            levelsForTopic(attempt.topic).find((l) => l.level === attempt.level)
+              ?.points ?? 0,
+            replay,
+          )
         : 0,
       "drill",
       attempt.id,

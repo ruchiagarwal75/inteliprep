@@ -19,6 +19,7 @@ const stateSchema = z.object({
       level: z.number().int(),
       status: z.enum(["locked", "open", "passed"]),
       best_score: z.coerce.number(),
+      best_stars: z.number().int().min(0).max(3).default(0),
     }),
   ),
   readiness: z.array(

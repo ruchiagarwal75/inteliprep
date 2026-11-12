@@ -52,6 +52,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
     await sql`insert into practice_game.level_progress(user_id,topic,level,status) select ${userId},${input.topic},x.level,x.status from jsonb_to_recordset(${sql.json(levelRows)}) as x(level integer,status text) where true on conflict do nothing`;
     const bank = drillsForTopic(input.topic);
     let selected: DrillDefinition[];
+    let replay = false;
     if (input.mode === "level") {
       const rows =
         await sql`select level from practice_game.level_progress where user_id=${userId} and topic=${input.topic} and status='passed'`;
@@ -63,6 +64,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
         )
       )
         throw new PlayError("Pass the previous level to open this one.", 403);
+      replay = rows.some((row) => row.level === input.level);
       selected = chooseLevelDrills(bank, input.level);
     } else if (input.mode === "placement")
       selected = choosePlacementDrills(bank, topic.placementLevels);
@@ -96,7 +98,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
     }));
     const first = attempts[0];
     if (!first) throw new PlayError("This round has no question to show.", 503);
-    await sql`with session as (insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode) values(${id},${userId},${input.requestId},${input.topic},${level},${input.mode}) returning id) insert into practice_game.drill_attempts(id,user_id,session_id,drill_id,topic,level,type,ordinal,started_at,private_variant) select x.id,${userId},session.id,x.drill_id,x.topic,x.level,x.drill_type,x.ordinal,x.started_at,x.private_variant from session cross join jsonb_to_recordset(${sql.json(attempts)}) as x(id uuid,drill_id text,topic text,level integer,drill_type text,ordinal integer,started_at timestamptz,private_variant jsonb)`;
+    await sql`with session as (insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode,replay) values(${id},${userId},${input.requestId},${input.topic},${level},${input.mode},${replay}) returning id) insert into practice_game.drill_attempts(id,user_id,session_id,drill_id,topic,level,type,ordinal,started_at,private_variant) select x.id,${userId},session.id,x.drill_id,x.topic,x.level,x.drill_type,x.ordinal,x.started_at,x.private_variant from session cross join jsonb_to_recordset(${sql.json(attempts)}) as x(id uuid,drill_id text,topic text,level integer,drill_type text,ordinal integer,started_at timestamptz,private_variant jsonb)`;
     await recordPlayEvent(sql, userId, "drill_started", first.id, {
       topic: first.topic,
       type: first.drill_type,
