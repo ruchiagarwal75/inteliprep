@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import type { PlayTotals } from "@/lib/play/public";
 import pixel from "./pixel.module.css";
+import { playGameSound } from "./game-sounds";
 import game from "./game.module.css";
 import { GameGuide } from "./game-guide";
 import styles from "./level-up.module.css";
@@ -19,6 +20,7 @@ export function LevelUp({
   useEffect(() => {
     const node = dialog.current;
     node?.showModal();
+    playGameSound("levelup");
     return () => node?.close();
   }, []);
   return (

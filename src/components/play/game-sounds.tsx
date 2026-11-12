@@ -56,24 +56,30 @@ export function prepareGameSounds() {
   }
 }
 /** Original synthesized tones. No recordings, audio uploads or copied melodies. */
-export function playGameSound(kind: "correct" | "wrong" | "complete") {
+export function playGameSound(
+  kind: "correct" | "wrong" | "complete" | "levelup" | "chest",
+) {
   if (!enabled() || !audio || audio.state !== "running") return;
   const frequencies =
     kind === "correct"
       ? [660, 880]
       : kind === "wrong"
         ? [240, 190]
-        : [523, 659, 880];
+        : kind === "chest"
+          ? [587, 784, 988]
+          : kind === "levelup"
+            ? [494, 740, 988, 1175]
+            : [523, 659, 880];
   try {
     frequencies.forEach((frequency, i) => {
       if (!audio) return;
       const oscillator = audio.createOscillator(),
         gain = audio.createGain(),
         start = audio.currentTime + i * 0.09;
-      oscillator.type = "sine";
+      oscillator.type = "square";
       oscillator.frequency.value = frequency;
       gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.035, start + 0.01);
+      gain.gain.linearRampToValueAtTime(0.015, start + 0.01);
       gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
       oscillator.connect(gain);
       gain.connect(audio.destination);

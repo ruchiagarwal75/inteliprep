@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { chestResultSchema } from "@/lib/play/public";
 import { usePlayRewards } from "./play-rewards";
+import { prepareGameSounds, playGameSound } from "./game-sounds";
 import { PixelChest } from "./pixel-chest";
 import styles from "./chest-node.module.css";
 export function ChestNode({
@@ -25,6 +26,7 @@ export function ChestNode({
   const lock = useRef(false);
   async function open() {
     if (lock.current || xp !== undefined || !unlocked) return;
+    prepareGameSounds();
     lock.current = true;
     setBusy(true);
     setError("");
@@ -38,6 +40,7 @@ export function ChestNode({
       if (!response.ok || !parsed.success) throw Error("Unavailable");
       setXp(parsed.data.xp);
       setJustOpened(true);
+      playGameSound("chest");
       rewards?.applyTotals(parsed.data.totals, true);
     } catch {
       setError("Could not open this chest. Please retry.");

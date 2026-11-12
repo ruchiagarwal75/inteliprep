@@ -143,7 +143,7 @@
 }
 
 .topic[data-world] {
-  --game-world: var(--game-violet);
+  --game-world: var(--pixel-violet);
   --game-world-soft: var(--game-violet-soft);
   --game-world-text: var(--game-violet-text);
   --game-world-edge: var(--game-violet-edge);
@@ -159,21 +159,21 @@
   background: var(--game-world-soft);
 }
 .topic[data-world="chat-serving"] {
-  --game-world: var(--game-sky);
+  --game-world: var(--pixel-blue);
   --game-world-soft: var(--game-sky-soft);
   --game-world-text: var(--game-sky-text);
   --game-world-edge: var(--game-sky-edge);
   --game-world-bg: var(--game-sky-bg);
 }
 .topic[data-world="agents"] {
-  --game-world: var(--game-coral);
+  --game-world: var(--pixel-coral);
   --game-world-soft: var(--game-coral-soft);
   --game-world-text: var(--game-coral-text);
   --game-world-edge: var(--game-coral-edge);
   --game-world-bg: var(--game-coral-bg);
 }
 .topic[data-world="final-loop"] {
-  --game-world: var(--game-world-gold);
+  --game-world: var(--pixel-world-gold);
   --game-world-soft: var(--game-world-gold-soft);
   --game-world-text: var(--game-world-gold-text);
   --game-world-edge: var(--game-world-gold-edge);
@@ -197,7 +197,7 @@
   height: 64px;
   display: grid;
   place-items: center;
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--game-world-bg);
   color: var(--game-world-text);
   border: 2px solid currentColor;
@@ -214,7 +214,7 @@
   place-items: center;
   width: 25px;
   height: 25px;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--game-world-bg);
 }
 .worldStats {
@@ -253,7 +253,7 @@
   .worldIcon {
     width: 44px;
     height: 44px;
-    border-radius: 14px;
+    border-radius: 0;
   }
   .worldIcon > svg {
     width: 30px;
@@ -265,4 +265,63 @@
   .topic .chip {
     justify-self: start;
   }
+}
+
+.topic[data-world] {
+  border: 2px solid var(--pixel-line);
+  border-bottom: 8px solid var(--game-world);
+  clip-path: var(--pixel-cut);
+  background: var(--pixel-card);
+}
+.topic[data-world="chat-serving"] {
+  background: var(--pixel-blue-soft);
+}
+.topic[data-world="agents"] {
+  background: var(--pixel-coral-soft);
+}
+.topic[data-world="final-loop"] {
+  background: var(--pixel-world-gold-soft);
+}
+.topic[data-world] h2 {
+  color: var(--pixel-text);
+  font-family: var(--font-play-read);
+}
+.topic.locked {
+  opacity: 0.8;
+}
+.worldIcon {
+  background: var(--pixel-sprite-plate);
+  border-color: var(--game-world);
+  clip-path: var(--pixel-cut);
+}
+.locked .worldIcon {
+  background: var(--pixel-sprite-plate);
+  border-color: var(--pixel-line-strong);
+}
+.lockMark {
+  background: var(--pixel-sprite-plate);
+  padding: 4px;
+  width: 24px;
+  height: 24px;
+}
+.topic .starTotal {
+  --pixel-label-size: 9px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.starTotal svg {
+  background: var(--pixel-sprite-plate);
+  box-sizing: content-box;
+  padding: 4px;
+}
+.chip[data-game-label] {
+  --pixel-label-size: 9px;
+  background: var(--pixel-inset);
+  color: var(--pixel-text);
+  padding: 12px;
+}
+.worldProgress {
+  border: 2px solid var(--pixel-line);
+  height: 12px;
 }

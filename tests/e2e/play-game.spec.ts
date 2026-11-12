@@ -171,11 +171,15 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   await page.goto("/play");
   const worlds = page.getByRole("list", { name: "Practice worlds" });
   await expect(worlds.locator("li[data-world]")).toHaveCount(4);
-  await expect(worlds.getByText("Coming soon", { exact: true })).toHaveCount(3);
+  await expect(worlds.getByLabel("Coming soon", { exact: true })).toHaveCount(
+    3,
+  );
   await expect(
     worlds.getByText("1 of 4 levels passed", { exact: true }),
   ).toBeVisible();
-  await expect(worlds.getByText("3 / 12 stars", { exact: true })).toBeVisible();
+  await expect(
+    worlds.getByLabel("3 / 12 stars", { exact: true }),
+  ).toBeVisible();
   await expect(
     worlds.getByRole("progressbar", { name: "RAG levels passed" }),
   ).toHaveAttribute("value", "1");

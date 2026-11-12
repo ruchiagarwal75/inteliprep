@@ -3,6 +3,8 @@ import { playAccountId } from "@/lib/play/access";
 import { playerSnapshot } from "@/lib/play/player";
 import { PLAY_TOPICS } from "@/lib/play/catalog";
 import { BRAND } from "@/lib/brand";
+import { PixelSprite } from "@/components/play/pixel-sprite";
+import { PIXEL_ART } from "@/components/play/pixel-art";
 import { TopicIcon } from "@/components/play/topic-icon";
 import styles from "@/components/play/play.module.css";
 export const dynamic = "force-dynamic";
@@ -41,8 +43,17 @@ export default async function PlayPage() {
                   (snapshot ? (
                     <>
                       <div className={styles.worldStats}>
-                        <p className={styles.starTotal}>
-                          {stars} / {topic.levels.length * 3} stars
+                        <p
+                          className={styles.starTotal}
+                          data-game-label
+                          aria-label={`${stars} / ${topic.levels.length * 3} stars`}
+                        >
+                          <PixelSprite
+                            art={PIXEL_ART.star}
+                            width="18"
+                            height="14"
+                          />
+                          {stars}/{topic.levels.length * 3}
                         </p>
                         <p>
                           {passed} of {topic.levels.length} levels passed
@@ -64,7 +75,13 @@ export default async function PlayPage() {
                   Play {topic.title}
                 </Link>
               ) : (
-                <span className={styles.chip}>Coming soon</span>
+                <span
+                  className={styles.chip}
+                  data-game-label
+                  aria-label="Coming soon"
+                >
+                  Soon
+                </span>
               )}
             </li>
           );
