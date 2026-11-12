@@ -44,10 +44,14 @@ export function LessonHeader({
           style={{ transform: `scaleX(${completed / total})` }}
         />
       </div>
-      <span className={styles.combo} aria-label={`Combo: ${combo}`}>
-        {combo} in a row
-      </span>
-      <ThemeToggle />
+      {combo >= 2 && (
+        <span className={styles.combo} aria-label={`Combo: ${combo}`}>
+          {combo} in a row
+        </span>
+      )}
+      <div className={styles.theme}>
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

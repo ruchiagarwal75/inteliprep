@@ -75,6 +75,10 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
     const body = await (await response).json();
     expect(body.result.correct).toBe(true);
     expect(body.result.combo).toBe(i + 1);
+    if (i === 0)
+      await expect(page.getByLabel("Combo: 1", { exact: true })).toHaveCount(0);
+    if (i === 1)
+      await expect(page.getByLabel("Combo: 2", { exact: true })).toBeVisible();
     const sheet = page.getByLabel("Drill result", { exact: true });
     await expect(sheet).toHaveAttribute("data-correct", "true");
     await expect(sheet.locator("details")).not.toHaveAttribute("open", "");
@@ -163,7 +167,7 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
       await capturePlay(page, "wrong-sheet", folder, false);
       wrong = true;
     }
-    await expect(page.getByLabel("Combo: 0", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Combo: 0", { exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "Continue", exact: true }).click();
     if (i < 4)
       await expect(

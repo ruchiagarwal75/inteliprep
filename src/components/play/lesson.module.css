@@ -168,3 +168,7 @@
     transition: none;
   }
 }
+
+.theme {
+  grid-column: 4;
+}
