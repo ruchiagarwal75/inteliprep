@@ -5,6 +5,7 @@ import { playTopic, levelsForTopic } from "@/lib/play/catalog";
 import { playerSnapshot } from "@/lib/play/player";
 import { StartRound } from "@/components/play/start-round";
 import { LevelPath } from "@/components/play/level-path";
+import { WorldBanner } from "@/components/play/world-banner";
 import styles from "@/components/play/level-path.module.css";
 export const dynamic = "force-dynamic";
 export default async function TopicPage({
@@ -30,8 +31,14 @@ export default async function TopicPage({
       <Link className="practice-link" href="/play">
         All topics
       </Link>
-      <h1>{topic.title}</h1>
-      <p>Build one skill at a time.</p>
+      <WorldBanner
+        title={topic.title}
+        stars={snapshot.levels
+          .filter((row) => row.topic === id)
+          .reduce((sum, row) => sum + row.best_stars, 0)}
+        levelsPassed={passed.length}
+        totalLevels={levels.length}
+      />
       {reviews > 0 && (
         <section className="practice-surface">
           <h2>Review</h2>

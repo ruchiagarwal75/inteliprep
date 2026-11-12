@@ -16,6 +16,12 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/play/rag");
+  const banner = page.getByRole("region", { name: "RAG World progress" });
+  await expect(
+    banner.getByRole("heading", { name: "RAG World" }),
+  ).toBeVisible();
+  await expect(banner.getByText("0 / 12 stars", { exact: true })).toBeVisible();
+  await expect(banner.getByText("0 of 4 levels passed")).toBeVisible();
   const first = page.locator('summary[aria-label^="Level 1:"]');
   await expect(first).toHaveAttribute("aria-label", /current/u);
   await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveAttribute(
@@ -91,6 +97,8 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   await expect(page.getByText("Best combo", { exact: true })).toBeVisible();
   await capturePlay(page, "level-complete-3-stars", folder);
   await page.getByRole("link", { name: "Continue", exact: true }).click();
+  await expect(banner.getByText("3 / 12 stars", { exact: true })).toBeVisible();
+  await expect(banner.getByText("1 of 4 levels passed")).toBeVisible();
   await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveAttribute(
     "aria-label",
     /current/u,

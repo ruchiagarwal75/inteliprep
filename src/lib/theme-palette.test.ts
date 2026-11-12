@@ -62,6 +62,8 @@ describe("application palette", () => {
           [`--game-${world}-text`, `--game-${world}-bg`],
         ]),
         ["--game-chest", "--game-chest-soft"],
+        ["--game-banner-text", "--game-banner-start"],
+        ["--game-banner-text", "--game-banner-end"],
         ["--game-gold", "--game-gold-soft"],
         ["--game-gold", "--game-correct-soft"],
         ["--foreground", "--game-correct-soft"],

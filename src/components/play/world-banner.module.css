@@ -1,0 +1,52 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin-block: var(--space-2) var(--space-3);
+  border-radius: var(--corner-large);
+  color: var(--game-banner-text);
+  background: linear-gradient(
+    120deg,
+    var(--game-banner-start),
+    var(--game-banner-end)
+  );
+}
+.copy {
+  min-width: 0;
+}
+.banner h1 {
+  font: 850 clamp(2rem, 5vw, 3rem)/1.1 var(--font-ui);
+  margin: 0 0 var(--space-2);
+}
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stats p {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+}
+.mascot {
+  flex: none;
+}
+@media (max-width: 767px) {
+  .banner {
+    padding: var(--space-3) var(--space-2);
+    gap: var(--space-1);
+  }
+  .banner .mascot [data-pose="idle"] {
+    display: flex;
+    --guide-size: 64px;
+  }
+  .stats {
+    font-size: 0.875rem;
+    gap: var(--space-1) var(--space-2);
+  }
+}

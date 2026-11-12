@@ -78,6 +78,9 @@
   --game-violet-text: #5134b2;
   --game-violet-edge: #442891;
   --game-violet-bg: #faf7ff;
+  --game-banner-start: var(--game-violet);
+  --game-banner-end: var(--game-violet-text);
+  --game-banner-text: var(--game-on-world);
   --game-sky: #006ba8;
   --game-sky-soft: #e5f4ff;
   --game-sky-text: #005e93;
@@ -268,6 +271,9 @@
   --game-violet-text: #c3b2ff;
   --game-violet-edge: #67509f;
   --game-violet-bg: #100e1e;
+  --game-banner-start: var(--game-violet-soft);
+  --game-banner-end: var(--game-violet-edge);
+  --game-banner-text: var(--foreground);
   --game-sky: #71c6ff;
   --game-sky-soft: #102d41;
   --game-sky-text: #9fd8ff;
