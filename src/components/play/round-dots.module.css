@@ -1,0 +1,25 @@
+.dots {
+  display: flex;
+  gap: var(--space-1);
+  list-style: none;
+  padding: 0;
+  margin-block: var(--space-2) var(--space-3);
+}
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: var(--surface-raised);
+}
+.dot[data-state="correct"] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.dot[data-state="wrong"] {
+  background: var(--border-strong);
+}
+.dot[data-state="current"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}

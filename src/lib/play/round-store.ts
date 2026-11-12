@@ -83,12 +83,17 @@ export async function roundView(
     attempt = await storedAttempt(sql, userId, attempt.id);
   }
   if (!attempt.started_at) throw Error("Missing server drill start");
-  const [count] =
-    await sql`select count(*)::integer as total from practice_game.drill_attempts where session_id=${id} and user_id=${userId}`;
+  const outcomeRows =
+    await sql`select correct from practice_game.drill_attempts where session_id=${id} and user_id=${userId} order by ordinal`;
+  const outcomes = z
+    .array(z.object({ correct: z.boolean().nullable() }))
+    .parse(outcomeRows)
+    .map((row) => row.correct);
   const base = {
     sessionId: id,
     mode: round.mode,
     resumed,
+    outcomes,
     question: publicQuestion(
       attempt.private_variant.definition,
       attempt.private_variant.variant,
@@ -97,7 +102,7 @@ export async function roundView(
         ordinal: attempt.ordinal,
         startedAt: attempt.started_at.toISOString(),
       },
-      count.total,
+      outcomes.length,
     ),
   };
   if (attempt.result_json && attempt.answer)

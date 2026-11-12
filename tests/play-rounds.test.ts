@@ -67,6 +67,7 @@ it("starts exactly once, picks five unique drills, preserves timing, and fences 
   const first = await getRound(user, sessionId);
   expect(a.view?.resumed).toBe(false);
   expect(first.resumed).toBe(true);
+  expect(first.outcomes).toEqual([null, null, null, null, null]);
   expect(JSON.stringify(a.view)).not.toMatch(
     /private_variant|rubric|correctIndex|seniorAnswer/,
   );

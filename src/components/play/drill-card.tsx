@@ -8,6 +8,7 @@ import type {
   DrillQuestion,
   DrillResult,
 } from "@/lib/play/public";
+import { RoundDots } from "./round-dots";
 import { Celebration } from "./celebration";
 import { DrillAnswerForm } from "./drill-answer-form";
 import styles from "./drill.module.css";
@@ -51,6 +52,7 @@ export function DrillCard({
   onNext,
   onRetry,
   resumed,
+  outcomes,
 }: {
   question: DrillQuestion;
   result?: DrillResult;
@@ -60,6 +62,7 @@ export function DrillCard({
   onNext: () => void;
   onRetry?: () => void;
   resumed?: boolean;
+  outcomes?: (boolean | null)[];
 }) {
   useEffect(() => {
     markRoundReady();
@@ -73,11 +76,10 @@ export function DrillCard({
         </p>
         <SoftTimer question={question} result={result} resumed={resumed} />
       </header>
-      <progress
-        className={styles.progress}
-        max={question.total}
-        value={question.ordinal + (result ? 1 : 0)}
-        aria-label="Round progress"
+      <RoundDots
+        total={question.total}
+        current={question.ordinal}
+        outcomes={outcomes}
       />
       <h1>{question.title}</h1>
       <p className={styles.prompt}>{question.prompt}</p>

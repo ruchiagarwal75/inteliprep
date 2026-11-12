@@ -103,6 +103,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
       mode: input.mode,
       status: "answering",
       resumed: false,
+      outcomes: attempts.map(() => null),
       question: publicQuestion(
         first.private_variant.definition,
         first.private_variant.variant,

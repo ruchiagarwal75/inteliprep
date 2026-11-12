@@ -106,6 +106,12 @@ export function DrillRunner({
         setView({
           ...view,
           status: "graded",
+          outcomes: (
+            view.outcomes ??
+            Array.from({ length: view.question.total }, () => null)
+          ).map((previous, index) =>
+            index === view.question.ordinal ? parsed.result.correct : previous,
+          ),
           answer: value,
           result: parsed.result,
           summary: parsed.summary,
@@ -182,6 +188,7 @@ export function DrillRunner({
         key={view.question.attemptId}
         question={view.question}
         resumed={view.resumed}
+        outcomes={view.outcomes}
         result={view.status === "graded" ? view.result : undefined}
         busy={submission.kind === "checking"}
         error={
