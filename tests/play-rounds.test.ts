@@ -227,3 +227,49 @@ it("reaches practice ready after all four levels, without granting interview rea
     await fixture.operator`select * from practice_game.play_events where user_id=${user} and event='mock_prompt_shown'`,
   ).toHaveLength(1);
 });
+
+it("keeps removed sample definitions usable for saved rounds and due reviews", async () => {
+  const { sessionId: id } = await startRound(user, {
+    requestId: crypto.randomUUID(),
+    topic: "rag",
+    mode: "level",
+    level: 1,
+    timeZone: "UTC",
+  });
+  const view = await getRound(user, id),
+    index = bank.findIndex((d) => d.id === view.question.drillId);
+  const [removed] = bank.splice(index, 1);
+  if (!removed) throw Error("Missing sample");
+  try {
+    const restored = await getRound(user, id);
+    expect(restored.question).toMatchObject({
+      drillId: removed.id,
+      prompt: view.question.prompt,
+      startedAt: view.question.startedAt,
+    });
+    await submitRoundAnswer(
+      user,
+      restored.question.attemptId,
+      await solve(restored, false),
+    );
+    await fixture.operator`update practice_game.review_queue set due_at=now()+interval '1 day' where user_id=${user}`;
+    await fixture.operator`update practice_game.review_queue set due_at=now()-interval '1 minute' where user_id=${user} and drill_id=${removed.id}`;
+    const review = await startRound(user, {
+      requestId: crypto.randomUUID(),
+      topic: "rag",
+      mode: "review",
+      timeZone: "UTC",
+    });
+    expect(review.view?.question).toMatchObject({
+      drillId: removed.id,
+      title: removed.title,
+    });
+    const [reviewSnapshot] =
+      await fixture.operator`select private_variant->'definition' as definition from practice_game.drill_attempts where id=${review.view?.question.attemptId ?? "00000000-0000-4000-8000-000000000000"}`;
+    expect(drillDefinitionSchema.parse(reviewSnapshot.definition)).toEqual(
+      removed,
+    );
+  } finally {
+    bank.splice(index, 0, removed);
+  }
+});

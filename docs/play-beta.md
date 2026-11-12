@@ -32,7 +32,7 @@ structured response. Math and multiple choice never call the model.
 | 6. Rewards | `rewards.ts`, `streak-policy.ts`, `streak-store.ts`, `badges.ts`, `events.ts`, celebration component |
 | 7. Readiness | `readiness-policy.ts`, `readiness-store.ts`, Progress page, target-level control, Mock prompt and prompt API |
 | 8. Mock bridge | `mock-outcome.ts`, `mock-hooks.ts`, `log.ts`, interview start/end route hooks, Brief level preference |
-| 9. Content | `docs/play-content/rag-levels-1-2.md`, `src/lib/play/rag/`, `content.ts`, `gap-cards.ts`, gap card route |
+| 9. Content | `docs/play-content/rag-levels-1-2.md`, `docs/play-content/rag-levels-3-4.md`, `src/lib/play/rag/`, `content.ts`, `gap-cards.ts`, gap card route |
 | 10. Limits and analytics | `config.ts`, `ai-usage.ts`, `grading-policy.ts`, `spend.ts`, observed model operation tag, safe log fields, Play lifecycle events |
 | 11. Checks | `tests/play-*.test.ts`, colocated Play tests, `tests/e2e/play*`, isolated Auth/model/SQL fixtures, private bundle scan |
 
@@ -40,8 +40,8 @@ Paths without a directory in the table are under `src/lib/play`.
 
 ## Content and rules
 
-- RAG Levels 1 and 2 use the authored eight-drill banks. Levels 3 and 4 contain
-  five TODO samples each. Every sample title and prompt says `[sample]`.
+- RAG uses authored eight-drill banks for all four levels. New rounds contain
+  no sample content. Saved rounds and reviews keep their original definitions.
 - Full rounds draw five distinct drills. Four correct answers pass. Placement
   uses two drills from each of Levels 1 through 3 and can pass those levels.
 - Multiple-choice options are shuffled per attempt. Public option IDs are

@@ -3,26 +3,20 @@ import { drillsForTopic } from "./content";
 import { calculateMath, chooseParameters, withinMathTolerance } from "./math";
 import { publicQuestion, createVariant } from "./question";
 const bank = drillsForTopic("rag");
-it("installs the authored eight drills in levels 1 and 2, and five explicit samples in 3 and 4", () => {
-  expect(new Set(bank.map((d) => d.id)).size).toBe(26);
-  for (const [level, count] of [
-    [1, 8],
-    [2, 8],
-    [3, 5],
-    [4, 5],
-  ]) {
+it("installs eight authored drills per level with no sample content", () => {
+  expect(new Set(bank.map((d) => d.id)).size).toBe(32);
+  for (const level of [1, 2, 3, 4]) {
     const drills = bank.filter((d) => d.level === level);
-    expect(drills).toHaveLength(count);
-    for (const d of drills) {
-      expect(d.sample).toBe(level > 2);
-      if (level > 2) {
-        expect(d.title).toContain("[sample]");
-        expect(d.prompt).toContain("[sample]");
-      }
+    expect(drills).toHaveLength(8);
+    for (const drill of drills) {
+      expect(drill.sample).toBe(false);
+      expect(drill.title).not.toContain("[sample]");
+      expect(drill.prompt).not.toContain("[sample]");
     }
   }
   expect(new Set(bank.map((d) => d.type)).size).toBe(4);
 });
+
 it("all eight math examples and randomized parameters agree with the private formulas", () => {
   const math = bank.filter((d) => d.type === "math" && d.level === 2);
   expect(math).toHaveLength(8);

@@ -63,13 +63,14 @@ engine intact and use Postgres transactions for the game.
 
 ## Content and checks
 
-RAG has four configured levels and all four drill types. Sample questions visibly
-say `[sample]` and carry TODO markers in code. A five-question level needs at least
-five distinct configured drills. The authored source in `docs/play-content/rag-levels-1-2.md` supplies eight real
-drills for each of Levels 1 and 2. Levels 3 and 4 keep five clearly marked samples
-each until reviewed content arrives. Multiple-choice positions are shuffled per
-attempt. Math uses a 15% tolerance, except exact integer node counts. Placement
-uses two drills per level.
+RAG has four configured levels and all four drill types. Each level has eight
+authored drills from `docs/play-content/rag-levels-1-2.md` and
+`docs/play-content/rag-levels-3-4.md`. New rounds never select placeholders.
+Saved attempts retain their definitions and variants; due reviews can restore a
+retired drill from its owner's saved snapshot. No saved attempts or passes are
+rewritten. Multiple-choice positions are shuffled per attempt. Math uses a 15%
+tolerance, except exact integer node counts. Placement uses the first two
+configured placement drills in each of Levels 1 to 3.
 
 Tests use stubbed AI responses. Pure tests cover tolerance, pass/unlock rules,
 time zones, freezes, reviews and readiness. Database tests check row ownership,
