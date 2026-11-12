@@ -22,6 +22,7 @@ export function DrillCard({
   onAnswer,
   onNext,
   onRetry,
+  onRefresh,
   resumed,
   outcomes,
   animatePoints,
@@ -35,6 +36,7 @@ export function DrillCard({
   onAnswer: (answer: DrillAnswer) => void;
   onNext: () => void;
   onRetry?: () => void;
+  onRefresh?: () => void;
   resumed?: boolean;
   outcomes?: (boolean | null)[];
   animatePoints?: boolean;
@@ -69,6 +71,7 @@ export function DrillCard({
             {question.total}
           </p>
           <SoftTimer
+            onRefresh={onRefresh}
             question={question}
             result={result}
             resumed={resumed}

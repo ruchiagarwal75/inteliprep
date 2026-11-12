@@ -1,4 +1,5 @@
 import "server-only";
+import { GAME_RULES } from "./game-rules";
 import { roundTimingPath } from "./round-timing";
 import { randomUUID } from "node:crypto";
 import type { StartRoundInput } from "./public";
@@ -94,11 +95,12 @@ export async function startRound(userId: string, input: StartRoundInput) {
       drill_type: drill.type,
       ordinal,
       started_at: ordinal === 0 ? startedAt : null,
+      active_since: ordinal === 0 ? startedAt : null,
       private_variant: { definition: drill, variant: createVariant(drill) },
     }));
     const first = attempts[0];
     if (!first) throw new PlayError("This round has no question to show.", 503);
-    await sql`with session as (insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode,replay) values(${id},${userId},${input.requestId},${input.topic},${level},${input.mode},${replay}) returning id) insert into practice_game.drill_attempts(id,user_id,session_id,drill_id,topic,level,type,ordinal,started_at,private_variant) select x.id,${userId},session.id,x.drill_id,x.topic,x.level,x.drill_type,x.ordinal,x.started_at,x.private_variant from session cross join jsonb_to_recordset(${sql.json(attempts)}) as x(id uuid,drill_id text,topic text,level integer,drill_type text,ordinal integer,started_at timestamptz,private_variant jsonb)`;
+    await sql`with session as (insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode,replay,last_activity_at) values(${id},${userId},${input.requestId},${input.topic},${level},${input.mode},${replay},now()) returning id) insert into practice_game.drill_attempts(id,user_id,session_id,drill_id,topic,level,type,ordinal,started_at,active_since,private_variant) select x.id,${userId},session.id,x.drill_id,x.topic,x.level,x.drill_type,x.ordinal,x.started_at,x.active_since,x.private_variant from session cross join jsonb_to_recordset(${sql.json(attempts)}) as x(id uuid,drill_id text,topic text,level integer,drill_type text,ordinal integer,started_at timestamptz,active_since timestamptz,private_variant jsonb)`;
     await recordPlayEvent(sql, userId, "drill_started", first.id, {
       topic: first.topic,
       type: first.drill_type,
@@ -113,7 +115,14 @@ export async function startRound(userId: string, input: StartRoundInput) {
       question: publicQuestion(
         first.private_variant.definition,
         first.private_variant.variant,
-        { id: first.id, ordinal: 0, startedAt },
+        {
+          id: first.id,
+          ordinal: 0,
+          startedAt,
+          elapsedMs: 0,
+          maxTimeMs: 3 * GAME_RULES.parMs[first.drill_type],
+          revision: 0,
+        },
         attempts.length,
       ),
     });

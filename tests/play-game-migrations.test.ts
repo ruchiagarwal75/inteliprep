@@ -33,9 +33,11 @@ it("adds game metadata twice without changing an old private attempt, timing, pa
   const [before] =
     await fixture.operator`select * from practice_game.drill_attempts where id=${attempt}`;
   const names = (await readdir("supabase/migrations"))
-    .filter((n) => /_play_(stars_replays|chests|combos)\.sql$/u.test(n))
+    .filter((n) =>
+      /_play_(stars_replays|chests|combos|active_drill_time)\.sql$/u.test(n),
+    )
     .sort();
-  expect(names).toHaveLength(3);
+  expect(names).toHaveLength(4);
   for (let repeat = 0; repeat < 2; repeat++)
     for (const name of names) {
       const sql = await readFile(`supabase/migrations/${name}`, "utf8");
@@ -44,7 +46,7 @@ it("adds game metadata twice without changing an old private attempt, timing, pa
     }
   const [after] =
     await fixture.operator`select * from practice_game.drill_attempts where id=${attempt}`;
-  expect(after).toEqual(before);
+  expect(after).toMatchObject(before);
   const state = await playerSnapshot(user);
   expect(state.points).toBe(75);
   expect(state.levels[0]).toMatchObject({ status: "passed", best_stars: 0 });
@@ -52,7 +54,10 @@ it("adds game metadata twice without changing an old private attempt, timing, pa
   expect(state.chests).toEqual([]);
   const restored = await getRound(user, round);
   expect(restored.question.attemptId).toBe(attempt);
-  expect(restored.question.startedAt).toBe("2026-11-01T12:00:00.000Z");
+  expect(restored.question.startedAt).not.toBe("2026-11-01T12:00:00.000Z");
+  expect(restored.question.revision).toBe(1);
+  const [resumedRow] =
+    await fixture.operator`select * from practice_game.drill_attempts where id=${attempt}`;
   expect(restored.status).toBe("answering");
   const [metadata] =
     await fixture.operator`select replay,current_combo,best_combo from practice_game.play_sessions where id=${round}`;
@@ -96,6 +101,6 @@ it("adds game metadata twice without changing an old private attempt, timing, pa
   ).toEqual([{ best_stars: 0 }]);
   expect(
     await fixture.operator`select * from practice_game.drill_attempts where id=${attempt}`,
-  ).toEqual([before]);
+  ).toEqual([resumedRow]);
   expect((await playerSnapshot(user)).points).toBe(75);
 });

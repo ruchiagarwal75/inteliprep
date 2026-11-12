@@ -17,7 +17,14 @@ export function createVariant(drill: DrillDefinition): DrillVariant {
 export function publicQuestion(
   drill: DrillDefinition,
   variant: DrillVariant,
-  attempt: { id: string; ordinal: number; startedAt: string },
+  attempt: {
+    id: string;
+    ordinal: number;
+    startedAt: string;
+    elapsedMs?: number;
+    maxTimeMs?: number;
+    revision?: number;
+  },
   total: number,
 ) {
   return drillQuestionSchema.parse({
@@ -34,6 +41,9 @@ export function publicQuestion(
     ordinal: attempt.ordinal,
     total,
     startedAt: attempt.startedAt,
+    elapsedMs: attempt.elapsedMs,
+    maxTimeMs: attempt.maxTimeMs,
+    revision: attempt.revision,
     serverNow: new Date().toISOString(),
     sample: drill.sample,
     ...(drill.gapId

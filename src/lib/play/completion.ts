@@ -1,3 +1,4 @@
+import { GAME_RULES } from "./game-rules";
 import { levelStars } from "./game-rules";
 import { nextRoundLevel } from "./summary-store";
 import { drillResultSchema } from "./public";
@@ -101,7 +102,8 @@ export async function completeRound(
     bestStars: best?.best_stars ?? 0,
     replay: round.replay,
     answerTimeMs: attempts.reduce(
-      (sum, row) => sum + row.result_json.timeMs,
+      (sum, row) =>
+        sum + Math.min(row.result_json.timeMs, 3 * GAME_RULES.parMs[row.type]),
       0,
     ),
     mode: round.mode,

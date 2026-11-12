@@ -1,3 +1,6 @@
+import { activeDrillMs } from "./drill-time";
+import { GAME_RULES } from "./game-rules";
+import { refreshUnanswered } from "./round-refresh";
 import { playerTotals } from "./totals";
 import { needsAiGrade } from "./grading-policy";
 import { reserveAiGrade } from "./ai-usage";
@@ -20,10 +23,15 @@ export async function submitRoundAnswer(
   attemptId: string,
   answer: DrillAnswer,
   signal?: AbortSignal,
+  revision = 0,
 ) {
   const claim = await withPlayer(userId, async (sql) => {
-    const attempt = await storedAttempt(sql, userId, attemptId),
-      round = await storedRound(sql, userId, attempt.session_id);
+    let attempt = await storedAttempt(sql, userId, attemptId);
+    const round = await storedRound(sql, userId, attempt.session_id);
+    if (await refreshUnanswered(sql, userId, round))
+      attempt = await storedAttempt(sql, userId, attemptId);
+    if (attempt.variant_revision !== revision)
+      return { kind: "refreshed" as const };
     if (attempt.result_json)
       return {
         kind: "cached" as const,
@@ -62,10 +70,22 @@ export async function submitRoundAnswer(
     const id = randomUUID(),
       timeMs =
         attempt.time_ms ??
-        Math.max(0, Date.now() - attempt.started_at.getTime());
-    await sql`update practice_game.drill_attempts set answer=${sql.json(answer)},time_ms=${timeMs},claim_id=${id},claim_until=${new Date(Date.now() + 45000)} where user_id=${userId} and id=${attemptId}`;
+        activeDrillMs({
+          elapsedMs: attempt.active_elapsed_ms,
+          activeSince: attempt.active_since?.getTime() ?? null,
+          now: Date.now(),
+          maxTimeMs:
+            3 * GAME_RULES.parMs[attempt.private_variant.definition.type],
+        });
+    await sql`update practice_game.drill_attempts set answer=${sql.json(answer)},time_ms=${timeMs},active_elapsed_ms=${timeMs},active_since=null,claim_id=${id},claim_until=${new Date(Date.now() + 45000)} where user_id=${userId} and id=${attemptId}`;
+    await sql`update practice_game.play_sessions set last_activity_at=now() where id=${round.id} and user_id=${userId}`;
     return { kind: "claimed" as const, id, attempt, timeMs };
   });
+  if (claim.kind === "refreshed")
+    throw new PlayError(
+      "This drill was refreshed after time away. Reload the round before answering.",
+      409,
+    );
   if (claim.kind === "cached")
     return {
       result: claim.result,

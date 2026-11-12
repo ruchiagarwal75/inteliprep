@@ -1,3 +1,6 @@
+import { activeDrillMs } from "./drill-time";
+import { GAME_RULES } from "./game-rules";
+import { refreshUnanswered } from "./round-refresh";
 import { displayRoundSummary } from "./summary-store";
 import { recordPlayEvent } from "./events";
 import "server-only";
@@ -20,6 +23,8 @@ const roundSchema = z.object({
   mode: z.enum(["level", "placement", "review"]),
   active_ordinal: z.number().int(),
   completed_at: z.coerce.date().nullable(),
+  created_at: z.coerce.date(),
+  last_activity_at: z.coerce.date().nullable().default(null),
   result_json: roundSummarySchema.nullable(),
   replay: z.boolean().default(false),
   current_combo: z.number().int().nonnegative().default(0),
@@ -41,6 +46,9 @@ const attemptSchema = z.object({
   score: z.coerce.number().nullable(),
   points_awarded: z.number().int(),
   time_ms: z.coerce.number().nullable(),
+  active_elapsed_ms: z.coerce.number().nonnegative().default(0),
+  active_since: z.coerce.date().nullable().default(null),
+  variant_revision: z.number().int().nonnegative().default(0),
   started_at: z.coerce.date().nullable(),
   submitted_at: z.coerce.date().nullable(),
   claim_id: z.uuid().nullable(),
@@ -79,6 +87,8 @@ export async function roundView(
   if (!row.attempt)
     throw new PlayError("This round has no question to show.", 409);
   let attempt = attemptSchema.parse(row.attempt);
+  const refreshed = await refreshUnanswered(sql, userId, round);
+  if (refreshed) attempt = await storedAttempt(sql, userId, attempt.id);
   const outcomes = z.array(z.boolean().nullable()).parse(row.outcomes);
   const resumed = Boolean(attempt.started_at);
   if (!attempt.started_at) {
@@ -90,7 +100,24 @@ export async function roundView(
     attempt = await storedAttempt(sql, userId, attempt.id);
   }
   if (!attempt.started_at) throw Error("Missing server drill start");
+  const now = new Date(),
+    maxTimeMs = 3 * GAME_RULES.parMs[attempt.private_variant.definition.type];
+  const elapsedMs = Math.min(
+    attempt.time_ms ??
+      activeDrillMs({
+        elapsedMs: attempt.active_elapsed_ms,
+        activeSince: attempt.active_since?.getTime() ?? null,
+        now: now.getTime(),
+        maxTimeMs,
+      }),
+    maxTimeMs,
+  );
+  if (!attempt.answer && !round.completed_at) {
+    await sql`update practice_game.drill_attempts set active_elapsed_ms=${elapsedMs},active_since=${now} where id=${attempt.id} and user_id=${userId} and answer is null`;
+    await sql`update practice_game.play_sessions set last_activity_at=${now} where id=${id} and user_id=${userId}`;
+  }
   const base = {
+    refreshed,
     sessionId: id,
     combo: round.current_combo,
     mode: round.mode,
@@ -103,6 +130,9 @@ export async function roundView(
         id: attempt.id,
         ordinal: attempt.ordinal,
         startedAt: attempt.started_at.toISOString(),
+        elapsedMs,
+        maxTimeMs,
+        revision: attempt.variant_revision,
       },
       outcomes.length,
     ),

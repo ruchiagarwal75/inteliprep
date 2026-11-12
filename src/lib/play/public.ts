@@ -50,6 +50,9 @@ const questionFields = {
   ordinal: z.number().int(),
   total: z.number().int(),
   startedAt: z.iso.datetime(),
+  elapsedMs: z.number().nonnegative().optional(),
+  maxTimeMs: z.number().positive().optional(),
+  revision: z.number().int().nonnegative().optional(),
   serverNow: z.iso.datetime(),
   gapHref: z.string().optional(),
   sample: z.boolean(),
@@ -153,6 +156,7 @@ export const roundSummarySchema = z.object({
 });
 export type RoundSummary = z.infer<typeof roundSummarySchema>;
 const roundFields = {
+  refreshed: z.boolean().optional(),
   combo: z.number().int().nonnegative().optional(),
   outcomes: z.array(z.boolean().nullable()).optional(),
   resumed: z.boolean().optional(),
@@ -182,7 +186,11 @@ export const startRoundResultSchema = z.object({
   view: roundViewSchema.optional(),
 });
 export const submitRoundSchema = z
-  .object({ attemptId: z.uuid(), answer: drillAnswerSchema })
+  .object({
+    attemptId: z.uuid(),
+    answer: drillAnswerSchema,
+    revision: z.number().int().nonnegative().default(0),
+  })
   .strict();
 export const playerXpLevelSchema = z.object({
   level: z.number().int().positive(),
@@ -224,4 +232,17 @@ export const chestResultSchema = z.object({
   xp: z.number().int().min(20).max(50),
   opened: z.literal(true),
   totals: playTotalsSchema,
+});
+
+export const drillActivitySchema = z
+  .object({
+    attemptId: z.uuid(),
+    revision: z.number().int().nonnegative().default(0),
+    visible: z.boolean(),
+  })
+  .strict();
+export const drillActivityResultSchema = z.object({
+  elapsedMs: z.number().nonnegative(),
+  maxTimeMs: z.number().positive(),
+  refreshed: z.boolean().optional(),
 });

@@ -3,6 +3,7 @@ import {
   submitRoundSchema,
   startRoundInputSchema,
   advanceRoundSchema,
+  drillActivitySchema,
 } from "./public";
 it("accepts answers and identifiers, never client-authored outcomes or timing", () => {
   const input = {
@@ -50,4 +51,18 @@ it("accepts answers and identifiers, never client-authored outcomes or timing", 
       passed: true,
     }).success,
   ).toBe(false);
+});
+
+it("accepts visibility heartbeats but never client supplied elapsed time or rewards", () => {
+  const body = { attemptId: crypto.randomUUID(), revision: 1, visible: false };
+  expect(drillActivitySchema.safeParse(body).success).toBe(true);
+  for (const extra of [
+    { elapsedMs: 1 },
+    { timeMs: 1 },
+    { points: 20 },
+    { userId: crypto.randomUUID() },
+  ])
+    expect(drillActivitySchema.safeParse({ ...body, ...extra }).success).toBe(
+      false,
+    );
 });

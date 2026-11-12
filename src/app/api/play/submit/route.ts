@@ -21,6 +21,7 @@ export const POST = playEndpoint(
         input.data.attemptId,
         input.data.answer,
         request.signal,
+        input.data.revision,
       ),
     );
   },

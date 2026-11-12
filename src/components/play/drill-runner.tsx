@@ -26,32 +26,40 @@ export function DrillRunner({
     [awardAnimation, setAwardAnimation] = useState<string>(),
     [initial] = useState(() => peekRound(userId, sessionId)),
     [view, setView] = useState<RoundView | undefined>(initial),
+    [refreshed, setRefreshed] = useState(false),
     [loadError, setLoadError] = useState(""),
     [submission, setSubmission] = useState<Submission>({ kind: "idle" }),
     [summary, setSummary] = useState<RoundSummary>(),
     locked = useRef(false),
     mounted = useRef(true),
     visited = useRef(new Map<string, boolean>());
-  const load = useCallback(async () => {
-    try {
-      const response = await request(`/api/play/round?sessionId=${sessionId}`),
-        data: unknown = await response.json();
-      if (!response.ok) throw Error("Round unavailable");
-      const parsed = roundViewSchema.parse(data);
-      if (mounted.current) {
-        const attemptId = parsed.question.attemptId;
-        const resumed =
-          visited.current.get(attemptId) ?? parsed.resumed ?? false;
-        visited.current.set(attemptId, resumed);
-        setView({ ...parsed, resumed });
-        setLoadError("");
-        if (parsed.status === "graded") router.refresh();
+  const load = useCallback(
+    async (renewed = false) => {
+      try {
+        const response = await request(
+            `/api/play/round?sessionId=${sessionId}`,
+          ),
+          data: unknown = await response.json();
+        if (!response.ok) throw Error("Round unavailable");
+        const parsed = roundViewSchema.parse(data);
+        if (mounted.current) {
+          const attemptId = parsed.question.attemptId;
+          const resumed =
+            visited.current.get(attemptId) ?? parsed.resumed ?? false;
+          visited.current.set(attemptId, resumed);
+          setView({ ...parsed, resumed });
+          setLoadError("");
+          if (renewed || parsed.refreshed) setRefreshed(true);
+          if (parsed.status === "graded") router.refresh();
+        }
+      } catch {
+        if (mounted.current)
+          setLoadError("Could not load your round. Please retry.");
       }
-    } catch {
-      if (mounted.current)
-        setLoadError("Could not load your round. Please retry.");
-    }
-  }, [request, sessionId, router]);
+    },
+    [request, sessionId, router],
+  );
+  const refresh = useCallback(() => void load(true), [load]);
   useEffect(() => {
     mounted.current = true;
     forgetRound(userId, sessionId);
@@ -76,6 +84,7 @@ export function DrillRunner({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             attemptId: view.question.attemptId,
+            revision: view.question.revision ?? 0,
             answer: value,
           }),
           signal: AbortSignal.timeout(40000),
@@ -180,8 +189,14 @@ export function DrillRunner({
   return (
     <>
       {loadError && <p role="alert">{loadError}</p>}
+      {refreshed && (
+        <p role="status">
+          This round was refreshed after time away. Your answered drills are
+          kept.
+        </p>
+      )}
       <DrillCard
-        key={view.question.attemptId}
+        key={`${view.question.attemptId}:${view.question.revision ?? 0}`}
         topic={topic}
         combo={view.combo ?? 0}
         question={view.question}
@@ -198,6 +213,7 @@ export function DrillRunner({
               : undefined
         }
         onAnswer={(value) => void answer(value)}
+        onRefresh={refresh}
         onNext={() => void next()}
         onRetry={retry}
       />

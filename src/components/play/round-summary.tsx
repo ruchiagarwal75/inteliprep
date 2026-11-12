@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import type { RoundSummary } from "@/lib/play/public";
+import { formatDrillTime } from "@/lib/play/drill-time";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MockPrompt } from "./mock-prompt";
 import { Celebration } from "./celebration";
@@ -20,10 +21,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
       : summary.mode === "placement"
         ? "Placement complete"
         : "Review complete";
-  const seconds =
-    summary.answerTimeMs === undefined
-      ? undefined
-      : Math.floor(summary.answerTimeMs / 1000);
+
   const next = summary.nextLevel ? `?unlocked=${summary.nextLevel.level}` : "";
   return (
     <section className={styles.complete} aria-label="Round results" data-lesson>
@@ -78,9 +76,9 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
           <div>
             <dt>Answer time</dt>
             <dd data-game-label>
-              {seconds === undefined
+              {summary.answerTimeMs === undefined
                 ? "Unavailable"
-                : `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`}
+                : formatDrillTime(summary.answerTimeMs)}
             </dd>
           </div>
           <div>
