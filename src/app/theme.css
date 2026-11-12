@@ -1,5 +1,24 @@
 /* All application and illustration colors are defined here. Light is the default. */
 :root {
+  --pixel-sprite-hair: #1b1b2f;
+  --pixel-sprite-skin: #f2c79b;
+  --pixel-sprite-glasses: #f2b705;
+  --pixel-sprite-white: #ffffff;
+  --pixel-sprite-eye: #1b1b2f;
+  --pixel-sprite-blush: #f59bb0;
+  --pixel-sprite-mouth: #d94f6e;
+  --pixel-sprite-mint: #5fe0c0;
+  --pixel-sprite-mint-shade: #2fb89a;
+  --pixel-sprite-legs: #3a3a5a;
+  --pixel-sprite-chest-ink: #2a1a10;
+  --pixel-sprite-chest-pink: #ff5fa2;
+  --pixel-sprite-chest-shade: #c2306f;
+  --pixel-sprite-gold: #ffd23f;
+  --pixel-sprite-flame-red: #e23d28;
+  --pixel-sprite-flame-orange: #ff7a1a;
+  --pixel-sprite-lock-outline: #8b93b5;
+  --pixel-sprite-lock-fill: #3a3f66;
+
   --font-play-read: "Inter", Arial, sans-serif;
   --font-play-pixel: "Press Start 2P", monospace;
   --pixel-cut: polygon(

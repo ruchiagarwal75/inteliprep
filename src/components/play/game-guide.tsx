@@ -1,6 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import Mascot from "@/components/mascot-art/Mascot";
+import { PixelMascot } from "./pixel-mascot";
 import { useMascotPreference } from "@/components/mascot-preference";
 import styles from "./game-guide.module.css";
 const subscribe = (changed: () => void) => {
@@ -28,22 +28,7 @@ export function GameGuide({
       aria-label="Practice guide"
     >
       <div className={styles.art}>
-        <Mascot
-          pose={
-            pose === "thinking"
-              ? "working"
-              : pose === "cheer" || pose === "celebrate"
-                ? "done"
-                : "wave"
-          }
-        />
-        {pose === "thinking" && (
-          <span className={styles.thought} aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-        )}
+        <PixelMascot pose={pose} />
       </div>
       {message && <p className={styles.bubble}>{message}</p>}
     </aside>

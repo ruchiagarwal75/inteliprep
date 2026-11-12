@@ -1,0 +1,28 @@
+.poses {
+  display: grid;
+  grid-template-columns: repeat(5, 112px);
+  gap: 24px;
+  justify-content: center;
+  margin-block: 32px;
+}
+.poses figure {
+  margin: 0;
+  --guide-size: 112px;
+  text-align: center;
+}
+.poses figcaption {
+  font: 500 14px/1.4 var(--font-play-read);
+  margin-top: 16px;
+}
+@media (max-width: 767px) {
+  .poses {
+    grid-template-columns: repeat(5, 56px);
+    gap: 4px;
+  }
+  .poses figure {
+    --guide-size: 56px;
+  }
+  .poses figcaption {
+    font-size: 10px;
+  }
+}

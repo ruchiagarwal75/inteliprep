@@ -1,0 +1,87 @@
+.sprite {
+  display: block;
+  flex: none;
+  image-rendering: pixelated;
+}
+.mascot {
+  display: block;
+  position: relative;
+  width: var(--guide-size, 84px);
+  height: var(--guide-size, 84px);
+}
+.sparkLeft,
+.sparkRight {
+  position: absolute;
+  top: 12px;
+  pointer-events: none;
+}
+.sparkLeft {
+  left: 0;
+}
+.sparkRight {
+  right: 0;
+  top: 0;
+}
+.chest {
+  display: block;
+  position: relative;
+  width: 48px;
+  height: 56px;
+}
+.closed,
+.half {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.chest[data-animate] .closed {
+  animation: closed 240ms steps(1, end) both;
+}
+.chest[data-animate] .half {
+  animation: half 240ms steps(1, end) both;
+}
+.chest[data-animate] .open {
+  animation: opened 240ms steps(1, end) both;
+}
+@keyframes closed {
+  0% {
+    opacity: 1;
+  }
+  33%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes half {
+  0% {
+    opacity: 0;
+  }
+  33% {
+    opacity: 1;
+  }
+  66%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes opened {
+  0%,
+  33% {
+    opacity: 0;
+  }
+  66%,
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chest[data-animate] .closed,
+  .chest[data-animate] .half {
+    display: none;
+    animation: none;
+  }
+  .chest[data-animate] .open {
+    animation: none;
+    opacity: 1;
+  }
+}
