@@ -33,6 +33,19 @@
 .controls {
   justify-content: space-between;
 }
+.controls .back {
+  color: var(--pixel-text);
+  background: var(--pixel-panel);
+  border: 2px solid var(--pixel-line-strong);
+  border-bottom-width: 4px;
+  clip-path: var(--pixel-cut);
+  font: 400 12px/1.6 var(--font-play-pixel);
+  text-transform: uppercase;
+}
+.controls .back:disabled {
+  color: var(--pixel-muted);
+  background: var(--pixel-inset);
+}
 .lesson > p:last-child {
   color: var(--pixel-muted);
   font-size: 14px;

@@ -9,11 +9,14 @@ Shuffle options per attempt. Math questions are multiple choice; their wrong opt
 ## Topic 1: Ingestion and chunking
 
 ### Slides
-1. **From documents to chunks.** Source, parse, clean, chunk, add metadata, embed, index. Search returns chunks, not whole documents.
-2. **Size and overlap.** Too big: one embedding averages many ideas, so the match is weak and tokens are wasted. Too small: the chunk loses its context. A common start: 200 to 500 tokens, 10 to 20% overlap. Tune with recall@k on your own questions.
-3. **Respect structure.** Split on headings. Keep tables with their header row, code blocks whole, list items with their intro line. Trick: search small chunks, send the parent section to the LLM.
-4. **Metadata.** Attach source, title, section, timestamp, version and permissions to each chunk. Metadata powers filters, citations, freshness and access control.
-5. **Updates and deletes.** Track chunks by document ID. Hash chunks so only changed ones are re-embedded. Deleting a document must remove its chunks. Interview tip: always say how a deleted document disappears from the index.
+1. **From documents to chunks** Source, parse, clean, chunk, add metadata, embed, index. Search returns chunks, not whole documents.
+Diagram: pipeline
+2. **Size and overlap** Too big: one embedding averages many ideas, so the match is weak and tokens are wasted. Too small: the chunk loses its context. A common start: 200 to 500 tokens, 10 to 20% overlap. Tune with recall@k on your own questions.
+Diagram: overlap
+3. **Respect structure** Split on headings. Keep tables with their header row, code blocks whole, list items with their intro line. Trick: search small chunks, send the parent section to the LLM.
+Diagram: split-table
+4. **Metadata** Attach source, title, section, timestamp, version and permissions to each chunk. Metadata powers filters, citations, freshness and access control.
+5. **Updates and deletes** Track chunks by document ID. Hash chunks so only changed ones are re-embedded. Deleting a document must remove its chunks. Interview tip: always say how a deleted document disappears from the index.
 
 ### Questions
 T1-Q1. Why do very large chunks hurt retrieval?
@@ -87,11 +90,13 @@ If wrong (1M): That re-embeds every chunk of every edited document.
 ## Topic 2: Embeddings and the vector store
 
 ### Slides
-1. **What an embedding is.** A list of numbers that captures meaning. Similar meaning, nearby vectors. Documents and queries must use the same model.
-2. **Bi-encoder retrieval.** Query and documents are encoded separately (two towers) and compared with a dot product or cosine similarity. Document vectors are computed ahead of time, which is why you can search millions in milliseconds.
-3. **Dimensions and memory.** Raw size = vectors x dimensions x bytes per number (float32 = 4, float16 = 2, int8 = 1). More dimensions is not always better. Quantization saves memory for a small recall cost.
-4. **Approximate search (ANN).** Exact search compares every vector: too slow at scale. HNSW: a graph, fast with high recall, memory heavy. IVF: clusters, searches only a few (nprobe trades recall for speed). ScaNN: quantization plus re-scoring. Tune recall@k against p95 latency.
-5. **Choosing and changing models.** Pick by evaluating on your own questions, not just a leaderboard: domain, languages, max input length, cost. A new model means re-embedding everything; run old and new indexes side by side and switch after evaluation.
+1. **What an embedding is** A list of numbers that captures meaning. Similar meaning, nearby vectors. Documents and queries must use the same model.
+2. **Bi-encoder retrieval** Query and documents are encoded separately (two towers) and compared with a dot product or cosine similarity. Document vectors are computed ahead of time, which is why you can search millions in milliseconds.
+Diagram: two-tower
+3. **Dimensions and memory** Raw size = vectors x dimensions x bytes per number (float32 = 4, float16 = 2, int8 = 1). More dimensions is not always better. Quantization saves memory for a small recall cost.
+4. **Approximate search (ANN)** Exact search compares every vector: too slow at scale. HNSW: a graph, fast with high recall, memory heavy. IVF: clusters, searches only a few (nprobe trades recall for speed). ScaNN: quantization plus re-scoring. Tune recall@k against p95 latency.
+Diagram: ann
+5. **Choosing and changing models** Pick by evaluating on your own questions, not just a leaderboard: domain, languages, max input length, cost. A new model means re-embedding everything; run old and new indexes side by side and switch after evaluation.
 
 ### Questions
 T2-Q1. Why is bi-encoder retrieval fast enough for millions of documents?
@@ -164,11 +169,12 @@ Why: Searching more clusters finds more true neighbors, at the cost of more comp
 ## Topic 3: Retrieval strategy
 
 ### Slides
-1. **Dense vs sparse.** Dense (vectors) catches meaning and synonyms. Sparse (BM25 keyword search) catches exact terms: IDs, error codes, acronyms, rare names.
-2. **Why hybrid wins.** Run both and merge. Reciprocal Rank Fusion (RRF): each list adds 1 / (k + rank), with k often 60. It merges by rank, so you never need to compare raw scores.
-3. **Query rewriting.** Turn chatty follow-ups into standalone queries ("what about contractors?" becomes "PTO policy for contractors"). Fix typos, expand acronyms.
-4. **Multi-query expansion.** Generate 3 to 5 versions of the question, search each, merge. Better recall, more latency and cost.
-5. **Metadata filtering.** Restrict by product, date range, language or permissions. Filter inside the search, not after it, or you can lose all your top results.
+1. **Dense vs sparse** Dense (vectors) catches meaning and synonyms. Sparse (BM25 keyword search) catches exact terms: IDs, error codes, acronyms, rare names.
+2. **Why hybrid wins** Run both and merge. Reciprocal Rank Fusion (RRF): each list adds 1 / (k + rank), with k often 60. It merges by rank, so you never need to compare raw scores.
+Diagram: rrf
+3. **Query rewriting** Turn chatty follow-ups into standalone queries ("what about contractors?" becomes "PTO policy for contractors"). Fix typos, expand acronyms.
+4. **Multi-query expansion** Generate 3 to 5 versions of the question, search each, merge. Better recall, more latency and cost.
+5. **Metadata filtering** Restrict by product, date range, language or permissions. Filter inside the search, not after it, or you can lose all your top results.
 
 ### Questions
 T3-Q1. A user searches "ERR_4012 timeout" and dense-only search misses the right doc. Why?

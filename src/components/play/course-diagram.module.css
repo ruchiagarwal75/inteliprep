@@ -1,0 +1,55 @@
+.figure {
+  max-width: 420px;
+  margin: 24px auto;
+  padding: 8px;
+  background: var(--pixel-panel);
+}
+.pipeline {
+  max-width: 680px;
+}
+.figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.figure text {
+  fill: var(--pixel-text);
+  font: 500 17px var(--font-play-read);
+}
+.figure :is(path, line, rect, circle) {
+  vector-effect: non-scaling-stroke;
+}
+.node,
+.graphNode {
+  fill: var(--pixel-violet-soft);
+  stroke: var(--pixel-violet);
+  stroke-width: 2;
+}
+.notice {
+  fill: var(--game-world-gold-soft);
+  stroke: var(--game-world-gold-text);
+  stroke-width: 2;
+}
+.line {
+  fill: none;
+  stroke: var(--pixel-violet);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dot {
+  fill: var(--pixel-violet);
+}
+.compact {
+  display: none !important;
+}
+@media (max-width: 800px) {
+  .wide {
+    display: none !important;
+  }
+  .compact {
+    display: block !important;
+    max-width: 360px;
+    margin-inline: auto;
+  }
+}

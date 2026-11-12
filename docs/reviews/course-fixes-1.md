@@ -76,6 +76,20 @@ The owner chose isolated local QA for this round. Preview verification is
 limited to the build/deployment status until a separate signed-in QA account is
 available.
 
+## 8. Vector teaching diagrams
+
+The owner replaced the original pixel-art request with clean vector SVGs. The
+six illustrations use local Inter, square corners, smooth 2 px strokes and
+arrowheads where data moves. RAG violet shows structure; gold marks the key
+detail. Each has descriptive alt text. The pipeline rearranges into two rows
+on narrow screens instead of shrinking its labels. The same diagrams appear
+in the notebook. The slide frame/title keep their existing pixel treatment.
+
+Slide titles have no trailing periods. BACK uses a neutral pixel secondary
+button. No quiz wording, answer, scoring or interview-engine behavior changes.
+Browser checks cover both themes at 1440 and 375 px, actual rendered label size,
+Inter, alt text and horizontal overflow.
+
 ## QA account rule
 
 Preview checks must use a separate QA account, never the owner's account.

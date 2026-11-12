@@ -1,0 +1,10 @@
+/** Public teaching illustrations. No quiz content or solutions. */
+export const COURSE_DIAGRAMS = [
+  "pipeline",
+  "overlap",
+  "split-table",
+  "two-tower",
+  "ann",
+  "rrf",
+] as const;
+export type CourseDiagramKind = (typeof COURSE_DIAGRAMS)[number];

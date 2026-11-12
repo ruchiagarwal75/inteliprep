@@ -2,6 +2,7 @@ import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
 import { courseNotebook } from "@/lib/play/course/notebook";
 import styles from "./notebook.module.css";
+import { CourseDiagram } from "@/components/play/course-diagram";
 export const dynamic = "force-dynamic";
 export default async function NotebookPage() {
   const topics = await courseNotebook(await playAccountId());
@@ -40,6 +41,7 @@ export default async function NotebookPage() {
                 {topic.slides.map((slide) => (
                   <li key={slide.title}>
                     <strong>{slide.title}</strong>
+                    {slide.diagram && <CourseDiagram kind={slide.diagram} />}
                     {slide.lines.map((line) => (
                       <p key={line}>{line}</p>
                     ))}

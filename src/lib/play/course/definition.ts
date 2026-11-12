@@ -1,9 +1,11 @@
 import "server-only";
 import { z } from "zod";
+import { COURSE_DIAGRAMS } from "./slide-diagrams";
 
 export const courseSlideSchema = z.object({
   title: z.string().min(1),
   lines: z.array(z.string().min(1)).min(1).max(4),
+  diagram: z.enum(COURSE_DIAGRAMS).optional(),
 });
 export const courseQuestionSchema = z.object({
   id: z.string().regex(/^T[1-9]-Q[1-9]$/u),

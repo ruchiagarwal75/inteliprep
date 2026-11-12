@@ -13,8 +13,14 @@ export function parseCourseMarkdown(markdown) {
       if (!slideSection || !questionSection)
         throw Error("Missing course section");
       const slides = [
-        ...slideSection.matchAll(/^\d+\. \*\*(.+?)\*\* (.+)$/gmu),
-      ].map((m) => ({ title: m[1], lines: [m[2]] }));
+        ...slideSection.matchAll(
+          /^\d+\. \*\*(.+?)\*\* (.+)(?:\nDiagram: ([a-z-]+))?$/gmu,
+        ),
+      ].map((m) => ({
+        title: m[1],
+        lines: [m[2]],
+        ...(m[3] ? { diagram: m[3] } : {}),
+      }));
       const questions = questionSection
         .split(/^(?=T\d-Q\d+[. ])/mu)
         .filter((s) => /^T\d-Q\d/u.test(s))

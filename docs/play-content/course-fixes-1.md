@@ -14,7 +14,7 @@ What passed: 9-topic path (1 to 3 open, 4 to 9 SOON), slides with counter and NE
 5. Slides: the arrow keys did nothing (Right pressed 3 times stayed on 2/5), and each NEXT shows "SAVING..." before moving. Make arrow keys and Enter work, and move instantly; save slide progress in the background.
 6. Enter didn't continue from the last question's result to the topic result; it needed a click. Fix.
 7. First visit gate: START QUIZ showed above slide 1 on this account's first visit to Topic 1 (maybe your earlier preview check marked the slides as seen). Verify on a fresh account that the quiz is locked until the slides are seen once.
-8. Slides look like plain text boxes with a lot of empty space. Add one small pixel diagram to these slides, drawn as simple original pixel shapes and labels:
+8. Slides look like plain text boxes with a lot of empty space. Add one simple original vector SVG diagram to these slides. Use Inter labels at 13 px or larger, smooth 2 px lines, clear arrowheads and square corners. Use the RAG violet world color, plus gold for the one thing to notice. Each diagram should have about 3 to 7 labeled parts, read clearly in both themes and include alt text. Pixel style stays only on the slide frame and slide title.
    - T1 S1: the pipeline as a row of boxes with arrows (source, parse, chunk, metadata, embed, index)
    - T1 S2: two overlapping chunk bars showing the overlap
    - T1 S3: a small table split in half, with the header row only on one half

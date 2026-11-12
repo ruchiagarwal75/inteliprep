@@ -5,8 +5,10 @@ import { useCandidateAccount } from "@/components/candidate-account-context";
 import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { StartRound } from "./start-round";
 import { CourseSlideSaves } from "./course-slide-saves";
+import { CourseDiagram } from "./course-diagram";
+import type { CourseDiagramKind } from "@/lib/play/course/slide-diagrams";
 import styles from "./course.module.css";
-type Slide = { title: string; lines: string[] };
+type Slide = { title: string; lines: string[]; diagram?: CourseDiagramKind };
 const SAVE_ERROR =
   "Could not save your place. You can keep reading, then retry saving before the quiz.";
 export function CourseSlides({
@@ -128,6 +130,7 @@ export function CourseSlides({
           {index + 1} / {slides.length}
         </p>
         <h2 data-game-label>{slide?.title}</h2>
+        {slide?.diagram && <CourseDiagram kind={slide.diagram} />}
         {slide?.lines.map((line) => (
           <p key={line}>{line}</p>
         ))}
@@ -147,7 +150,7 @@ export function CourseSlides({
       <div ref={next} className={styles.controls}>
         <button
           type="button"
-          className="practice-secondary"
+          className={`practice-secondary ${styles.back}`}
           disabled={index === 0}
           onClick={() => move(currentIndex.current - 1)}
         >

@@ -47,6 +47,8 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   for (let i = 2; i <= 5; i++) {
     await page.keyboard.press("ArrowRight");
     await expect(page.getByLabel("Slide counter")).toHaveText(`${i} / 5`);
+    if (i === 2) await captureCourse(page, "slide-overlap");
+    if (i === 3) await captureCourse(page, "slide-split-table");
   }
   await captureCourse(page, "last-slide");
   let starts = 0;
@@ -64,6 +66,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
       q = view.question;
     expect(q.courseKind).toBeTruthy();
     expect(q.total).toBe(7);
+    if (i === 0) await captureCourse(page, "titled-drill");
     expect(JSON.stringify(q)).not.toMatch(
       /correctIndex|keyIdea|ifWrong|"why":/,
     );
