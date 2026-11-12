@@ -35,6 +35,11 @@ test("Learn slides remain readable in short windows and scroll with the page", a
           body: JSON.stringify(metrics),
           contentType: "application/json",
         });
+      if (slide === 1) {
+        const back = page.getByRole("button", { name: "Back", exact: true });
+        await expect(back).toBeDisabled();
+        await expect(back).toHaveCSS("opacity", "1");
+      }
       expect(metrics.font).toContain("Inter");
       expect(metrics.size).toBe("16px");
       expect(metrics.lineHeight).toBeGreaterThanOrEqual(26);
@@ -63,6 +68,13 @@ test("Learn slides remain readable in short windows and scroll with the page", a
       }
       if (slide === 13) await expect(body.locator("ol li")).toHaveCount(5);
       if (slide === 1 || slide === 6) {
+        if (slide === 1) {
+          await page
+            .locator("article")
+            .evaluate((node) => node.scrollIntoView({ block: "start" }));
+          for (const paragraph of await body.locator("p").all())
+            await expect(paragraph).toBeInViewport({ ratio: 1 });
+        }
         if (slide === 6) {
           const diagram = body.locator('[data-course-diagram="overlap"]');
           await diagram.scrollIntoViewIfNeeded();
@@ -71,7 +83,7 @@ test("Learn slides remain readable in short windows and scroll with the page", a
         }
         await page.screenshot({
           path: `artifacts/rag-course-3/learn-S${slide}-${width}x${height}.png`,
-          fullPage: true,
+          fullPage: false,
         });
       }
       if (slide < 13) await controls.click();

@@ -9,6 +9,7 @@ import { CourseSlideFrame } from "./course-slide-frame";
 import { useSlideKeys } from "./slide-keys";
 import type { CourseLesson } from "@/lib/play/course/slides-public";
 import styles from "./course.module.css";
+import buttons from "./pixel-secondary.module.css";
 const SAVE_ERROR =
   "Could not save your place. You can keep reading, then retry saving before the quiz.";
 export function CourseSlides({
@@ -135,7 +136,7 @@ export function CourseSlides({
       <div ref={next} className={styles.controls}>
         <button
           type="button"
-          className={`practice-secondary ${styles.back}`}
+          className={`practice-secondary ${buttons.button}`}
           disabled={index === 0}
           onClick={() => move(currentIndex.current - 1)}
         >

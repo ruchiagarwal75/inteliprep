@@ -41,3 +41,13 @@ frozen display. Ticks resume only after closing the overlay.
 The eight-second browser test holds a real local heartbeat response and checks
 both the displayed value and saved answer time. SQL tests verify out-of-order
 pause/resume requests, unchanged rewards and a rerunnable additive migration.
+
+## 4. Pixel secondary buttons
+
+Close and Back now share one scoped CSS module for their pixel font, clipped
+corners, border, disabled state and keyboard focus. Disabled text keeps full
+opacity. Button checks and overlay screenshots cover both themes. Learn-page
+screenshots use the actual requested window heights, without full-page capture.
+
+The activity-order migration was applied with existing attempt checksums
+unchanged. Existing RLS policies and revoked browser-write privileges remain.

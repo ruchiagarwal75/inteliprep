@@ -5,6 +5,7 @@ import { courseLessonSchema } from "@/lib/play/course/slides-public";
 import type { CourseLesson } from "@/lib/play/course/slides-public";
 import { CourseSlides } from "./course-slides";
 import styles from "./course-slides-overlay.module.css";
+import buttons from "./pixel-secondary.module.css";
 type Load =
   | { kind: "loading" }
   | { kind: "ready"; lesson: CourseLesson }
@@ -60,7 +61,7 @@ export function CourseSlidesOverlay({
         <button
           autoFocus
           type="button"
-          className="practice-secondary"
+          className={`practice-secondary ${buttons.button}`}
           aria-label="Close slides"
           onClick={onClose}
         >
