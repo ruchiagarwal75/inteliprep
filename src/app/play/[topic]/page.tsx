@@ -51,6 +51,11 @@ export default async function TopicPage({
         topic={id}
         levels={levels}
         passed={passed}
+        chests={Object.fromEntries(
+          snapshot.chests
+            .filter((row) => row.topic === id)
+            .map((row) => [row.after_level, row.xp]),
+        )}
         stars={Object.fromEntries(
           snapshot.levels
             .filter((row) => row.topic === id)

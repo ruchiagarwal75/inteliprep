@@ -40,7 +40,7 @@
   border-bottom-color: var(--game-world-edge);
   color: var(--game-on-world);
 }
-.game[data-world] :global(.practice-primary):hover {
+.game[data-world] :global(.practice-primary):hover:not(:disabled) {
   background: var(--game-world);
 }
 .game nav[aria-label="Practice modes"] {

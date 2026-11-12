@@ -108,7 +108,7 @@ export function ChestIcon(props: SVGProps<SVGSVGElement>) {
     >
       <path
         d="M6 19V14C6 5 42 5 42 14v5M5 19h38v21H5Z"
-        fill="var(--game-reward-soft)"
+        fill="var(--game-chest-soft)"
       />
       <path d="M14 9v30m20-30v30M5 26h38" />
       <rect

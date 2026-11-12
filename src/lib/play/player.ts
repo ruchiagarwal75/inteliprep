@@ -32,6 +32,15 @@ const stateSchema = z.object({
     }),
   ),
   badges: z.array(z.object({ badge_id: z.string(), earned_at: z.string() })),
+  chests: z
+    .array(
+      z.object({
+        topic: z.string(),
+        after_level: z.number().int(),
+        xp: z.number().int(),
+      }),
+    )
+    .default([]),
   reviews: z.array(z.object({ topic: z.string(), count: z.number().int() })),
 });
 export type PlayerSnapshot = z.infer<typeof stateSchema>;
@@ -45,6 +54,7 @@ async function readPlayerSnapshot(userId: string) {
    'streak',s.current,'freezes',s.freezes_available,'level',p.chosen_level,'timeZone',p.time_zone,'zoneSet',p.zone_set,
    'levels',(select coalesce(jsonb_agg(to_jsonb(l)-'user_id'),'[]'::jsonb) from practice_game.level_progress l),
    'readiness',(select coalesce(jsonb_agg(to_jsonb(r)-'user_id'),'[]'::jsonb) from practice_game.topic_readiness r),
+   'chests',(select coalesce(jsonb_agg(to_jsonb(c)-'user_id'),'[]'::jsonb) from practice_game.chest_opens c),
    'badges',(select coalesce(jsonb_agg(to_jsonb(b)-'user_id'),'[]'::jsonb) from practice_game.badges b),
    'reviews',(select coalesce(jsonb_agg(q),'[]'::jsonb) from (select topic,count(*)::integer as count from practice_game.review_queue where due_at<=now() group by topic)q)
   ) as state from practice_game.player_profiles p join practice_game.streaks s using(user_id) where p.user_id=${userId}`;

@@ -201,3 +201,15 @@ export const BADGE_LABELS = {
   "rag-interview": "RAG interview-ready",
   "streak-seven": "7-day streak",
 } as const;
+
+export const chestInputSchema = z
+  .object({
+    topic: z.string().regex(/^[a-z0-9-]{1,80}$/u),
+    afterLevel: z.number().int().min(1).max(100),
+  })
+  .strict();
+export const chestResultSchema = z.object({
+  xp: z.number().int().min(20).max(50),
+  opened: z.literal(true),
+  totals: playTotalsSchema,
+});

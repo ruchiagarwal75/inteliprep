@@ -1,0 +1,54 @@
+.chest {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  color: var(--game-chest);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+.chest button {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 62px;
+  background: var(--game-chest-soft);
+  border: 2px solid var(--game-chest);
+  border-bottom-width: 5px;
+  border-radius: 18px;
+  color: var(--game-chest);
+  cursor: pointer;
+}
+.chest button:disabled {
+  color: var(--game-chest);
+  background: var(--game-chest-soft);
+}
+.chest button:disabled:not([aria-label^="Chest opened"]) {
+  border-color: var(--border-strong);
+  color: var(--muted);
+  background: var(--surface-inset);
+  --game-chest-soft: var(--surface-inset);
+}
+.chest[data-open="true"] svg {
+  animation: open var(--game-motion) cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.chest p {
+  max-width: 200px;
+  padding: var(--space-1);
+  background: var(--surface-raised);
+  color: var(--danger);
+}
+@keyframes open {
+  from {
+    transform: scale(0.7) rotate(-12deg);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chest svg {
+    animation: none !important;
+  }
+}

@@ -3,6 +3,8 @@ import {
   startPlayPostgres,
   PLAY_TEST_USER as user,
 } from "./fixtures/play-postgres";
+import { openChest, chestXp } from "@/lib/play/chests";
+import { withPlayer } from "@/lib/play/database";
 import { startRound, advanceRound } from "@/lib/play/rounds";
 import { submitRoundAnswer } from "@/lib/play/submit";
 import {
@@ -89,4 +91,38 @@ it("persists the best stars, snapshots replay status and never duplicates XP on 
   const ledger =
     await fixture.operator`select delta from practice_game.points_ledger where user_id=${user} and reason='drill' and ref_id in (select id::text from practice_game.drill_attempts where session_id=${second.sessionId})`;
   expect(ledger.map((r) => r.delta)).toEqual([5, 5, 5, 5]);
+});
+
+it("opens a seeded chest once under concurrent retries and rejects locked or unknown chests", async () => {
+  await expect(openChest(user, "rag", 3)).rejects.toMatchObject({
+    status: 403,
+  });
+  await expect(openChest(user, "rag", 4)).rejects.toMatchObject({
+    status: 404,
+  });
+  const prizes = await Promise.all(
+    Array.from({ length: 6 }, () => openChest(user, "rag", 1)),
+  );
+  expect(prizes.every((p) => p.xp === chestXp(user, "rag", 1))).toBe(true);
+  const rows =
+    await fixture.operator`select xp from practice_game.chest_opens where user_id=${user}`;
+  expect(rows).toHaveLength(1);
+  const ledger =
+    await fixture.operator`select delta from practice_game.points_ledger where user_id=${user} and reason='chest'`;
+  expect(ledger.map((r) => r.delta)).toEqual([rows[0].xp]);
+  const other = "22222222-2222-4222-8222-222222222222";
+  expect(
+    await withPlayer(
+      other,
+      (sql) =>
+        sql`select * from practice_game.chest_opens where user_id=${user}`,
+    ),
+  ).toHaveLength(0);
+  await expect(
+    fixture.operator.begin(async (sql) => {
+      await sql.unsafe("set local role authenticated");
+      await sql`select set_config('request.jwt.claims',${JSON.stringify({ sub: user })},true)`;
+      return sql`insert into practice_game.chest_opens(user_id,topic,after_level,xp) values(${user},'rag',2,50)`;
+    }),
+  ).rejects.toMatchObject({ code: "42501" });
 });

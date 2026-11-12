@@ -1,6 +1,7 @@
 import { levelUnlocked } from "@/lib/play/round-rules";
-import { LockIcon, CheckIcon, ChestIcon } from "./game-icons";
+import { LockIcon, CheckIcon } from "./game-icons";
 import { StartRound } from "./start-round";
+import { ChestNode } from "./chest-node";
 import { Stars } from "./stars";
 import { GameGuide } from "./game-guide";
 import styles from "./level-path.module.css";
@@ -9,11 +10,13 @@ export function LevelPath({
   levels,
   passed,
   stars = {},
+  chests = {},
 }: {
   topic: string;
   levels: readonly { level: number; title: string }[];
   passed: number[];
   stars?: Record<number, number>;
+  chests?: Record<number, number>;
 }) {
   const current = levels.findIndex(
     (l) => !passed.includes(l.level) && levelUnlocked(l.level, levels, passed),
@@ -103,12 +106,13 @@ export function LevelPath({
                 </div>
               )}
               {index < levels.length - 1 && (
-                <div
-                  className={styles.chest}
-                  aria-label={`Chest after Level ${level.level}`}
-                >
-                  <ChestIcon />
-                  <span>{complete ? "Reward chest" : "Locked chest"}</span>
+                <div className={styles.chest}>
+                  <ChestNode
+                    topic={topic}
+                    afterLevel={level.level}
+                    unlocked={complete}
+                    openedXp={chests[level.level]}
+                  />
                 </div>
               )}
             </li>

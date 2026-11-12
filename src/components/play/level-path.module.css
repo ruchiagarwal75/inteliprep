@@ -124,7 +124,7 @@
   color: var(--game-reward);
   padding: var(--space-1);
   border-radius: 16px;
-  background: var(--game-reward-soft);
+  background: var(--transparent);
   font-size: 0.6875rem;
 }
 .guide {
@@ -184,4 +184,32 @@
   .node {
     animation: none !important;
   }
+}
+
+.world::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      var(--game-dots) 3px,
+      var(--transparent) 4px
+    ),
+    radial-gradient(
+      circle at 85% 38%,
+      var(--game-dots) 4px,
+      var(--transparent) 5px
+    ),
+    radial-gradient(
+      circle at 12% 64%,
+      var(--game-dots) 3px,
+      var(--transparent) 4px
+    ),
+    radial-gradient(
+      circle at 82% 88%,
+      var(--game-dots) 3px,
+      var(--transparent) 4px
+    );
 }
