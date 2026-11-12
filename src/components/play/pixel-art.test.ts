@@ -34,16 +34,23 @@ it("reconstructs every sprite pixel after row-run compression", () => {
     );
   }
 });
-it("keeps the supplied head in every pose and the whole idle character unchanged", () => {
+it("keeps every original face and idle pixel while outlining the curls in each pose", () => {
   for (const [pose, grid] of Object.entries(MASCOT_GRIDS)) {
     const top = pose === "celebrate" ? 3 : 5;
-    expect(grid.slice(top, top + 11).map((row) => row.slice(6, 22))).toEqual(
-      PIXEL_GRIDS.mascotIdle.slice(0, 11),
-    );
-    if (pose === "idle")
-      expect(grid.slice(top, top + 20).map((row) => row.slice(6, 22))).toEqual(
-        PIXEL_GRIDS.mascotIdle,
+    PIXEL_GRIDS.mascotIdle
+      .slice(0, pose === "idle" ? 20 : 11)
+      .forEach((row, y) =>
+        [...row].forEach((key, x) => {
+          if (key !== ".") expect(grid[y + top][x + 6]).toBe(key);
+        }),
       );
+    for (const y of [top + 3, top + 6, top + 9]) {
+      expect(grid[y][5]).toBe("K");
+      expect(grid[y][22]).toBe("K");
+    }
+    expect(grid[top + 3][4]).toBe("O");
+    expect(grid[top + 3][23]).toBe("O");
+    expect(grid.some((row) => row.includes("O"))).toBe(true);
   }
 });
 it("rejects broken source grids instead of silently altering artwork", () => {

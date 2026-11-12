@@ -75,6 +75,7 @@ export const PIXEL_GRIDS = {
 } as const;
 export const PIXEL_PALETTES = {
   mascot: {
+    O: "var(--pixel-sprite-outline)",
     K: "var(--pixel-sprite-hair)",
     S: "var(--pixel-sprite-skin)",
     G: "var(--pixel-sprite-glasses)",
