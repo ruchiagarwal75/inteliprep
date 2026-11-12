@@ -23,7 +23,7 @@ it("grades math with unit conversion and MC using the shuffled position", async 
       value: 0.1536,
       unit: "TB",
     }),
-  ).toMatchObject({ correct: true, score: 1, expected: "153.6 GB" });
+  ).toMatchObject({ correct: true, score: 1, expected: "about 154 GB" });
   expect(
     await gradeDrill(spotFixture, variant, { type: "spot_flaw", option: "1" }),
   ).toMatchObject({ correct: true });

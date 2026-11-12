@@ -1,3 +1,4 @@
+import { presentDrillResult } from "./math-presentation";
 import { activeDrillMs } from "./drill-time";
 import { GAME_RULES } from "./game-rules";
 import { refreshUnanswered } from "./round-refresh";
@@ -142,7 +143,11 @@ export async function roundView(
       ...base,
       status: "graded",
       answer: attempt.answer,
-      result: attempt.result_json,
+      result: presentDrillResult(
+        attempt.private_variant.definition,
+        attempt.private_variant.variant,
+        attempt.result_json,
+      ),
       ...(round.result_json
         ? {
             summary: await displayRoundSummary(

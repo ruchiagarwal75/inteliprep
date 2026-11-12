@@ -1,12 +1,12 @@
 import "server-only";
 import type { DrillDefinition, DrillVariant } from "./definition";
 import type { DrillAnswer } from "./public";
+import { calculateMath, withinMathTolerance } from "./math";
 import {
-  calculateMath,
-  fillNumbers,
-  mathNumber,
-  withinMathTolerance,
-} from "./math";
+  friendlyMathAnswer,
+  workedMath,
+  mathExplanation,
+} from "./math-presentation";
 import { gradeWrittenAnswer } from "./written-grader";
 export type DrillGrade = {
   correct: boolean;
@@ -33,15 +33,20 @@ export async function gradeDrill(
         expected,
         drill.math.exactInteger,
       );
+    const display = friendlyMathAnswer(
+      expected,
+      drill.math.canonicalUnit,
+      drill.math.exactInteger,
+    );
     return {
       correct,
       score: correct ? 1 : 0,
       feedback: correct
         ? "That calculation checks out."
         : "Check the units and work through the formula.",
-      why: drill.why,
-      formula: fillNumbers(drill.math.formula, variant.parameters),
-      expected: `${mathNumber(expected)} ${drill.math.canonicalUnit}`,
+      why: mathExplanation(drill.why, variant.parameters),
+      formula: workedMath(drill.math, variant.parameters, display),
+      expected: display,
     };
   }
   if (drill.type === "spot_flaw" && answer.type === "spot_flaw") {

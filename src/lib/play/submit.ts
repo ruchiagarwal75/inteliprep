@@ -1,3 +1,4 @@
+import { presentDrillResult } from "./math-presentation";
 import { activeDrillMs } from "./drill-time";
 import { GAME_RULES } from "./game-rules";
 import { refreshUnanswered } from "./round-refresh";
@@ -36,7 +37,11 @@ export async function submitRoundAnswer(
       return {
         kind: "cached" as const,
         totals: await playerTotals(sql, userId),
-        result: attempt.result_json,
+        result: presentDrillResult(
+          attempt.private_variant.definition,
+          attempt.private_variant.variant,
+          attempt.result_json,
+        ),
         summary: round.result_json ?? undefined,
       };
     if (round.active_ordinal !== attempt.ordinal || !attempt.started_at)
@@ -105,7 +110,11 @@ export async function submitRoundAnswer(
       if (attempt.result_json)
         return {
           totals: await playerTotals(sql, userId),
-          result: attempt.result_json,
+          result: presentDrillResult(
+            attempt.private_variant.definition,
+            attempt.private_variant.variant,
+            attempt.result_json,
+          ),
           summary: round.result_json ?? undefined,
         };
       if (attempt.claim_id !== claim.id)
