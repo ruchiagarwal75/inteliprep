@@ -7,8 +7,13 @@
   font: 400 16px/1.7 var(--font-play-read);
 }
 .lesson[data-review] {
-  height: calc(92dvh - 104px);
+  height: 100%;
   min-height: 0;
+  gap: 8px;
+}
+.lesson[data-review] .controls {
+  position: static;
+  padding-block: 8px;
 }
 .lesson > :not(article) {
   flex: none;

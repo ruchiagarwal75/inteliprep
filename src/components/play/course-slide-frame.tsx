@@ -7,13 +7,21 @@ export function CourseSlideFrame({
   slide,
   index,
   count,
+  scrollable = false,
 }: {
   slide: CourseSlide;
   index: number;
   count: number;
+  scrollable?: boolean;
 }) {
   return (
-    <article className={`practice-surface ${styles.frame}`} aria-live="polite">
+    <article
+      className={`practice-surface ${styles.frame}${scrollable ? ` ${styles.scrolling}` : ""}`}
+      aria-live="polite"
+      role={scrollable ? "region" : undefined}
+      aria-label={scrollable ? "Slides reader" : undefined}
+      tabIndex={scrollable ? 0 : undefined}
+    >
       <p className={styles.counter} aria-label="Slide counter">
         {index + 1} / {count}
       </p>
@@ -23,7 +31,6 @@ export function CourseSlideFrame({
         className={styles.body}
         role="region"
         aria-label="Slide content"
-        tabIndex={0}
       >
         {slide.diagram && <CourseDiagram kind={slide.diagram} />}
         <SlideBody blocks={slide.body} />

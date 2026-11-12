@@ -12,6 +12,14 @@
   font-size: 15px;
   line-height: 1.7;
 }
+.scrolling {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.scrolling .body {
+  flex-shrink: 0;
+}
 .counter {
   flex: none;
   margin: 0;

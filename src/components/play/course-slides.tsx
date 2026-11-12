@@ -94,8 +94,12 @@ export function CourseSlides({
           Back to topics
         </Link>
       )}
-      <p data-game-label>Topic {level} · Learn</p>
-      <h1 data-game-label>{title}</h1>
+      {!review && (
+        <>
+          <p data-game-label>Topic {level} · Learn</p>
+          <h1 data-game-label>{title}</h1>
+        </>
+      )}
       {!review && complete && !last && (
         <div className={styles.quick}>
           <StartRound
@@ -108,7 +112,13 @@ export function CourseSlides({
         </div>
       )}
       {slide && (
-        <CourseSlideFrame slide={slide} index={index} count={slides.length} />
+        <CourseSlideFrame
+          key={index}
+          slide={slide}
+          index={index}
+          count={slides.length}
+          scrollable={Boolean(review)}
+        />
       )}
       {error && (
         <div role="alert">
@@ -157,7 +167,7 @@ export function CourseSlides({
           </button>
         )}
       </div>
-      <p>Arrow keys to move. Enter to continue.</p>
+      {!review && <p>Arrow keys to move. Enter to continue.</p>}
     </section>
   );
 }

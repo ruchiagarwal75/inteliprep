@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  courseOverlay: {
+    id: "87878787-8787-4787-8787-878787878787",
+    email: "course-overlay@example.invalid",
+  },
   courseLayout: {
     id: "89898989-8989-4989-8989-898989898989",
     email: "course-layout@example.invalid",
