@@ -11,11 +11,11 @@ it("shows the current mode and server-supplied rewards", () => {
   );
   expect(html).toContain('href="/mock"');
   expect(html).toContain('href="/progress"');
-  expect(html).toContain("35 points");
+  expect(html).toContain("35 XP");
   expect(html).toContain("2-day streak");
   const unavailable = renderToStaticMarkup(
     createElement(ModeNav, { active: "mock" }),
   );
-  expect(unavailable).toContain("Points unavailable");
-  expect(unavailable).not.toContain("0 points");
+  expect(unavailable).toContain("XP unavailable");
+  expect(unavailable).not.toContain("0 XP");
 });

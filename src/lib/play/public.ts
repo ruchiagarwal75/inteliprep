@@ -179,7 +179,14 @@ export const startRoundResultSchema = z.object({
 export const submitRoundSchema = z
   .object({ attemptId: z.uuid(), answer: drillAnswerSchema })
   .strict();
+export const playerXpLevelSchema = z.object({
+  level: z.number().int().positive(),
+  currentXp: z.number().int().nonnegative(),
+  neededXp: z.number().int().positive(),
+  nextXp: z.number().int().positive(),
+});
 export const playTotalsSchema = z.object({
+  xpLevel: playerXpLevelSchema.optional(),
   dailyGoal: z.boolean().optional(),
   points: z.coerce.number().int().nonnegative(),
   streak: z.number().int().nonnegative(),

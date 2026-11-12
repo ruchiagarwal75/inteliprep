@@ -2,10 +2,13 @@ import { dailyGoal } from "./daily-goal";
 import { ageReadiness } from "./readiness-store";
 import { refreshStreak } from "./streak-store";
 import "server-only";
+import { playerXpLevel } from "./game-rules";
+import { playerXpLevelSchema } from "./public";
 import { cache } from "react";
 import { z } from "zod";
 import { ensurePlayer, withPlayer } from "./database";
 const stateSchema = z.object({
+  xpLevel: playerXpLevelSchema.optional(),
   dailyGoal: z.boolean().optional(),
   points: z.coerce.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   streak: z.number().int().nonnegative(),
@@ -60,6 +63,7 @@ async function readPlayerSnapshot(userId: string) {
   ) as state from practice_game.player_profiles p join practice_game.streaks s using(user_id) where p.user_id=${userId}`;
     return stateSchema.parse({
       ...row?.state,
+      xpLevel: playerXpLevel(Number(row?.state?.points ?? 0)),
       dailyGoal: await dailyGoal(sql, userId),
     });
   });

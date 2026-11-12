@@ -29,7 +29,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
         {summary.pointsEarned !== undefined && (
           <p className={styles.points}>
             {summary.pointsEarned}
-            <span> points earned this round</span>
+            <span> XP earned this round</span>
           </p>
         )}
       </div>

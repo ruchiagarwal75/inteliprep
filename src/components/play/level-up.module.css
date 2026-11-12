@@ -1,0 +1,41 @@
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: var(--space-3);
+  border: 0;
+  background: var(--background);
+  color: var(--foreground);
+  z-index: 50;
+}
+.dialog::backdrop {
+  background: var(--backdrop);
+}
+.content {
+  min-height: 100%;
+  max-width: 560px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+.content h1 {
+  font-size: clamp(2.75rem, 8vw, 5rem);
+  margin: 0;
+}
+.level {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 850;
+  color: var(--game-reward);
+}
+.spark {
+  color: var(--game-gold);
+  font-weight: 750;
+}

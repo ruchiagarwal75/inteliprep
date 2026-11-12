@@ -51,7 +51,7 @@ export function EarnedPoints({
   return (
     <p ref={source} className={styles.amount} role="status">
       +{points}
-      <span> points</span>
+      <span> XP</span>
     </p>
   );
 }

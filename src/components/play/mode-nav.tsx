@@ -1,7 +1,6 @@
 "use client";
 import { usePlayRewards } from "./play-rewards";
-import { DailyGoal } from "./daily-goal";
-import { FlameIcon } from "./game-icons";
+import { GameHud } from "./game-hud";
 import Link from "next/link";
 import styles from "./play.module.css";
 export function ModeNav({
@@ -29,24 +28,14 @@ export function ModeNav({
           </Link>
         ))}
       </nav>
-      <div className={styles.totals} aria-label="Your progress">
-        <DailyGoal complete={rewards?.totals?.dailyGoal} />
-        <span
-          className={styles.streak}
-          role="img"
-          aria-label={
-            streak === undefined ? "Streak unavailable" : `${streak}-day streak`
-          }
-        >
-          <FlameIcon />
-          {streak === undefined ? "Unavailable" : streak}
-        </span>
-        <span data-play-points-target>
-          {points === undefined
-            ? "Points unavailable"
-            : `${points.toLocaleString()} points`}
-        </span>
-      </div>
+      <GameHud
+        totals={
+          rewards?.totals ??
+          (points !== undefined && streak !== undefined
+            ? { points, streak }
+            : undefined)
+        }
+      />
     </div>
   );
 }

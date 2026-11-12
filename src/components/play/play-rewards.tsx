@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { LevelUp } from "./level-up";
 import type { ReactNode } from "react";
 import type { PlayTotals } from "@/lib/play/public";
 type Rewards = {
@@ -24,6 +25,7 @@ export function PlayRewardsProvider({
   initial?: PlayTotals;
   children: ReactNode;
 }) {
+  const [levelUp, setLevelUp] = useState<number>();
   const [received, setReceived] = useState(initial),
     [totals, setTotals] = useState(initial),
     timer = useRef<number | undefined>(undefined),
@@ -36,8 +38,18 @@ export function PlayRewardsProvider({
     setReceived(initial);
     setTotals(initial);
   }
+  useEffect(() => {
+    pending.current = initial;
+  }, [initial]);
   const applyTotals = useCallback((value: PlayTotals, animate: boolean) => {
     window.clearTimeout(timer.current);
+    const previousLevel = pending.current?.xpLevel?.level;
+    if (
+      previousLevel !== undefined &&
+      value.xpLevel &&
+      value.xpLevel.level > previousLevel
+    )
+      setLevelUp(value.xpLevel.level);
     pending.current = value;
     if (
       !animate ||
@@ -51,11 +63,16 @@ export function PlayRewardsProvider({
         ? { ...old, streak: value.streak, dailyGoal: value.dailyGoal }
         : value,
     );
-    timer.current = window.setTimeout(() => setTotals(pending.current), 650);
+    timer.current = window.setTimeout(() => setTotals(pending.current), 220);
   }, []);
   useEffect(() => () => window.clearTimeout(timer.current), []);
   const value = useMemo(() => ({ totals, applyTotals }), [totals, applyTotals]);
   return (
-    <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>
+    <RewardsContext.Provider value={value}>
+      {children}
+      {levelUp !== undefined && (
+        <LevelUp level={levelUp} onClose={() => setLevelUp(undefined)} />
+      )}
+    </RewardsContext.Provider>
   );
 }
