@@ -1,3 +1,4 @@
+import { playProgressTopic } from "@/lib/play/course/metadata";
 import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
 import { PLAY_TOPICS } from "@/lib/play/catalog";
@@ -20,7 +21,9 @@ export default async function ProgressPage() {
     snapshot = await playerSnapshot(userId),
     now = new Date();
   const rows = PLAY_TOPICS.map((topic) => {
-    const stored = snapshot.readiness.find((row) => row.topic === topic.id),
+    const stored = snapshot.readiness.find(
+        (row) => row.topic === playProgressTopic(topic.id),
+      ),
       state = shownReadiness(
         {
           state: stored?.state ?? "not_tested",
@@ -58,7 +61,7 @@ export default async function ProgressPage() {
         .map((row) => (
           <MockPrompt
             key={row.topic.id}
-            topic={row.topic.id}
+            topic={playProgressTopic(row.topic.id)}
             title={row.topic.title}
             problemId={row.topic.mockProblemId ?? ""}
             level={snapshot.level}

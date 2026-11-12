@@ -1,3 +1,4 @@
+import { requireCourseAttempt } from "@/lib/play/course/access";
 import { readJsonBody } from "@/lib/api-request";
 import { playEndpoint } from "@/lib/play/api";
 import { submitRoundSchema } from "@/lib/play/public";
@@ -13,6 +14,12 @@ export const POST = playEndpoint(
     if (!input.success)
       return Response.json(
         { error: input.error.issues[0]?.message ?? "Invalid answer" },
+        { status: 400 },
+      );
+    await requireCourseAttempt(userId, input.data.attemptId);
+    if (input.data.answer.type !== "spot_flaw")
+      return Response.json(
+        { error: "Choose one of the four answers." },
         { status: 400 },
       );
     return Response.json(

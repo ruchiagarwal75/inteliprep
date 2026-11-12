@@ -1,3 +1,4 @@
+// Retired course predecessor. Keep for saved attempts; not offered by public Play.
 import "server-only";
 import { drillDefinitionSchema } from "../definition";
 /** Authored source: docs/play-content/rag-levels-3-4.md. */

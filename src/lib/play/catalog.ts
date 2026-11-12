@@ -1,5 +1,6 @@
 import "server-only";
 import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./course/metadata";
+/** Retired RAG levels. Retained only to read old attempts and reward metadata. */
 export const RAG_LEVELS = [
   { level: 1, title: "Retrieval basics", points: 10 },
   { level: 2, title: "Scale math", points: 15 },

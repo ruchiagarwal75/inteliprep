@@ -14,3 +14,6 @@ export const RAG_COURSE_NODES = [
 export const courseTopicHref = (level: number) => `/play/rag/topics/${level}`;
 export const playWorldHref = (id: string) =>
   `/play/${id === RAG_COURSE_ID ? "rag" : id}`;
+
+export const playProgressTopic = (id: string) =>
+  id === "rag" ? RAG_COURSE_ID : id;

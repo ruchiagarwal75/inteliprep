@@ -1,4 +1,5 @@
 import "server-only";
+import { playProgressTopic } from "./course/metadata";
 import type { Scorecard } from "@/lib/scorecard";
 import { currentCandidateId } from "@/lib/candidate-context";
 import { reportingConfigured } from "@/lib/reporting-db";
@@ -26,8 +27,13 @@ export async function applyMockOutcome(
   const topic = PLAY_TOPICS.find((t) => t.mockProblemId === card.problemId);
   if (topic) {
     if (outcome.meetsBar)
-      await recordMockReadiness(sql, userId, topic.id, card.level);
-    else await touchTopic(sql, userId, topic.id);
+      await recordMockReadiness(
+        sql,
+        userId,
+        playProgressTopic(topic.id),
+        card.level,
+      );
+    else await touchTopic(sql, userId, playProgressTopic(topic.id));
   }
 }
 export async function observeMockCompletion(
@@ -58,7 +64,7 @@ export async function observeMockStart(
       await sql`update practice_game.player_profiles set chosen_level=${level},updated_at=now() where user_id=${userId}`;
       const topic = PLAY_TOPICS.find((t) => t.mockProblemId === problemId);
       if (!topic) return;
-      await touchTopic(sql, userId, topic.id);
+      await touchTopic(sql, userId, playProgressTopic(topic.id));
       const referrer = request.headers.get("referer");
       if (!referrer) return;
       const url = new URL(referrer);

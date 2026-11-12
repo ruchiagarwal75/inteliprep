@@ -1,3 +1,4 @@
+import { requireCourseAttempt } from "@/lib/play/course/access";
 import { readJsonBody } from "@/lib/api-request";
 import { playEndpoint } from "@/lib/play/api";
 import { drillActivitySchema } from "@/lib/play/public";
@@ -14,6 +15,7 @@ export const POST = playEndpoint(
         { error: "Choose the current drill." },
         { status: 400 },
       );
+    await requireCourseAttempt(userId, input.data.attemptId);
     return Response.json(
       await recordDrillActivity(
         userId,

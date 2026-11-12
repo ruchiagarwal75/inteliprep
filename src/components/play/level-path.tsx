@@ -1,3 +1,4 @@
+// Retired four-level path. New RAG play uses CoursePath.
 import { levelUnlocked } from "@/lib/play/round-rules";
 import { PixelSprite } from "./pixel-sprite";
 import { PIXEL_ART } from "./pixel-art";

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { z } from "zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -24,9 +25,13 @@ export function DrillRunner({
     router = useRouter(),
     rewards = usePlayRewards(),
     [awardAnimation, setAwardAnimation] = useState<string>(),
-    [initial] = useState(() => peekRound(userId, sessionId)),
+    [initial] = useState(() => {
+      const saved = peekRound(userId, sessionId);
+      return saved?.question.courseKind ? saved : undefined;
+    }),
     [view, setView] = useState<RoundView | undefined>(initial),
     [refreshed, setRefreshed] = useState(false),
+    [retired, setRetired] = useState(false),
     [loadError, setLoadError] = useState(""),
     [submission, setSubmission] = useState<Submission>({ kind: "idle" }),
     [summary, setSummary] = useState<RoundSummary>(),
@@ -40,6 +45,10 @@ export function DrillRunner({
             `/api/play/round?sessionId=${sessionId}`,
           ),
           data: unknown = await response.json();
+        if (response.status === 410) {
+          if (mounted.current) setRetired(true);
+          return;
+        }
         if (!response.ok) throw Error("Round unavailable");
         const parsed = roundViewSchema.parse(data);
         if (mounted.current) {
@@ -182,6 +191,18 @@ export function DrillRunner({
       locked.current = false;
     }
   }
+  if (retired || (view && !view.question.courseKind))
+    return (
+      <section className="practice-surface">
+        <h1>RAG is now a course</h1>
+        <p>
+          Your earlier progress is saved. Learn each topic, then take its quiz.
+        </p>
+        <Link className="practice-primary" href="/play/rag">
+          Open RAG topics
+        </Link>
+      </section>
+    );
   if (summary) return <RoundSummaryCard summary={summary} />;
   if (!view)
     return (
