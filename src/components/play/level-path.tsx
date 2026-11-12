@@ -108,7 +108,8 @@ export function LevelPath({
                 </div>
               </details>
               <div className={styles.caption}>
-                <span>Level {level.level}</span>
+                <span className={styles.levelNumber}>Level {level.level}</span>
+                <strong className={styles.levelTitle}>{level.title}</strong>
                 {complete && <Stars count={stars[level.level] ?? 0} />}
               </div>
               {state === "current" && (

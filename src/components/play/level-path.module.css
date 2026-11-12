@@ -84,7 +84,19 @@
   justify-items: center;
   color: var(--muted);
   font-weight: 650;
-  white-space: nowrap;
+  width: 200px;
+  max-width: 56%;
+  text-align: center;
+}
+.levelNumber {
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+.levelTitle {
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.25;
+  text-wrap: balance;
 }
 .card {
   position: absolute;

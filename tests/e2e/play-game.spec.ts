@@ -31,6 +31,15 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   await expect(first).not.toHaveCSS("animation-name", "none");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(first).toHaveCSS("animation-name", "none");
+  for (const name of [
+    "Retrieval basics",
+    "Scale math",
+    "Permissions and freshness",
+    "Quality and safety",
+  ])
+    await expect(
+      page.getByText(name, { exact: true }).filter({ visible: true }),
+    ).toBeVisible();
   await capturePlay(page, "rag-world-path", folder);
   await capturePlay(page, "hud", folder, false);
   await page.getByRole("button", { name: "Your profile", exact: true }).click();
