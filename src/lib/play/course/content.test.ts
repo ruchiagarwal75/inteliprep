@@ -14,7 +14,7 @@ it("compiles the supplied lesson and keeps every question and the other topics u
   expect(
     parseCourseSlidesMarkdown(
       readFileSync("docs/play-content/rag-course/topic-1-slides-v2.md", "utf8"),
-      { 2: "pipeline", 6: "overlap", 8: "split-table" },
+      { 2: "pipeline", 6: "overlap", 8: "split-table", 9: "small-to-big" },
     ),
   ).toEqual(ragCourse[0].slides);
   expect(ragCourse).toHaveLength(3);

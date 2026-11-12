@@ -16,7 +16,7 @@ const first = course.find((topic) => topic.level === 1);
 if (!first) throw Error("Missing first course topic");
 first.slides = parseCourseSlidesMarkdown(
   readFileSync("docs/play-content/rag-course/topic-1-slides-v2.md", "utf8"),
-  { 2: "pipeline", 6: "overlap", 8: "split-table" },
+  { 2: "pipeline", 6: "overlap", 8: "split-table", 9: "small-to-big" },
 );
 writeFileSync(
   "src/lib/play/course/rag.json",

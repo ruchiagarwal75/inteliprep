@@ -40,6 +40,11 @@
 .dot {
   fill: var(--pixel-violet);
 }
+.error {
+  fill: none;
+  stroke: var(--pixel-bad-text);
+  stroke-width: 2;
+}
 .compact {
   display: none !important;
 }

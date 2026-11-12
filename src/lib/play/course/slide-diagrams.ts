@@ -3,6 +3,7 @@ export const COURSE_DIAGRAMS = [
   "pipeline",
   "overlap",
   "split-table",
+  "small-to-big",
   "two-tower",
   "ann",
   "rrf",

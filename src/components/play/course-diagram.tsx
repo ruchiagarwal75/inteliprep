@@ -2,8 +2,9 @@ import type { CourseDiagramKind } from "@/lib/play/course/slide-diagrams";
 import {
   PipelineDiagram,
   OverlapDiagram,
-  SplitTableDiagram,
+  SmallToBigDiagram,
 } from "./course-diagram-chunking";
+import { SplitTableDiagram } from "./course-diagram-table";
 import {
   TwoTowerDiagram,
   AnnDiagram,
@@ -13,15 +14,19 @@ import styles from "./course-diagram.module.css";
 const diagrams = {
   pipeline: {
     art: PipelineDiagram,
-    alt: "Document pipeline: source, parse, chunk, metadata, embed, index. Chunking is highlighted.",
+    alt: "Document pipeline: connect, parse, clean, chunk, enrich, embed and index. Chunking is highlighted in gold.",
   },
   overlap: {
     art: OverlapDiagram,
-    alt: "Two chunks share the same boundary text. The shared overlap is highlighted in gold.",
+    alt: "A document is cut into three chunks. Their overlapping boundary text appears in both adjacent chunks and is highlighted in gold.",
   },
   "split-table": {
     art: SplitTableDiagram,
-    alt: "A table is split into two chunks. Only the first keeps the Plan and Price headers. The missing header on the second is highlighted.",
+    alt: "A broken table split leaves the bottom half without Plan and Price headers, marked by a red X. The fixed split repeats the headers, highlighted in gold.",
+  },
+  "small-to-big": {
+    art: SmallToBigDiagram,
+    alt: "A small chunk inside a parent section is highlighted in gold. Search matches that chunk; the LLM receives the larger parent section for context.",
   },
   "two-tower": {
     art: TwoTowerDiagram,
@@ -44,7 +49,10 @@ export function CourseDiagram({ kind }: { kind: CourseDiagramKind }) {
       aria-label={alt}
       data-course-diagram={kind}
       className={
-        styles.figure + (kind === "pipeline" ? " " + styles.pipeline : "")
+        styles.figure +
+        (["pipeline", "split-table"].includes(kind)
+          ? " " + styles.pipeline
+          : "")
       }
     >
       <Art />

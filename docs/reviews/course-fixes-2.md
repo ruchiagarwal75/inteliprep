@@ -45,3 +45,15 @@ slide frame now reserves room for its title and navigation. Only its body scroll
 Inter text stays at 16 px with a 1.75 line height and a 640 px maximum width.
 Bullets, numbered lists and bold use semantic HTML. Each slide starts at the top
 of its body. The same frame is used in the quiz overlay.
+
+## 4. Vector diagrams
+
+Slides 2, 6, 8 and 9 now use the diagrams specified in the v2 source. The pipeline
+includes cleaning and enrichment. The overlap example has three chunks. The
+table compares a broken split with repeated headers. Small-to-big retrieval
+shows a matched chunk and its parent going to different destinations.
+
+The SVGs use Inter labels, square boxes, 2 px strokes and clear arrowheads.
+Violet shows the structure and gold marks the point to notice. Slide 8's red X
+follows the supplied diagram instruction. All paints use theme tokens and every
+diagram has descriptive alt text. Compact versions keep labels readable on phones.

@@ -8,7 +8,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
   context,
 }) => {
   await signIn(context, "courseDiagrams");
-  mkdirSync("artifacts/rag-course", { recursive: true });
+  mkdirSync("artifacts/rag-course-2", { recursive: true });
   for (const theme of ["light", "dark"]) {
     await context.addCookies([
       { name: "mockmeai-theme", value: theme, url: "http://localhost:3100" },
@@ -38,6 +38,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         { number: 2, kind: "pipeline" },
         { number: 6, kind: "overlap" },
         { number: 8, kind: "split-table" },
+        { number: 9, kind: "small-to-big" },
       ]) {
         while (current < number) {
           await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -51,7 +52,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
           ),
         ).toBe(true);
         await page.screenshot({
-          path: `artifacts/rag-course/vector-${kind}-${theme}-${width}.png`,
+          path: `artifacts/rag-course-2/S${number}-${kind}-${theme}-${width}.png`,
           fullPage: true,
         });
       }
@@ -60,7 +61,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         const diagram = page.locator(`[data-course-diagram="${kind}"]`);
         await expectReadableDiagram(diagram);
         await diagram.screenshot({
-          path: `artifacts/rag-course/vector-${kind}-${theme}-${width}.png`,
+          path: `artifacts/rag-course-2/vector-${kind}-${theme}-${width}.png`,
         });
       }
     }

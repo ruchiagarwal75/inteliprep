@@ -5,7 +5,7 @@ import { ragCourse } from "./content";
 import { COURSE_DIAGRAMS } from "./slide-diagrams";
 import { CourseDiagram } from "@/components/play/course-diagram";
 
-it("attaches exactly the six requested teaching diagrams and removes title periods", () => {
+it("attaches the four revised ingestion diagrams and keeps other topic diagrams", () => {
   expect(
     ragCourse.flatMap((topic) =>
       topic.slides.flatMap((slide, index) =>
@@ -16,6 +16,7 @@ it("attaches exactly the six requested teaching diagrams and removes title perio
     [1, 2, "pipeline"],
     [1, 6, "overlap"],
     [1, 8, "split-table"],
+    [1, 9, "small-to-big"],
     [2, 2, "two-tower"],
     [2, 4, "ann"],
     [3, 2, "rrf"],

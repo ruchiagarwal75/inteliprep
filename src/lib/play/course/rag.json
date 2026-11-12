@@ -171,7 +171,8 @@
             "kind": "paragraph",
             "text": "A lighter version is the sentence window: match one sentence, then send the few sentences around it."
           }
-        ]
+        ],
+        "diagram": "small-to-big"
       },
       {
         "title": "Metadata on every chunk",
