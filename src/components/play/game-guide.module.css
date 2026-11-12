@@ -6,8 +6,9 @@
   max-width: 250px;
 }
 .art {
-  width: 88px;
-  height: 96px;
+  position: relative;
+  width: var(--guide-size, 88px);
+  aspect-ratio: 220 / 240;
   flex: none;
 }
 .bubble {
@@ -19,8 +20,84 @@
   font-size: 0.875rem;
   line-height: 1.4;
 }
-.guide[data-pose="idle"] :global(.mm-svg) * {
+.guide :global(.mm-svg) * {
   animation: none;
+}
+.guide :global(.mm-bubble) {
+  display: none;
+}
+.guide[data-pose="cheer"] :global(.mm-cheer) {
+  animation: cheer var(--game-motion) ease-in-out 2 alternate;
+}
+.guide[data-pose="celebrate"] .art {
+  animation: jump var(--game-motion) cubic-bezier(0.2, 1.4, 0.4, 1) 2;
+}
+.guide[data-pose="encourage"] .art {
+  animation: nod var(--game-motion) ease-in-out;
+}
+.guide[data-pose="thinking"] :global(.mm-ty) {
+  animation: tap var(--game-motion) ease-in-out infinite alternate;
+}
+.thought {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  display: flex;
+  gap: 3px;
+  padding: 7px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--game-round);
+}
+.thought i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-text);
+  animation: think 660ms ease-in-out infinite;
+}
+.thought i:nth-child(2) {
+  animation-delay: 220ms;
+}
+.thought i:nth-child(3) {
+  animation-delay: 440ms;
+}
+.guide[data-paused] *,
+.guide[data-paused] :global(.mm-svg) * {
+  animation-play-state: paused !important;
+}
+@keyframes cheer {
+  to {
+    transform: translateY(-4px);
+  }
+}
+@keyframes jump {
+  50% {
+    transform: translateY(-10px) rotate(-3deg);
+  }
+}
+@keyframes nod {
+  50% {
+    transform: rotate(3deg);
+  }
+}
+@keyframes tap {
+  to {
+    transform: translateY(-2px);
+  }
+}
+@keyframes think {
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (max-width: 767px) {
+  .guide[data-pose="idle"] {
+    display: none;
+  }
+  .guide {
+    --guide-size: 72px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .guide *,

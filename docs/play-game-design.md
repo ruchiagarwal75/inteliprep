@@ -49,3 +49,14 @@ time, so stars use the server's saved time to submission, excluding grading.
 
 Use isolated SQL/RLS fixtures and stubbed model replies. Do not run paid model
 calls for this redesign. Capture all requested screens at 1440 and 375 pixels.
+
+## Mascot poses
+
+The original mascotArt.ts, Mascot.tsx and mascot.css are unchanged. Play uses
+five wrappers around those exact SVGs: idle uses a still wave, cheer uses done
+with a short arm lift, encourage uses wave with a gentle nod, thinking uses the
+working laptop with three thought dots, and celebrate uses done with a short
+jump. Original colors, glasses, hair, clips and hoodie remain intact. Play hides
+the SVG's built-in bubble when it supplies its own guide copy; Home's hi! bubble
+is untouched. Mobile hides the path guide. Motion pauses in hidden tabs and is
+removed with reduced motion. The existing Show mascot preference applies here.
