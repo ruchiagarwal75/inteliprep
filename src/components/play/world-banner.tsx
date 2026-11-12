@@ -6,11 +6,13 @@ export function WorldBanner({
   stars,
   levelsPassed,
   totalLevels,
+  unit = "levels",
 }: {
   title: string;
   stars: number;
   levelsPassed: number;
   totalLevels: number;
+  unit?: "levels" | "topics";
 }) {
   return (
     <section className={styles.banner} aria-label={`${title} World progress`}>
@@ -31,7 +33,7 @@ export function WorldBanner({
           </p>
           <p
             data-game-label
-            aria-label={`${levelsPassed} of ${totalLevels} levels passed`}
+            aria-label={`${levelsPassed} of ${totalLevels} ${unit} passed`}
           >
             {levelsPassed} of {totalLevels} cleared
           </p>

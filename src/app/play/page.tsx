@@ -1,3 +1,4 @@
+import { RAG_COURSE_ID, RAG_COURSE_NODES } from "@/lib/play/course/metadata";
 import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
 import { playerSnapshot } from "@/lib/play/player";
@@ -22,8 +23,11 @@ export default async function PlayPage() {
       <p>Choose a topic. Each round takes 3 to 5 minutes.</p>
       <ul className={styles.topicList} aria-label="Practice worlds">
         {PLAY_TOPICS.map((topic) => {
+          const total =
+            topic.id === "rag" ? RAG_COURSE_NODES.length : topic.levels.length;
           const progress = snapshot?.levels.filter(
-              (row) => row.topic === topic.id,
+              (row) =>
+                row.topic === (topic.id === "rag" ? RAG_COURSE_ID : topic.id),
             ),
             passed =
               progress?.filter((row) => row.status === "passed").length ?? 0,
@@ -46,22 +50,23 @@ export default async function PlayPage() {
                         <p
                           className={styles.starTotal}
                           data-game-label
-                          aria-label={`${stars} / ${topic.levels.length * 3} stars`}
+                          aria-label={`${stars} / ${total * 3} stars`}
                         >
                           <PixelSprite
                             art={PIXEL_ART.star}
                             width="18"
                             height="14"
                           />
-                          {stars}/{topic.levels.length * 3}
+                          {stars}/{total * 3}
                         </p>
                         <p>
-                          {passed} of {topic.levels.length} levels passed
+                          {passed} of {total}{" "}
+                          {topic.id === "rag" ? "topics" : "levels"} passed
                         </p>
                       </div>
                       <progress
                         className={styles.worldProgress}
-                        max={topic.levels.length}
+                        max={total}
                         value={passed}
                         aria-label={`${topic.title} levels passed`}
                       />

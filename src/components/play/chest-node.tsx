@@ -1,4 +1,5 @@
 "use client";
+import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { chestResultSchema } from "@/lib/play/public";
@@ -69,7 +70,7 @@ export function ChestNode({
         aria-label={
           xp !== undefined
             ? `Chest opened: +${xp} XP`
-            : `Open chest after Level ${afterLevel}`
+            : `Open chest after ${topic === RAG_COURSE_ID ? "Topic" : "Level"} ${afterLevel}`
         }
       >
         <PixelChest open={xp !== undefined} animate={justOpened} />
@@ -90,7 +91,7 @@ export function ChestNode({
             ? "Opening..."
             : unlocked
               ? "Open!"
-              : `Pass LV ${afterLevel}`}
+              : `Pass ${topic === RAG_COURSE_ID ? "Topic" : "LV"} ${afterLevel}`}
       </span>
       {error && <p role="alert">{error}</p>}
     </div>

@@ -1,3 +1,4 @@
+import { CourseWorld } from "@/components/play/course-world";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
@@ -26,6 +27,7 @@ export default async function TopicPage({
       .filter((row) => row.topic === id && row.status === "passed")
       .map((row) => row.level),
     reviews = snapshot.reviews.find((row) => row.topic === id)?.count ?? 0;
+  if (id === "rag") return <CourseWorld snapshot={snapshot} />;
   return (
     <>
       <Link className="practice-link" href="/play">
