@@ -31,10 +31,6 @@ export default async function PlayPage() {
           </li>
         ))}
       </ul>
-      <p className={styles.note}>
-        RAG Levels 1 and 2 have reviewed drills. Levels 3 and 4 use clearly
-        marked samples.
-      </p>
       <Link className="practice-link" href="/mock#fundamentals">
         Fundamentals: the 8 classic system design problems
       </Link>
