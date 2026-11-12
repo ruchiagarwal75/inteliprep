@@ -9,7 +9,7 @@ const subscribe = (changed: () => void) => {
 };
 const hidden = () => document.hidden;
 const visibleOnServer = () => false;
-/** Reuses the exact original SVG artwork. Only pose motion and a thought bubble vary. */
+/** Play-only pixel sprite. The original non-Play mascot remains unchanged. */
 export function GameGuide({
   message,
   pose = "idle",

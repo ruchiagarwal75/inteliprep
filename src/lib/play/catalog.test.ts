@@ -16,3 +16,11 @@ it("opens only RAG and keeps future topics in config", () => {
     "Quality and safety",
   ]);
 });
+
+it("keeps real level names as readable public metadata, without numbered placeholders", () => {
+  for (const topic of PLAY_TOPICS)
+    for (const level of topic.levels) {
+      expect(level.title.trim().length).toBeGreaterThan(3);
+      expect(level.title).not.toMatch(/^Level \d+$/);
+    }
+});
