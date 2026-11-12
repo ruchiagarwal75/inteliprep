@@ -16,7 +16,7 @@ export function ModeNav({
   points = rewards?.totals?.points ?? points;
   streak = rewards?.totals?.streak ?? streak;
   return (
-    <div className={styles.modeBar}>
+    <div className={styles.modeBar} data-mode-bar>
       <nav aria-label="Practice modes" className={styles.links}>
         {(["play", "mock", "progress"] as const).map((mode) => (
           <Link

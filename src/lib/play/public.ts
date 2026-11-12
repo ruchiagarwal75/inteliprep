@@ -72,6 +72,8 @@ export const drillQuestionSchema = z.discriminatedUnion("type", [
 ]);
 export type DrillQuestion = z.infer<typeof drillQuestionSchema>;
 export const drillResultSchema = z.object({
+  combo: z.number().int().nonnegative().optional(),
+  comboBonus: z.number().int().nonnegative().optional(),
   correct: z.boolean(),
   score: z.number().min(0).max(1),
   points: z.number().int().nonnegative(),
@@ -113,6 +115,7 @@ export const startRoundInputSchema = z.discriminatedUnion("mode", [
 ]);
 export type StartRoundInput = z.infer<typeof startRoundInputSchema>;
 export const roundSummarySchema = z.object({
+  bestCombo: z.number().int().nonnegative().optional(),
   stars: z.number().int().min(0).max(3).optional(),
   bestStars: z.number().int().min(0).max(3).optional(),
   replay: z.boolean().optional(),
@@ -149,6 +152,7 @@ export const roundSummarySchema = z.object({
 });
 export type RoundSummary = z.infer<typeof roundSummarySchema>;
 const roundFields = {
+  combo: z.number().int().nonnegative().optional(),
   outcomes: z.array(z.boolean().nullable()).optional(),
   resumed: z.boolean().optional(),
   sessionId: z.uuid(),

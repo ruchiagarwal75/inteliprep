@@ -3,7 +3,8 @@ import { needsAiGrade } from "./grading-policy";
 import { reserveAiGrade } from "./ai-usage";
 import { recordPlayEvent } from "./events";
 import { recordDrillReadiness } from "./readiness-store";
-import { rewardDrill, rewardRound } from "./rewards";
+import { nextCombo } from "./game-rules";
+import { rewardDrill, rewardRound, grantPoints } from "./rewards";
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
@@ -93,7 +94,18 @@ export async function submitRoundAnswer(
           409,
         );
       const rewards = await rewardDrill(sql, userId, attempt, grade, round);
+      const combo = nextCombo(round.current_combo, grade.correct);
+      const comboBonus = await grantPoints(
+        sql,
+        userId,
+        combo.bonus,
+        "combo",
+        attemptId,
+      );
+      await sql`update practice_game.play_sessions set current_combo=${combo.combo},best_combo=greatest(best_combo,${combo.combo}) where id=${round.id} and user_id=${userId}`;
       const result = {
+        combo: combo.combo,
+        comboBonus,
         ...grade,
         points: rewards.points,
         timeMs: claim.timeMs,

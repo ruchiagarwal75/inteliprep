@@ -2,6 +2,7 @@
 
 import { useContext, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
+import { GameSoundToggle } from "@/components/play/game-sounds";
 import { MascotToggle } from "@/components/mascot-preference";
 import { CandidateAccountContext } from "@/components/candidate-account-context";
 import { CandidateSignOut } from "@/components/candidate-sign-out";
@@ -118,6 +119,7 @@ export function CandidateProfileMenu({
               )}
               <div className="profile-menu-actions">
                 <MascotToggle />
+                <GameSoundToggle />
                 {account ? (
                   <>
                     <Link className="profile-menu-link" href="/play">

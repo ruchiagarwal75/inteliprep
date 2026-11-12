@@ -4,6 +4,8 @@ import type { FormEvent } from "react";
 import type { DrillAnswer, DrillQuestion } from "@/lib/play/public";
 import { choiceShortcut } from "./keyboard-play";
 import styles from "./drill.module.css";
+import { GameGuide } from "./game-guide";
+import { prepareGameSounds } from "./game-sounds";
 export function DrillAnswerForm({
   question,
   busy,
@@ -54,6 +56,7 @@ export function DrillAnswerForm({
   }, [question, busy]);
   function submit(event: FormEvent) {
     event.preventDefault();
+    prepareGameSounds();
     setError("");
     switch (question.type) {
       case "math": {
@@ -85,6 +88,16 @@ export function DrillAnswerForm({
         break;
     }
   }
+  const ready =
+    question.type === "spot_flaw"
+      ? option !== undefined
+      : question.type === "math"
+        ? Boolean(value.trim()) &&
+          Number.isFinite(Number(value)) &&
+          Number(value) >= 0
+        : question.type === "pick_probe"
+          ? Boolean(text.trim())
+          : Boolean(decision.trim() && text.trim());
   return (
     <form ref={form} onSubmit={submit} className={styles.form} aria-busy={busy}>
       <fieldset disabled={busy}>
@@ -175,9 +188,20 @@ export function DrillAnswerForm({
       {question.type === "spot_flaw" && (
         <p className={styles.hint}>1 to 4 to choose. Enter to check.</p>
       )}
-      <button className="practice-primary" disabled={busy} type="submit">
-        {busy ? "Checking your answer..." : "Check answer"}
-      </button>
+      <div className={styles.checkDock}>
+        {busy &&
+          (question.type === "tradeoff" || question.type === "pick_probe") && (
+            <GameGuide pose="thinking" />
+          )}
+        <button
+          className="practice-primary"
+          disabled={busy || !ready}
+          type="submit"
+          aria-label={busy ? "Checking..." : "Check answer"}
+        >
+          {busy ? "Checking..." : "Check"}
+        </button>
+      </div>
     </form>
   );
 }

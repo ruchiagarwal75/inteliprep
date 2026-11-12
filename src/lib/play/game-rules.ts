@@ -41,3 +41,8 @@ export function playerXpLevel(total: number) {
     nextXp,
   };
 }
+
+export function nextCombo(current: number, correct: boolean) {
+  const combo = correct ? current + 1 : 0;
+  return { combo, bonus: combo === 3 ? 5 : combo === 5 ? 10 : 0 };
+}

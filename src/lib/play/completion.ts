@@ -94,6 +94,7 @@ export async function completeRound(
       ? []
       : await sql`select best_stars from practice_game.level_progress where user_id=${userId} and topic=${round.topic} and level=${round.level}`;
   const summary = roundSummarySchema.parse({
+    bestCombo: round.best_combo,
     stars,
     bestStars: best?.best_stars ?? 0,
     replay: round.replay,
@@ -119,7 +120,11 @@ export async function completeRound(
         level: row.level,
       })),
     bonusPoints: 0,
-    pointsEarned: attempts.reduce((sum, row) => sum + row.points_awarded, 0),
+    pointsEarned: attempts.reduce(
+      (sum, row) =>
+        sum + row.points_awarded + (row.result_json.comboBonus ?? 0),
+      0,
+    ),
     nextLevel: passedLevels.length
       ? await nextRoundLevel(sql, userId, round.topic)
       : undefined,

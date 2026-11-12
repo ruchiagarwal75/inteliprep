@@ -22,6 +22,8 @@ const roundSchema = z.object({
   completed_at: z.coerce.date().nullable(),
   result_json: roundSummarySchema.nullable(),
   replay: z.boolean().default(false),
+  current_combo: z.number().int().nonnegative().default(0),
+  best_combo: z.number().int().nonnegative().default(0),
 });
 const attemptSchema = z.object({
   id: z.uuid(),
@@ -90,6 +92,7 @@ export async function roundView(
   if (!attempt.started_at) throw Error("Missing server drill start");
   const base = {
     sessionId: id,
+    combo: round.current_combo,
     mode: round.mode,
     resumed,
     outcomes,

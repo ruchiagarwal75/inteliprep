@@ -1,7 +1,6 @@
 "use client";
 import { z } from "zod";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { roundViewSchema, submitRoundResultSchema } from "@/lib/play/public";
@@ -101,6 +100,7 @@ export function DrillRunner({
         setView({
           ...view,
           status: "graded",
+          combo: parsed.result.combo ?? 0,
           outcomes: (
             view.outcomes ??
             Array.from({ length: view.question.total }, () => null)
@@ -179,12 +179,11 @@ export function DrillRunner({
         : undefined;
   return (
     <>
-      <Link className="practice-link" href={`/play/${topic}`}>
-        Back to levels
-      </Link>
       {loadError && <p role="alert">{loadError}</p>}
       <DrillCard
         key={view.question.attemptId}
+        topic={topic}
+        combo={view.combo ?? 0}
         question={view.question}
         resumed={view.resumed}
         outcomes={view.outcomes}

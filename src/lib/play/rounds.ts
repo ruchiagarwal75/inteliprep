@@ -105,6 +105,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
     });
     const view = roundViewSchema.parse({
       sessionId: id,
+      combo: 0,
       mode: input.mode,
       status: "answering",
       resumed: false,

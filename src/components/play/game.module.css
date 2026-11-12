@@ -100,3 +100,9 @@
     transform: none;
   }
 }
+
+.game:has([data-lesson]) :global(.practice-nav),
+.game:has([data-lesson]) [data-mode-bar],
+.game:has([data-lesson]) [aria-label="Legal"] {
+  display: none;
+}

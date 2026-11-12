@@ -1,28 +1,27 @@
 .amount {
-  font-size: clamp(2rem, 7vw, 3rem);
-  font-weight: 650;
-  line-height: 1.15;
-  color: var(--accent-text);
-  margin-block: var(--space-2);
+  color: var(--game-gold);
+  font-size: 1.75rem;
+  font-weight: 850;
   font-variant-numeric: tabular-nums;
 }
 .amount span {
   font-size: 1rem;
-  font-weight: 500;
 }
-.flight {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 30;
-  pointer-events: none;
-  font-size: 1.5rem;
-  font-weight: 650;
-  color: var(--accent-text);
-  will-change: transform, opacity;
+.amount[data-animate] {
+  animation: pop var(--game-motion) cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes pop {
+  from {
+    opacity: 0.3;
+    transform: translateY(8px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .flight {
-    display: none;
+  .amount {
+    animation: none !important;
   }
 }

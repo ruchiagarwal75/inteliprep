@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect } from "react";
 import { markRoundReady } from "./round-prefetch";
 import { DRILL_TYPE_LABELS } from "@/lib/play/public";
 import type {
@@ -8,43 +7,14 @@ import type {
   DrillQuestion,
   DrillResult,
 } from "@/lib/play/public";
-import { RoundDots } from "./round-dots";
-import { EarnedPoints } from "./earned-points";
-import { Celebration } from "./celebration";
+import { SoftTimer } from "./soft-timer";
+import { LessonHeader } from "./lesson-header";
+import { AnswerSheet } from "./answer-sheet";
 import { DrillAnswerForm } from "./drill-answer-form";
 import styles from "./drill.module.css";
-function SoftTimer({
-  question,
-  result,
-  resumed,
-}: {
-  question: DrillQuestion;
-  result?: DrillResult;
-  resumed?: boolean;
-}) {
-  const [offset] = useState(() => Date.parse(question.serverNow) - Date.now()),
-    [now, setNow] = useState(() => Date.parse(question.serverNow));
-  useEffect(() => {
-    if (result) return;
-    const timer = setInterval(() => setNow(Date.now() + offset), 1000);
-    return () => clearInterval(timer);
-  }, [offset, result]);
-  const seconds = Math.max(
-    0,
-    Math.floor(
-      (result ? result.timeMs : now - Date.parse(question.startedAt)) / 1000,
-    ),
-  );
-  return (
-    <span className={styles.timer} aria-label="Time on this drill">
-      {String(Math.floor(seconds / 60)).padStart(2, "0")}:
-      {String(seconds % 60).padStart(2, "0")}
-      <span> No hard stop</span>
-      {resumed && <span> · Resumed</span>}
-    </span>
-  );
-}
 export function DrillCard({
+  topic,
+  combo,
   question,
   result,
   busy,
@@ -56,6 +26,8 @@ export function DrillCard({
   outcomes,
   animatePoints,
 }: {
+  topic: string;
+  combo: number;
   question: DrillQuestion;
   result?: DrillResult;
   busy: boolean;
@@ -67,93 +39,66 @@ export function DrillCard({
   outcomes?: (boolean | null)[];
   animatePoints?: boolean;
 }) {
-  const continueButton = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (result) continueButton.current?.focus({ preventScroll: true });
-  }, [result]);
   useEffect(() => {
     markRoundReady();
   }, [question.attemptId]);
+  const completed =
+    outcomes?.filter((row) => row !== null).length ??
+    question.ordinal + (result ? 1 : 0);
   return (
-    <article className={`practice-surface ${styles.card}`}>
-      <header className={styles.header}>
-        <p>
-          {DRILL_TYPE_LABELS[question.type]} · {question.ordinal + 1} of{" "}
-          {question.total}
-        </p>
-        <SoftTimer question={question} result={result} resumed={resumed} />
-      </header>
-      <RoundDots
+    <div data-lesson data-wrong={result && !result.correct ? true : undefined}>
+      <LessonHeader
+        topic={topic}
+        completed={completed}
         total={question.total}
-        current={question.ordinal}
-        outcomes={outcomes}
+        combo={combo}
       />
-      <h1>{question.title}</h1>
-      <p className={styles.prompt}>{question.prompt}</p>
-      {error && (
-        <div role="alert" className={styles.error}>
-          <p>{error}</p>
-          {onRetry && (
-            <button
-              className="practice-secondary"
-              disabled={busy}
-              onClick={onRetry}
-            >
-              Retry grading
-            </button>
-          )}
-        </div>
-      )}
-      {result ? (
-        <section className={styles.result} aria-label="Drill result">
-          <h2>{result.correct ? "Correct" : "Not quite"}</h2>
-          {result.badgesEarned?.length > 0 && (
-            <Celebration title="Badge earned" badges={result.badgesEarned} />
-          )}
-          <p>{result.feedback}</p>
-          {result.correct ? (
-            <EarnedPoints points={result.points} animate={animatePoints} />
-          ) : (
-            <p>This one comes back for review in 2 days.</p>
-          )}
-          {result.expected && (
-            <p>
-              <strong>Answer:</strong> {result.expected}
-            </p>
-          )}
-          <details open className={styles.why}>
-            <summary>Why</summary>
-            <p>{result.why}</p>
-            {result.formula && (
-              <p>
-                <code>{result.formula}</code>
-              </p>
+      <article className={`practice-surface ${styles.card}`}>
+        <header className={styles.header}>
+          <p>
+            {DRILL_TYPE_LABELS[question.type]} · {question.ordinal + 1} of{" "}
+            {question.total}
+          </p>
+          <SoftTimer
+            question={question}
+            result={result}
+            resumed={resumed}
+            busy={busy}
+          />
+        </header>
+        <h1>{question.title}</h1>
+        <p className={styles.prompt}>{question.prompt}</p>
+        {error && (
+          <div role="alert" className={styles.error}>
+            <p>{error}</p>
+            {onRetry && (
+              <button
+                className="practice-secondary"
+                disabled={busy}
+                onClick={onRetry}
+              >
+                Retry grading
+              </button>
             )}
-            {question.gapHref && (
-              <Link className="practice-link" href={question.gapHref}>
-                Read the gap card
-              </Link>
-            )}
-          </details>
-          <button
-            className="practice-primary"
-            type="button"
-            disabled={busy}
-            onClick={onNext}
-            ref={continueButton}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && event.repeat) event.preventDefault();
-            }}
-          >
-            Continue
-          </button>
-          <p className={styles.hint}>Enter to continue.</p>
-        </section>
-      ) : onRetry ? (
-        <p>Your answer is saved. Retry grading to continue.</p>
-      ) : (
-        <DrillAnswerForm question={question} busy={busy} onAnswer={onAnswer} />
-      )}
-    </article>
+          </div>
+        )}
+        {result ? (
+          <AnswerSheet
+            question={question}
+            result={result}
+            animate={animatePoints}
+            onNext={onNext}
+          />
+        ) : onRetry ? (
+          <p>Your answer is saved. Retry grading to continue.</p>
+        ) : (
+          <DrillAnswerForm
+            question={question}
+            busy={busy}
+            onAnswer={onAnswer}
+          />
+        )}
+      </article>
+    </div>
   );
 }

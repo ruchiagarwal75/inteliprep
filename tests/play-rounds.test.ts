@@ -97,7 +97,7 @@ it("saves the first answer, handles retries and duplicate next, and passes four 
         correct: 4,
         total: 5,
         passedLevels: [1],
-        pointsEarned: 65,
+        pointsEarned: 70,
         nextLevel: { level: 2, title: "Scale math" },
         earnedBadges: expect.arrayContaining(["first-level"]),
       });
@@ -149,7 +149,7 @@ it("places independently and keeps prior passes when a later round is weaker", a
 });
 it("awards points, a first-try bonus and badges once, with one daily streak increment", async () => {
   const [{ playerSnapshot }] = await Promise.all([import("@/lib/play/player")]);
-  expect((await playerSnapshot(user)).points).toBe(130);
+  expect((await playerSnapshot(user)).points).toBe(140);
   const { sessionId: id } = await startRound(user, {
     requestId: crypto.randomUUID(),
     topic: "rag",
@@ -172,7 +172,7 @@ it("awards points, a first-try bonus and badges once, with one daily streak incr
     view = await advanceRound(user, id, view.question.attemptId);
   }
   const state = await playerSnapshot(user);
-  expect(state).toMatchObject({ points: 155, streak: 1 });
+  expect(state).toMatchObject({ points: 180, streak: 1 });
   expect(state.badges.map((b) => b.badge_id)).toEqual(
     expect.arrayContaining(["first-level", "math-five"]),
   );

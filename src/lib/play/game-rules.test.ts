@@ -1,5 +1,11 @@
 import { expect, it } from "vitest";
-import { GAME_RULES, levelStars, drillXp, playerXpLevel } from "./game-rules";
+import {
+  GAME_RULES,
+  levelStars,
+  drillXp,
+  playerXpLevel,
+  nextCombo,
+} from "./game-rules";
 const five = () =>
   Array.from({ length: 5 }, () => ({
     correct: true,
@@ -56,4 +62,18 @@ it("derives the increasing player level curve without a second XP balance", () =
     nextXp: 1000,
   });
   expect(playerXpLevel(9999).level).toBe(14);
+});
+
+it("rewards the third and fifth correct answer and resets on a wrong answer", () => {
+  let count = 0,
+    total = 0;
+  for (let i = 0; i < 6; i++) {
+    const next = nextCombo(count, true);
+    count = next.combo;
+    total += next.bonus;
+  }
+  expect(total).toBe(15);
+  expect(count).toBe(6);
+  expect(nextCombo(count, false)).toEqual({ combo: 0, bonus: 0 });
+  expect(nextCombo(0, true)).toEqual({ combo: 1, bonus: 0 });
 });
