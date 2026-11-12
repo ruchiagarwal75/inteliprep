@@ -29,7 +29,7 @@ export default async function TopicPage({
   return (
     <>
       <Link className="practice-link" href="/play">
-        All topics
+        All worlds
       </Link>
       <WorldBanner
         title={topic.title}

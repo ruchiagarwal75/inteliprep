@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { chestResultSchema } from "@/lib/play/public";
 import { usePlayRewards } from "./play-rewards";
-import { ChestIcon } from "./game-icons";
+import { PixelChest } from "./pixel-chest";
 import styles from "./chest-node.module.css";
 export function ChestNode({
   topic,
@@ -20,6 +20,7 @@ export function ChestNode({
     rewards = usePlayRewards();
   const [xp, setXp] = useState(openedXp),
     [busy, setBusy] = useState(false),
+    [justOpened, setJustOpened] = useState(false),
     [error, setError] = useState("");
   const lock = useRef(false);
   async function open() {
@@ -36,6 +37,7 @@ export function ChestNode({
       const parsed = chestResultSchema.safeParse(await response.json());
       if (!response.ok || !parsed.success) throw Error("Unavailable");
       setXp(parsed.data.xp);
+      setJustOpened(true);
       rewards?.applyTotals(parsed.data.totals, true);
     } catch {
       setError("Could not open this chest. Please retry.");
@@ -56,16 +58,24 @@ export function ChestNode({
             : `Open chest after Level ${afterLevel}`
         }
       >
-        <ChestIcon />
+        <PixelChest open={xp !== undefined} animate={justOpened} />
       </button>
-      <span role="status">
+      {justOpened && (
+        <span className={styles.gold} aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
+      )}
+      <span role="status" data-game-label>
         {xp !== undefined
           ? `+${xp} XP`
           : busy
             ? "Opening..."
             : unlocked
-              ? "Open chest"
-              : `Pass Level ${afterLevel}`}
+              ? "Open!"
+              : `Pass LV ${afterLevel}`}
       </span>
       {error && <p role="alert">{error}</p>}
     </div>

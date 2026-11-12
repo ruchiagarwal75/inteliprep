@@ -1,33 +1,38 @@
 .stars {
   display: inline-flex;
   gap: 4px;
-  color: var(--game-gold);
+  vertical-align: middle;
 }
-.stars svg[data-earned="false"] {
-  fill: var(--surface-inset);
-  stroke: var(--border-strong);
+.slot {
+  display: grid;
+  place-items: center;
+  background: var(--pixel-sprite-plate);
+  padding: 4px;
 }
-.stars[data-animate] svg[data-earned="true"] {
-  animation: arrive var(--game-motion) cubic-bezier(0.2, 1.6, 0.4, 1) both;
+.slot[data-earned="false"] svg {
+  opacity: 0.2;
 }
-.stars[data-animate] svg:nth-child(2) {
+.stars[data-animate] .slot[data-earned="true"] {
+  animation: arrive 240ms steps(3, end) both;
+}
+.stars[data-animate] .slot:nth-child(2) {
   animation-delay: 180ms;
 }
-.stars[data-animate] svg:nth-child(3) {
+.stars[data-animate] .slot:nth-child(3) {
   animation-delay: 360ms;
 }
 @keyframes arrive {
   from {
-    transform: translateY(-18px) scale(0.4);
+    transform: translateY(-18px);
     opacity: 0;
   }
   to {
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
     opacity: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .stars svg {
+  .stars .slot {
     animation: none !important;
   }
 }

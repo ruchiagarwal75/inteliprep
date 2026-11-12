@@ -1,7 +1,7 @@
 .world {
   position: relative;
-  max-width: 600px;
-  margin: var(--space-4) auto;
+  max-width: 1000px;
+  margin: 32px auto;
 }
 .track {
   position: absolute;
@@ -10,15 +10,21 @@
   height: 100%;
   pointer-events: none;
   overflow: visible;
+  shape-rendering: crispEdges;
 }
 .track path {
   fill: none;
-  stroke: var(--border);
-  stroke-width: 14;
-  stroke-linecap: round;
+  stroke: var(--pixel-line);
+  stroke-width: 8;
+  stroke-dasharray: 8 12;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
 }
 .track .filled {
-  stroke: var(--accent);
+  stroke: var(--game-world);
+}
+.mobileTrack {
+  display: none;
 }
 .path {
   list-style: none;
@@ -27,80 +33,104 @@
 }
 .step {
   position: relative;
-  height: 280px;
+  height: 320px;
+  --node-left: 25%;
 }
-.details {
-  position: static;
+.step[data-side="1"] {
+  --node-left: 75%;
 }
 .node {
   position: absolute;
-  top: 20px;
-  left: 35%;
+  top: 24px;
+  left: var(--node-left);
+  z-index: 1;
   display: grid;
   place-items: center;
-  width: 88px;
-  height: 88px;
+  width: 80px;
+  height: 80px;
   transform: translateX(-50%);
-  border-radius: var(--game-round);
-  border: 3px solid var(--border-strong);
-  border-bottom-width: 8px;
-  background: var(--surface-inset);
-  color: var(--muted);
-  font-size: 2rem;
-  font-weight: 850;
+  border: 2px solid var(--pixel-line-strong);
+  border-bottom: 8px solid var(--pixel-sprite-hair);
+  background: var(--pixel-locked);
+  color: var(--pixel-on-world);
+  clip-path: var(--pixel-cut);
   cursor: pointer;
   list-style: none;
 }
 .node::-webkit-details-marker {
   display: none;
 }
-.step[data-side="1"] .node,
-.step[data-side="1"] .caption {
-  left: 65%;
+.node [data-game-label] {
+  --pixel-label-size: 24px;
 }
-.step[data-state="passed"] .node,
-.step[data-state="current"] .node {
-  background: var(--accent);
-  border-color: var(--game-button-edge);
-  color: var(--on-accent);
+.step[data-state="passed"] .node {
+  background: var(--game-world);
+  border-color: var(--game-world-edge);
 }
 .step[data-state="current"] .node {
+  top: 16px;
   width: 96px;
   height: 96px;
-  top: 16px;
-  outline: 8px solid var(--game-ring);
-  animation: ready 2s ease-in-out infinite;
+  background: var(--pixel-current);
+  border-color: var(--game-world);
+  color: var(--pixel-current-text);
+  animation: ready 1200ms steps(2, end) infinite;
+}
+.step[data-state="current"]::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: var(--node-left);
+  transform: translateX(-50%);
+  width: 112px;
+  height: 112px;
+  clip-path: var(--pixel-cut);
+  background: var(--pixel-sprite-gold);
+  opacity: 0.4;
+  pointer-events: none;
+}
+.node:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 4px var(--pixel-on-world);
+}
+.step[data-state="current"] .node:focus-visible {
+  box-shadow: inset 0 0 0 4px var(--pixel-current-text);
 }
 .node:active {
   border-bottom-width: 4px;
 }
 .caption {
   position: absolute;
+  z-index: 2;
   top: 118px;
-  left: 35%;
+  left: var(--node-left);
   transform: translateX(-50%);
   display: grid;
-  gap: 4px;
   justify-items: center;
-  color: var(--muted);
-  font-weight: 650;
+  gap: 6px;
   width: 200px;
   max-width: 56%;
-  z-index: 1;
   padding: 4px 8px;
-  border-radius: 16px;
-  background: var(--game-world-bg);
+  background: var(--pixel-sky);
   text-align: center;
+  color: var(--pixel-muted);
 }
-.levelNumber {
-  font-size: 0.75rem;
-  line-height: 1.25;
+.caption [data-game-label] {
+  --pixel-label-size: 9px;
 }
-.levelTitle {
-  color: var(--foreground);
-  font-size: 0.9375rem;
-  line-height: 1.25;
+.caption strong {
+  color: var(--pixel-text);
+  font: 650 15px/1.3 var(--font-play-read);
   text-wrap: balance;
+}
+.caption button {
+  margin-top: 4px;
+  width: 144px;
+  max-width: 100%;
+}
+.caption [role="img"] svg {
+  width: 18px;
+  height: 14px;
 }
 .card {
   position: absolute;
@@ -109,233 +139,114 @@
   top: 118px;
   transform: translateX(-50%);
   width: min(310px, calc(100% - 32px));
-  padding: var(--space-3);
-  background: var(--surface-raised);
-  color: var(--foreground);
-  border: 2px solid var(--accent);
-  border-radius: var(--corner-large);
-  box-shadow: var(--shadow-card);
+  padding: 24px;
+  border: 2px solid var(--game-world);
+  clip-path: var(--pixel-cut);
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
 }
 .card h2 {
-  font-family: var(--font-ui);
-  font-weight: 750;
-  font-size: 1.125rem;
+  font: 700 18px/1.4 var(--font-play-read);
+  margin: 0 0 12px;
 }
 .card p {
-  color: var(--muted);
-  font-size: 0.875rem;
-  margin-block: var(--space-1) var(--space-2);
+  font: 400 14px/1.6 var(--font-play-read);
+  color: var(--pixel-muted);
+  margin: 12px 0;
 }
 .card button {
   width: 100%;
 }
 .chest {
   position: absolute;
+  top: 248px;
   left: 50%;
-  top: 208px;
   transform: translateX(-50%);
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  color: var(--game-reward);
-  padding: var(--space-1);
-  border-radius: 16px;
-  background: var(--transparent);
-  font-size: 0.6875rem;
+  z-index: 2;
 }
 .guide {
   position: absolute;
-  left: 54%;
-  top: 16px;
+  left: 43%;
+  top: 10px;
+  z-index: 2;
 }
 .step[data-side="1"] .guide {
-  left: 0;
+  left: 10%;
 }
 .placement {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
   flex-wrap: wrap;
-  margin-top: var(--space-3);
+  gap: 16px;
+  margin-top: 24px;
 }
 .placement p {
-  color: var(--muted);
-  font-size: 0.875rem;
+  font: 400 14px/1.6 var(--font-play-read);
+  color: var(--pixel-muted);
 }
 .skipLink {
-  border: 2px solid var(--border-strong);
-  border-radius: 14px;
   padding: 10px 16px;
-  background: var(--surface-raised);
-  color: var(--accent-text);
-  font: 650 0.875rem var(--font-ui);
+  border: 2px solid var(--pixel-line-strong);
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
+  font: 650 14px/1.4 var(--font-play-read);
   cursor: pointer;
 }
-@keyframes ready {
-  0%,
-  100% {
-    transform: translateX(-50%) translateY(0);
-  }
-  50% {
-    transform: translateX(-50%) translateY(-5px);
-  }
-}
-@media (max-width: 767px) {
-  .guide {
-    display: none;
-  }
-  .node {
-    width: 76px;
-    height: 76px;
-    top: 26px;
-  }
-  .step[data-state="current"] .node {
-    width: 84px;
-    height: 84px;
-    top: 22px;
-    outline-width: 6px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .node {
-    animation: none !important;
-  }
-}
-
-.world::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at 15% 10%,
-      var(--game-dots) 3px,
-      var(--transparent) 4px
-    ),
-    radial-gradient(
-      circle at 85% 38%,
-      var(--game-dots) 4px,
-      var(--transparent) 5px
-    ),
-    radial-gradient(
-      circle at 12% 64%,
-      var(--game-dots) 3px,
-      var(--transparent) 4px
-    ),
-    radial-gradient(
-      circle at 82% 88%,
-      var(--game-dots) 3px,
-      var(--transparent) 4px
-    );
-}
-
 .breakLock {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
+  background: var(--pixel-current);
   pointer-events: none;
-  animation: unlock var(--game-motion) ease-out forwards;
-  background: var(--accent);
-  border-radius: var(--game-round);
+  animation: unlock 240ms steps(3, end) forwards;
 }
-.step[data-revealed] .node {
-  box-shadow: 0 0 0 10px var(--game-ring);
+.world:has([data-revealed]) .filled {
+  animation: fillPath 240ms steps(3, end);
+}
+@keyframes ready {
+  50% {
+    transform: translateX(-50%) translateY(-4px);
+  }
 }
 @keyframes unlock {
   to {
-    transform: translateY(20px) rotate(25deg) scale(0.5);
+    transform: translateY(16px);
     opacity: 0;
   }
 }
+@keyframes fillPath {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 767px) {
+  .desktopTrack {
+    display: none;
+  }
+  .mobileTrack {
+    display: block;
+  }
+  .step {
+    --node-left: 40%;
+  }
+  .step[data-side="1"] {
+    --node-left: 60%;
+  }
+  .guide {
+    display: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .node,
+  .filled {
+    animation: none !important;
+  }
   .breakLock {
     display: none;
     animation: none;
-  }
-}
-
-.world:has([data-revealed]) .filled {
-  stroke-dasharray: 1;
-  animation: fillPath var(--game-motion) ease-out;
-}
-@keyframes fillPath {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .world .filled {
-    animation: none;
-  }
-}
-
-@media (min-width: 768px) {
-  .world {
-    max-width: 900px;
-  }
-  .node {
-    width: 106px;
-    height: 106px;
-    top: 11px;
-    font-size: 2.4rem;
-  }
-  .step[data-state="current"] .node {
-    width: 116px;
-    height: 116px;
-    top: 6px;
-  }
-  .caption {
-    top: 130px;
-  }
-  .card {
-    top: 136px;
-  }
-  .world::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-      radial-gradient(
-        circle at 8% 23%,
-        var(--transparent) 19px,
-        var(--game-dots) 20px,
-        var(--game-dots) 22px,
-        var(--transparent) 23px
-      ),
-      radial-gradient(
-        circle at 94% 58%,
-        var(--transparent) 27px,
-        var(--game-dots) 28px,
-        var(--game-dots) 30px,
-        var(--transparent) 31px
-      ),
-      radial-gradient(
-        circle at 10% 82%,
-        var(--transparent) 14px,
-        var(--game-dots) 15px,
-        var(--game-dots) 17px,
-        var(--transparent) 18px
-      ),
-      radial-gradient(
-        circle at 92% 8%,
-        var(--game-dots) 5px,
-        var(--transparent) 6px
-      ),
-      radial-gradient(
-        circle at 4% 48%,
-        var(--game-dots) 4px,
-        var(--transparent) 5px
-      ),
-      radial-gradient(
-        circle at 88% 88%,
-        var(--game-dots) 4px,
-        var(--transparent) 5px
-      );
   }
 }

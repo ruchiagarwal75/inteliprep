@@ -35,7 +35,18 @@ export async function dismissLevelUp(page: Page) {
   }
 }
 export async function openPlayLevel(page: Page, level: number) {
-  await page.locator(`summary[aria-label^="Level ${level}:"]`).click();
+  const node = page.locator(`summary[aria-label^="Level ${level}:"]`);
+  if ((await node.getAttribute("aria-label"))?.endsWith(", current")) {
+    await node
+      .locator("../..")
+      .getByRole("button", { name: "Start", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Check answer", exact: true }),
+    ).toBeVisible();
+    return;
+  }
+  await node.click();
   await page
     .locator('details[open][name="level-node"]')
     .getByRole("button", { name: /^(Start|Practice again)$/u })

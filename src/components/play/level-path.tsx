@@ -1,5 +1,6 @@
 import { levelUnlocked } from "@/lib/play/round-rules";
-import { LockIcon, CheckIcon } from "./game-icons";
+import { PixelSprite } from "./pixel-sprite";
+import { PIXEL_ART } from "./pixel-art";
 import { StartRound } from "./start-round";
 import { ChestNode } from "./chest-node";
 import { Stars } from "./stars";
@@ -23,33 +24,40 @@ export function LevelPath({
   const current = levels.findIndex(
     (l) => !passed.includes(l.level) && levelUnlocked(l.level, levels, passed),
   );
-  const x = (i: number) => (i % 2 === 0 ? 210 : 390);
-  const curve = (i: number) =>
-    ` C ${x(i)} ${i * 280 + 260} ${x(i + 1)} ${i * 280 + 260} ${x(i + 1)} ${(i + 1) * 280 + 64}`;
-  const start = `M ${x(0)} 64`,
-    path =
-      start +
+  function track(mobile: boolean, segments: number) {
+    const x = (i: number) =>
+      i % 2 ? (mobile ? 360 : 450) : mobile ? 240 : 150;
+    return (
+      `M ${x(0)} 64` +
       levels
-        .slice(1)
-        .map((_, i) => curve(i))
-        .join("");
-  const filled =
-    start +
-    levels
-      .slice(1, current < 0 ? levels.length : current + 1)
-      .map((_, i) => curve(i))
-      .join("");
+        .slice(1, segments + 1)
+        .map(
+          (_, i) => ` V ${i * 320 + 280} H ${x(i + 1)} V ${(i + 1) * 320 + 64}`,
+        )
+        .join("")
+    );
+  }
   return (
     <div className={styles.world}>
-      <svg
-        className={styles.track}
-        viewBox={`0 0 600 ${levels.length * 280}`}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path d={path} />
-        <path d={filled} pathLength="1" className={styles.filled} />
-      </svg>
+      {[false, true].map((mobile) => (
+        <svg
+          key={String(mobile)}
+          className={`${styles.track} ${mobile ? styles.mobileTrack : styles.desktopTrack}`}
+          viewBox={`0 0 600 ${levels.length * 320}`}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d={track(mobile, levels.length - 1)}
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={track(mobile, current < 0 ? levels.length - 1 : current)}
+            vectorEffect="non-scaling-stroke"
+            className={styles.filled}
+          />
+        </svg>
+      ))}
       <ol className={styles.path} aria-label="Level path">
         {levels.map((level, index) => {
           const complete = passed.includes(level.level),
@@ -66,11 +74,11 @@ export function LevelPath({
               key={level.level}
               className={styles.step}
               data-state={state}
+              data-side={index % 2}
               data-revealed={
                 (state === "current" && revealLevel === level.level) ||
                 undefined
               }
-              data-side={index % 2}
               aria-current={state === "current" ? "step" : undefined}
             >
               <details name="level-node" className={styles.details}>
@@ -80,22 +88,28 @@ export function LevelPath({
                 >
                   {state === "current" && revealLevel === level.level && (
                     <span className={styles.breakLock}>
-                      <LockIcon width="28" height="28" />
+                      <PixelSprite
+                        art={PIXEL_ART.lock}
+                        width="32"
+                        height="32"
+                      />
                     </span>
                   )}
                   {complete ? (
-                    <CheckIcon width="36" height="36" />
+                    <PixelSprite art={PIXEL_ART.check} width="32" height="24" />
                   ) : open ? (
-                    level.level
+                    <span data-game-label>{level.level}</span>
                   ) : (
-                    <LockIcon width="28" height="28" />
+                    <PixelSprite art={PIXEL_ART.lock} width="32" height="32" />
                   )}
                 </summary>
                 <div className={styles.card}>
                   <h2>{level.title}</h2>
                   <Stars count={stars[level.level] ?? 0} />
                   <p>5 drills. Pass with 4 correct answers.</p>
-                  {open ? (
+                  {state === "current" ? (
+                    <p>Start this level below.</p>
+                  ) : open ? (
                     <StartRound
                       topic={topic}
                       mode="level"
@@ -108,13 +122,21 @@ export function LevelPath({
                 </div>
               </details>
               <div className={styles.caption}>
-                <span className={styles.levelNumber}>Level {level.level}</span>
-                <strong className={styles.levelTitle}>{level.title}</strong>
+                <span data-game-label>LV {level.level}</span>
+                <strong>{level.title}</strong>
                 {complete && <Stars count={stars[level.level] ?? 0} />}
+                {state === "current" && (
+                  <StartRound
+                    topic={topic}
+                    mode="level"
+                    level={level.level}
+                    label="Start"
+                  />
+                )}
               </div>
               {state === "current" && (
                 <div className={styles.guide}>
-                  <GameGuide message={`Ready for Level ${level.level}?`} />
+                  <GameGuide message={`Ready for LV ${level.level}?`} />
                 </div>
               )}
               {index < levels.length - 1 && (

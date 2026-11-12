@@ -20,18 +20,20 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   await expect(
     banner.getByRole("heading", { name: "RAG World" }),
   ).toBeVisible();
-  await expect(banner.getByText("0 / 12 stars", { exact: true })).toBeVisible();
-  await expect(banner.getByText("0 of 4 levels passed")).toBeVisible();
+  await expect(
+    banner.getByLabel("0 / 12 stars", { exact: true }),
+  ).toBeVisible();
+  await expect(banner.getByLabel("0 of 4 levels passed")).toBeVisible();
   const first = page.locator('summary[aria-label^="Level 1:"]');
   await expect(first).toHaveAttribute("aria-label", /current/u);
   await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveAttribute(
     "aria-label",
     /locked/u,
   );
-  await expect(first).toHaveCSS("width", "116px");
+  await expect(first).toHaveCSS("width", "96px");
   await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveCSS(
     "width",
-    "106px",
+    "80px",
   );
   await expect(first).not.toHaveCSS("animation-name", "none");
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -123,8 +125,10 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
   await expect(page.getByText("Best combo", { exact: true })).toBeVisible();
   await capturePlay(page, "level-complete-3-stars", folder);
   await page.getByRole("link", { name: "Continue", exact: true }).click();
-  await expect(banner.getByText("3 / 12 stars", { exact: true })).toBeVisible();
-  await expect(banner.getByText("1 of 4 levels passed")).toBeVisible();
+  await expect(
+    banner.getByLabel("3 / 12 stars", { exact: true }),
+  ).toBeVisible();
+  await expect(banner.getByLabel("1 of 4 levels passed")).toBeVisible();
   await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveAttribute(
     "aria-label",
     /current/u,
@@ -141,9 +145,9 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
       await page.setViewportSize({ width, height: 900 });
       await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveCSS(
         "width",
-        width === 375 ? "84px" : "116px",
+        width === 375 ? "96px" : "96px",
       );
-      const label = page.getByText("Level 1", { exact: true }).locator("..");
+      const label = page.getByText("LV 1", { exact: true }).locator("..");
       expect(
         await label.evaluate((el) => getComputedStyle(el).backgroundColor),
       ).not.toBe("rgba(0, 0, 0, 0)");

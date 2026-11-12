@@ -1,66 +1,86 @@
 .chest {
   display: grid;
   justify-items: center;
-  gap: 4px;
-  color: var(--game-chest);
-  font-size: 0.75rem;
-  font-weight: 750;
+  gap: 6px;
+  position: relative;
+  --pixel-label-size: 9px;
+  color: var(--pixel-chest-text);
 }
 .chest button {
   display: grid;
   place-items: center;
-  width: 68px;
-  height: 62px;
-  background: var(--game-chest-soft);
-  border: 2px solid var(--game-chest);
-  border-bottom-width: 5px;
-  border-radius: 18px;
-  color: var(--game-chest);
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  background: var(--pixel-sprite-plate);
+  border: 2px solid var(--pixel-chest-text);
+  border-bottom-width: 8px;
+  clip-path: var(--pixel-cut);
   cursor: pointer;
 }
 .chest button:disabled {
-  color: var(--game-chest);
-  background: var(--game-chest-soft);
+  cursor: default;
 }
 .chest button:disabled:not([aria-label^="Chest opened"]) {
-  border-color: var(--border-strong);
-  color: var(--muted);
-  background: var(--surface-inset);
-  --game-chest-soft: var(--surface-inset);
+  opacity: 0.55;
 }
-.chest[data-open="true"] svg {
-  animation: open var(--game-motion) cubic-bezier(0.2, 1.6, 0.4, 1);
+.chest button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--pixel-on-world);
+}
+.chest button:active:not(:disabled) {
+  transform: translateY(4px);
+  border-bottom-width: 4px;
 }
 .chest p {
   max-width: 200px;
-  padding: var(--space-1);
-  background: var(--surface-raised);
+  padding: 8px;
+  background: var(--pixel-panel);
   color: var(--danger);
+  font: 400 13px/1.5 var(--font-play-read);
 }
-@keyframes open {
+.gold {
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: 32px;
+  height: 24px;
+  pointer-events: none;
+}
+.gold i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--pixel-sprite-gold);
+  animation: burst 240ms steps(3, end) both;
+}
+.gold i:nth-child(2) {
+  left: 8px;
+  animation-delay: 35ms;
+}
+.gold i:nth-child(3) {
+  left: 16px;
+  animation-delay: 65ms;
+}
+.gold i:nth-child(4) {
+  left: 24px;
+  animation-delay: 90ms;
+}
+@keyframes burst {
   from {
-    transform: scale(0.7) rotate(-12deg);
-    opacity: 0.5;
-  }
-  to {
-    transform: scale(1) rotate(0);
+    transform: translateY(0);
     opacity: 1;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  .chest svg {
-    animation: none !important;
+  to {
+    transform: translateY(-24px);
+    opacity: 0;
   }
 }
-
-.chest[data-open="true"] [data-chest-lid] {
-  transform-box: fill-box;
-  transform-origin: left bottom;
-  transform: translateY(-5px) rotate(-12deg);
-  transition: transform var(--game-motion) ease-out;
-}
 @media (prefers-reduced-motion: reduce) {
-  .chest [data-chest-lid] {
-    transition: none;
+  .gold {
+    display: none;
+  }
+  .chest button:active:not(:disabled) {
+    transform: none;
   }
 }
