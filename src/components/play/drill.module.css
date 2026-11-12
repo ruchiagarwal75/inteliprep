@@ -150,3 +150,9 @@
 .progress::-moz-progress-bar {
   background: var(--accent);
 }
+
+.hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted);
+}

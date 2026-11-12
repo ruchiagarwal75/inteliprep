@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  playRound: {
+    id: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+    email: "play-round@example.invalid",
+  },
   play: {
     id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
     email: "play@example.invalid",

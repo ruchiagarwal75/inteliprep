@@ -1,7 +1,8 @@
 "use client";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import type { DrillAnswer, DrillQuestion } from "@/lib/play/public";
+import { choiceShortcut } from "./keyboard-play";
 import styles from "./drill.module.css";
 export function DrillAnswerForm({
   question,
@@ -12,6 +13,7 @@ export function DrillAnswerForm({
   busy: boolean;
   onAnswer: (answer: DrillAnswer) => void;
 }) {
+  const form = useRef<HTMLFormElement>(null);
   const id = useId(),
     [value, setValue] = useState(""),
     [unit, setUnit] = useState(
@@ -21,6 +23,35 @@ export function DrillAnswerForm({
     [text, setText] = useState(""),
     [decision, setDecision] = useState(""),
     [error, setError] = useState("");
+  useEffect(() => {
+    if (question.type !== "spot_flaw") return;
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (
+        target.closest('[role="dialog"], [role="menu"]') ||
+        target.isContentEditable ||
+        target.closest('textarea,select,input:not([type="radio"])')
+      )
+        return;
+      if (target !== document.body && !form.current?.contains(target)) return;
+      const action = choiceShortcut(event, busy);
+      if (action === undefined) return;
+      event.preventDefault();
+      if (action === "submit") form.current?.requestSubmit();
+      else {
+        const choice = question.options[action];
+        if (choice) {
+          setOption(choice.id);
+          form.current
+            ?.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+            [action]?.focus({ preventScroll: true });
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [question, busy]);
   function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -55,7 +86,7 @@ export function DrillAnswerForm({
     }
   }
   return (
-    <form onSubmit={submit} className={styles.form}>
+    <form ref={form} onSubmit={submit} className={styles.form}>
       <fieldset disabled={busy}>
         <legend className={styles.legend}>Your answer</legend>
         {question.type === "math" && (
@@ -102,7 +133,7 @@ export function DrillAnswerForm({
                   required
                 />
                 <span>
-                  <strong>{String.fromCharCode(65 + i)}.</strong> {choice.text}
+                  <strong>{i + 1}.</strong> {choice.text}
                 </span>
               </label>
             ))}
@@ -140,6 +171,9 @@ export function DrillAnswerForm({
         <p role="alert" className={styles.error}>
           {error}
         </p>
+      )}
+      {question.type === "spot_flaw" && (
+        <p className={styles.hint}>1 to 4 to choose. Enter to check.</p>
       )}
       <button className="practice-primary" disabled={busy} type="submit">
         {busy ? "Checking..." : "Check answer"}

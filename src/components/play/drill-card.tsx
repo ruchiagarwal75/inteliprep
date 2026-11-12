@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { markRoundReady } from "./round-prefetch";
 import { DRILL_TYPE_LABELS } from "@/lib/play/public";
@@ -67,6 +67,10 @@ export function DrillCard({
   outcomes?: (boolean | null)[];
   animatePoints?: boolean;
 }) {
+  const continueButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (result) continueButton.current?.focus({ preventScroll: true });
+  }, [result]);
   useEffect(() => {
     markRoundReady();
   }, [question.attemptId]);
@@ -136,9 +140,14 @@ export function DrillCard({
             type="button"
             disabled={busy}
             onClick={onNext}
+            ref={continueButton}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && event.repeat) event.preventDefault();
+            }}
           >
             Continue
           </button>
+          <p className={styles.hint}>Enter to continue.</p>
         </section>
       ) : onRetry ? (
         <p>Your answer is saved. Retry grading to continue.</p>

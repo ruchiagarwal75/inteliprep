@@ -138,6 +138,7 @@ it("places independently and keeps prior passes when a later round is weaker", a
     );
     if (i === 5) {
       expect(result.summary?.passedLevels).toEqual([1, 3]);
+      expect(result.summary?.earnedBadges).toContain("math-five");
       break;
     }
     view = await advanceRound(user, id, view.question.attemptId);

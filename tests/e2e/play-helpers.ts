@@ -18,7 +18,11 @@ export async function capturePlay(page: Page, name: string) {
   }
   await page.setViewportSize({ width: 1440, height: 900 });
 }
-export async function finishPlayRound(page: Page, capture = false) {
+export async function finishPlayRound(
+  page: Page,
+  capture = false,
+  correct = true,
+) {
   const session = new URL(page.url()).searchParams.get("session");
   if (!session) throw Error("No round session");
   for (let i = 0; i < 6; i++) {
@@ -35,6 +39,17 @@ export async function finishPlayRound(page: Page, capture = false) {
       `https://127.0.0.1:4444/fixture/play-answer?attempt=${q.attemptId}`,
     );
     const answer = await solution.json();
+    if (!correct) {
+      if (answer.type === "math") answer.value = 999999999991;
+      else if (answer.type === "spot_flaw")
+        answer.option = String((Number(answer.option) + 1) % 4);
+      else if (answer.type === "pick_probe") answer.text = "Unsure";
+      else {
+        answer.decision = "Unsure";
+        answer.reason = "Unsure";
+      }
+    }
+
     if (view.status !== "graded") {
       if (q.type === "math")
         await page
@@ -65,17 +80,22 @@ export async function finishPlayRound(page: Page, capture = false) {
         .getByRole("button", { name: "Check answer", exact: true })
         .click();
       expect((await checked).status()).toBe(200);
-      await expect(
-        page
-          .getByText("That calculation checks out.", { exact: true })
-          .or(page.getByText("You found the flaw.", { exact: true }))
-          .or(
-            page.getByText(
-              "Your answer names a mechanism and how to check it.",
-              { exact: true },
+      if (!correct)
+        await expect(
+          page.getByRole("heading", { name: "Not quite", exact: true }),
+        ).toBeVisible();
+      else
+        await expect(
+          page
+            .getByText("That calculation checks out.", { exact: true })
+            .or(page.getByText("You found the flaw.", { exact: true }))
+            .or(
+              page.getByText(
+                "Your answer names a mechanism and how to check it.",
+                { exact: true },
+              ),
             ),
-          ),
-      ).toBeVisible();
+        ).toBeVisible();
       if (shot) {
         await capturePlay(page, q.type + "-result");
         seen.add(q.type);
