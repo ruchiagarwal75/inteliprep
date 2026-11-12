@@ -52,6 +52,7 @@ const questionFields = {
   total: z.number().int(),
   startedAt: z.iso.datetime(),
   elapsedMs: z.number().nonnegative().optional(),
+  activityOrder: z.number().int().nonnegative().optional(),
   maxTimeMs: z.number().positive().optional(),
   revision: z.number().int().nonnegative().optional(),
   serverNow: z.iso.datetime(),
@@ -243,6 +244,7 @@ export const drillActivitySchema = z
     attemptId: z.uuid(),
     revision: z.number().int().nonnegative().default(0),
     visible: z.boolean(),
+    order: z.number().int().nonnegative().optional(),
   })
   .strict();
 export const drillActivityResultSchema = z.object({

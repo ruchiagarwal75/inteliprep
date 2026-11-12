@@ -22,6 +22,7 @@ export const POST = playEndpoint(
         input.data.attemptId,
         input.data.revision,
         input.data.visible,
+        { order: input.data.order },
       ),
     );
   },

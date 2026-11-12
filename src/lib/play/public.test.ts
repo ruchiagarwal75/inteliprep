@@ -56,6 +56,13 @@ it("accepts answers and identifiers, never client-authored outcomes or timing", 
 it("accepts visibility heartbeats but never client supplied elapsed time or rewards", () => {
   const body = { attemptId: crypto.randomUUID(), revision: 1, visible: false };
   expect(drillActivitySchema.safeParse(body).success).toBe(true);
+  expect(drillActivitySchema.safeParse({ ...body, order: 100 }).success).toBe(
+    true,
+  );
+  for (const order of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, "100"])
+    expect(drillActivitySchema.safeParse({ ...body, order }).success).toBe(
+      false,
+    );
   for (const extra of [
     { elapsedMs: 1 },
     { timeMs: 1 },

@@ -23,6 +23,7 @@ export function publicQuestion(
     ordinal: number;
     startedAt: string;
     elapsedMs?: number;
+    activityOrder?: number;
     maxTimeMs?: number;
     revision?: number;
   },
@@ -44,6 +45,7 @@ export function publicQuestion(
     total,
     startedAt: attempt.startedAt,
     elapsedMs: attempt.elapsedMs,
+    activityOrder: attempt.activityOrder,
     maxTimeMs: attempt.maxTimeMs,
     revision: attempt.revision,
     serverNow: new Date().toISOString(),

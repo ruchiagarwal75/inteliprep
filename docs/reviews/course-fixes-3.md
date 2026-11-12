@@ -23,3 +23,21 @@ slide frame. The text uses its natural content height. The repeated Learn headin
 is omitted. Controls never cover the diagram, and a new slide starts at the top.
 The same four window sizes are checked with the complete table comparison
 visible and no nested text scroller.
+
+## 3. Slide-pause timing
+
+The delayed-heartbeat browser reproduction changed the paused display from
+00:03 to 00:07. A shared promise queue put the pause behind the pending response.
+The server kept counting until that queued pause arrived; its response then
+updated the paused display.
+
+Visibility changes now cancel the old client request and send immediately.
+An additive per-attempt order counter lets the server reject old heartbeats or
+pauses that arrive late. This counter only orders requests; the server still
+computes elapsed time. Older attempts and API requests remain readable.
+Paused responses can reconcile the internal checkpoint without changing the
+frozen display. Ticks resume only after closing the overlay.
+
+The eight-second browser test holds a real local heartbeat response and checks
+both the displayed value and saved answer time. SQL tests verify out-of-order
+pause/resume requests, unchanged rewards and a rerunnable additive migration.

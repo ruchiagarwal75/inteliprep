@@ -73,6 +73,7 @@ export async function startReportingFixture(key, cert) {
       "20261112184249_play_rag_course_visits.sql",
       "20261112212130_play_course_slide_positions.sql",
       "20261112213851_play_course_long_lessons.sql",
+      "20261112225318_play_activity_order.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),

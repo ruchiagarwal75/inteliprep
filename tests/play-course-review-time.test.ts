@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
+import { readFile } from "node:fs/promises";
 import {
   startPlayPostgres,
   PLAY_TEST_USER as user,
@@ -21,18 +22,67 @@ vi.mock("@/lib/play/written-grader", () => ({
 }));
 beforeAll(async () => {
   fixture = await startPlayPostgres();
+  const lesson = await courseLesson(user, 1);
+  for (let index = 0; index < lesson.slides.length; index++)
+    await seeCourseSlide(user, 1, index);
 }, 30000);
 afterAll(async () => {
   vi.useRealTimers();
   await fixture?.close();
 });
+it("ignores late heartbeats and pauses while keeping server-owned time", async () => {
+  const started = await startRound(user, {
+    topic: "rag-course",
+    mode: "level",
+    level: 1,
+    requestId: crypto.randomUUID(),
+    timeZone: "UTC",
+  });
+  const id = started.view.question.attemptId;
+  expect(started.view.question.activityOrder).toBe(0);
+  await fixture.operator`update practice_game.drill_attempts set active_elapsed_ms=3000,active_since=null where id=${id}`;
+  vi.useFakeTimers({ toFake: ["Date"] });
+  try {
+    const paused = await recordDrillActivity(user, id, 0, false, { order: 20 });
+    vi.setSystemTime(Date.now() + 8000);
+    expect(
+      (await recordDrillActivity(user, id, 0, true, { order: 10 })).elapsedMs,
+    ).toBe(paused.elapsedMs);
+    const [row] =
+      await fixture.operator`select active_since,activity_order from practice_game.drill_attempts where id=${id}`;
+    expect(row.active_since).toBeNull();
+    expect(Number(row.activity_order)).toBe(20);
+    await recordDrillActivity(user, id, 0, true, { order: 21 });
+    vi.setSystemTime(Date.now() + 2000);
+    const stopped = await recordDrillActivity(user, id, 0, false, {
+      order: 22,
+    });
+    expect(stopped.elapsedMs).toBe(5000);
+    vi.setSystemTime(Date.now() + 8000);
+    expect(
+      (await recordDrillActivity(user, id, 0, true, { order: 21 })).elapsedMs,
+    ).toBe(5000);
+    expect(
+      (await recordDrillActivity(user, id, 0, false, { order: 20 })).elapsedMs,
+    ).toBe(5000);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+it("can rerun the additive migration without changing existing attempts", async () => {
+  const before =
+    await fixture.operator`select to_jsonb(a) as row from practice_game.drill_attempts a order by id`;
+  const migration = await readFile(
+    "supabase/migrations/20261112225318_play_activity_order.sql",
+    "utf8",
+  );
+  await fixture.operator.unsafe(migration);
+  await fixture.operator.unsafe(migration);
+  expect(
+    await fixture.operator`select to_jsonb(a) as row from practice_game.drill_attempts a order by id`,
+  ).toEqual(before);
+});
 it("excludes repeated slide-reading pauses from answer time, stars and XP", async () => {
-  for (
-    let index = 0;
-    index < (await courseLesson(user, 1)).slides.length;
-    index++
-  )
-    await seeCourseSlide(user, 1, index);
   vi.useFakeTimers({ toFake: ["Date"] });
   try {
     const started = await startRound(user, {

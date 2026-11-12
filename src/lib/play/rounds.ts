@@ -134,6 +134,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
           ordinal: 0,
           startedAt,
           elapsedMs: 0,
+          activityOrder: 0,
           maxTimeMs: 3 * GAME_RULES.parMs[first.drill_type],
           revision: 0,
         },

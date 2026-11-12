@@ -10,6 +10,7 @@ export async function recordDrillActivity(
   attemptId: string,
   revision: number,
   visible: boolean,
+  activity: { order?: number } = {},
 ) {
   return withPlayer(userId, async (sql) => {
     let attempt = await storedAttempt(sql, userId, attemptId);
@@ -31,8 +32,16 @@ export async function recordDrillActivity(
         now: now.getTime(),
         maxTimeMs,
       });
+    const order = activity.order ?? attempt.activity_order + 1;
+    // A delayed heartbeat must never reopen a newer pause, or pause a newer resume.
+    if (order <= attempt.activity_order)
+      return {
+        elapsedMs: Math.min(elapsedMs, maxTimeMs),
+        maxTimeMs,
+        refreshed,
+      };
     if (!attempt.answer && !round.completed_at) {
-      await sql`update practice_game.drill_attempts set active_elapsed_ms=${elapsedMs},active_since=${visible ? now : null} where user_id=${userId} and id=${attemptId} and answer is null`;
+      await sql`update practice_game.drill_attempts set active_elapsed_ms=${elapsedMs},active_since=${visible ? now : null},activity_order=${order} where user_id=${userId} and id=${attemptId} and answer is null`;
       await sql`update practice_game.play_sessions set last_activity_at=${now} where user_id=${userId} and id=${round.id}`;
     }
     return { elapsedMs: Math.min(elapsedMs, maxTimeMs), maxTimeMs, refreshed };

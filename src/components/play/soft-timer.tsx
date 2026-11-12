@@ -5,6 +5,7 @@ import { drillActivityResultSchema } from "@/lib/play/public";
 import { DRILL_HEARTBEAT_MS, formatDrillTime } from "@/lib/play/drill-time";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import styles from "./drill.module.css";
+import { DrillActivityOrder } from "./drill-activity-order";
 export function SoftTimer({
   question,
   result,
@@ -23,7 +24,8 @@ export function SoftTimer({
   const { request } = useCandidateAccount();
   const [elapsedMs, setElapsedMs] = useState(question.elapsedMs ?? 0);
   const checkpoint = useRef(question.elapsedMs ?? 0);
-  const queue = useRef(Promise.resolve());
+  const flight = useRef<AbortController | null>(null);
+  const [orders] = useState(() => new DrillActivityOrder());
   const cap = question.maxTimeMs ?? Number.MAX_SAFE_INTEGER;
   useEffect(() => {
     if (result || busy) return;
@@ -35,8 +37,12 @@ export function SoftTimer({
     const value = () =>
       Math.min(cap, base + (visible ? performance.now() - at : 0));
     const pulse = (show: boolean) => {
-      queue.current = queue.current.then(async () => {
-        if (disposed && show) return;
+      if (disposed && show) return;
+      flight.current?.abort();
+      const abort = new AbortController();
+      flight.current = abort;
+      const order = orders.next(question.activityOrder ?? 0);
+      void (async () => {
         try {
           const response = await request("/api/play/activity", {
             method: "POST",
@@ -45,14 +51,16 @@ export function SoftTimer({
               attemptId: question.attemptId,
               revision: question.revision ?? 0,
               visible: show,
+              order,
             }),
             keepalive: !show,
+            signal: AbortSignal.any([abort.signal, AbortSignal.timeout(15000)]),
           });
           if (!response.ok) return;
           const parsed = drillActivityResultSchema.safeParse(
             await response.json(),
           );
-          if (!parsed.success || disposed) return;
+          if (!parsed.success || disposed || abort.signal.aborted) return;
           if (parsed.data.refreshed) {
             if (!refreshing) {
               refreshing = true;
@@ -63,24 +71,30 @@ export function SoftTimer({
           base = parsed.data.elapsedMs;
           checkpoint.current = base;
           at = performance.now();
-          setElapsedMs(base);
+          if (!paused) setElapsedMs(base);
         } catch {
           /* The next heartbeat reconciles with the server. */
+        } finally {
+          if (flight.current === abort) flight.current = null;
         }
-      });
+      })();
     };
     const visibility = () => {
       base = value();
       at = performance.now();
       visible = !document.hidden && !paused;
-      setElapsedMs(base);
+      if (!paused) setElapsedMs(base);
       pulse(visible);
     };
     const close = () => {
+      base = value();
+      at = performance.now();
       visible = false;
       pulse(false);
     };
-    const tick = setInterval(() => setElapsedMs(value()), 1000);
+    const tick = paused
+      ? undefined
+      : setInterval(() => setElapsedMs(value()), 1000);
     const heartbeat = setInterval(() => {
       if (visible) pulse(true);
     }, DRILL_HEARTBEAT_MS);
@@ -100,6 +114,8 @@ export function SoftTimer({
     question.attemptId,
     question.revision,
     question.elapsedMs,
+    question.activityOrder,
+    orders,
     request,
     cap,
     result,
