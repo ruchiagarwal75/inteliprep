@@ -1,4 +1,4 @@
-import { summaryTitles } from "./summary-store";
+import { summaryDisplay } from "./summary-store";
 import { presentDrillResult } from "./math-presentation";
 import { activeDrillMs } from "./drill-time";
 import { GAME_RULES } from "./game-rules";
@@ -44,7 +44,7 @@ export async function submitRoundAnswer(
           attempt.result_json,
         ),
         summary: round.result_json
-          ? summaryTitles(round.result_json)
+          ? summaryDisplay(round.result_json)
           : undefined,
       };
     if (round.active_ordinal !== attempt.ordinal || !attempt.started_at)
@@ -119,7 +119,7 @@ export async function submitRoundAnswer(
             attempt.result_json,
           ),
           summary: round.result_json
-            ? summaryTitles(round.result_json)
+            ? summaryDisplay(round.result_json)
             : undefined,
         };
       if (attempt.claim_id !== claim.id)

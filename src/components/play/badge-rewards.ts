@@ -1,6 +1,7 @@
 import type { BADGE_LABELS } from "@/lib/play/public";
 export const BADGE_REWARDS = [
   { id: "first-level", meaning: "Clear your first practice level." },
+  { id: "first-topic", meaning: "Clear your first course topic." },
   { id: "math-five", meaning: "Get 5 math drills right in a row." },
   { id: "rag-practice", meaning: "Clear all 4 RAG levels." },
   {

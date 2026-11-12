@@ -3,7 +3,7 @@ import { ragCourse } from "./content";
 import { courseDrills } from "./drills";
 import { courseQuestionTitle } from "./titles";
 import { createVariant, publicQuestion } from "../question";
-import { summaryTitles } from "../summary-store";
+import { summaryDisplay } from "../summary-store";
 import { roundSummarySchema } from "../public";
 it("uses all 21 supplied question titles in authored order", () => {
   expect(
@@ -59,7 +59,7 @@ it("relabels saved prompts and review lists without rewriting their snapshots", 
     earnedBadges: [],
     practiceReadyNow: false,
   });
-  expect(summaryTitles(saved).retryDrills[0].title).toBe("Chunk count");
+  expect(summaryDisplay(saved).retryDrills[0].title).toBe("Chunk count");
   expect(saved.retryDrills[0].title).toBe("T1-Q5");
   expect(courseQuestionTitle("retired", "Existing title")).toBe(
     "Existing title",

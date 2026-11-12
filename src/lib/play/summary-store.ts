@@ -29,9 +29,14 @@ export async function nextRoundLevel(
   );
   return next ? { level: next.level, title: next.title } : undefined;
 }
-export function summaryTitles(summary: RoundSummary): RoundSummary {
+export function summaryDisplay(summary: RoundSummary): RoundSummary {
   return {
     ...summary,
+    // The first course release reused the retired level badge in saved results.
+    // Keep that historical record, but never celebrate it as a new course badge.
+    earnedBadges: summary.earnedBadges.filter(
+      (id) => summary.topic !== RAG_COURSE_ID || id !== "first-level",
+    ),
     retryDrills: summary.retryDrills.map((drill) => ({
       ...drill,
       title: courseQuestionTitle(drill.drillId, drill.title),
@@ -46,7 +51,7 @@ export async function displayRoundSummary(
   summary: RoundSummary,
 ) {
   const display = {
-    ...summaryTitles(summary),
+    ...summaryDisplay(summary),
     levelTitle: levelsForTopic(summary.topic).find(
       (l) => l.level === summary.level,
     )?.title,

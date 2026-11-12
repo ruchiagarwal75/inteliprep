@@ -5,6 +5,7 @@ import type { PlayTransaction } from "./database";
 import { levelsForTopic } from "./catalog";
 import type { DrillGrade } from "./grade";
 import type { RoundSummary } from "./public";
+import { RAG_COURSE_ID } from "./course/metadata";
 import { awardBadge } from "./badges";
 import type { BadgeId } from "./badges";
 import { refreshStreak } from "./streak-store";
@@ -90,7 +91,11 @@ export async function rewardRound(
   const badges = [...new Set([...summary.earnedBadges, ...already])];
   let bonusPoints = 0;
   if (summary.passedLevels.length) {
-    const badge = await awardBadge(sql, userId, "first-level");
+    const badge = await awardBadge(
+      sql,
+      userId,
+      summary.topic === RAG_COURSE_ID ? "first-topic" : "first-level",
+    );
     if (badge) badges.push(badge);
   }
   if (summary.mode === "level" && summary.passed && summary.level !== null) {

@@ -35,6 +35,14 @@ The reward rule is unchanged. The regression finishes a 3/7 attempt, then a
 95 XP for its first-attempt 6/7 pass, including the 25 XP bonus. Replays and
 repeated submissions cannot add another bonus.
 
+## 4. Course badge
+
+Course passes award "First topic cleared" instead of reusing "First level
+cleared". The account/badge primary key keeps the new badge once per account.
+Tests cover an account that already owns the old badge, later topic passes and
+replays. Saved course summaries no longer announce the retired level badge as
+a new reward. Its stored record and original summary stay intact.
+
 ## QA account rule
 
 Preview checks must use a separate QA account, never the owner's account.
