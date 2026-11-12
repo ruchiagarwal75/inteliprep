@@ -20,6 +20,7 @@ export const courseSlideSchema = z.object({
   body: z.array(slideBodyBlockSchema).min(1),
   diagram: z.enum(COURSE_DIAGRAMS).optional(),
 });
+export type CourseSlide = z.infer<typeof courseSlideSchema>;
 export const courseLessonSchema = z.object({
   level: z.number().int().min(1).max(9),
   title: z.string(),

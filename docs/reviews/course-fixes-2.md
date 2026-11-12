@@ -37,3 +37,11 @@ The renderer escapes HTML and supports only the authored formatting subset.
 A compatible constraint expansion supports longer lessons. Existing completed
 visits remain completed. Fresh accounts must save all 13 ordered checkpoints.
 Reading position, earned rewards and old answer snapshots are preserved.
+
+## 3. Long slide reader
+
+The old reader grew with its text and pushed navigation below the page. The
+slide frame now reserves room for its title and navigation. Only its body scrolls.
+Inter text stays at 16 px with a 1.75 line height and a 640 px maximum width.
+Bullets, numbered lists and bold use semantic HTML. Each slide starts at the top
+of its body. The same frame is used in the quiz overlay.

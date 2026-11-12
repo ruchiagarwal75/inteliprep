@@ -5,9 +5,8 @@ import { useCandidateAccount } from "@/components/candidate-account-context";
 import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { StartRound } from "./start-round";
 import { CourseSlideSaves } from "./course-slide-saves";
-import { CourseDiagram } from "./course-diagram";
+import { CourseSlideFrame } from "./course-slide-frame";
 import { useSlideKeys } from "./slide-keys";
-import { SlideBody } from "./slide-body";
 import type { CourseLesson } from "@/lib/play/course/slides-public";
 import styles from "./course.module.css";
 const SAVE_ERROR =
@@ -84,7 +83,12 @@ export function CourseSlides({
   );
   useSlideKeys({ reader, primary: next, move: moveBy });
   return (
-    <section ref={reader} className={styles.lesson} aria-label="Topic slides">
+    <section
+      ref={reader}
+      className={styles.lesson}
+      data-review={review ? "true" : undefined}
+      aria-label="Topic slides"
+    >
       {!review && (
         <Link className="practice-link" href="/play/rag">
           Back to topics
@@ -103,17 +107,9 @@ export function CourseSlides({
           <span>Or review the slides below.</span>
         </div>
       )}
-      <article
-        className={`practice-surface ${styles.slide}`}
-        aria-live="polite"
-      >
-        <p className={styles.counter} aria-label="Slide counter">
-          {index + 1} / {slides.length}
-        </p>
-        <h2 data-game-label>{slide?.title}</h2>
-        {slide?.diagram && <CourseDiagram kind={slide.diagram} />}
-        {slide && <SlideBody blocks={slide.body} />}
-      </article>
+      {slide && (
+        <CourseSlideFrame slide={slide} index={index} count={slides.length} />
+      )}
       {error && (
         <div role="alert">
           <p>{error}</p>

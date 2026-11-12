@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  courseLayout: {
+    id: "89898989-8989-4989-8989-898989898989",
+    email: "course-layout@example.invalid",
+  },
   courseReview: {
     id: "90909090-9090-4090-8090-909090909090",
     email: "course-review@example.invalid",

@@ -1,0 +1,55 @@
+.frame {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: clamp(16px, 3vw, 32px);
+  overflow: hidden;
+}
+.frame > h2 {
+  flex: none;
+  margin: 8px 0 16px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.counter {
+  flex: none;
+  margin: 0;
+  color: var(--pixel-muted);
+}
+.body {
+  min-height: 0;
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  padding-inline-end: 8px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+  font: 400 16px/1.75 var(--font-play-read);
+}
+.body :is(p, ul, ol) {
+  font: inherit;
+  margin: 0 0 16px;
+}
+.body :is(ul, ol) {
+  padding-inline-start: 24px;
+}
+.body ul {
+  list-style: disc;
+}
+.body ol {
+  list-style: decimal;
+}
+.body li + li {
+  margin-top: 8px;
+}
+.body strong {
+  font-weight: 700;
+}
+@media (max-width: 600px) {
+  .frame > h2 {
+    font-size: 12px;
+  }
+}
