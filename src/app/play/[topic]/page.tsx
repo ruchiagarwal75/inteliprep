@@ -1,3 +1,4 @@
+import { LockIcon } from "@/components/play/game-icons";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
@@ -48,7 +49,7 @@ export default async function TopicPage({
         <StartRound topic={id} mode="placement" label="Try placement" />
       </section>
       <ul className={styles.topicList}>
-        {levels.map((level) => (
+        {levels.map((level, index) => (
           <li className={styles.topic} key={level.level}>
             <div>
               <h2>
@@ -63,15 +64,20 @@ export default async function TopicPage({
                     : "Locked"}
               </span>
             </div>
-            <StartRound
-              topic={id}
-              mode="level"
-              level={level.level}
-              label={
-                passed.includes(level.level) ? "Replay level" : "Start level"
-              }
-              disabled={!levelUnlocked(level.level, levels, passed)}
-            />
+            {levelUnlocked(level.level, levels, passed) ? (
+              <StartRound
+                topic={id}
+                mode="level"
+                level={level.level}
+                label={
+                  passed.includes(level.level) ? "Replay level" : "Start level"
+                }
+              />
+            ) : (
+              <p>
+                <LockIcon /> Pass Level {levels[index - 1]?.level} to unlock
+              </p>
+            )}
           </li>
         ))}
       </ul>
