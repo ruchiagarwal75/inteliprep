@@ -1,6 +1,6 @@
-"use client";
-import { useState } from "react";
 import { BADGE_LABELS } from "@/lib/play/public";
+import { BADGE_REWARDS } from "./badge-rewards";
+import { BadgeIcon } from "./game-icons";
 import styles from "./celebration.module.css";
 export function Celebration({
   title,
@@ -9,30 +9,23 @@ export function Celebration({
   title: string;
   badges?: string[];
 }) {
-  const [dismissed, setDismissed] = useState(false);
-  if (dismissed) return null;
+  const earned = BADGE_REWARDS.filter((badge) => badges.includes(badge.id));
+  if (!earned.length) return null;
   return (
-    <aside className={styles.panel} aria-label="Milestone">
-      <div role="status">
-        <h2>{title}</h2>
-        {badges.length > 0 && (
-          <ul>
-            {badges.map((id) => (
-              <li key={id}>{badgeLabel(id)}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <button
-        type="button"
-        className="practice-secondary"
-        onClick={() => setDismissed(true)}
-      >
-        Dismiss
-      </button>
+    <aside className={styles.panel} aria-label={title}>
+      <ul aria-live="polite">
+        {earned.map((badge) => (
+          <li key={badge.id} className={styles.reward}>
+            <span className={styles.icon}>
+              <BadgeIcon />
+            </span>
+            <div>
+              <h2 className={styles.name}>{BADGE_LABELS[badge.id]}</h2>
+              <p className={styles.meaning}>{badge.meaning}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </aside>
   );
-}
-function badgeLabel(id: string) {
-  return Object.entries(BADGE_LABELS).find(([key]) => key === id)?.[1] ?? id;
 }

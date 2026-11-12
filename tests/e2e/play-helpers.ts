@@ -2,8 +2,12 @@ import { expect, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { roundViewSchema } from "../../src/lib/play/public";
 const seen = new Set<string>();
-export async function capturePlay(page: Page, name: string) {
-  mkdirSync("artifacts/play-beta", { recursive: true });
+export async function capturePlay(
+  page: Page,
+  name: string,
+  folder = "play-beta",
+) {
+  mkdirSync(`artifacts/${folder}`, { recursive: true });
   for (const width of [1440, 375]) {
     await page.setViewportSize({ width, height: 900 });
     expect(
@@ -12,7 +16,7 @@ export async function capturePlay(page: Page, name: string) {
       ),
     ).toBe(true);
     await page.screenshot({
-      path: `artifacts/play-beta/${name}-${width}.png`,
+      path: `artifacts/${folder}/${name}-${width}.png`,
       fullPage: true,
     });
   }

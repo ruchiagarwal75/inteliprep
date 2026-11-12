@@ -106,6 +106,27 @@ test("Play round fixes: first-drill handoff, dots, fail, pass, rewards, daily go
   await expect(
     page.getByText("50 points earned this round", { exact: true }),
   ).toBeVisible();
+  const reward = page.getByLabel("New badges", { exact: true });
+  await expect(
+    reward.getByRole("heading", { name: "First level cleared", exact: true }),
+  ).toBeVisible();
+  await expect(
+    reward.getByText("Clear your first practice level.", { exact: true }),
+  ).toBeVisible();
+  await expect(reward.getByRole("button")).toHaveCount(0);
+  const flame = page
+    .getByRole("img", { name: "1-day streak", exact: true })
+    .locator("svg");
+  await expect(flame).toHaveCSS("color", "rgb(194, 65, 12)");
+  await capturePlay(page, "badge-light", "play-round2");
+  await page
+    .getByRole("button", { name: "Switch to dark mode", exact: true })
+    .click();
+  await expect(flame).toHaveCSS("color", "rgb(251, 146, 60)");
+  await capturePlay(page, "badge-dark", "play-round2");
+  await page
+    .getByRole("button", { name: "Switch to light mode", exact: true })
+    .click();
   await capturePlay(page, "fixes-level-passed");
   await page
     .getByRole("button", { name: "Start Level 2", exact: true })

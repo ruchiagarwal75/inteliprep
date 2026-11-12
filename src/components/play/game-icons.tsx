@@ -51,3 +51,27 @@ export function FlameIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function BadgeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="m11 24-3 13 8-4 5 4 2-12m2-2 6 14 2-8 5-3-10-9" />
+      <circle cx="20" cy="15" r="12" fill="var(--amber-soft)" />
+      <path
+        d="m20 7 2.3 4.6 5.1.8-3.7 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1-3.7-3.6 5.1-.8Z"
+        fill="currentColor"
+        strokeWidth="1"
+      />
+    </svg>
+  );
+}
