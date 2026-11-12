@@ -16,6 +16,7 @@ export default async function MockPage() {
       </Link>
       {(["genai", "core"] as const).map((track) => (
         <section
+          className={styles.intro}
           id={track === "core" ? "fundamentals" : "ai-mocks"}
           key={track}
         >
