@@ -27,7 +27,8 @@ export function DrillRunner({
     [summary, setSummary] = useState<RoundSummary>(),
     locked = useRef(false),
     mounted = useRef(true),
-    refreshed = useRef<string>(undefined);
+    refreshed = useRef<string>(undefined),
+    visited = useRef(new Map<string, boolean>());
   const load = useCallback(async () => {
     try {
       const response = await request(`/api/play/round?sessionId=${sessionId}`),
@@ -35,7 +36,11 @@ export function DrillRunner({
       if (!response.ok) throw Error("Round unavailable");
       const parsed = roundViewSchema.parse(data);
       if (mounted.current) {
-        setView(parsed);
+        const attemptId = parsed.question.attemptId;
+        const resumed =
+          visited.current.get(attemptId) ?? parsed.resumed ?? false;
+        visited.current.set(attemptId, resumed);
+        setView({ ...parsed, resumed });
         setLoadError("");
       }
     } catch {
@@ -174,6 +179,7 @@ export function DrillRunner({
       <DrillCard
         key={view.question.attemptId}
         question={view.question}
+        resumed={view.resumed}
         result={view.status === "graded" ? view.result : undefined}
         busy={submission.kind === "checking"}
         error={

@@ -13,9 +13,11 @@ import styles from "./drill.module.css";
 function SoftTimer({
   question,
   result,
+  resumed,
 }: {
   question: DrillQuestion;
   result?: DrillResult;
+  resumed?: boolean;
 }) {
   const [offset] = useState(() => Date.parse(question.serverNow) - Date.now()),
     [now, setNow] = useState(() => Date.parse(question.serverNow));
@@ -35,6 +37,7 @@ function SoftTimer({
       {String(Math.floor(seconds / 60)).padStart(2, "0")}:
       {String(seconds % 60).padStart(2, "0")}
       <span> No hard stop</span>
+      {resumed && <span> · Resumed</span>}
     </span>
   );
 }
@@ -46,6 +49,7 @@ export function DrillCard({
   onAnswer,
   onNext,
   onRetry,
+  resumed,
 }: {
   question: DrillQuestion;
   result?: DrillResult;
@@ -54,6 +58,7 @@ export function DrillCard({
   onAnswer: (answer: DrillAnswer) => void;
   onNext: () => void;
   onRetry?: () => void;
+  resumed?: boolean;
 }) {
   return (
     <article className={`practice-surface ${styles.card}`}>
@@ -62,7 +67,7 @@ export function DrillCard({
           {DRILL_TYPE_LABELS[question.type]} · {question.ordinal + 1} of{" "}
           {question.total}
         </p>
-        <SoftTimer question={question} result={result} />
+        <SoftTimer question={question} result={result} resumed={resumed} />
       </header>
       <progress
         className={styles.progress}

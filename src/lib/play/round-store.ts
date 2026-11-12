@@ -73,6 +73,7 @@ export async function roundView(
     await sql`select id from practice_game.drill_attempts where session_id=${id} and user_id=${userId} and ordinal=${round.active_ordinal}`;
   if (!current) throw new PlayError("This round has no question to show.", 409);
   let attempt = await storedAttempt(sql, userId, current.id);
+  const resumed = Boolean(attempt.started_at);
   if (!attempt.started_at) {
     await sql`update practice_game.drill_attempts set started_at=now() where id=${attempt.id} and user_id=${userId} and started_at is null`;
     await recordPlayEvent(sql, userId, "drill_started", attempt.id, {
@@ -87,6 +88,7 @@ export async function roundView(
   const base = {
     sessionId: id,
     mode: round.mode,
+    resumed,
     question: publicQuestion(
       attempt.private_variant.definition,
       attempt.private_variant.variant,

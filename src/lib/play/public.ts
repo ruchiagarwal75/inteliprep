@@ -141,6 +141,7 @@ export const roundSummarySchema = z.object({
 });
 export type RoundSummary = z.infer<typeof roundSummarySchema>;
 const roundFields = {
+  resumed: z.boolean().optional(),
   sessionId: z.uuid(),
   mode: z.enum(["level", "placement", "review"]),
   question: drillQuestionSchema,
