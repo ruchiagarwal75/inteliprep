@@ -75,7 +75,7 @@ export function DrillCard({
             question={question}
             result={result}
             resumed={resumed}
-            busy={busy}
+            busy={busy || Boolean(onRetry)}
           />
         </header>
         <h1>{question.title}</h1>
@@ -100,7 +100,7 @@ export function DrillCard({
           ) : (
             <DrillAnswerForm
               question={question}
-              busy={busy}
+              busy={busy || Boolean(onRetry)}
               onAnswer={onAnswer}
             />
           ))}

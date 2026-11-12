@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  playPixelFixes: {
+    id: "93939393-9393-4393-8393-939393939393",
+    email: "pixel-fixes@example.invalid",
+  },
   playThinking: {
     id: "92929292-9292-4292-8292-929292929292",
     email: "thinking@example.invalid",

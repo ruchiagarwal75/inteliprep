@@ -147,3 +147,11 @@
 .page[data-pixel-play] [data-drill-card] {
   border-top: 3px solid var(--game-world);
 }
+
+.page[data-pixel-play] [data-correct="true"] :global(.practice-primary),
+.page[data-pixel-play] [data-correct="true"] :global(.practice-primary):hover {
+  background: var(--pixel-good-button);
+  border-color: var(--pixel-good-button);
+  border-bottom-color: var(--pixel-good-button-edge);
+  color: var(--pixel-on-world);
+}

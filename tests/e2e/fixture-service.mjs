@@ -103,6 +103,12 @@ export function startFixtureService(key, cert, reporting) {
             url.searchParams.get("provider") ?? "google",
           ),
         );
+      if (url.pathname === "/fixture/play-age" && req.method === "POST") {
+        let raw = "";
+        for await (const chunk of req) raw += chunk;
+        const body = JSON.parse(raw);
+        return json(200, await reporting.agePlayRound(body.sessionId));
+      }
       if (url.pathname === "/fixture/play-answer")
         return json(
           200,

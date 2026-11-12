@@ -53,6 +53,9 @@ try {
   const [columns] =
     await sql`select count(*)::integer as count from information_schema.columns where table_schema='practice_game' and ((table_name='level_progress' and column_name='best_stars') or (table_name='play_sessions' and column_name in ('replay','current_combo','best_combo')))`;
   if (columns.count !== 4) throw Error("game_columns_missing");
+  const [timing] =
+    await sql`select count(*)::integer as count from information_schema.columns where table_schema='practice_game' and ((table_name='play_sessions' and column_name='last_activity_at') or (table_name='drill_attempts' and column_name in ('active_elapsed_ms','active_since','variant_revision')))`;
+  if (timing.count !== 4) throw Error("drill_clock_columns_missing");
   const [writes] =
     await sql`select has_table_privilege('authenticated','practice_game.chest_opens','INSERT') as chest_write,has_table_privilege('authenticated','practice_game.level_progress','UPDATE') as level_write`;
   if (writes.chest_write || writes.level_write)

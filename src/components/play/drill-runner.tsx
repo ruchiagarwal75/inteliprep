@@ -51,6 +51,7 @@ export function DrillRunner({
           setLoadError("");
           if (renewed || parsed.refreshed) setRefreshed(true);
           if (parsed.status === "graded") router.refresh();
+          return parsed;
         }
       } catch {
         if (mounted.current)
@@ -91,6 +92,20 @@ export function DrillRunner({
         }),
         data: unknown = await response.json();
       if (!response.ok) {
+        if (response.status === 409) {
+          const latest = await load();
+          if (
+            latest &&
+            (latest.question.attemptId !== view.question.attemptId ||
+              (latest.question.revision ?? 0) !== (view.question.revision ?? 0))
+          ) {
+            if (mounted.current) {
+              setSubmission({ kind: "idle" });
+              setRefreshed(true);
+            }
+            return;
+          }
+        }
         const failure = z
           .object({ error: z.string().max(400) })
           .safeParse(data);

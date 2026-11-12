@@ -79,6 +79,7 @@ describe("application palette", () => {
         ["--pixel-banner-text", "--pixel-banner-panel"],
         ["--pixel-banner-muted", "--pixel-banner-panel"],
         ["--pixel-good-text", "--pixel-good-soft"],
+        ["--pixel-on-world", "--pixel-good-button"],
         ["--pixel-bad-text", "--pixel-bad-soft"],
         ["--game-chest", "--game-chest-soft"],
         ["--game-banner-text", "--game-banner-start"],

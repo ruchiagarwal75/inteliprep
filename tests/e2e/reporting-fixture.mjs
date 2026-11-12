@@ -87,6 +87,15 @@ export async function startReportingFixture(key, cert) {
   return {
     connection:
       "postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres",
+    agePlayRound: async (id) => {
+      const user = fixtureAccounts.playPixelFixes.id;
+      const [session] =
+        await operator`select id from practice_game.play_sessions where id=${id} and user_id=${user} and completed_at is null`;
+      if (!session) throw Error("Missing synthetic round");
+      await operator`update practice_game.play_sessions set created_at=now()-interval '5 hours',last_activity_at=now()-interval '5 hours' where id=${id} and user_id=${user}`;
+      await operator`update practice_game.drill_attempts set created_at=now()-interval '5 hours',started_at=case when started_at is null then null else now()-interval '5 hours' end,submitted_at=case when submitted_at is null then null else now()-interval '5 hours' end,active_since=null where session_id=${id} and user_id=${user}`;
+      return { aged: true };
+    },
     playAnswer: async (id) => {
       const [row] =
         await operator`select private_variant from practice_game.drill_attempts where id=${id}`;
