@@ -1,5 +1,7 @@
 # Play game polish, round 3 (from the redesign screenshots and the beta preview, Nov 11 night)
 
+**Superseded by `game-pixel.md`. Do not follow this file.**
+
 Same rules as before: `beta` only, one commit per item, `npm run check` and `npm run build` after each, no em dashes in user-facing text, no env or secret changes, no production deploy, no repeated live model runs.
 
 The redesign works and is live on the preview. These items make it feel like a finished game.

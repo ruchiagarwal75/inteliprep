@@ -1,0 +1,23 @@
+.bar {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  height: 16px;
+}
+.bar i {
+  display: block;
+  background: var(--pixel-inset);
+  border: 2px solid var(--pixel-line);
+}
+.bar i[data-state="done"] {
+  background: var(--game-world);
+  border-color: var(--game-world);
+}
+.bar i[data-state="correct"] {
+  background: var(--pixel-good);
+  border-color: var(--pixel-good-text);
+}
+.bar i[data-state="wrong"] {
+  background: var(--pixel-bad);
+  border-color: var(--pixel-bad-text);
+}

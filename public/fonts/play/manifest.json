@@ -1,0 +1,16 @@
+[
+  {
+    "file": "public/fonts/play/Inter-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+    "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+    "license": "public/fonts/play/Inter-OFL.txt",
+    "licenseSource": "https://github.com/google/fonts/blob/main/ofl/inter/OFL.txt"
+  },
+  {
+    "file": "public/fonts/play/PressStart2P-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/pressstart2p/v16/e3t4euO8T-267oIAQAu6jDQyK3nVivNm4I81.woff2",
+    "sha256": "42144b97bd2942ea606e5d880684eae0f7be5c804bdd57b1faac5a8d7699ae6e",
+    "license": "public/fonts/play/PressStart2P-OFL.txt",
+    "licenseSource": "https://github.com/google/fonts/blob/main/ofl/pressstart2p/OFL.txt"
+  }
+]

@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import game from "./game.module.css";
+import pixel from "./pixel.module.css";
 export function PlayFrame({
   active,
   children,
@@ -13,7 +14,8 @@ export function PlayFrame({
   const world = active === "play" ? pathname.split("/")[2] || "rag" : undefined;
   return (
     <main
-      className={`practice-page ${game.game}`}
+      className={`practice-page ${game.game} ${active === "play" ? pixel.page : ""}`}
+      data-pixel-play={active === "play" || undefined}
       data-world={world}
       data-lesson-route={pathname.endsWith("/drill") || undefined}
     >

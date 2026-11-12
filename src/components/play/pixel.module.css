@@ -1,0 +1,143 @@
+.page {
+  --background: var(--pixel-sky);
+  --surface: var(--pixel-card);
+  --surface-raised: var(--pixel-panel);
+  --surface-inset: var(--pixel-inset);
+  --foreground: var(--pixel-text);
+  --muted: var(--pixel-muted);
+  --border: var(--pixel-line);
+  --border-strong: var(--pixel-line-strong);
+  --corner-small: 0px;
+  --corner-large: 0px;
+  --game-round: 0px;
+  --shadow-card: none;
+  --font-ui: var(--font-play-read);
+  --font-display: var(--font-play-read);
+  font-family: var(--font-play-read);
+  color: var(--pixel-text);
+}
+.page[data-world] {
+  --game-world: var(--pixel-violet);
+  --game-world-soft: var(--pixel-violet-soft);
+  --game-world-text: var(--pixel-violet-text);
+  --game-world-edge: var(--pixel-violet-edge);
+  --game-world-bg: var(--pixel-sky);
+  --game-on-world: var(--pixel-on-world);
+  --game-gold: var(--pixel-gold-text);
+  --game-correct: var(--pixel-good-text);
+  --game-correct-soft: var(--pixel-good-soft);
+  --game-wrong: var(--pixel-bad-text);
+  --game-wrong-soft: var(--pixel-bad-soft);
+  background-color: var(--pixel-sky);
+  background-image:
+    linear-gradient(var(--pixel-sky-star), var(--pixel-sky-star)),
+    linear-gradient(var(--pixel-sky-star), var(--pixel-sky-star)),
+    linear-gradient(var(--pixel-sky-star), var(--pixel-sky-star)),
+    linear-gradient(var(--pixel-sky-star), var(--pixel-sky-star)),
+    linear-gradient(var(--pixel-sky-star), var(--pixel-sky-star)),
+    linear-gradient(var(--pixel-sky-star), var(--pixel-sky-star));
+  background-size:
+    4px 4px,
+    8px 8px,
+    4px 4px,
+    4px 4px,
+    8px 8px,
+    4px 4px;
+  background-position:
+    8% 280px,
+    91% 430px,
+    5% 800px,
+    94% 1100px,
+    13% 1380px,
+    87% 1650px;
+  background-repeat: no-repeat;
+}
+.page[data-world="chat-serving"] {
+  --game-world: var(--pixel-blue);
+  --game-world-edge: var(--pixel-blue-edge);
+}
+.page[data-world="agents"] {
+  --game-world: var(--pixel-coral);
+  --game-world-edge: var(--pixel-coral-edge);
+}
+.page[data-world="final-loop"] {
+  --game-world: var(--pixel-world-gold);
+  --game-world-edge: var(--pixel-world-gold-edge);
+}
+.page h1,
+.page h2,
+.page h3,
+.page p,
+.page label,
+.page input,
+.page select,
+.page textarea,
+.page nav {
+  font-family: var(--font-play-read);
+}
+.page [data-game-label],
+.label {
+  font: 400 var(--pixel-label-size, 12px)/1.6 var(--font-play-pixel);
+  font-synthesis: none;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+.box,
+.page :global(.practice-surface) {
+  border: 2px solid var(--pixel-line);
+  border-radius: 0;
+  clip-path: var(--pixel-cut);
+  box-shadow: none;
+}
+.page :global(.practice-primary) {
+  border: 2px solid var(--game-world);
+  border-bottom: 8px solid var(--game-world-edge);
+  border-radius: 0;
+  clip-path: var(--pixel-cut);
+  box-shadow: none;
+  font: 400 12px/1.6 var(--font-play-pixel);
+  font-synthesis: none;
+  text-transform: uppercase;
+  transition:
+    transform 160ms steps(2, end),
+    border-bottom-width 160ms steps(2, end);
+}
+.page :global(.practice-primary)[data-prose] {
+  font: 650 0.9375rem/1.5 var(--font-play-read);
+  text-transform: none;
+}
+.page :global(.practice-primary):active:not(:disabled) {
+  transform: translateY(4px);
+  border-bottom-width: 4px;
+}
+.page :global(.practice-secondary),
+.page input,
+.page select,
+.page textarea {
+  border-radius: 0;
+  box-shadow: none;
+}
+.page :global(.practice-primary):focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 3px var(--pixel-on-world);
+}
+.page :global(.practice-primary):disabled {
+  color: var(--pixel-muted);
+  background: var(--pixel-inset);
+  border-color: var(--pixel-line-strong);
+}
+.page :global(.practice-primary):disabled:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--pixel-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .page :global(.practice-primary):active:not(:disabled) {
+    transform: none;
+  }
+}

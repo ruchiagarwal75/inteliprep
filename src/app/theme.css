@@ -1,5 +1,57 @@
 /* All application and illustration colors are defined here. Light is the default. */
 :root {
+  --font-play-read: "Inter", Arial, sans-serif;
+  --font-play-pixel: "Press Start 2P", monospace;
+  --pixel-cut: polygon(
+    4px 0,
+    calc(100% - 4px) 0,
+    calc(100% - 4px) 4px,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    4px calc(100% - 4px),
+    0 calc(100% - 4px),
+    0 4px,
+    4px 4px
+  );
+  --pixel-sky: #f1edff;
+  --pixel-card: #e8e2fc;
+  --pixel-panel: #ffffff;
+  --pixel-inset: #ddd5ef;
+  --pixel-text: #211a45;
+  --pixel-muted: #514665;
+  --pixel-line: #b7a9d3;
+  --pixel-line-strong: #82749f;
+  --pixel-sky-star: #d1c5ee;
+  --pixel-violet: #7250ed;
+  --pixel-violet-edge: #442891;
+  --pixel-violet-soft: #e5dcff;
+  --pixel-violet-text: #5134b2;
+  --pixel-blue: #006ba8;
+  --pixel-blue-edge: #00436b;
+  --pixel-coral: #c34232;
+  --pixel-coral-edge: #85291f;
+  --pixel-world-gold: #955500;
+  --pixel-world-gold-edge: #633700;
+  --pixel-on-world: #ffffff;
+  --pixel-good: #42cf75;
+  --pixel-good-text: #11612e;
+  --pixel-good-soft: #dcfce7;
+  --pixel-bad: #ed8eaa;
+  --pixel-bad-text: #991237;
+  --pixel-bad-soft: #fff1f2;
+  --pixel-gold-text: #7a4d00;
+  --pixel-chest-text: #ae136c;
+  --pixel-sprite-plate: #2b244e;
+  --pixel-banner-panel: #221d4f;
+  --pixel-banner-text: #ffffff;
+  --pixel-banner-muted: #ddd5fa;
+  --pixel-current: #b49bff;
+  --pixel-current-text: #211a45;
+  --pixel-locked: #302956;
+
   color-scheme: light;
   --background: #ffffff;
   --foreground: #17212f;
@@ -265,6 +317,24 @@
 }
 
 [data-theme="dark"] {
+  --pixel-sky: #17143a;
+  --pixel-card: #221d4f;
+  --pixel-panel: #2c265f;
+  --pixel-inset: #1b173f;
+  --pixel-text: #f7f5ff;
+  --pixel-muted: #c4bde2;
+  --pixel-line: #514675;
+  --pixel-line-strong: #968ab7;
+  --pixel-sky-star: #39315d;
+  --pixel-violet-soft: #30245f;
+  --pixel-violet-text: #c3b2ff;
+  --pixel-good-text: #86efac;
+  --pixel-good-soft: #113022;
+  --pixel-bad-text: #fda4af;
+  --pixel-bad-soft: #3d1723;
+  --pixel-gold-text: #ffd23f;
+  --pixel-chest-text: #ff8bc9;
+
   --streak-flame: #fb923c;
   --game-violet: #ad96ff;
   --game-violet-soft: #2a2048;

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./theme.css";
+@import "./play-fonts.css";
 @import "./practice.css";
 @import "./practice-hero.css";
 @import "./scaling-story-placement.css";
