@@ -6,7 +6,7 @@ import {
   playView,
   fillPlayAnswer,
 } from "./play-helpers";
-const folder = "play-game-redesign";
+const folder = "play-game-polish-round-3";
 test("game path, sheets, three stars, chest, HUD and player level use server outcomes", async ({
   page,
   context,
@@ -130,6 +130,61 @@ test("game path, sheets, three stars, chest, HUD and player level use server out
     /current/u,
   );
   await expect(page.locator('[data-revealed="true"]')).toHaveCount(1);
+  await capturePlay(page, "rag-top", folder, false);
+  await capturePlay(page, "path-light", folder);
+  for (const theme of ["light", "dark"]) {
+    if (theme === "dark")
+      await page
+        .getByRole("button", { name: "Switch to dark mode", exact: true })
+        .click();
+    for (const width of [1440, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(page.locator('summary[aria-label^="Level 2:"]')).toHaveCSS(
+        "width",
+        width === 375 ? "84px" : "116px",
+      );
+      const label = page.getByText("Level 1", { exact: true }).locator("..");
+      expect(
+        await label.evaluate((el) => getComputedStyle(el).backgroundColor),
+      ).not.toBe("rgba(0, 0, 0, 0)");
+      const bounds = await label.boundingBox();
+      const chestBounds = await page
+        .getByRole("button", { name: "Open chest after Level 1", exact: true })
+        .boundingBox();
+      if (!bounds || !chestBounds) throw Error("Missing path label or chest");
+      expect(
+        bounds.y + bounds.height <= chestBounds.y ||
+          bounds.x + bounds.width <= chestBounds.x ||
+          bounds.x >= chestBounds.x + chestBounds.width,
+      ).toBe(true);
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    if (theme === "dark") await capturePlay(page, "path-dark", folder);
+  }
+  await page
+    .getByRole("button", { name: "Switch to light mode", exact: true })
+    .click();
+  await page.goto("/play");
+  const worlds = page.getByRole("list", { name: "Practice worlds" });
+  await expect(worlds.locator("li[data-world]")).toHaveCount(4);
+  await expect(worlds.getByText("Coming soon", { exact: true })).toHaveCount(3);
+  await expect(
+    worlds.getByText("1 of 4 levels passed", { exact: true }),
+  ).toBeVisible();
+  await expect(worlds.getByText("3 / 12 stars", { exact: true })).toBeVisible();
+  await expect(
+    worlds.getByRole("progressbar", { name: "RAG levels passed" }),
+  ).toHaveAttribute("value", "1");
+  const cardColors = await worlds
+    .locator("li[data-world]")
+    .evaluateAll((rows) =>
+      rows.map((row) => getComputedStyle(row).backgroundColor),
+    );
+  expect(new Set(cardColors).size).toBe(4);
+  for (const card of await worlds.locator("li[data-world]").all())
+    await expect(card.locator("svg").first()).toBeVisible();
+  await capturePlay(page, "topic-map", folder);
+  await page.getByRole("link", { name: "Play RAG", exact: true }).click();
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const chestResponse = page.waitForResponse(
     (r) =>

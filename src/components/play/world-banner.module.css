@@ -16,7 +16,7 @@
 .copy {
   min-width: 0;
 }
-.banner h1 {
+.banner .copy h1 {
   font: 850 clamp(2rem, 5vw, 3rem)/1.1 var(--font-ui);
   margin: 0 0 var(--space-2);
 }

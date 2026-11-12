@@ -72,7 +72,7 @@
   color: var(--muted);
   margin-block: var(--space-1);
 }
-.topic h2 {
+.topic[data-world] h2 {
   color: var(--foreground);
 }
 .locked {
@@ -143,27 +143,126 @@
 }
 
 .topic[data-world] {
-  border-inline-start: 6px solid var(--accent);
-  background: var(--accent-soft);
+  --game-world: var(--game-violet);
+  --game-world-soft: var(--game-violet-soft);
+  --game-world-text: var(--game-violet-text);
+  --game-world-edge: var(--game-violet-edge);
+  --game-world-bg: var(--game-violet-bg);
+  --accent: var(--game-world);
+  --accent-soft: var(--game-world-soft);
+  --accent-text: var(--game-world-text);
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  border: 2px solid var(--game-world-soft);
+  border-inline-start: 6px solid var(--game-world);
+  background: var(--game-world-soft);
 }
 .topic[data-world="chat-serving"] {
-  --accent: var(--game-sky);
-  --accent-soft: var(--game-sky-soft);
-  --accent-text: var(--game-sky-text);
   --game-world: var(--game-sky);
+  --game-world-soft: var(--game-sky-soft);
+  --game-world-text: var(--game-sky-text);
   --game-world-edge: var(--game-sky-edge);
+  --game-world-bg: var(--game-sky-bg);
 }
 .topic[data-world="agents"] {
-  --accent: var(--game-coral);
-  --accent-soft: var(--game-coral-soft);
-  --accent-text: var(--game-coral-text);
   --game-world: var(--game-coral);
+  --game-world-soft: var(--game-coral-soft);
+  --game-world-text: var(--game-coral-text);
   --game-world-edge: var(--game-coral-edge);
+  --game-world-bg: var(--game-coral-bg);
 }
 .topic[data-world="final-loop"] {
-  --accent: var(--game-world-gold);
-  --accent-soft: var(--game-world-gold-soft);
-  --accent-text: var(--game-world-gold-text);
   --game-world: var(--game-world-gold);
+  --game-world-soft: var(--game-world-gold-soft);
+  --game-world-text: var(--game-world-gold-text);
   --game-world-edge: var(--game-world-gold-edge);
+  --game-world-bg: var(--game-world-gold-bg);
+}
+.topic.locked {
+  background: var(--game-world-bg);
+  border-inline-start-color: var(--game-world-soft);
+}
+.topic[data-world] h2 {
+  color: var(--game-world-text);
+  font: 750 1.5rem/1.25 var(--font-ui);
+  margin: 0;
+}
+.topicCopy {
+  min-width: 0;
+}
+.worldIcon {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--game-world-bg);
+  color: var(--game-world-text);
+  border: 2px solid currentColor;
+}
+.locked .worldIcon {
+  background: var(--game-world-soft);
+  border-color: var(--game-world-soft);
+}
+.lockMark {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: var(--game-world-bg);
+}
+.worldStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+}
+.worldProgress {
+  display: block;
+  width: min(100%, 360px);
+  height: 10px;
+  margin-top: var(--space-1);
+  border: 0;
+  border-radius: var(--game-round);
+  overflow: hidden;
+  background: var(--surface-raised);
+  accent-color: var(--game-world);
+}
+.worldProgress::-webkit-progress-bar {
+  background: var(--surface-raised);
+}
+.worldProgress::-webkit-progress-value {
+  background: var(--game-world);
+  border-radius: var(--game-round);
+}
+.worldProgress::-moz-progress-bar {
+  background: var(--game-world);
+  border-radius: var(--game-round);
+}
+@media (max-width: 599px) {
+  .topic[data-world] {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .worldIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+  .worldIcon > svg {
+    width: 30px;
+    height: 30px;
+  }
+  .topic > :last-child {
+    grid-column: 1 / -1;
+  }
+  .topic .chip {
+    justify-self: start;
+  }
 }
