@@ -54,6 +54,7 @@ describe("application palette", () => {
           ["--muted", bg],
           ["--accent-text", bg],
           ["--danger", bg],
+          ["--streak-flame", bg],
         ]),
         ["--on-accent", "--accent"],
         ["--on-accent", "--accent-hover"],

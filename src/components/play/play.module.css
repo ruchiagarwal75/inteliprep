@@ -134,5 +134,5 @@
   font-variant-numeric: tabular-nums;
 }
 .streak svg {
-  color: var(--amber-ink);
+  color: var(--streak-flame);
 }

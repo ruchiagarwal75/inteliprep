@@ -72,6 +72,7 @@
   --amber: #f5b94a;
   --amber-soft: var(--warning-bg);
   --amber-ink: var(--warning-text);
+  --streak-flame: #c2410c;
   --brand: var(--accent);
   --brand-foreground: var(--on-accent);
   /* Layout spacing is an eight-pixel rhythm. */
@@ -225,6 +226,7 @@
 }
 
 [data-theme="dark"] {
+  --streak-flame: #fb923c;
   color-scheme: dark;
   --background: #0b1220;
   --foreground: #eef3f8;
