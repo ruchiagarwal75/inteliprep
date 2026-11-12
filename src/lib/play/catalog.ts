@@ -1,4 +1,5 @@
 import "server-only";
+import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./course/metadata";
 export const RAG_LEVELS = [
   { level: 1, title: "Retrieval basics", points: 10 },
   { level: 2, title: "Scale math", points: 15 },
@@ -55,5 +56,12 @@ export const PLAY_TOPICS = [
   },
 ] as const;
 export const playTopic = (id: string) =>
-  PLAY_TOPICS.find((topic) => topic.id === id);
+  id === RAG_COURSE_ID
+    ? {
+        ...PLAY_TOPICS[0],
+        id: RAG_COURSE_ID,
+        levels: RAG_COURSE_NODES.map((node) => ({ ...node, points: 10 })),
+        placementLevels: [],
+      }
+    : PLAY_TOPICS.find((topic) => topic.id === id);
 export const levelsForTopic = (id: string) => playTopic(id)?.levels ?? [];

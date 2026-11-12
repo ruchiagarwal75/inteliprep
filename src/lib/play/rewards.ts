@@ -28,7 +28,12 @@ export async function rewardDrill(
     id: string;
     topic: string;
     level: number;
-    private_variant: { definition: { type: string } };
+    private_variant: {
+      definition: {
+        type: string;
+        course?: { kind: "concept" | "flaw" | "math" };
+      };
+    };
   },
   grade: DrillGrade,
   round: { replay: boolean; mode: "level" | "review" | "placement" },
@@ -43,8 +48,13 @@ export async function rewardDrill(
       userId,
       grade.correct
         ? drillXp(
-            levelsForTopic(attempt.topic).find((l) => l.level === attempt.level)
-              ?.points ?? 0,
+            attempt.private_variant.definition.course
+              ? attempt.private_variant.definition.course.kind === "math"
+                ? 15
+                : 10
+              : (levelsForTopic(attempt.topic).find(
+                  (l) => l.level === attempt.level,
+                )?.points ?? 0),
             replay,
           )
         : 0,
@@ -52,7 +62,10 @@ export async function rewardDrill(
       attempt.id,
     ),
     badges: BadgeId[] = [];
-  if (attempt.private_variant.definition.type === "math") {
+  if (
+    attempt.private_variant.definition.type === "math" ||
+    attempt.private_variant.definition.course?.kind === "math"
+  ) {
     const [row] =
       await sql`update practice_game.player_profiles set math_run=case when ${grade.correct} then math_run+1 else 0 end where user_id=${userId} returning math_run`;
     if (row.math_run >= 5) {

@@ -1,6 +1,6 @@
 import "server-only";
 import type { DrillDefinition, DrillVariant } from "./definition";
-import type { DrillAnswer } from "./public";
+import type { DrillAnswer, DrillResult } from "./public";
 import { calculateMath, withinMathTolerance } from "./math";
 import {
   friendlyMathAnswer,
@@ -8,14 +8,17 @@ import {
   mathExplanation,
 } from "./math-presentation";
 import { gradeWrittenAnswer } from "./written-grader";
-export type DrillGrade = {
-  correct: boolean;
-  score: number;
-  feedback: string;
-  why: string;
-  formula?: string;
-  expected?: string;
-};
+export type DrillGrade = Pick<
+  DrillResult,
+  | "correct"
+  | "score"
+  | "feedback"
+  | "why"
+  | "formula"
+  | "expected"
+  | "keyIdea"
+  | "ifWrong"
+>;
 export async function gradeDrill(
   drill: DrillDefinition,
   variant: DrillVariant,
@@ -54,9 +57,23 @@ export async function gradeDrill(
     return {
       correct,
       score: correct ? 1 : 0,
-      feedback: correct
-        ? "You found the flaw."
-        : "That does not address the main flaw.",
+      ...(drill.course
+        ? {
+            keyIdea: drill.course.keyIdea,
+            ifWrong: correct
+              ? undefined
+              : drill.course.ifWrong[
+                  String(variant.order[Number(answer.option)])
+                ],
+          }
+        : {}),
+      feedback: drill.course
+        ? correct
+          ? "Correct."
+          : "Take another look."
+        : correct
+          ? "You found the flaw."
+          : "That does not address the main flaw.",
       why: drill.why,
       expected: drill.options[drill.correctIndex],
     };

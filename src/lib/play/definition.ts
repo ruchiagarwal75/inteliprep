@@ -60,6 +60,13 @@ export const drillDefinitionSchema = z.discriminatedUnion("type", [
     type: z.literal("spot_flaw"),
     options: z.array(z.string()).length(4),
     correctIndex: z.number().int().min(0).max(3),
+    course: z
+      .object({
+        kind: z.enum(["concept", "flaw", "math"]),
+        keyIdea: z.string(),
+        ifWrong: z.record(z.string(), z.string()),
+      })
+      .optional(),
   }),
   z.object({ ...common, type: z.literal("pick_probe"), ...written }),
   z.object({ ...common, type: z.literal("tradeoff"), ...written }),

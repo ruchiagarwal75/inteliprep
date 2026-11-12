@@ -33,6 +33,7 @@ export function publicQuestion(
     topic: drill.topic,
     level: drill.level,
     type: drill.type,
+    courseKind: drill.type === "spot_flaw" ? drill.course?.kind : undefined,
     title: drill.title,
     prompt:
       drill.type === "math"

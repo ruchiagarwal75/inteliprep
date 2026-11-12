@@ -52,19 +52,28 @@ export function AnswerSheet({
           {result.combo} in a row! +{result.comboBonus} XP
         </p>
       )}
+      {result.keyIdea && (
+        <p>
+          <strong>{result.keyIdea}</strong>
+        </p>
+      )}
       <p>{result.feedback}</p>
-      {!result.correct && result.expected && (
+      {(result.keyIdea || !result.correct) && result.expected && (
         <p className={styles.answer}>
           <strong>Answer:</strong> {result.expected}
         </p>
       )}
+      {result.ifWrong && <p>{result.ifWrong}</p>}
       {result.badgesEarned.length > 0 && (
         <Celebration title="Badge earned" badges={result.badgesEarned} />
       )}
-      <details open={!result.correct} className={styles.why}>
+      <details
+        open={Boolean(result.keyIdea) || !result.correct}
+        className={styles.why}
+      >
         <summary>Why</summary>
         <p>{result.why}</p>
-        {result.correct && result.expected && (
+        {!result.keyIdea && result.correct && result.expected && (
           <p>
             <strong>Answer:</strong> {result.expected}
           </p>

@@ -1,4 +1,5 @@
 import "server-only";
+import { RAG_COURSE_ID } from "./course/metadata";
 import { createHash } from "node:crypto";
 import { levelsForTopic } from "./catalog";
 import { withPlayer } from "./database";
@@ -18,7 +19,10 @@ export function chestXp(userId: string, topic: string, afterLevel: number) {
 }
 export function openChest(userId: string, topic: string, afterLevel: number) {
   return withPlayer(userId, async (sql) => {
+    if (topic === RAG_COURSE_ID && ![3, 6, 9].includes(afterLevel))
+      throw new PlayError("This chest was not found.", 404);
     if (
+      topic !== RAG_COURSE_ID &&
       !levelsForTopic(topic)
         .slice(0, -1)
         .some((row) => row.level === afterLevel)

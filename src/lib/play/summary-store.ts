@@ -1,4 +1,5 @@
 import "server-only";
+import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./course/metadata";
 import { z } from "zod";
 import type { PlayTransaction } from "./database";
 import type { RoundSummary } from "./public";
@@ -18,6 +19,10 @@ export async function nextRoundLevel(
     levels = levelsForTopic(topic);
   const next = levels.find(
     (level) =>
+      (topic !== RAG_COURSE_ID ||
+        RAG_COURSE_NODES.some(
+          (node) => node.level === level.level && node.available,
+        )) &&
       !passed.includes(level.level) &&
       levelUnlocked(level.level, levels, passed),
   );

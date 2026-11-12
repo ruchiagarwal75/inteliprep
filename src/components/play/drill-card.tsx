@@ -67,8 +67,12 @@ export function DrillCard({
       >
         <header className={styles.header}>
           <p>
-            {DRILL_TYPE_LABELS[question.type]} · {question.ordinal + 1} of{" "}
-            {question.total}
+            {question.courseKind
+              ? { concept: "Concept", flaw: "Spot the flaw", math: "Math" }[
+                  question.courseKind
+                ]
+              : DRILL_TYPE_LABELS[question.type]}{" "}
+            · {question.ordinal + 1} of {question.total}
           </p>
           <SoftTimer
             onRefresh={onRefresh}

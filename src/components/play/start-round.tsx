@@ -1,4 +1,5 @@
 "use client";
+import { playWorldHref } from "@/lib/play/course/metadata";
 import { z } from "zod";
 import styles from "./level-path.module.css";
 import { startRoundResultSchema } from "@/lib/play/public";
@@ -13,6 +14,7 @@ export function StartRound({
   label,
   disabled = false,
   variant = "primary",
+  beforeStart,
 }: {
   topic: string;
   mode: "level" | "placement" | "review";
@@ -20,6 +22,7 @@ export function StartRound({
   label: string;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "link";
+  beforeStart?: () => Promise<void>;
 }) {
   const { request, userId } = useCandidateAccount(),
     router = useRouter(),
@@ -35,6 +38,7 @@ export function StartRound({
     setError("");
     requestId.current ??= crypto.randomUUID();
     try {
+      await beforeStart?.();
       const response = await request("/api/play/round", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,7 +60,9 @@ export function StartRound({
         return;
       }
       if (parsed.data.view) primeRound(userId, parsed.data.view);
-      router.push(`/play/${topic}/drill?session=${parsed.data.sessionId}`);
+      router.push(
+        `${playWorldHref(topic)}/drill?session=${parsed.data.sessionId}`,
+      );
     } catch {
       setError("Could not connect. Please retry.");
     } finally {

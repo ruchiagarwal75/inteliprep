@@ -1,4 +1,6 @@
 import "server-only";
+import { RAG_COURSE_ID } from "./course/metadata";
+import { requireCourseSlides } from "./course/visits";
 import { GAME_RULES } from "./game-rules";
 import { roundTimingPath } from "./round-timing";
 import { randomUUID } from "node:crypto";
@@ -23,6 +25,15 @@ export async function startRound(userId: string, input: StartRoundInput) {
     const topic = playTopic(input.topic);
     if (!topic?.available)
       throw new PlayError("This topic is not open yet.", 404);
+    if (input.topic === RAG_COURSE_ID) {
+      if (input.mode === "placement")
+        throw new PlayError(
+          "Choose a course topic to learn and take its quiz.",
+          400,
+        );
+      if (input.mode === "level")
+        await requireCourseSlides(sql, userId, input.level);
+    }
     const level = input.mode === "level" ? input.level : null;
     const [existing] =
       await sql`select id,topic,mode,level,request_id=${input.requestId} as retry from practice_game.play_sessions where user_id=${userId} and (request_id=${input.requestId} or (topic=${input.topic} and mode=${input.mode} and level is not distinct from ${level} and completed_at is null)) order by (request_id=${input.requestId}) desc,created_at desc limit 1`;
@@ -66,7 +77,10 @@ export async function startRound(userId: string, input: StartRoundInput) {
       )
         throw new PlayError("Pass the previous level to open this one.", 403);
       replay = rows.some((row) => row.level === input.level);
-      selected = chooseLevelDrills(bank, input.level);
+      selected =
+        input.topic === RAG_COURSE_ID
+          ? bank.filter((drill) => drill.level === input.level)
+          : chooseLevelDrills(bank, input.level);
     } else if (input.mode === "placement")
       selected = choosePlacementDrills(bank, topic.placementLevels);
     else {

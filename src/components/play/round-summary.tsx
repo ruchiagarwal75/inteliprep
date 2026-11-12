@@ -1,4 +1,5 @@
 "use client";
+import { RAG_COURSE_ID, playWorldHref } from "@/lib/play/course/metadata";
 import Link from "next/link";
 import type { RoundSummary } from "@/lib/play/public";
 import { formatDrillTime } from "@/lib/play/drill-time";
@@ -13,10 +14,13 @@ import { CountedXp } from "./counted-xp";
 import { prepareGameSounds, playGameSound } from "./game-sounds";
 import styles from "./round-summary.module.css";
 export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
+  const course = summary.topic === RAG_COURSE_ID;
   const title =
     summary.mode === "level"
       ? summary.passed
-        ? "Level passed"
+        ? course
+          ? "Topic passed"
+          : "Level passed"
         : "Keep practicing"
       : summary.mode === "placement"
         ? "Placement complete"
@@ -26,8 +30,8 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
   return (
     <section className={styles.complete} aria-label="Round results" data-lesson>
       <header className={styles.top}>
-        <Link className="practice-link" href={`/play/${summary.topic}`}>
-          Back to levels
+        <Link className="practice-link" href={playWorldHref(summary.topic)}>
+          {course ? "Back to topics" : "Back to levels"}
         </Link>
         <ThemeToggle />
       </header>
@@ -48,7 +52,8 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
         )}
         {summary.mode === "level" && !summary.passed && (
           <p className={styles.retry} data-game-label>
-            {summary.correct} of {summary.total}. Get 4 to pass.
+            {summary.correct} of {summary.total}. Get{" "}
+            {course ? Math.ceil(summary.total * 0.75) : 4} to pass.
           </p>
         )}
         {summary.pointsEarned !== undefined && (
@@ -113,7 +118,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
           ) : (
             <Link
               className="practice-primary"
-              href={`/play/${summary.topic}${next}`}
+              href={`${playWorldHref(summary.topic)}${next}`}
               onClick={() => {
                 prepareGameSounds();
                 if (summary.passed) playGameSound("complete");

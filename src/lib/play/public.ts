@@ -41,6 +41,7 @@ export const drillAnswerSchema = z.discriminatedUnion("type", [
 ]);
 export type DrillAnswer = z.infer<typeof drillAnswerSchema>;
 const questionFields = {
+  courseKind: z.enum(["concept", "flaw", "math"]).optional(),
   attemptId: z.uuid(),
   drillId: z.string(),
   topic: z.string(),
@@ -75,6 +76,8 @@ export const drillQuestionSchema = z.discriminatedUnion("type", [
 ]);
 export type DrillQuestion = z.infer<typeof drillQuestionSchema>;
 export const drillResultSchema = z.object({
+  keyIdea: z.string().optional(),
+  ifWrong: z.string().optional(),
   combo: z.number().int().nonnegative().optional(),
   comboBonus: z.number().int().nonnegative().optional(),
   correct: z.boolean(),

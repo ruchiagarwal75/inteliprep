@@ -1,3 +1,5 @@
+import { RAG_COURSE_ID } from "./course/metadata";
+import { coursePassed, courseStars } from "./course/rules";
 import { GAME_RULES } from "./game-rules";
 import { levelStars } from "./game-rules";
 import { nextRoundLevel } from "./summary-store";
@@ -55,7 +57,7 @@ export async function completeRound(
     passedLevels: number[] = [];
   const stars =
     round.mode === "level"
-      ? levelStars(
+      ? (round.topic === RAG_COURSE_ID ? courseStars : levelStars)(
           attempts.map((row) => ({
             correct: row.correct,
             type: row.type,
@@ -64,7 +66,9 @@ export async function completeRound(
         )
       : 0;
   if (round.mode === "level" && round.level !== null) {
-    const passed = levelPassed(attempts.map((row) => row.correct));
+    const passed = (round.topic === RAG_COURSE_ID ? coursePassed : levelPassed)(
+      attempts.map((row) => row.correct),
+    );
     await markLevel(
       sql,
       userId,
