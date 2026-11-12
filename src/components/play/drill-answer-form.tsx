@@ -86,7 +86,7 @@ export function DrillAnswerForm({
     }
   }
   return (
-    <form ref={form} onSubmit={submit} className={styles.form}>
+    <form ref={form} onSubmit={submit} className={styles.form} aria-busy={busy}>
       <fieldset disabled={busy}>
         <legend className={styles.legend}>Your answer</legend>
         {question.type === "math" && (
@@ -176,7 +176,7 @@ export function DrillAnswerForm({
         <p className={styles.hint}>1 to 4 to choose. Enter to check.</p>
       )}
       <button className="practice-primary" disabled={busy} type="submit">
-        {busy ? "Checking..." : "Check answer"}
+        {busy ? "Checking your answer..." : "Check answer"}
       </button>
     </form>
   );

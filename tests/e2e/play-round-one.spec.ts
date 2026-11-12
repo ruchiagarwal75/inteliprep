@@ -68,7 +68,35 @@ test("Play round fixes: first-drill handoff, dots, fail, pass, rewards, daily go
       url.pathname === "/play/rag/drill" &&
       url.searchParams.get("session") !== previousSession,
   );
+  // Hold the first response so the pending state is observable without a real model.
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let checking = false;
+  await page.route("**/api/play/submit", async (route) => {
+    const answer = route.request().postDataJSON()?.answer;
+    if (!checking) {
+      checking = true;
+      await expect(
+        page.getByRole("button", {
+          name: "Checking your answer...",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("button", {
+          name: "Checking your answer...",
+          exact: true,
+        }),
+      ).toBeDisabled();
+      release();
+    }
+    await route.continue();
+  });
   await finishPlayRound(page, true);
+  await held;
+  await page.unroute("**/api/play/submit");
   await expect(
     page.getByRole("heading", { name: "Level passed", exact: true }),
   ).toBeVisible();

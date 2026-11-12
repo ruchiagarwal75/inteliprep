@@ -35,6 +35,8 @@ it("grades math with unit conversion and MC using the shuffled position", async 
 for (const drill of [probeFixture, tradeFixture])
   for (const quality of ["strong", "vague", "off-topic"]) {
     it(`grades a ${quality} ${drill.type} answer with a stub`, async () => {
+      if (drill.type !== "pick_probe" && drill.type !== "tradeoff")
+        throw Error("Wrong written fixture");
       const strong = quality === "strong",
         offTopic = quality === "off-topic";
       model.mockResolvedValue({
@@ -73,6 +75,15 @@ for (const drill of [probeFixture, tradeFixture])
       expect(result.score).toBe(strong ? 0.95 : 0.25);
       expect(result).not.toHaveProperty("rubric");
       expect(model).toHaveBeenCalledTimes(1);
+      const request = model.mock.calls[0][1];
+      expect(request).toMatchObject({
+        model: "gpt-6-luna",
+        reasoning: { effort: "none" },
+        max_output_tokens: 768,
+      });
+      const sent = JSON.parse(request.input);
+      expect(sent.private_rubric).toBe(drill.rubric);
+      expect(sent.private_reference).toBe(drill.seniorAnswer);
     });
   }
 it("rejects malformed model output and grade manipulation without awarding points", async () => {

@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { estimatedAiCost, tokenUsage } from "@/lib/reporting-cost";
 describe("AI usage estimates", () => {
+  it("prices Luna drill calls including cache writes without changing Mock rates", () => {
+    expect(
+      estimatedAiCost("gpt-6-luna", {
+        inputTokens: 1000,
+        cachedTokens: 200,
+        cacheWriteTokens: 100,
+        outputTokens: 300,
+      }),
+    ).toBeCloseTo(0.0002345);
+  });
   it("prices the Terra interactive model using its verified standard rates", () => {
     expect(
       estimatedAiCost("gpt-6.1-terra", {

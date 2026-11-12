@@ -47,6 +47,12 @@ export function estimatedAiCost(
       JSON.parse(
         configuredRates ??
           JSON.stringify({
+            "gpt-6-luna": {
+              input: 0.1,
+              cached: 0.01,
+              cacheWrite: 0.125,
+              output: 0.5,
+            },
             "gpt-6.1-terra": {
               input: 1,
               cached: 0.05,
