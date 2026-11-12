@@ -1,73 +1,97 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { StartRound } from "./start-round";
+import { CourseSlideSaves } from "./course-slide-saves";
 import styles from "./course.module.css";
 type Slide = { title: string; lines: string[] };
+const SAVE_ERROR =
+  "Could not save your place. You can keep reading, then retry saving before the quiz.";
 export function CourseSlides({
   level,
   title,
   slides,
   complete,
+  seenThrough,
 }: {
   level: number;
   title: string;
   slides: Slide[];
   complete: boolean;
+  seenThrough: number;
 }) {
   const { request } = useCandidateAccount();
   const [index, setIndex] = useState(0),
-    [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const next = useRef<HTMLDivElement>(null),
-    lock = useRef(false);
+    currentIndex = useRef(0),
+    mounted = useRef(false);
   const slide = slides[index],
     last = index === slides.length - 1;
-  async function saveSlide() {
-    const response = await request("/api/play/slides", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ level, index }),
+  const [saves] = useState(
+    () =>
+      new CourseSlideSaves(seenThrough, async (visited) => {
+        const response = await request("/api/play/slides", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ level, index: visited }),
+          signal: AbortSignal.timeout(15000),
+        });
+        if (!response.ok) throw Error("Slide not saved");
+      }),
+  );
+  const saveProgress = useCallback(
+    (visited: number) => {
+      setError("");
+      void saves.visit(visited).catch(() => {
+        if (mounted.current) setError(SAVE_ERROR);
+      });
+    },
+    [saves],
+  );
+  const move = useCallback(
+    (index: number) => {
+      const value = Math.max(0, Math.min(slides.length - 1, index));
+      currentIndex.current = value;
+      setIndex(value);
+      saveProgress(value);
+    },
+    [slides.length, saveProgress],
+  );
+  useEffect(() => {
+    mounted.current = true;
+    void saves.visit(0).catch(() => {
+      if (mounted.current) setError(SAVE_ERROR);
     });
-    if (!response.ok) throw Error("Slide not saved");
-  }
-  async function advance() {
-    if (lock.current) return;
-    lock.current = true;
-    setBusy(true);
-    setError("");
-    try {
-      await saveSlide();
-      if (!last) setIndex((value) => value + 1);
-    } catch {
-      setError("Could not save your place. Please retry.");
-    } finally {
-      lock.current = false;
-      setBusy(false);
-    }
-  }
+    return () => {
+      mounted.current = false;
+    };
+  }, [saves]);
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       if (
-        lock.current ||
         event.repeat ||
         event.altKey ||
         event.ctrlKey ||
         event.metaKey ||
         (event.target instanceof HTMLElement &&
           event.target.closest(
-            '[role="dialog"],[role="menu"],input,textarea,select',
+            '[role="dialog"],[role="menu"],input,textarea,select,[contenteditable="true"]',
           ))
       )
         return;
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        setIndex((value) => Math.max(0, value - 1));
+        move(currentIndex.current - 1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        move(currentIndex.current + 1);
       } else if (
-        event.key === "ArrowRight" ||
-        (event.key === "Enter" && event.target === document.body)
+        event.key === "Enter" &&
+        event.target instanceof HTMLElement &&
+        !event.target.closest("button,a,summary")
       ) {
         event.preventDefault();
         next.current
@@ -77,7 +101,7 @@ export function CourseSlides({
     };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, []);
+  }, [move]);
   return (
     <section className={styles.lesson} aria-label="Topic slides">
       <Link className="practice-link" href="/play/rag">
@@ -108,13 +132,24 @@ export function CourseSlides({
           <p key={line}>{line}</p>
         ))}
       </article>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <div role="alert">
+          <p>{error}</p>
+          <button
+            type="button"
+            className="practice-secondary"
+            onClick={() => saveProgress(currentIndex.current)}
+          >
+            Retry save
+          </button>
+        </div>
+      )}
       <div ref={next} className={styles.controls}>
         <button
           type="button"
           className="practice-secondary"
-          disabled={index === 0 || busy}
-          onClick={() => setIndex((value) => Math.max(0, value - 1))}
+          disabled={index === 0}
+          onClick={() => move(currentIndex.current - 1)}
         >
           Back
         </button>
@@ -124,16 +159,15 @@ export function CourseSlides({
             mode="level"
             level={level}
             label="Start quiz"
-            beforeStart={saveSlide}
+            beforeStart={() => saves.visit(slides.length - 1)}
           />
         ) : (
           <button
             type="button"
             className="practice-primary"
-            disabled={busy}
-            onClick={() => void advance()}
+            onClick={() => move(currentIndex.current + 1)}
           >
-            {busy ? "Saving..." : last ? "Start quiz" : "Next"}
+            Next
           </button>
         )}
       </div>

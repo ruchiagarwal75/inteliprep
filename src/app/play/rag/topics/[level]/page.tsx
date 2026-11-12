@@ -28,5 +28,5 @@ export default async function CourseTopicPage({
         </Link>
       </section>
     );
-  return <CourseSlides {...lesson} />;
+  return <CourseSlides key={lesson.level} {...lesson} />;
 }

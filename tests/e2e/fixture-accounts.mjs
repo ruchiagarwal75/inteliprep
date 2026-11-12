@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  courseNavigation: {
+    id: "94949494-9494-4494-8494-949494949494",
+    email: "course-navigation@example.invalid",
+  },
   playPixelFixes: {
     id: "93939393-9393-4393-8393-939393939393",
     email: "pixel-fixes@example.invalid",

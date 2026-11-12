@@ -43,6 +43,15 @@ Tests cover an account that already owns the old badge, later topic passes and
 replays. Saved course summaries no longer announce the retired level badge as
 a new reward. Its stored record and original summary stay intact.
 
+## 5. Instant slides
+
+Slide navigation no longer waits for a network round trip. A per-lesson queue
+saves visited slides in order, coalesces rapid navigation and retries from the
+failed checkpoint. The last-slide quiz button still waits for all checkpoints
+to reach the server. Reading can continue during an error. Arrow keys and Enter
+work while saves are pending. Unit tests cover blocked and failed saves; a
+browser regression holds the first request open while navigating several slides.
+
 ## QA account rule
 
 Preview checks must use a separate QA account, never the owner's account.
