@@ -80,6 +80,14 @@ export async function startReportingFixture(key, cert) {
     await operator.unsafe(
       "alter role mockmeai_reporting password 'ci-only-reporting-fixture'",
     );
+    // Synthetic ledger history for the retired-XP HUD regression, never a real account.
+    const restored = fixtureAccounts.courseRestored.id;
+    await operator`insert into practice_game.player_profiles(user_id) values(${restored})`;
+    await operator`insert into practice_game.streaks(user_id,current,longest,last_active_date,last_resolved_date) values(${restored},2,2,current_date,current_date)`;
+    await operator`insert into practice_game.points_ledger(id,user_id,delta,reason,ref_id) values
+      (${randomUUID()},${restored},277,'progress-restoration','retired-rewards-fixture'),
+      (${randomUUID()},${restored},110,'drill','course-rewards-fixture')`;
+    await operator`insert into practice_game.badges(user_id,badge_id) values(${restored},'first-level')`;
   } catch (cause) {
     await pg.stop();
     throw cause;

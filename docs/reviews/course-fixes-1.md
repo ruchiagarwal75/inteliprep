@@ -63,6 +63,19 @@ course link or result button. Final continuation has the same duplicate guard
 as the other steps. The browser regression covers all seven answers, native Why
 keyboard behavior, the final level-up dialog and Enter to topic results.
 
+## 7. First-visit gate
+
+The server gate was already present. New SQL and browser regressions use fresh
+synthetic accounts. Page/notebook reads do not unlock a quiz, repeated visits
+still start locked, and each of the first four saved slides leaves it locked.
+The final ordered slide unlocks it; a later visit can start the quiz from slide
+one. The HUD screenshot is from a separate synthetic account seeded with the
+verified restored totals, not the owner's Preview session.
+
+The owner chose isolated local QA for this round. Preview verification is
+limited to the build/deployment status until a separate signed-in QA account is
+available.
+
 ## QA account rule
 
 Preview checks must use a separate QA account, never the owner's account.
