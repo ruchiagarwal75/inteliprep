@@ -41,7 +41,7 @@ export default async function GapPage({
             </li>
           ))}
         </ul>
-        <p>Reading this card does not change points or readiness.</p>
+        <p>Reading this card does not change XP or readiness.</p>
       </article>
     </>
   );

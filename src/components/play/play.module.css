@@ -141,3 +141,29 @@
   color: var(--game-gold);
   font-weight: 750;
 }
+
+.topic[data-world] {
+  border-inline-start: 6px solid var(--accent);
+  background: var(--accent-soft);
+}
+.topic[data-world="chat-serving"] {
+  --accent: var(--game-sky);
+  --accent-soft: var(--game-sky-soft);
+  --accent-text: var(--game-sky-text);
+  --game-world: var(--game-sky);
+  --game-world-edge: var(--game-sky-edge);
+}
+.topic[data-world="agents"] {
+  --accent: var(--game-coral);
+  --accent-soft: var(--game-coral-soft);
+  --accent-text: var(--game-coral-text);
+  --game-world: var(--game-coral);
+  --game-world-edge: var(--game-coral-edge);
+}
+.topic[data-world="final-loop"] {
+  --accent: var(--game-world-gold);
+  --accent-soft: var(--game-world-gold-soft);
+  --accent-text: var(--game-world-gold-text);
+  --game-world: var(--game-world-gold);
+  --game-world-edge: var(--game-world-gold-edge);
+}

@@ -44,8 +44,19 @@ try {
     });
   const rows =
     await sql`select c.relname,c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='practice_game' and c.relkind='r'`;
-  if (rows.length < 11 || rows.some((row) => !row.relrowsecurity))
+  if (
+    rows.length < 12 ||
+    !rows.some((row) => row.relname === "chest_opens") ||
+    rows.some((row) => !row.relrowsecurity)
+  )
     throw Error("rls_verification");
+  const [columns] =
+    await sql`select count(*)::integer as count from information_schema.columns where table_schema='practice_game' and ((table_name='level_progress' and column_name='best_stars') or (table_name='play_sessions' and column_name in ('replay','current_combo','best_combo')))`;
+  if (columns.count !== 4) throw Error("game_columns_missing");
+  const [writes] =
+    await sql`select has_table_privilege('authenticated','practice_game.chest_opens','INSERT') as chest_write,has_table_privilege('authenticated','practice_game.level_progress','UPDATE') as level_write`;
+  if (writes.chest_write || writes.level_write)
+    throw Error("browser_reward_writes");
   const [role] =
     await sql`select rolbypassrls,rolsuper from pg_roles where rolname='mockmeai_reporting'`;
   if (!role || role.rolbypassrls || role.rolsuper)

@@ -7,7 +7,9 @@ import { createServer } from "node:net";
 export const PLAY_TEST_USER = "11111111-1111-4111-8111-111111111111";
 export const PLAY_OTHER_USER = "22222222-2222-4222-8222-222222222222";
 /** Actual SQL/RLS, with synthetic users and no external credentials or services. */
-export async function startPlayPostgres() {
+export async function startPlayPostgres({
+  baseOnly = false,
+}: { baseOnly?: boolean } = {}) {
   const port = await new Promise<number>((resolve, reject) => {
     const s = createServer();
     s.on("error", reject);
@@ -39,7 +41,12 @@ export async function startPlayPostgres() {
     );
     await operator`insert into auth.users(id) values(${PLAY_TEST_USER}),(${PLAY_OTHER_USER})`;
     for (const name of (await readdir("supabase/migrations"))
-      .filter((name) => name.includes("_play_") && name.endsWith(".sql"))
+      .filter(
+        (name) =>
+          name.includes("_play_") &&
+          name.endsWith(".sql") &&
+          (!baseOnly || name === "20261111221816_play_game.sql"),
+      )
       .sort())
       await operator.unsafe(
         await readFile(`supabase/migrations/${name}`, "utf8"),

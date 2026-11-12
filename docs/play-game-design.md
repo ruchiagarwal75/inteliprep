@@ -60,3 +60,22 @@ jump. Original colors, glasses, hair, clips and hoodie remain intact. Play hides
 the SVG's built-in bubble when it supplies its own guide copy; Home's hi! bubble
 is untouched. Mobile hides the path guide. Motion pauses in hidden tabs and is
 removed with reduced motion. The existing Show mascot preference applies here.
+
+## Additive rollout and compatibility
+
+Run `npm run db:play` with the existing operator connection. It applies the base
+schema only for a new database, then the three additive game migrations. Run
+`npm run db:play -- --verify` to check the new columns, all 12 private tables,
+RLS, browser write restrictions and the restricted runtime role. Existing schema
+policies are not replaced. Applying the additions twice is safe.
+
+The additions are best_stars on level_progress, replay/current_combo/best_combo
+on play_sessions and chest_opens with its own owner policies. Existing variants,
+answers, start times, scorecards and ledger entries are untouched. Old summaries
+keep optional stats unavailable. The old internal points field and ledger table
+name remain compatible; UI copy calls the same balance XP.
+
+The browser can read its own public outcomes. Only server commands write stars,
+chests, combos or XP, under the per-player lock. Points, correct flags and reward
+seeds are rejected in client request schemas. Database tests exercise old rows,
+repeated migrations, concurrent opens and duplicate submissions.
