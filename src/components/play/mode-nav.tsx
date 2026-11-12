@@ -1,3 +1,6 @@
+"use client";
+import { usePlayRewards } from "./play-rewards";
+import { FlameIcon } from "./game-icons";
 import Link from "next/link";
 import styles from "./play.module.css";
 export function ModeNav({
@@ -9,6 +12,9 @@ export function ModeNav({
   points?: number;
   streak?: number;
 }) {
+  const rewards = usePlayRewards();
+  points = rewards?.totals?.points ?? points;
+  streak = rewards?.totals?.streak ?? streak;
   return (
     <div className={styles.modeBar}>
       <nav aria-label="Practice modes" className={styles.links}>
@@ -23,10 +29,17 @@ export function ModeNav({
         ))}
       </nav>
       <div className={styles.totals} aria-label="Your progress">
-        <span>
-          {streak === undefined ? "Streak unavailable" : `${streak}-day streak`}
+        <span
+          className={styles.streak}
+          role="img"
+          aria-label={
+            streak === undefined ? "Streak unavailable" : `${streak}-day streak`
+          }
+        >
+          <FlameIcon />
+          {streak === undefined ? "Unavailable" : streak}
         </span>
-        <span>
+        <span data-play-points-target>
           {points === undefined
             ? "Points unavailable"
             : `${points.toLocaleString()} points`}

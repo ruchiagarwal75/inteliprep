@@ -171,7 +171,13 @@ export const startRoundResultSchema = z.object({
 export const submitRoundSchema = z
   .object({ attemptId: z.uuid(), answer: drillAnswerSchema })
   .strict();
+export const playTotalsSchema = z.object({
+  points: z.coerce.number().int().nonnegative(),
+  streak: z.number().int().nonnegative(),
+});
+export type PlayTotals = z.infer<typeof playTotalsSchema>;
 export const submitRoundResultSchema = z.object({
+  totals: playTotalsSchema.optional(),
   result: drillResultSchema,
   summary: roundSummarySchema.optional(),
 });

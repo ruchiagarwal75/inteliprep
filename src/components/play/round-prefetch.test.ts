@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { primeRound, peekRound } from "./round-prefetch";
+import { primeRound, peekRound, forgetRound } from "./round-prefetch";
 import { roundViewSchema } from "@/lib/play/public";
 it("carries only an owner-scoped public view across navigation and expires it", () => {
   const now = new Date().toISOString(),
@@ -26,6 +26,9 @@ it("carries only an owner-scoped public view across navigation and expires it", 
   primeRound("owner", view);
   expect(peekRound("owner", sessionId)).toEqual(view);
   expect(peekRound("other", sessionId)).toBeUndefined();
+  forgetRound("owner", sessionId);
+  expect(peekRound("owner", sessionId)).toBeUndefined();
+  primeRound("owner", view);
   const clock = vi.spyOn(Date, "now").mockReturnValue(Date.now() + 61000);
   expect(peekRound("owner", sessionId)).toBeUndefined();
   clock.mockRestore();

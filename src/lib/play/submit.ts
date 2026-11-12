@@ -1,3 +1,4 @@
+import { playerTotals } from "./totals";
 import { needsAiGrade } from "./grading-policy";
 import { reserveAiGrade } from "./ai-usage";
 import { recordPlayEvent } from "./events";
@@ -25,6 +26,7 @@ export async function submitRoundAnswer(
     if (attempt.result_json)
       return {
         kind: "cached" as const,
+        totals: await playerTotals(sql, userId),
         result: attempt.result_json,
         summary: round.result_json ?? undefined,
       };
@@ -64,7 +66,11 @@ export async function submitRoundAnswer(
     return { kind: "claimed" as const, id, attempt, timeMs };
   });
   if (claim.kind === "cached")
-    return { result: claim.result, summary: claim.summary };
+    return {
+      result: claim.result,
+      summary: claim.summary,
+      totals: claim.totals,
+    };
   try {
     const grade = await gradeDrill(
       claim.attempt.private_variant.definition,
@@ -77,6 +83,7 @@ export async function submitRoundAnswer(
         round = await storedRound(sql, userId, attempt.session_id);
       if (attempt.result_json)
         return {
+          totals: await playerTotals(sql, userId),
           result: attempt.result_json,
           summary: round.result_json ?? undefined,
         };
@@ -131,7 +138,7 @@ export async function submitRoundAnswer(
             [...rewards.badges, ...readiness.badges],
           )
         : undefined;
-      return { result, summary };
+      return { result, summary, totals: await playerTotals(sql, userId) };
     });
   } catch (cause) {
     await withPlayer(

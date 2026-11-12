@@ -1,3 +1,4 @@
+import { PlayRewardsProvider } from "./play-rewards";
 import type { ReactNode } from "react";
 import { Brand } from "@/components/brand";
 import { CandidateProfileMenu } from "@/components/candidate-profile-menu";
@@ -35,26 +36,34 @@ export async function PlayShell({
   }
   return (
     <CandidateAccountProvider userId={userId}>
-      <main className="practice-page">
-        <div className="practice-shell">
-          {initializeTimeZone && <PlayerBootstrap />}
-          <header className="practice-nav">
-            <Brand />
-            <CandidateProfileMenu />
-          </header>
-          <ModeNav active={active} points={points} streak={streak} />
-          <div className={styles.content}>
-            {unavailable && (
-              <p role="status" className={styles.note}>
-                Practice progress is unavailable right now. You can still use
-                Mock. Please try Play again in a moment.
-              </p>
-            )}
-            {children}
+      <PlayRewardsProvider
+        initial={
+          points !== undefined && streak !== undefined
+            ? { points, streak }
+            : undefined
+        }
+      >
+        <main className="practice-page">
+          <div className="practice-shell">
+            {initializeTimeZone && <PlayerBootstrap />}
+            <header className="practice-nav">
+              <Brand />
+              <CandidateProfileMenu />
+            </header>
+            <ModeNav active={active} points={points} streak={streak} />
+            <div className={styles.content}>
+              {unavailable && (
+                <p role="status" className={styles.note}>
+                  Practice progress is unavailable right now. You can still use
+                  Mock. Please try Play again in a moment.
+                </p>
+              )}
+              {children}
+            </div>
+            <LegalLinks />
           </div>
-          <LegalLinks />
-        </div>
-      </main>
+        </main>
+      </PlayRewardsProvider>
     </CandidateAccountProvider>
   );
 }

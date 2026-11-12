@@ -32,3 +32,7 @@ export function markRoundReady() {
     performance.clearMarks("play-round-click");
   } catch {}
 }
+
+export function forgetRound(userId: string, sessionId: string) {
+  entries.delete(key(userId, sessionId));
+}

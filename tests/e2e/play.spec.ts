@@ -65,7 +65,7 @@ test("Play placement, four drill types, rewards, readiness and Mock prompt use o
   await capturePlay(page, "rag-mock-prompt");
   await page.getByRole("link", { name: "Open Progress", exact: true }).click();
   await expect(page.getByText("Practice ready", { exact: true })).toBeVisible();
-  await expect(page.getByText("1-day streak", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("1-day streak", { exact: true })).toBeVisible();
   await expect(page.getByText(/\d+ points/)).toBeVisible();
   await capturePlay(page, "progress");
   await page.reload();

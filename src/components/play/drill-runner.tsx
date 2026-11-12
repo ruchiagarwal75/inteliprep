@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { roundViewSchema, submitRoundResultSchema } from "@/lib/play/public";
 import type { DrillAnswer, RoundView, RoundSummary } from "@/lib/play/public";
-import { peekRound } from "./round-prefetch";
+import { peekRound, forgetRound } from "./round-prefetch";
+import { usePlayRewards } from "./play-rewards";
 import { DrillCard } from "./drill-card";
 import { RoundSummaryCard } from "./round-summary";
 type Submission =
@@ -22,6 +23,8 @@ export function DrillRunner({
 }) {
   const { request, userId } = useCandidateAccount(),
     router = useRouter(),
+    rewards = usePlayRewards(),
+    [awardAnimation, setAwardAnimation] = useState<string>(),
     [initial] = useState(() => peekRound(userId, sessionId)),
     [view, setView] = useState<RoundView | undefined>(initial),
     [loadError, setLoadError] = useState(""),
@@ -29,7 +32,6 @@ export function DrillRunner({
     [summary, setSummary] = useState<RoundSummary>(),
     locked = useRef(false),
     mounted = useRef(true),
-    refreshed = useRef<string>(undefined),
     visited = useRef(new Map<string, boolean>());
   const load = useCallback(async () => {
     try {
@@ -44,29 +46,22 @@ export function DrillRunner({
         visited.current.set(attemptId, resumed);
         setView({ ...parsed, resumed });
         setLoadError("");
+        if (parsed.status === "graded") router.refresh();
       }
     } catch {
       if (mounted.current)
         setLoadError("Could not load your round. Please retry.");
     }
-  }, [request, sessionId]);
-  useEffect(() => {
-    if (
-      view?.status === "graded" &&
-      refreshed.current !== view.question.attemptId
-    ) {
-      refreshed.current = view.question.attemptId;
-      router.refresh();
-    }
-  }, [view, router]);
+  }, [request, sessionId, router]);
   useEffect(() => {
     mounted.current = true;
+    forgetRound(userId, sessionId);
     const timer = initial ? undefined : window.setTimeout(() => void load(), 0);
     return () => {
       window.clearTimeout(timer);
       mounted.current = false;
     };
-  }, [load, initial]);
+  }, [load, initial, userId, sessionId]);
   useEffect(() => {
     if (view?.status !== "grading") return;
     const timer = setInterval(() => void load(), 2500);
@@ -116,6 +111,10 @@ export function DrillRunner({
           result: parsed.result,
           summary: parsed.summary,
         });
+        if (parsed.totals)
+          rewards?.applyTotals(parsed.totals, parsed.result.correct);
+        else router.refresh();
+        if (parsed.result.correct) setAwardAnimation(view.question.attemptId);
         setSubmission({ kind: "idle" });
       }
     } catch {
@@ -189,6 +188,7 @@ export function DrillRunner({
         question={view.question}
         resumed={view.resumed}
         outcomes={view.outcomes}
+        animatePoints={awardAnimation === view.question.attemptId}
         result={view.status === "graded" ? view.result : undefined}
         busy={submission.kind === "checking"}
         error={

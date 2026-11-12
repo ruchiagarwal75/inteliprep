@@ -9,6 +9,7 @@ import type {
   DrillResult,
 } from "@/lib/play/public";
 import { RoundDots } from "./round-dots";
+import { EarnedPoints } from "./earned-points";
 import { Celebration } from "./celebration";
 import { DrillAnswerForm } from "./drill-answer-form";
 import styles from "./drill.module.css";
@@ -53,6 +54,7 @@ export function DrillCard({
   onRetry,
   resumed,
   outcomes,
+  animatePoints,
 }: {
   question: DrillQuestion;
   result?: DrillResult;
@@ -63,6 +65,7 @@ export function DrillCard({
   onRetry?: () => void;
   resumed?: boolean;
   outcomes?: (boolean | null)[];
+  animatePoints?: boolean;
 }) {
   useEffect(() => {
     markRoundReady();
@@ -105,7 +108,7 @@ export function DrillCard({
           )}
           <p>{result.feedback}</p>
           {result.correct ? (
-            <p className={styles.points}>+{result.points} points</p>
+            <EarnedPoints points={result.points} animate={animatePoints} />
           ) : (
             <p>This one comes back for review in 2 days.</p>
           )}

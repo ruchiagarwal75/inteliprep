@@ -126,3 +126,13 @@
     padding: var(--space-2);
   }
 }
+
+.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+.streak svg {
+  color: var(--amber-ink);
+}

@@ -1,0 +1,28 @@
+.amount {
+  font-size: clamp(2rem, 7vw, 3rem);
+  font-weight: 650;
+  line-height: 1.15;
+  color: var(--accent-text);
+  margin-block: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.amount span {
+  font-size: 1rem;
+  font-weight: 500;
+}
+.flight {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  pointer-events: none;
+  font-size: 1.5rem;
+  font-weight: 650;
+  color: var(--accent-text);
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flight {
+    display: none;
+  }
+}

@@ -36,3 +36,18 @@ export function CheckIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function FlameIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="18"
+      height="21"
+      viewBox="0 0 24 26"
+      fill="currentColor"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M13 1c1 6-4 7-4 11-2-1-2-3-2-4C3 12 2 15 3 19c1 5 5 7 9 7s9-3 9-9c0-5-4-7-4-10-1 2-1 3-2 4 0-4 0-7-2-10Z" />
+    </svg>
+  );
+}
