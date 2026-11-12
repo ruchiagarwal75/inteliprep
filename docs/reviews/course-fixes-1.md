@@ -52,6 +52,17 @@ to reach the server. Reading can continue during an error. Arrow keys and Enter
 work while saves are pending. Unit tests cover blocked and failed saves; a
 browser regression holds the first request open while navigating several slides.
 
+## 6. Final answer Enter
+
+Reproduced on the production browser fixture: after reading the final feedback,
+focus was on BODY and Enter did not open topic results. Only the Continue button
+had a handler. The result now handles Enter from non-interactive result content
+or the page body. It leaves buttons, links, the Why disclosure, menus and dialogs
+to their native behavior. Level-up dismissal restores focus to the current
+course link or result button. Final continuation has the same duplicate guard
+as the other steps. The browser regression covers all seven answers, native Why
+keyboard behavior, the final level-up dialog and Enter to topic results.
+
 ## QA account rule
 
 Preview checks must use a separate QA account, never the owner's account.

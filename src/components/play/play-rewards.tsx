@@ -99,7 +99,9 @@ export function PlayRewardsProvider({
         document.querySelector<HTMLElement>(
           '[aria-label="Drill result"] > button',
         ) ??
-        document.querySelector<HTMLElement>('[aria-current="step"] summary');
+        document.querySelector<HTMLElement>(
+          '[aria-current="step"] :is(a,summary)',
+        );
       target?.focus({ preventScroll: true });
     });
   }

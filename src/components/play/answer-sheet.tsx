@@ -19,16 +19,42 @@ export function AnswerSheet({
   onNext: () => void;
 }) {
   const next = useRef<HTMLButtonElement>(null);
+  const sheet = useRef<HTMLElement>(null);
   useEffect(() => {
     next.current?.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "instant" });
     if (animate) playGameSound(result.correct ? "correct" : "wrong");
   }, [result.correct, animate]);
+  useEffect(() => {
+    const key = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        event.key !== "Enter" ||
+        event.repeat ||
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        document.querySelector("dialog[open]") ||
+        !(target instanceof HTMLElement) ||
+        target.closest(
+          'button,a,input,textarea,select,summary,[role="dialog"],[role="menu"],[contenteditable="true"]',
+        ) ||
+        (target !== document.body && !sheet.current?.contains(target))
+      )
+        return;
+      event.preventDefault();
+      next.current?.click();
+    };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, []);
   const heading = result.correct
     ? ["Nice!", "Exactly", "Sharp"][question.ordinal % 3]
     : "Not quite";
   return (
     <section
+      ref={sheet}
       className={styles.sheet}
       data-correct={result.correct}
       aria-label="Drill result"

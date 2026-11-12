@@ -165,6 +165,7 @@ export function DrillRunner({
   async function next() {
     if (!view || locked.current) return;
     if (view.status === "graded" && view.summary) {
+      locked.current = true;
       setSummary(view.summary);
       return;
     }
