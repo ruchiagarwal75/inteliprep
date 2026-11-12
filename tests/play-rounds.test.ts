@@ -273,3 +273,26 @@ it("keeps removed sample definitions usable for saved rounds and due reviews", a
     bank.splice(index, 0, removed);
   }
 });
+
+it("profiles starts while keeping the verified owner and retry-safe round unchanged", async () => {
+  const { withRoundTiming } = await import("@/lib/play/round-timing");
+  const response = await withRoundTiming(async () =>
+    Response.json(
+      await startRound(user, {
+        requestId: crypto.randomUUID(),
+        topic: "rag",
+        mode: "level",
+        level: 1,
+        timeZone: "UTC",
+      }),
+    ),
+  );
+  expect(response.headers.get("Server-Timing")).toMatch(
+    /dbAcquireMs;dur=[\d.]+/u,
+  );
+  const body = await response.json();
+  expect(body.view.question.attemptId).toBeTruthy();
+  await expect(getRound(other, body.sessionId)).rejects.toMatchObject({
+    status: 404,
+  });
+});

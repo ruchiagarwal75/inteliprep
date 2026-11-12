@@ -26,6 +26,7 @@ type Event = {
     | "grading_complete"
     | "model_call_complete"
     | "play_spend_threshold"
+    | "play_round_timing"
     | "stage_assessment_failure"
     | "model_retry"
     | "model_test_fault"
@@ -46,6 +47,13 @@ type Event = {
   route?: string;
   status?: number;
   durationMs?: number;
+  guardMs?: number;
+  dbAcquireMs?: number;
+  dbLockMs?: number;
+  dbWorkMs?: number;
+  dbFinishMs?: number;
+  firstRoundRequest?: boolean;
+  roundPath?: "fresh" | "resume";
   kind?: string;
   fingerprint?: string;
   playGradingStage?: "provider" | "incomplete_output" | "validation";

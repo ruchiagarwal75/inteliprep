@@ -1,3 +1,4 @@
+import { roundGuardComplete, withRoundTiming } from "./round-timing";
 import { PlayGradingError, playFailureDetails } from "./grading-error";
 import "server-only";
 import { ApiRequestError, withApiRequest } from "@/lib/api-request";
@@ -8,7 +9,8 @@ export function playEndpoint(
   route: string,
   handler: (request: Request, userId: string) => Promise<Response>,
 ) {
-  return withApiRequest("play", route, async (request) => {
+  const guarded = withApiRequest("play", route, async (request) => {
+    roundGuardComplete();
     const userId = currentCandidateId();
     if (!userId)
       return Response.json({ error: "Sign in to practice." }, { status: 401 });
@@ -48,4 +50,10 @@ export function playEndpoint(
       );
     }
   });
+  return route === "/api/play/round"
+    ? (request: Request) =>
+        request.method === "POST"
+          ? withRoundTiming(() => guarded(request))
+          : guarded(request)
+    : guarded;
 }

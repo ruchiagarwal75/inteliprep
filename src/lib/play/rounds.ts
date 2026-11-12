@@ -1,4 +1,5 @@
 import "server-only";
+import { roundTimingPath } from "./round-timing";
 import { randomUUID } from "node:crypto";
 import type { StartRoundInput } from "./public";
 import { roundViewSchema } from "./public";
@@ -25,6 +26,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
     const [existing] =
       await sql`select id,topic,mode,level,request_id=${input.requestId} as retry from practice_game.play_sessions where user_id=${userId} and (request_id=${input.requestId} or (topic=${input.topic} and mode=${input.mode} and level is not distinct from ${level} and completed_at is null)) order by (request_id=${input.requestId}) desc,created_at desc limit 1`;
     if (existing) {
+      roundTimingPath("resume");
       if (
         existing.retry &&
         (existing.topic !== input.topic ||
@@ -40,6 +42,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
         view: await roundView(sql, userId, existing.id),
       };
     }
+    roundTimingPath("fresh");
     await sql`with profile as (insert into practice_game.player_profiles(user_id,time_zone,zone_set) values(${userId},${input.timeZone},true) on conflict(user_id) do update set time_zone=case when player_profiles.zone_set then player_profiles.time_zone else excluded.time_zone end,zone_set=true returning user_id) insert into practice_game.streaks(user_id) select user_id from profile where true on conflict do nothing`;
     const levels = levelsForTopic(input.topic);
     const levelRows = levels.map((l, index) => ({

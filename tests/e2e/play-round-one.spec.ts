@@ -37,7 +37,15 @@ test("Play round fixes: first-drill handoff, dots, fail, pass, rewards, daily go
     }
     if (path === "/api/play/profile") profiles++;
   });
+  const startResponse = page.waitForResponse(
+    (r) =>
+      new URL(r.url()).pathname === "/api/play/round" &&
+      r.request().method() === "POST",
+  );
   await first.getByRole("button", { name: "Start level", exact: true }).click();
+  const startedRound = await startResponse;
+  expect(startedRound.headers()["server-timing"]).toContain("dbWorkMs;dur=");
+  expect(startedRound.headers()["x-request-id"]).toBeTruthy();
   await expect(
     page.getByRole("button", { name: "Check answer", exact: true }),
   ).toBeVisible();
@@ -205,6 +213,9 @@ test("Play round fixes: first-drill handoff, dots, fail, pass, rewards, daily go
       page.getByRole("heading", { name: "Correct", exact: true }),
     ).toBeVisible();
     await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Check answer", exact: true }),
+    ).toBeVisible();
   }
   expect(keyboardPlayed).toBe(true);
   expect(errors).toEqual([]);

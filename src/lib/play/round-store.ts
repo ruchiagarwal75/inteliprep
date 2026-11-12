@@ -69,11 +69,14 @@ export async function roundView(
   userId: string,
   id: string,
 ) {
-  const round = await storedRound(sql, userId, id);
-  const [current] =
-    await sql`select id from practice_game.drill_attempts where session_id=${id} and user_id=${userId} and ordinal=${round.active_ordinal}`;
-  if (!current) throw new PlayError("This round has no question to show.", 409);
-  let attempt = await storedAttempt(sql, userId, current.id);
+  const [row] =
+    await sql`select to_jsonb(s) as round,to_jsonb(a) as attempt,(select jsonb_agg(d.correct order by d.ordinal) from practice_game.drill_attempts d where d.session_id=s.id and d.user_id=${userId}) as outcomes from practice_game.play_sessions s left join practice_game.drill_attempts a on a.session_id=s.id and a.user_id=s.user_id and a.ordinal=s.active_ordinal where s.id=${id} and s.user_id=${userId}`;
+  if (!row) throw new PlayError("This round was not found.", 404);
+  const round = roundSchema.parse(row.round);
+  if (!row.attempt)
+    throw new PlayError("This round has no question to show.", 409);
+  let attempt = attemptSchema.parse(row.attempt);
+  const outcomes = z.array(z.boolean().nullable()).parse(row.outcomes);
   const resumed = Boolean(attempt.started_at);
   if (!attempt.started_at) {
     await sql`update practice_game.drill_attempts set started_at=now() where id=${attempt.id} and user_id=${userId} and started_at is null`;
@@ -84,12 +87,6 @@ export async function roundView(
     attempt = await storedAttempt(sql, userId, attempt.id);
   }
   if (!attempt.started_at) throw Error("Missing server drill start");
-  const outcomeRows =
-    await sql`select correct from practice_game.drill_attempts where session_id=${id} and user_id=${userId} order by ordinal`;
-  const outcomes = z
-    .array(z.object({ correct: z.boolean().nullable() }))
-    .parse(outcomeRows)
-    .map((row) => row.correct);
   const base = {
     sessionId: id,
     mode: round.mode,
