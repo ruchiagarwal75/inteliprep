@@ -3,7 +3,7 @@ import {
   startPlayPostgres,
   PLAY_TEST_USER as user,
 } from "./fixtures/play-postgres";
-import { seeCourseSlide } from "@/lib/play/course/visits";
+import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
 import { startRound, advanceRound } from "@/lib/play/rounds";
 import { recordDrillActivity } from "@/lib/play/drill-activity";
 import { submitRoundAnswer } from "@/lib/play/submit";
@@ -27,7 +27,12 @@ afterAll(async () => {
   await fixture?.close();
 });
 it("excludes repeated slide-reading pauses from answer time, stars and XP", async () => {
-  for (let index = 0; index < 5; index++) await seeCourseSlide(user, 1, index);
+  for (
+    let index = 0;
+    index < (await courseLesson(user, 1)).slides.length;
+    index++
+  )
+    await seeCourseSlide(user, 1, index);
   vi.useFakeTimers({ toFake: ["Date"] });
   try {
     const started = await startRound(user, {

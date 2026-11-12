@@ -39,7 +39,7 @@ it("requires ordered slides and a course pass, independent of old levels", async
   await fixture.operator`insert into practice_game.points_ledger(id,user_id,delta,reason,ref_id) values(${crypto.randomUUID()},${user},123,'legacy-test','kept')`;
   const before = await courseLesson(user, 1);
   expect(before.complete).toBe(false);
-  expect(before.slides).toHaveLength(5);
+  expect(before.slides).toHaveLength(13);
   expect(JSON.stringify(before)).not.toMatch(
     /"(?:correctIndex|keyIdea|ifWrong|questions)":/,
   );
@@ -51,8 +51,9 @@ it("requires ordered slides and a course pass, independent of old levels", async
   await expect(seeCourseSlide(user, 1, 4)).rejects.toMatchObject({
     status: 409,
   });
-  for (let index = 0; index < 5; index++) await seeCourseSlide(user, 1, index);
-  await seeCourseSlide(user, 1, 4);
+  for (let index = 0; index < before.slides.length; index++)
+    await seeCourseSlide(user, 1, index);
+  await seeCourseSlide(user, 1, before.slides.length - 1);
   expect((await courseLesson(user, 1)).complete).toBe(true);
   expect((await courseLesson(other, 1)).complete).toBe(false);
   await expect(
@@ -152,8 +153,8 @@ it("the notebook shows all slides but only the owner's answered questions and so
   const mine = await courseNotebook(user),
     theirs = await courseNotebook(other);
   expect(mine.map((row) => row.level)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  expect(mine[0].slides).toHaveLength(5);
-  expect(theirs[0].slides).toHaveLength(5);
+  expect(mine[0].slides).toHaveLength(13);
+  expect(theirs[0].slides).toHaveLength(13);
   expect(mine[0].questions.every((q) => q.answered)).toBe(true);
   const answered = mine[0].questions[4];
   if (!answered.answered) throw Error("Expected saved answer");

@@ -7,6 +7,7 @@ import { StartRound } from "./start-round";
 import { CourseSlideSaves } from "./course-slide-saves";
 import { CourseDiagram } from "./course-diagram";
 import { useSlideKeys } from "./slide-keys";
+import { SlideBody } from "./slide-body";
 import type { CourseLesson } from "@/lib/play/course/slides-public";
 import styles from "./course.module.css";
 const SAVE_ERROR =
@@ -111,9 +112,7 @@ export function CourseSlides({
         </p>
         <h2 data-game-label>{slide?.title}</h2>
         {slide?.diagram && <CourseDiagram kind={slide.diagram} />}
-        {slide?.lines.map((line) => (
-          <p key={line}>{line}</p>
-        ))}
+        {slide && <SlideBody blocks={slide.body} />}
       </article>
       {error && (
         <div role="alert">

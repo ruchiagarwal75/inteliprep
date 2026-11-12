@@ -13,9 +13,9 @@ it("attaches exactly the six requested teaching diagrams and removes title perio
       ),
     ),
   ).toEqual([
-    [1, 1, "pipeline"],
-    [1, 2, "overlap"],
-    [1, 3, "split-table"],
+    [1, 2, "pipeline"],
+    [1, 6, "overlap"],
+    [1, 8, "split-table"],
     [2, 2, "two-tower"],
     [2, 4, "ann"],
     [3, 2, "rrf"],

@@ -36,7 +36,7 @@ export async function dismissLevelUp(page: Page) {
 }
 export async function openPlayLevel(page: Page, level: number) {
   await page.goto(`/play/rag/topics/${level}`);
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 100; i++) {
     const quiz = page.getByRole("button", { name: "Start quiz", exact: true });
     if (await quiz.count()) {
       await quiz.first().click();

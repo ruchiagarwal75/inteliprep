@@ -26,3 +26,14 @@ and grading rules remain server-owned and unchanged.
 QA uses isolated local accounts only, as the owner requested. The owner account
 is never used for browser checks. Preview verification will check the deployment
 build status until a separate Google QA account is available.
+
+## 2. Thirteen Topic 1 slides
+
+The build reads the supplied v2 Markdown as Topic 1's slide source. A strict
+compiler preserves paragraphs, list items and bold wording without generating
+content. All seven Topic 1 questions and both other topics remain unchanged.
+The renderer escapes HTML and supports only the authored formatting subset.
+
+A compatible constraint expansion supports longer lessons. Existing completed
+visits remain completed. Fresh accounts must save all 13 ordered checkpoints.
+Reading position, earned rewards and old answer snapshots are preserved.

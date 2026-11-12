@@ -18,13 +18,15 @@ beforeAll(async () => {
 }, 30000);
 afterAll(async () => fixture?.close());
 it("remembers backward reading without reducing completion or changing earned progress", async () => {
-  for (let index = 0; index < 5; index++) await seeCourseSlide(user, 1, index);
+  const last = (await courseLesson(user, 1)).slides.length - 1;
+  for (let index = 0; index <= last; index++)
+    await seeCourseSlide(user, 1, index);
   const before =
     await fixture.operator`select * from practice_game.course_visits where user_id=${user}`;
-  await seeCourseSlide(user, 1, 4, 1);
+  await seeCourseSlide(user, 1, last, 1);
   const lesson = await courseLesson(user, 1);
   expect(lesson).toMatchObject({
-    seenThrough: 4,
+    seenThrough: last,
     lastViewedIndex: 1,
     complete: true,
   });
@@ -59,4 +61,21 @@ it("preserves older positions and owner policies when the migration is rerun", a
   const [privilege] =
     await fixture.operator`select has_column_privilege('authenticated','practice_game.course_visits','last_viewed_index','UPDATE') as update`;
   expect(privilege.update).toBe(false);
+});
+it("expands the checkpoint limit idempotently without rewriting existing completions", async () => {
+  const before =
+    await fixture.operator`select * from practice_game.course_visits order by user_id`;
+  for (let repeat = 0; repeat < 2; repeat++)
+    await fixture.operator.unsafe(
+      readFileSync(
+        "supabase/migrations/20261112213851_play_course_long_lessons.sql",
+        "utf8",
+      ),
+    );
+  expect(
+    await fixture.operator`select * from practice_game.course_visits order by user_id`,
+  ).toEqual(before);
+  await expect(
+    fixture.operator`insert into practice_game.course_visits(user_id,course_id,level,seen_through) values(${other},'rag-course',2,100)`,
+  ).rejects.toMatchObject({ code: "23514" });
 });

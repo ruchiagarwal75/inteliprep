@@ -33,13 +33,14 @@ it("page and notebook reads cannot unlock a fresh account's quiz", async () => {
   expect(
     await fixture.operator`select * from practice_game.course_visits where user_id=${user}`,
   ).toHaveLength(0);
-  for (let index = 0; index < 4; index++) {
+  const total = (await courseLesson(user, 1)).slides.length;
+  for (let index = 0; index < total - 1; index++) {
     await seeCourseSlide(user, 1, index);
     expect((await courseLesson(user, 1)).complete).toBe(false);
     await expect(start()).rejects.toMatchObject({ status: 403 });
   }
-  await seeCourseSlide(user, 1, 4);
-  await seeCourseSlide(user, 1, 4);
+  await seeCourseSlide(user, 1, total - 1);
+  await seeCourseSlide(user, 1, total - 1);
   expect((await courseLesson(user, 1)).complete).toBe(true);
   expect((await start()).view.question.title).toBe("Big chunks");
   expect(

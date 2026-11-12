@@ -4,36 +4,249 @@
     "title": "Ingestion and chunking",
     "slides": [
       {
-        "title": "From documents to chunks",
-        "lines": [
-          "Source, parse, clean, chunk, add metadata, embed, index. Search returns chunks, not whole documents."
+        "title": "Why ingestion decides answer quality",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "A RAG system can only answer from what it retrieves, and it can only retrieve what ingestion stored."
+          },
+          {
+            "kind": "paragraph",
+            "text": "If a table was mangled, a page was skipped, or a chunk cut a fact in half, no reranker or prompt can fix it later. Many \"the model got it wrong\" bugs in RAG are really ingestion bugs."
+          }
+        ]
+      },
+      {
+        "title": "The ingestion pipeline",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Raw documents go through the same steps every time:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Connect:** pull from sources like wikis, drives, tickets and chat.",
+              "**Parse:** turn files into clean text and structure.",
+              "**Clean:** strip boilerplate and remove duplicates.",
+              "**Chunk:** split text into pieces search can return.",
+              "**Enrich:** attach metadata to every chunk.",
+              "**Embed and index:** store vectors plus metadata."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Search returns chunks, not whole documents, so every step shapes what the model sees."
+          }
         ],
         "diagram": "pipeline"
       },
       {
-        "title": "Size and overlap",
-        "lines": [
-          "Too big: one embedding averages many ideas, so the match is weak and tokens are wasted. Too small: the chunk loses its context. A common start: 200 to 500 tokens, 10 to 20% overlap. Tune with recall@k on your own questions."
+        "title": "Parsing: every format breaks differently",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**PDFs:** multi-column layouts, headers and footers repeated on every page, tables drawn as lines. Use a layout-aware parser.",
+              "**Scanned PDFs and images:** need OCR first. OCR mistakes turn into search misses, so check the quality.",
+              "**HTML:** strip menus, ads and cookie banners. Keep headings and lists.",
+              "**Slides and spreadsheets:** keep the slide title or column headers with each piece of content."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Rule of thumb: read the parsed text of 20 real documents before you tune anything else."
+          }
+        ]
+      },
+      {
+        "title": "Cleaning and deduplication",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Real document sets are full of repeats: the same policy copied into five wikis, email threads quoting each other, old and new versions side by side."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Duplicates waste context tokens and push other useful results out of the top results."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Remove exact duplicates with a content hash.",
+              "Remove near-duplicates with a similarity check (for example MinHash).",
+              "Drop boilerplate such as repeated legal footers.",
+              "Decide early whether personal data must be removed before indexing."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Why we chunk at all",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Three reasons:"
+          },
+          {
+            "kind": "numbered",
+            "items": [
+              "Embedding models have an input limit, often 512 to 8,000 tokens.",
+              "One vector for a whole long document blurs many ideas into one point.",
+              "The LLM's context window is a budget. You want to send only the relevant parts."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Chunking gives each idea its own vector, so search can return just the paragraphs that matter."
+          }
+        ]
+      },
+      {
+        "title": "Chunk size and overlap",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**Too big:** the vector averages many topics, so matches get weak and tokens are wasted.",
+              "**Too small:** a chunk loses the context it needs. \"It increased by 20%\" means nothing without knowing what \"it\" is."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "A common starting point is 200 to 500 tokens with 10 to 20% overlap. Overlap makes a sentence near a boundary appear whole in at least one chunk."
+          },
+          {
+            "kind": "paragraph",
+            "text": "These are starting numbers. Pick the final size by measuring recall@k on real questions."
+          }
         ],
         "diagram": "overlap"
       },
       {
-        "title": "Respect structure",
-        "lines": [
-          "Split on headings. Keep tables with their header row, code blocks whole, list items with their intro line. Trick: search small chunks, send the parent section to the LLM."
+        "title": "Chunking strategies",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**Fixed size:** split every N tokens. Simple and fast, but cuts sentences and tables.",
+              "**Sentence or paragraph:** split on natural boundaries. Better meaning, uneven sizes.",
+              "**Recursive:** try headings, then paragraphs, then sentences, until pieces fit the size limit. A strong default.",
+              "**Structure-aware:** follow the document's own sections, tables and code blocks.",
+              "**Semantic:** split where the topic changes, using embedding similarity between sentences. Best boundaries, most compute."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Respect the structure",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "Keep each table with its header row, or turn each row into a sentence: \"Plan Pro costs $49 for 10 seats.\"",
+              "Keep code blocks whole. Half a function is useless.",
+              "Keep list items with the sentence that introduces them.",
+              "Add the heading path to each chunk, like \"HR Handbook > Leave > Parental leave\", so the chunk still makes sense on its own. This is often called a contextual header, and it usually improves retrieval."
+            ]
+          }
         ],
         "diagram": "split-table"
       },
       {
-        "title": "Metadata",
-        "lines": [
-          "Attach source, title, section, timestamp, version and permissions to each chunk. Metadata powers filters, citations, freshness and access control."
+        "title": "Small-to-big retrieval",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Small chunks match precisely. Big sections give the model enough context. You can have both:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Index small chunks (for example 150 tokens).",
+              "When one matches, send its parent section (for example 1,000 tokens) to the LLM."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "A lighter version is the sentence window: match one sentence, then send the few sentences around it."
+          }
         ]
       },
       {
-        "title": "Updates and deletes",
-        "lines": [
-          "Track chunks by document ID. Hash chunks so only changed ones are re-embedded. Deleting a document must remove its chunks. Interview tip: always say how a deleted document disappears from the index."
+        "title": "Metadata on every chunk",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Store with each chunk: document ID, title, source URL, section path, author, created and updated times, version, language and access permissions."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Filters** use it: \"only 2026 docs\", \"only the billing product\".",
+              "**Citations** use it: \"Source: HR Handbook, updated Mar 2026.\"",
+              "**Freshness** uses it: prefer the newest version.",
+              "**Security** uses it: only return chunks the user is allowed to see."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "The vector is only for matching. Anything you want to show or filter on must be stored next to it."
+          }
+        ]
+      },
+      {
+        "title": "Keeping the index fresh",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "Prefer change feeds or webhooks from the source over full re-crawls. Poll only when nothing else exists.",
+              "Track every chunk by document ID and a content hash. On an edit, re-embed only the chunks whose hash changed.",
+              "Replace a document's old chunks in one step (an upsert), so stale text never lingers next to new text.",
+              "Keep document versions, so you can tell old from new and roll back."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Deletes and permission changes",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "A deleted document must disappear from search quickly. Process delete events by document ID and remove all of its chunks."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Permission changes matter just as much. If someone loses access to a document, their searches must stop returning its chunks."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Events get missed, so run a regular reconciliation job that compares the index with the source and fixes any drift."
+          }
+        ]
+      },
+      {
+        "title": "Interview checklist",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "When asked \"How would you ingest the data?\", cover these in about a minute:"
+          },
+          {
+            "kind": "numbered",
+            "items": [
+              "Sources, connectors, and how you detect changes",
+              "Parsing per format, especially PDFs and tables",
+              "Chunking strategy and size, and how you'd tune it with recall@k",
+              "Metadata, including permissions",
+              "Updates, deletes and reconciliation"
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Bringing up deletes and permissions before you're asked is a strong Senior signal."
+          }
         ]
       }
     ],
@@ -153,34 +366,49 @@
     "slides": [
       {
         "title": "What an embedding is",
-        "lines": [
-          "A list of numbers that captures meaning. Similar meaning, nearby vectors. Documents and queries must use the same model."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "A list of numbers that captures meaning. Similar meaning, nearby vectors. Documents and queries must use the same model."
+          }
         ]
       },
       {
         "title": "Bi-encoder retrieval",
-        "lines": [
-          "Query and documents are encoded separately (two towers) and compared with a dot product or cosine similarity. Document vectors are computed ahead of time, which is why you can search millions in milliseconds."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Query and documents are encoded separately (two towers) and compared with a dot product or cosine similarity. Document vectors are computed ahead of time, which is why you can search millions in milliseconds."
+          }
         ],
         "diagram": "two-tower"
       },
       {
         "title": "Dimensions and memory",
-        "lines": [
-          "Raw size = vectors x dimensions x bytes per number (float32 = 4, float16 = 2, int8 = 1). More dimensions is not always better. Quantization saves memory for a small recall cost."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Raw size = vectors x dimensions x bytes per number (float32 = 4, float16 = 2, int8 = 1). More dimensions is not always better. Quantization saves memory for a small recall cost."
+          }
         ]
       },
       {
         "title": "Approximate search (ANN)",
-        "lines": [
-          "Exact search compares every vector: too slow at scale. HNSW: a graph, fast with high recall, memory heavy. IVF: clusters, searches only a few (nprobe trades recall for speed). ScaNN: quantization plus re-scoring. Tune recall@k against p95 latency."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Exact search compares every vector: too slow at scale. HNSW: a graph, fast with high recall, memory heavy. IVF: clusters, searches only a few (nprobe trades recall for speed). ScaNN: quantization plus re-scoring. Tune recall@k against p95 latency."
+          }
         ],
         "diagram": "ann"
       },
       {
         "title": "Choosing and changing models",
-        "lines": [
-          "Pick by evaluating on your own questions, not just a leaderboard: domain, languages, max input length, cost. A new model means re-embedding everything; run old and new indexes side by side and switch after evaluation."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Pick by evaluating on your own questions, not just a leaderboard: domain, languages, max input length, cost. A new model means re-embedding everything; run old and new indexes side by side and switch after evaluation."
+          }
         ]
       }
     ],
@@ -299,33 +527,48 @@
     "slides": [
       {
         "title": "Dense vs sparse",
-        "lines": [
-          "Dense (vectors) catches meaning and synonyms. Sparse (BM25 keyword search) catches exact terms: IDs, error codes, acronyms, rare names."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Dense (vectors) catches meaning and synonyms. Sparse (BM25 keyword search) catches exact terms: IDs, error codes, acronyms, rare names."
+          }
         ]
       },
       {
         "title": "Why hybrid wins",
-        "lines": [
-          "Run both and merge. Reciprocal Rank Fusion (RRF): each list adds 1 / (k + rank), with k often 60. It merges by rank, so you never need to compare raw scores."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Run both and merge. Reciprocal Rank Fusion (RRF): each list adds 1 / (k + rank), with k often 60. It merges by rank, so you never need to compare raw scores."
+          }
         ],
         "diagram": "rrf"
       },
       {
         "title": "Query rewriting",
-        "lines": [
-          "Turn chatty follow-ups into standalone queries (\"what about contractors?\" becomes \"PTO policy for contractors\"). Fix typos, expand acronyms."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Turn chatty follow-ups into standalone queries (\"what about contractors?\" becomes \"PTO policy for contractors\"). Fix typos, expand acronyms."
+          }
         ]
       },
       {
         "title": "Multi-query expansion",
-        "lines": [
-          "Generate 3 to 5 versions of the question, search each, merge. Better recall, more latency and cost."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Generate 3 to 5 versions of the question, search each, merge. Better recall, more latency and cost."
+          }
         ]
       },
       {
         "title": "Metadata filtering",
-        "lines": [
-          "Restrict by product, date range, language or permissions. Filter inside the search, not after it, or you can lose all your top results."
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Restrict by product, date range, language or permissions. Filter inside the search, not after it, or you can lose all your top results."
+          }
         ]
       }
     ],

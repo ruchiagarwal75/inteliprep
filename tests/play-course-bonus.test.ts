@@ -4,7 +4,7 @@ import {
   PLAY_TEST_USER as returning,
   PLAY_OTHER_USER as fresh,
 } from "./fixtures/play-postgres";
-import { seeCourseSlide } from "@/lib/play/course/visits";
+import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
 import { startRound, advanceRound } from "@/lib/play/rounds";
 import { submitRoundAnswer } from "@/lib/play/submit";
 import {
@@ -26,7 +26,12 @@ beforeAll(async () => {
 afterAll(async () => fixture?.close());
 
 async function finish(user: string, passing: boolean) {
-  for (let index = 0; index < 5; index++) await seeCourseSlide(user, 1, index);
+  for (
+    let index = 0;
+    index < (await courseLesson(user, 1)).slides.length;
+    index++
+  )
+    await seeCourseSlide(user, 1, index);
   const round = await startRound(user, {
     topic: "rag-course",
     mode: "level",

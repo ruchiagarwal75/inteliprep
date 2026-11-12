@@ -39,16 +39,16 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   await page
     .getByRole("link", { name: "Topic 1: Ingestion and chunking", exact: true })
     .click();
-  await expect(page.getByLabel("Slide counter")).toHaveText("1 / 5");
+  await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
   await expect(
     page.getByRole("button", { name: "Start quiz", exact: true }),
   ).toHaveCount(0);
   await captureCourse(page, "slide");
-  for (let i = 2; i <= 5; i++) {
+  for (let i = 2; i <= 13; i++) {
     await page.keyboard.press("ArrowRight");
-    await expect(page.getByLabel("Slide counter")).toHaveText(`${i} / 5`);
-    if (i === 2) await captureCourse(page, "slide-overlap");
-    if (i === 3) await captureCourse(page, "slide-split-table");
+    await expect(page.getByLabel("Slide counter")).toHaveText(`${i} / 13`);
+    if (i === 6) await captureCourse(page, "slide-overlap");
+    if (i === 8) await captureCourse(page, "slide-split-table");
   }
   await captureCourse(page, "last-slide");
   let starts = 0;

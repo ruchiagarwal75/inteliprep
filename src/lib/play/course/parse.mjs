@@ -18,7 +18,7 @@ export function parseCourseMarkdown(markdown) {
         ),
       ].map((m) => ({
         title: m[1],
-        lines: [m[2]],
+        body: [{ kind: "paragraph", text: m[2] }],
         ...(m[3] ? { diagram: m[3] } : {}),
       }));
       const questions = questionSection

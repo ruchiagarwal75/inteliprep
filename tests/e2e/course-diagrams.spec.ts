@@ -33,13 +33,16 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
           })
           .first()
           .click();
-      for (const [index, kind] of [
-        "pipeline",
-        "overlap",
-        "split-table",
-      ].entries()) {
-        if (index > 0)
+      let current = 1;
+      for (const { number, kind } of [
+        { number: 2, kind: "pipeline" },
+        { number: 6, kind: "overlap" },
+        { number: 8, kind: "split-table" },
+      ]) {
+        while (current < number) {
           await page.getByRole("button", { name: "Next", exact: true }).click();
+          current++;
+        }
         const diagram = page.locator(`[data-course-diagram="${kind}"]`);
         await expectReadableDiagram(diagram);
         expect(

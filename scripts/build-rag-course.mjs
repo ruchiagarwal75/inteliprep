@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { parseCourseMarkdown } from "../src/lib/play/course/parse.mjs";
+import { parseCourseSlidesMarkdown } from "../src/lib/play/course/parse-slides.mjs";
 const course = readdirSync("docs/play-content/rag-course")
   .filter((name) => /^topics-.*\.md$/u.test(name))
   .sort()
@@ -11,6 +12,12 @@ const course = readdirSync("docs/play-content/rag-course")
   .sort((a, b) => a.level - b.level);
 if (new Set(course.map((topic) => topic.level)).size !== course.length)
   throw Error("Duplicate course topic");
+const first = course.find((topic) => topic.level === 1);
+if (!first) throw Error("Missing first course topic");
+first.slides = parseCourseSlidesMarkdown(
+  readFileSync("docs/play-content/rag-course/topic-1-slides-v2.md", "utf8"),
+  { 2: "pipeline", 6: "overlap", 8: "split-table" },
+);
 writeFileSync(
   "src/lib/play/course/rag.json",
   JSON.stringify(course, null, 2) + "\n",

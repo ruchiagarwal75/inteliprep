@@ -2,11 +2,21 @@ import { z } from "zod";
 import { playEndpoint } from "@/lib/play/api";
 import { readJsonBody } from "@/lib/api-request";
 import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
+import { MAX_COURSE_SLIDES } from "@/lib/play/course/slides-public";
 const inputSchema = z
   .object({
     level: z.number().int().min(1).max(9),
-    index: z.number().int().min(0).max(5),
-    lastViewedIndex: z.number().int().min(0).max(5).optional(),
+    index: z
+      .number()
+      .int()
+      .min(0)
+      .max(MAX_COURSE_SLIDES - 1),
+    lastViewedIndex: z
+      .number()
+      .int()
+      .min(0)
+      .max(MAX_COURSE_SLIDES - 1)
+      .optional(),
   })
   .strict();
 export const POST = playEndpoint(
