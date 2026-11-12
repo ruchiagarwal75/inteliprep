@@ -64,8 +64,7 @@ export default async function SignInPage({
           />
         )}
         <p className="text-muted mt-6 text-sm">
-          Your interview history stays in this browser, separately for each
-          account.
+          Your progress is saved to your account.
         </p>
         <LegalLinks />
       </div>
