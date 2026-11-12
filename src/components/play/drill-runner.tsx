@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { roundViewSchema, submitRoundResultSchema } from "@/lib/play/public";
 import type { DrillAnswer, RoundView, RoundSummary } from "@/lib/play/public";
+import { peekRound } from "./round-prefetch";
 import { DrillCard } from "./drill-card";
 import { RoundSummaryCard } from "./round-summary";
 type Submission =
@@ -19,9 +20,10 @@ export function DrillRunner({
   sessionId: string;
   topic: string;
 }) {
-  const { request } = useCandidateAccount(),
+  const { request, userId } = useCandidateAccount(),
     router = useRouter(),
-    [view, setView] = useState<RoundView>(),
+    [initial] = useState(() => peekRound(userId, sessionId)),
+    [view, setView] = useState<RoundView | undefined>(initial),
     [loadError, setLoadError] = useState(""),
     [submission, setSubmission] = useState<Submission>({ kind: "idle" }),
     [summary, setSummary] = useState<RoundSummary>(),
@@ -59,12 +61,12 @@ export function DrillRunner({
   }, [view, router]);
   useEffect(() => {
     mounted.current = true;
-    const timer = window.setTimeout(() => void load(), 0);
+    const timer = initial ? undefined : window.setTimeout(() => void load(), 0);
     return () => {
       window.clearTimeout(timer);
       mounted.current = false;
     };
-  }, [load]);
+  }, [load, initial]);
   useEffect(() => {
     if (view?.status !== "grading") return;
     const timer = setInterval(() => void load(), 2500);

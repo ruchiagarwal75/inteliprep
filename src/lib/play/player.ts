@@ -1,6 +1,7 @@
 import { ageReadiness } from "./readiness-store";
 import { refreshStreak } from "./streak-store";
 import "server-only";
+import { cache } from "react";
 import { z } from "zod";
 import { ensurePlayer, withPlayer } from "./database";
 const stateSchema = z.object({
@@ -9,6 +10,7 @@ const stateSchema = z.object({
   freezes: z.number().int().min(0).max(2),
   level: z.enum(["mid", "senior", "staff"]),
   timeZone: z.string(),
+  zoneSet: z.boolean().optional(),
   levels: z.array(
     z.object({
       topic: z.string(),
@@ -30,14 +32,14 @@ const stateSchema = z.object({
   reviews: z.array(z.object({ topic: z.string(), count: z.number().int() })),
 });
 export type PlayerSnapshot = z.infer<typeof stateSchema>;
-export async function playerSnapshot(userId: string) {
+async function readPlayerSnapshot(userId: string) {
   return withPlayer(userId, async (sql) => {
     await ensurePlayer(sql, userId);
     await refreshStreak(sql, userId);
     await ageReadiness(sql, userId);
     const [row] = await sql`select jsonb_build_object(
    'points',(select coalesce(sum(delta),0) from practice_game.points_ledger),
-   'streak',s.current,'freezes',s.freezes_available,'level',p.chosen_level,'timeZone',p.time_zone,
+   'streak',s.current,'freezes',s.freezes_available,'level',p.chosen_level,'timeZone',p.time_zone,'zoneSet',p.zone_set,
    'levels',(select coalesce(jsonb_agg(to_jsonb(l)-'user_id'),'[]'::jsonb) from practice_game.level_progress l),
    'readiness',(select coalesce(jsonb_agg(to_jsonb(r)-'user_id'),'[]'::jsonb) from practice_game.topic_readiness r),
    'badges',(select coalesce(jsonb_agg(to_jsonb(b)-'user_id'),'[]'::jsonb) from practice_game.badges b),
@@ -73,3 +75,5 @@ export async function updatePlayer(
   });
   return playerSnapshot(userId);
 }
+
+export const playerSnapshot = cache(readPlayerSnapshot);

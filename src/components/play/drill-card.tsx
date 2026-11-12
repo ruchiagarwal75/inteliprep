@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { markRoundReady } from "./round-prefetch";
 import { DRILL_TYPE_LABELS } from "@/lib/play/public";
 import type {
   DrillAnswer,
@@ -60,6 +61,9 @@ export function DrillCard({
   onRetry?: () => void;
   resumed?: boolean;
 }) {
+  useEffect(() => {
+    markRoundReady();
+  }, [question.attemptId]);
   return (
     <article className={`practice-surface ${styles.card}`}>
       <header className={styles.header}>

@@ -1,5 +1,7 @@
 "use client";
 import { z } from "zod";
+import { startRoundResultSchema } from "@/lib/play/public";
+import { primeRound, markRoundClick } from "./round-prefetch";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCandidateAccount } from "@/components/candidate-account-context";
@@ -16,7 +18,7 @@ export function StartRound({
   label: string;
   disabled?: boolean;
 }) {
-  const { request } = useCandidateAccount(),
+  const { request, userId } = useCandidateAccount(),
     router = useRouter(),
     locked = useRef(false),
     requestId = useRef<string>(undefined),
@@ -25,6 +27,7 @@ export function StartRound({
   async function start() {
     if (locked.current) return;
     locked.current = true;
+    markRoundClick();
     setBusy(true);
     setError("");
     requestId.current ??= crypto.randomUUID();
@@ -41,7 +44,7 @@ export function StartRound({
         }),
       });
       const data: unknown = await response.json();
-      const parsed = startResponse.safeParse(data);
+      const parsed = startRoundResultSchema.safeParse(data);
       if (!response.ok || !parsed.success) {
         setError(
           errorResponse.safeParse(data).data?.error ??
@@ -49,6 +52,7 @@ export function StartRound({
         );
         return;
       }
+      if (parsed.data.view) primeRound(userId, parsed.data.view);
       router.push(`/play/${topic}/drill?session=${parsed.data.sessionId}`);
     } catch {
       setError("Could not connect. Please retry.");
@@ -63,6 +67,8 @@ export function StartRound({
         type="button"
         className="practice-primary"
         disabled={disabled || busy}
+        onPointerEnter={() => void import("./drill-runner").catch(() => {})}
+        onFocus={() => void import("./drill-runner").catch(() => {})}
         onClick={() => void start()}
       >
         {busy ? "Starting..." : label}
@@ -71,5 +77,4 @@ export function StartRound({
     </div>
   );
 }
-const startResponse = z.object({ sessionId: z.uuid() }),
-  errorResponse = z.object({ error: z.string() });
+const errorResponse = z.object({ error: z.string() });

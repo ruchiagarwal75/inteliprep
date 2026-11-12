@@ -1,47 +1,52 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import type { StartRoundInput } from "./public";
+import { roundViewSchema } from "./public";
 import type { DrillDefinition } from "./definition";
 import { drillDefinitionSchema } from "./definition";
 import { playTopic, levelsForTopic } from "./catalog";
-import { withPlayer, ensurePlayer } from "./database";
+import { withPlayer } from "./database";
 import { drillsForTopic } from "./content";
 import {
   chooseLevelDrills,
   choosePlacementDrills,
   levelUnlocked,
 } from "./round-rules";
-import { createVariant } from "./question";
+import { createVariant, publicQuestion } from "./question";
 import { roundView, storedRound } from "./round-store";
+import { recordPlayEvent } from "./events";
 import { PlayError } from "./errors";
 export async function startRound(userId: string, input: StartRoundInput) {
   return withPlayer(userId, async (sql) => {
-    await ensurePlayer(sql, userId);
     const topic = playTopic(input.topic);
     if (!topic?.available)
       throw new PlayError("This topic is not open yet.", 404);
     const level = input.mode === "level" ? input.level : null;
     const [existing] =
-      await sql`select id,topic,mode,level from practice_game.play_sessions where user_id=${userId} and request_id=${input.requestId}`;
+      await sql`select id,topic,mode,level,request_id=${input.requestId} as retry from practice_game.play_sessions where user_id=${userId} and (request_id=${input.requestId} or (topic=${input.topic} and mode=${input.mode} and level is not distinct from ${level} and completed_at is null)) order by (request_id=${input.requestId}) desc,created_at desc limit 1`;
     if (existing) {
       if (
-        existing.topic !== input.topic ||
-        existing.mode !== input.mode ||
-        existing.level !== level
+        existing.retry &&
+        (existing.topic !== input.topic ||
+          existing.mode !== input.mode ||
+          existing.level !== level)
       )
         throw new PlayError(
           "This start request belongs to another round.",
           409,
         );
-      return { sessionId: existing.id };
+      return {
+        sessionId: existing.id,
+        view: await roundView(sql, userId, existing.id),
+      };
     }
-    const [active] =
-      await sql`select id from practice_game.play_sessions where user_id=${userId} and topic=${input.topic} and mode=${input.mode} and level is not distinct from ${level} and completed_at is null order by created_at desc limit 1`;
-    if (active) return { sessionId: active.id };
-    await sql`update practice_game.player_profiles set time_zone=case when zone_set then time_zone else ${input.timeZone} end,zone_set=true where user_id=${userId}`;
+    await sql`with profile as (insert into practice_game.player_profiles(user_id,time_zone,zone_set) values(${userId},${input.timeZone},true) on conflict(user_id) do update set time_zone=case when player_profiles.zone_set then player_profiles.time_zone else excluded.time_zone end,zone_set=true returning user_id) insert into practice_game.streaks(user_id) select user_id from profile where true on conflict do nothing`;
     const levels = levelsForTopic(input.topic);
-    for (const [index, item] of levels.entries())
-      await sql`insert into practice_game.level_progress(user_id,topic,level,status) values(${userId},${input.topic},${item.level},${index === 0 ? "open" : "locked"}) on conflict do nothing`;
+    const levelRows = levels.map((l, index) => ({
+      level: l.level,
+      status: index === 0 ? "open" : "locked",
+    }));
+    await sql`insert into practice_game.level_progress(user_id,topic,level,status) select ${userId},${input.topic},x.level,x.status from jsonb_to_recordset(${sql.json(levelRows)}) as x(level integer,status text) where true on conflict do nothing`;
     const bank = drillsForTopic(input.topic);
     let selected: DrillDefinition[];
     if (input.mode === "level") {
@@ -74,11 +79,38 @@ export async function startRound(userId: string, input: StartRoundInput) {
       if (!selected.length)
         throw new PlayError("No reviews are due for this topic yet.", 409);
     }
-    const id = randomUUID();
-    await sql`insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode) values(${id},${userId},${input.requestId},${input.topic},${level},${input.mode})`;
-    for (const [ordinal, drill] of selected.entries())
-      await sql`insert into practice_game.drill_attempts(id,user_id,session_id,drill_id,topic,level,type,ordinal,private_variant) values(${randomUUID()},${userId},${id},${drill.id},${drill.topic},${drill.level},${drill.type},${ordinal},${sql.json({ definition: drill, variant: createVariant(drill) })}::jsonb)`;
-    return { sessionId: id };
+    const id = randomUUID(),
+      startedAt = new Date().toISOString();
+    const attempts = selected.map((drill, ordinal) => ({
+      id: randomUUID(),
+      drill_id: drill.id,
+      topic: drill.topic,
+      level: drill.level,
+      drill_type: drill.type,
+      ordinal,
+      started_at: ordinal === 0 ? startedAt : null,
+      private_variant: { definition: drill, variant: createVariant(drill) },
+    }));
+    const first = attempts[0];
+    if (!first) throw new PlayError("This round has no question to show.", 503);
+    await sql`with session as (insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode) values(${id},${userId},${input.requestId},${input.topic},${level},${input.mode}) returning id) insert into practice_game.drill_attempts(id,user_id,session_id,drill_id,topic,level,type,ordinal,started_at,private_variant) select x.id,${userId},session.id,x.drill_id,x.topic,x.level,x.drill_type,x.ordinal,x.started_at,x.private_variant from session cross join jsonb_to_recordset(${sql.json(attempts)}) as x(id uuid,drill_id text,topic text,level integer,drill_type text,ordinal integer,started_at timestamptz,private_variant jsonb)`;
+    await recordPlayEvent(sql, userId, "drill_started", first.id, {
+      topic: first.topic,
+      type: first.drill_type,
+    });
+    const view = roundViewSchema.parse({
+      sessionId: id,
+      mode: input.mode,
+      status: "answering",
+      resumed: false,
+      question: publicQuestion(
+        first.private_variant.definition,
+        first.private_variant.variant,
+        { id: first.id, ordinal: 0, startedAt },
+        attempts.length,
+      ),
+    });
+    return { sessionId: id, view };
   });
 }
 export const getRound = (userId: string, id: string) =>

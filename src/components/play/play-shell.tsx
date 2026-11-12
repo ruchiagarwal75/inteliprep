@@ -24,8 +24,10 @@ export async function PlayShell({
   snapshot?: PlayerSnapshot;
 }) {
   let unavailable = false;
+  let initializeTimeZone = false;
   try {
     const snapshot = suppliedSnapshot ?? (await playerSnapshot(userId));
+    initializeTimeZone = !snapshot.zoneSet;
     points = snapshot.points;
     streak = snapshot.streak;
   } catch {
@@ -35,7 +37,7 @@ export async function PlayShell({
     <CandidateAccountProvider userId={userId}>
       <main className="practice-page">
         <div className="practice-shell">
-          <PlayerBootstrap />
+          {initializeTimeZone && <PlayerBootstrap />}
           <header className="practice-nav">
             <Brand />
             <CandidateProfileMenu />

@@ -5,7 +5,6 @@ import { playAccountId } from "@/lib/play/access";
 import { playTopic, levelsForTopic } from "@/lib/play/catalog";
 import { playerSnapshot } from "@/lib/play/player";
 import { levelUnlocked } from "@/lib/play/round-rules";
-import { PlayShell } from "@/components/play/play-shell";
 import { StartRound } from "@/components/play/start-round";
 import styles from "@/components/play/play.module.css";
 export const dynamic = "force-dynamic";
@@ -25,7 +24,7 @@ export default async function TopicPage({
       .map((row) => row.level),
     reviews = snapshot.reviews.find((row) => row.topic === id)?.count ?? 0;
   return (
-    <PlayShell userId={userId} snapshot={snapshot}>
+    <>
       <Link className="practice-link" href="/play">
         All topics
       </Link>
@@ -81,6 +80,6 @@ export default async function TopicPage({
           </li>
         ))}
       </ul>
-    </PlayShell>
+    </>
   );
 }

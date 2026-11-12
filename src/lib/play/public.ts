@@ -163,6 +163,10 @@ export const roundViewSchema = z.discriminatedUnion("status", [
   }),
 ]);
 export type RoundView = z.infer<typeof roundViewSchema>;
+export const startRoundResultSchema = z.object({
+  sessionId: z.uuid(),
+  view: roundViewSchema.optional(),
+});
 export const submitRoundSchema = z
   .object({ attemptId: z.uuid(), answer: drillAnswerSchema })
   .strict();

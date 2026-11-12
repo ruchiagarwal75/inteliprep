@@ -1,9 +1,10 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
-export async function playAccountId() {
+async function readPlayAccountId() {
   try {
     return await requireCandidateIdentity();
   } catch (cause) {
@@ -13,3 +14,5 @@ export async function playAccountId() {
     throw cause;
   }
 }
+
+export const playAccountId = cache(readPlayAccountId);

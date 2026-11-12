@@ -8,8 +8,7 @@ export function withPlayer<T>(
   work: (sql: PlayTransaction) => Promise<T>,
 ) {
   return reportingDb().begin(async (sql) => {
-    await sql`select set_config('mockmeai.user_id',${userId},true)`;
-    await sql`select pg_advisory_xact_lock(hashtext('mockmeai-play'),hashtext(${userId}))`;
+    await sql`select set_config('mockmeai.user_id',${userId},true),pg_advisory_xact_lock(hashtext('mockmeai-play'),hashtext(${userId}))`;
     return work(sql);
   });
 }

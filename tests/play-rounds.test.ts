@@ -65,7 +65,11 @@ it("starts exactly once, picks five unique drills, preserves timing, and fences 
   expect(rows).toHaveLength(5);
   expect(new Set(rows.map((r) => r.drill_id)).size).toBe(5);
   const first = await getRound(user, sessionId);
-  expect(first.resumed).toBe(false);
+  expect(a.view?.resumed).toBe(false);
+  expect(first.resumed).toBe(true);
+  expect(JSON.stringify(a.view)).not.toMatch(
+    /private_variant|rubric|correctIndex|seniorAnswer/,
+  );
   expect((await getRound(user, sessionId)).resumed).toBe(true);
   expect((await getRound(user, sessionId)).question.startedAt).toBe(
     first.question.startedAt,

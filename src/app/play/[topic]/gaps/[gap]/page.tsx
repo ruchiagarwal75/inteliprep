@@ -2,18 +2,17 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
 import { gapCards } from "@/lib/play/gap-cards";
-import { PlayShell } from "@/components/play/play-shell";
 export default async function GapPage({
   params,
 }: {
   params: Promise<{ topic: string; gap: string }>;
 }) {
-  const userId = await playAccountId(),
-    { topic, gap } = await params;
+  await playAccountId();
+  const { topic, gap } = await params;
   const card = gapCards.find((value) => value.id === gap);
   if (!card || card.topic !== topic) notFound();
   return (
-    <PlayShell userId={userId}>
+    <>
       <Link className="practice-link" href={`/play/${topic}`}>
         Back to levels
       </Link>
@@ -44,6 +43,6 @@ export default async function GapPage({
         </ul>
         <p>Reading this card does not change points or readiness.</p>
       </article>
-    </PlayShell>
+    </>
   );
 }
