@@ -88,12 +88,16 @@ export function DrillCard({
       )}
       {result ? (
         <section className={styles.result} aria-label="Drill result">
-          <h2>{result.correct ? "Correct" : "Try this again"}</h2>
+          <h2>{result.correct ? "Correct" : "Not quite"}</h2>
           {result.badgesEarned?.length > 0 && (
             <Celebration title="Badge earned" badges={result.badgesEarned} />
           )}
           <p>{result.feedback}</p>
-          <p className={styles.points}>+{result.points} points</p>
+          {result.correct ? (
+            <p className={styles.points}>+{result.points} points</p>
+          ) : (
+            <p>This one comes back for review in 2 days.</p>
+          )}
           {result.expected && (
             <p>
               <strong>Answer:</strong> {result.expected}
