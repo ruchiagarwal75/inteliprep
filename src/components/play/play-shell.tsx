@@ -26,9 +26,11 @@ export async function PlayShell({
 }) {
   let unavailable = false;
   let initializeTimeZone = false;
+  let dailyGoal: boolean | undefined;
   try {
     const snapshot = suppliedSnapshot ?? (await playerSnapshot(userId));
     initializeTimeZone = !snapshot.zoneSet;
+    dailyGoal = snapshot.dailyGoal;
     points = snapshot.points;
     streak = snapshot.streak;
   } catch {
@@ -39,7 +41,7 @@ export async function PlayShell({
       <PlayRewardsProvider
         initial={
           points !== undefined && streak !== undefined
-            ? { points, streak }
+            ? { points, streak, dailyGoal }
             : undefined
         }
       >

@@ -176,6 +176,7 @@ export const submitRoundSchema = z
   .object({ attemptId: z.uuid(), answer: drillAnswerSchema })
   .strict();
 export const playTotalsSchema = z.object({
+  dailyGoal: z.boolean().optional(),
   points: z.coerce.number().int().nonnegative(),
   streak: z.number().int().nonnegative(),
 });

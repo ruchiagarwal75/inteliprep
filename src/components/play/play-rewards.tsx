@@ -30,7 +30,8 @@ export function PlayRewardsProvider({
     pending = useRef(initial);
   if (
     initial?.points !== received?.points ||
-    initial?.streak !== received?.streak
+    initial?.streak !== received?.streak ||
+    initial?.dailyGoal !== received?.dailyGoal
   ) {
     setReceived(initial);
     setTotals(initial);
@@ -45,7 +46,11 @@ export function PlayRewardsProvider({
       setTotals(value);
       return;
     }
-    setTotals((old) => (old ? { ...old, streak: value.streak } : value));
+    setTotals((old) =>
+      old
+        ? { ...old, streak: value.streak, dailyGoal: value.dailyGoal }
+        : value,
+    );
     timer.current = window.setTimeout(() => setTotals(pending.current), 650);
   }, []);
   useEffect(() => () => window.clearTimeout(timer.current), []);

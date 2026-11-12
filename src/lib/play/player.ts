@@ -1,3 +1,4 @@
+import { dailyGoal } from "./daily-goal";
 import { ageReadiness } from "./readiness-store";
 import { refreshStreak } from "./streak-store";
 import "server-only";
@@ -5,6 +6,7 @@ import { cache } from "react";
 import { z } from "zod";
 import { ensurePlayer, withPlayer } from "./database";
 const stateSchema = z.object({
+  dailyGoal: z.boolean().optional(),
   points: z.coerce.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   streak: z.number().int().nonnegative(),
   freezes: z.number().int().min(0).max(2),
@@ -45,7 +47,10 @@ async function readPlayerSnapshot(userId: string) {
    'badges',(select coalesce(jsonb_agg(to_jsonb(b)-'user_id'),'[]'::jsonb) from practice_game.badges b),
    'reviews',(select coalesce(jsonb_agg(q),'[]'::jsonb) from (select topic,count(*)::integer as count from practice_game.review_queue where due_at<=now() group by topic)q)
   ) as state from practice_game.player_profiles p join practice_game.streaks s using(user_id) where p.user_id=${userId}`;
-    return stateSchema.parse(row?.state);
+    return stateSchema.parse({
+      ...row?.state,
+      dailyGoal: await dailyGoal(sql, userId),
+    });
   });
 }
 export const profileInputSchema = z

@@ -1,5 +1,6 @@
 "use client";
 import { usePlayRewards } from "./play-rewards";
+import { DailyGoal } from "./daily-goal";
 import { FlameIcon } from "./game-icons";
 import Link from "next/link";
 import styles from "./play.module.css";
@@ -29,6 +30,7 @@ export function ModeNav({
         ))}
       </nav>
       <div className={styles.totals} aria-label="Your progress">
+        <DailyGoal complete={rewards?.totals?.dailyGoal} />
         <span
           className={styles.streak}
           role="img"
