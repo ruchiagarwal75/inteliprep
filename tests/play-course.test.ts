@@ -170,3 +170,53 @@ it("the notebook shows all slides but only the owner's answered questions and so
       ]);
     }
 });
+
+it("schedules course reviews at 2, 5 and 12 days, then clears a successful final review", async () => {
+  for (const step of [5, 12, null]) {
+    await fixture.operator`update practice_game.review_queue set due_at=now()-interval '1 minute' where user_id=${user} and topic=${topic}`;
+    const started = await startRound(user, {
+      topic,
+      mode: "review",
+      requestId: crypto.randomUUID(),
+      timeZone: "UTC",
+    });
+    const q = started.view.question;
+    const [row] =
+      await fixture.operator`select private_variant from practice_game.drill_attempts where id=${q.attemptId}`;
+    const d = drillDefinitionSchema.parse(row.private_variant.definition),
+      v = drillVariantSchema.parse(row.private_variant.variant);
+    if (d.type !== "spot_flaw") throw Error("Expected review choice");
+    const answer = (await import("@/lib/play/public")).drillAnswerSchema.parse({
+      type: "spot_flaw",
+      option: String(v.order.indexOf(d.correctIndex)),
+    });
+    await submitRoundAnswer(user, q.attemptId, answer);
+    const queued =
+      await fixture.operator`select step from practice_game.review_queue where user_id=${user} and topic=${topic}`;
+    if (step === null) expect(queued).toHaveLength(0);
+    else expect(queued[0].step).toBe(step);
+  }
+  expect(gradeWrittenAnswer).not.toHaveBeenCalled();
+});
+it("keeps the additive visit migration idempotent and browser writes forbidden", async () => {
+  const { readFileSync } = await import("node:fs");
+  const before =
+    await fixture.operator`select * from practice_game.points_ledger order by id`;
+  await fixture.operator.unsafe(
+    readFileSync(
+      "supabase/migrations/20261112184249_play_rag_course_visits.sql",
+      "utf8",
+    ),
+  );
+  expect(
+    await fixture.operator`select * from practice_game.points_ledger order by id`,
+  ).toEqual(before);
+  const [permissions] =
+    await fixture.operator`select has_table_privilege('authenticated','practice_game.course_visits','INSERT') as insert,has_table_privilege('authenticated','practice_game.course_visits','UPDATE') as update`;
+  expect(permissions).toEqual({ insert: false, update: false });
+  await fixture.operator.begin(async (tx) => {
+    await tx.unsafe("set local role authenticated");
+    await tx`select set_config('request.jwt.claims',${JSON.stringify({ sub: other })},true)`;
+    expect(await tx`select * from practice_game.course_visits`).toHaveLength(0);
+  });
+});

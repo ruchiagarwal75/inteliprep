@@ -13,6 +13,18 @@ export function privatePlayStrings() {
     "private_reference",
     "practice_drill_grade",
   ]);
+  const course = JSON.parse(
+    readFileSync("src/lib/play/course/rag.json", "utf8"),
+  );
+  for (const topic of course)
+    for (const question of topic.questions)
+      for (const value of [
+        question.prompt,
+        question.keyIdea,
+        question.why,
+        ...Object.values(question.ifWrong),
+      ])
+        values.add(value);
   for (const path of files) {
     const source = readFileSync(path, "utf8");
     if (!source.includes('import "server-only"'))

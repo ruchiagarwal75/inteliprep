@@ -32,3 +32,16 @@ it("rejects missing options, duplicate correct choices and missing feedback", ()
   ])
     expect(() => parseCourseMarkdown(changed)).toThrow();
 });
+
+it("keeps playable path nodes aligned with authored course topics", async () => {
+  const { RAG_COURSE_NODES } = await import("./metadata");
+  expect(
+    RAG_COURSE_NODES.filter((node) => node.available).map((node) => [
+      node.level,
+      node.title,
+    ]),
+  ).toEqual(ragCourse.map((topic) => [topic.level, topic.title]));
+  expect(RAG_COURSE_NODES.filter((node) => !node.available)).toHaveLength(6);
+  for (const node of RAG_COURSE_NODES)
+    expect(Object.keys(node).sort()).toEqual(["available", "level", "title"]);
+});

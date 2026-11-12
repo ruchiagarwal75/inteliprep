@@ -14,8 +14,9 @@ export default function PrivacyPage() {
         streaks, time zone, badges, readiness and review schedule with your
         account on the server. These records sync when you sign in. Signing out
         or clearing browser storage does not remove Play progress. Contact the
-        beta operator to request deletion. AI-graded drill answers are sent to
-        the same AI provider used for mock feedback.
+        beta operator to request deletion. Play course quizzes are checked on
+        our server without sending answers to an AI provider. Mock interviews
+        still use the AI provider described below.
       </p>
       <p>
         Google sign-in through Supabase provides your account ID, email and

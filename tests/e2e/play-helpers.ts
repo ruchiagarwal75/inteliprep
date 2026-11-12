@@ -35,22 +35,18 @@ export async function dismissLevelUp(page: Page) {
   }
 }
 export async function openPlayLevel(page: Page, level: number) {
-  const node = page.locator(`summary[aria-label^="Level ${level}:"]`);
-  if ((await node.getAttribute("aria-label"))?.endsWith(", current")) {
-    await node
-      .locator("../..")
-      .getByRole("button", { name: "Start", exact: true })
-      .click();
-    await expect(
-      page.getByRole("button", { name: "Check answer", exact: true }),
-    ).toBeVisible();
-    return;
+  await page.goto(`/play/rag/topics/${level}`);
+  for (let i = 0; i < 5; i++) {
+    const quiz = page.getByRole("button", { name: "Start quiz", exact: true });
+    if (await quiz.count()) {
+      await quiz.first().click();
+      break;
+    }
+    const counter = page.getByLabel("Slide counter");
+    const previous = await counter.textContent();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(counter).not.toHaveText(previous ?? "");
   }
-  await node.click();
-  await page
-    .locator('details[open][name="level-node"]')
-    .getByRole("button", { name: /^(Start|Practice again)$/u })
-    .click();
   await expect(
     page.getByRole("button", { name: "Check answer", exact: true }),
   ).toBeVisible();
@@ -107,7 +103,7 @@ export async function finishPlayRound(
   capture = false,
   correct = true,
 ) {
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     const view = await playView(page),
       q = view.question;
     await expect(

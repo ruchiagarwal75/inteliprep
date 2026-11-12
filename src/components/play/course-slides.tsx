@@ -51,6 +51,7 @@ export function CourseSlides({
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
       if (
+        lock.current ||
         event.repeat ||
         event.altKey ||
         event.ctrlKey ||
