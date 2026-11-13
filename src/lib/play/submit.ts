@@ -8,7 +8,7 @@ import { needsAiGrade } from "./grading-policy";
 import { reserveAiGrade } from "./ai-usage";
 import { recordPlayEvent } from "./events";
 import { recordDrillReadiness } from "./readiness-store";
-import { nextCombo } from "./game-rules";
+import { nextCombo, drillXp } from "./game-rules";
 import { rewardDrill, rewardRound, grantPoints } from "./rewards";
 import "server-only";
 import { randomUUID } from "node:crypto";
@@ -132,7 +132,7 @@ export async function submitRoundAnswer(
       const comboBonus = await grantPoints(
         sql,
         userId,
-        combo.bonus,
+        drillXp(combo.bonus, rewards.replay),
         "combo",
         attemptId,
       );

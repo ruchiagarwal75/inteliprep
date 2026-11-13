@@ -56,7 +56,15 @@ async function finish(view: RoundView, replay: boolean) {
     ).toEqual(saved);
     expect(saved.result.combo).toBe(replay ? i : i + 1);
     expect(saved.result.comboBonus).toBe(
-      (replay ? i : i + 1) === 3 ? 5 : (replay ? i : i + 1) === 5 ? 10 : 0,
+      (replay ? i : i + 1) === 3
+        ? replay
+          ? 2
+          : 5
+        : (replay ? i : i + 1) === 5
+          ? replay
+            ? 5
+            : 10
+          : 0,
     );
     if (replay && i > 0) expect(saved.result.points).toBe(5);
     if (i === 4) {

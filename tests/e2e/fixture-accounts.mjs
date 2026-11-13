@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  fixes4Replay: {
+    id: "75757575-7575-4575-8575-757575757575",
+    email: "fixes4-replay@example.invalid",
+  },
   fixes4Learn: {
     id: "71717171-7171-4171-8171-717171717171",
     email: "fixes4-learn@example.invalid",

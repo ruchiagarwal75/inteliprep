@@ -172,7 +172,7 @@ it("awards points, a first-try bonus and badges once, with one daily streak incr
     view = await advanceRound(user, id, view.question.attemptId);
   }
   const state = await playerSnapshot(user);
-  expect(state).toMatchObject({ points: 180, streak: 1 });
+  expect(state).toMatchObject({ points: 172, streak: 1 });
   expect(state.badges.map((b) => b.badge_id)).toEqual(
     expect.arrayContaining(["first-level", "math-five"]),
   );

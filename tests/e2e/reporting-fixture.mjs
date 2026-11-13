@@ -96,13 +96,16 @@ export async function startReportingFixture(key, cert) {
     const course = JSON.parse(
       readFileSync("src/lib/play/course/rag.json", "utf8"),
     );
-    for (const name of ["fixes4Learn", "fixes4Quiz"]) {
+    for (const name of ["fixes4Learn", "fixes4Quiz", "fixes4Replay"]) {
       const account = fixtureAccounts[name];
       for (const topic of course) {
         await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${account.id},'rag-course',${topic.level},${topic.level < 3 ? "passed" : "open"},${topic.level < 3 ? new Date() : null}) on conflict do nothing`;
         await operator`insert into practice_game.course_visits(user_id,course_id,level,seen_through,last_viewed_index,completed_at) values(${account.id},'rag-course',${topic.level},${topic.slides.length - 1},${topic.slides.length - 1},now())`;
       }
     }
+    // A historical completed round makes the replay story a real replay,
+    // including the first-try bonus eligibility check.
+    await operator`insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode,created_at,completed_at) values(${randomUUID()},${fixtureAccounts.fixes4Replay.id},${randomUUID()},'rag-course',0,'level',now()-interval '2 days',now()-interval '2 days')`;
     for (const level of [0, 1, 2])
       await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${fixtureAccounts.fixes4Path.id},'rag-course',${level},${level < 2 ? "passed" : "open"},${level < 2 ? new Date() : null})`;
     for (const level of [0, 1])

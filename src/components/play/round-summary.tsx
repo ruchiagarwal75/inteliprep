@@ -70,6 +70,7 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
             <CountedXp value={summary.pointsEarned} />
           </p>
         )}
+        {summary.replay && <p>Replay: half XP.</p>}
         {summary.bonusPoints > 0 && (
           <p className={styles.bonus}>
             Includes +{summary.bonusPoints} XP for your first-try pass.

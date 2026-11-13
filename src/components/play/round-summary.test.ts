@@ -24,11 +24,13 @@ it("shows the actual level name and stored rewards as pixel labels, with readabl
     earnedBadges: [],
     practiceReadyNow: false,
     pointsEarned: 45,
+    replay: true,
   });
   const html = renderToStaticMarkup(
     createElement(RoundSummaryCard, { summary }),
   );
   expect(html).toContain("Scale math");
+  expect(html).toContain("Replay: half XP.");
   expect(html).toContain('aria-label="45 XP earned"');
   expect(html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ")).toContain(
     "3 of 5. Get 4 to pass.",

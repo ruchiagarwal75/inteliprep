@@ -79,7 +79,7 @@ export async function rewardDrill(
     const badge = await awardBadge(sql, userId, "streak-seven");
     if (badge) badges.push(badge);
   }
-  return { points, badges };
+  return { points, badges, replay };
 }
 export async function rewardRound(
   sql: PlayTransaction,

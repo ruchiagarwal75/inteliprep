@@ -92,3 +92,16 @@ it. Topics 1, 2 and 3 each trigger at 5 of 7; their content is outside this item
 requested edits and is left unchanged. Warning boundary and tie tests pass.
 The full quiz browser matrix is rerun with the new options. Screenshots:
 `quiz-{light,dark}-{1440,375}.png`.
+
+## 7. Half-XP replay combos
+
+Combo rewards now use the same server-derived replay flag as answer points,
+including reviews of passed topics. A three-answer combo earns 2 XP on replay;
+a five-answer combo earns 5 XP. New replay results show Replay: half XP. Cached
+submissions, stored completed summaries and historical ledger rows are unchanged.
+
+The actual Postgres replay test covers a normal pass, a 7-of-8 replay earning
+44 XP, duplicate submissions, unchanged old ledger rows and passed-topic reviews.
+The stars regression and summary-render tests also pass. The browser completes a
+synthetic replay and checks its 2/5 XP combo messages, 44 XP total and result line.
+Screenshots: `replay-{light,dark}-{1440,375}.png`.
