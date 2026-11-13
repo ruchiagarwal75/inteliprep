@@ -58,10 +58,10 @@ it("keeps playable path nodes aligned with authored course topics", async () => 
       )
       .map((topic) => [topic.level, topic.title]),
   );
-  expect(RAG_COURSE_NODES.filter((node) => !node.available)).toHaveLength(6);
+  expect(RAG_COURSE_NODES.filter((node) => !node.available)).toHaveLength(3);
   for (const node of RAG_COURSE_NODES)
     expect(Object.keys(node).sort()).toEqual(
-      node.level <= 3
+      node.level <= 6
         ? ["available", "level", "minutes", "title"]
         : ["available", "level", "title"],
     );

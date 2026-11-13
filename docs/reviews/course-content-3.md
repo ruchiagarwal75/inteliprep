@@ -17,3 +17,17 @@ full questions and solutions appear only after the owner's submission.
 The source contracts compare every authored field and slide paragraph. All 228
 non-primer options, including the 120 new options, use the real static grader.
 Existing saved snapshots and the original Topics 0 to 3 remain compatible.
+
+## 2. Path and rewards
+
+Topics 4 to 6 are open content, with sequential prerequisites and About 15 min
+labels. Topics 7 to 9 stay Soon. The path copy now names Topics 0 to 6.
+The existing ten-topic and thirty-star totals include these topics automatically.
+No pass, star, XP, combo, first-attempt bonus or review rule changed.
+
+The isolated Postgres test passes each new quiz at 8/10, checks the next unlock,
+records two review items per quiz and confirms the existing first-attempt bonus.
+It reads the Topic 6 chest from a new snapshot and retries opening it, proving one
+ledger award. Unanswered notebook entries expose no question or grading fields.
+Item 2 passes all 1,961 tests and the production build, including both private
+browser-chunk scans. No data migration or user progress reset is needed.

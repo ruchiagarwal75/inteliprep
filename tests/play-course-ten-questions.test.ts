@@ -80,10 +80,10 @@ it("a weaker new attempt cannot revoke an old pass, stars, timing or points", as
     await fixture.operator`select delta from practice_game.points_ledger where user_id=${other} and reason='legacy-fixture'`;
   expect(points.delta).toBe(88);
 });
-it("shows the authored time estimate on all three full topics", () => {
+it("shows the authored time estimate on all six full topics", () => {
   expect(
-    RAG_COURSE_NODES.filter((n) => n.level >= 1 && n.level <= 3).map((n) =>
+    RAG_COURSE_NODES.filter((n) => n.level >= 1 && n.level <= 6).map((n) =>
       "minutes" in n ? n.minutes : undefined,
     ),
-  ).toEqual([15, 15, 15]);
+  ).toEqual([15, 15, 15, 15, 15, 15]);
 });
