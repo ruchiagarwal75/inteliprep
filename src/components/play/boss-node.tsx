@@ -3,6 +3,7 @@ import type { RagBossState } from "@/lib/rag-boss-public";
 import { BossGate } from "./boss-gate";
 import { InterviewerSprite, BOSS_LINES } from "./interviewer-sprite";
 import { BossStart } from "./boss-start";
+import { ProInterestButton } from "@/components/pro-interest-button";
 import styles from "./boss.module.css";
 export function BossNode({ boss }: { boss: RagBossState }) {
   const result = "result" in boss ? boss.result : null;
@@ -56,9 +57,7 @@ export function BossNode({ boss }: { boss: RagBossState }) {
           <p className={styles.dialogue}>{BOSS_LINES.notPassed}</p>
           <div className={styles.actions}>
             {boss.state === "used" ? (
-              <Link className="practice-primary" href="/mock">
-                Retry with Pro
-              </Link>
+              <ProInterestButton label="Retry with Pro" primary />
             ) : (
               <BossStart free={false} retry />
             )}

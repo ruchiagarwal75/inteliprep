@@ -3,10 +3,22 @@ import { playAccountId } from "@/lib/play/access";
 import { problemBriefs } from "@/lib/problems";
 import { PlayShell } from "@/components/play/play-shell";
 import styles from "@/components/play/play.module.css";
+import { mockAccess } from "@/lib/mock-access-store";
+import { LockedMocks } from "@/components/locked-mocks";
 export const dynamic = "force-dynamic";
 export default async function MockPage() {
   const userId = await playAccountId(),
     problems = problemBriefs();
+  const access = await mockAccess(userId);
+  if (access.plan === "free")
+    return (
+      <PlayShell userId={userId} active="mock">
+        <LockedMocks
+          problems={problems}
+          interested={Boolean(access.proInterestAt)}
+        />
+      </PlayShell>
+    );
   return (
     <PlayShell userId={userId} active="mock">
       <h1>Mock interviews</h1>

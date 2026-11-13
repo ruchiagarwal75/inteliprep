@@ -60,7 +60,15 @@ no-op changes do not add audit rows. The configured admin cannot lose Pro.
 
 Local isolated Postgres verification passed default plans, fresh grants/revokes,
 reset idempotency, interest deduplication, audit identity/times, owner isolation
-and denied browser writes. The migration has not been applied to a hosted database.
+and denied browser writes.
+
+Hosted migration: the existing connection has been verified against app project
+`bjqjocrfsiprlvnitfuo`; the course tables and restricted role exist and the new
+access table did not. On November 13 the tested additive migration was applied
+there with the existing operator connection. All three tables were verified with
+RLS, owner-only authenticated SELECT, no anonymous reads and no browser writes. The
+Supabase connector is unavailable in this session. This creates new tables in
+the shared database; existing application tables and account progress are untouched.
 
 ## 3. Server start and fairness
 
@@ -138,3 +146,17 @@ specified Learn topics, including Topic 0. Solid, Strong, unassessed and other
 problems have no replay links. This navigation threshold does not decide boss
 passing and does not change the grader. All seven current area titles are tested
 against the mapping. Original quotes and evidence rendering are unchanged.
+
+## 7. Free Mock views
+
+The server chooses the Free catalog on `/mock` and `/interview/new`. All problems
+show a lock and Pro label, and RAG links to its one free boss attempt. Pro/admin
+accounts retain the original catalog and Brief. History, interview and results
+routes retain their existing owner checks, with no plan gate.
+
+Locked buttons, including Retry with Pro, open the same short interest dialog.
+The candidate-protected, same-origin `/api/mock/interest` command accepts only an
+empty bounded body and uses the feedback request limits. It records one timestamp
+per user, shown on their admin detail page. It sends no email. Targeted tests
+passed signed-out/invite/origin denials, owner selection, input bounds, 429 and
+deduplicated storage.

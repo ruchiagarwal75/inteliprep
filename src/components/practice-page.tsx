@@ -7,6 +7,9 @@ import { problemBriefs } from "@/lib/problems";
 import { CandidateWorkspace } from "@/components/candidate-workspace";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
+import { mockAccess } from "@/lib/mock-access-store";
+import { LockedMocks } from "@/components/locked-mocks";
+import { PlayShell } from "@/components/play/play-shell";
 export async function PracticePage({
   view,
   sessionId,
@@ -40,6 +43,18 @@ export async function PracticePage({
   }
   if (view === "home") redirect("/play");
   const problems = problemBriefs();
+  if (view === "brief") {
+    const access = await mockAccess(userId);
+    if (access.plan === "free")
+      return (
+        <PlayShell userId={userId} active="mock">
+          <LockedMocks
+            problems={problems}
+            interested={Boolean(access.proInterestAt)}
+          />
+        </PlayShell>
+      );
+  }
   return (
     <CandidateWorkspace
       key={userId}
