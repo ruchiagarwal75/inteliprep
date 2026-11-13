@@ -53,7 +53,7 @@ it("keeps pacing controls out of chat bubbles without changing their stored cont
   );
   expect(html).toContain("Which requirements would you clarify first?");
   expect(html).toContain("The cache serves reads.");
-  expect(html).toContain("MockMeAI interviewer");
+  expect(html).toContain("Shardling interviewer");
   expect(html).not.toContain("Full configured problem brief");
   expect(html).not.toContain("Started explaining");
   expect(html).not.toContain("Choose Ready to explain");

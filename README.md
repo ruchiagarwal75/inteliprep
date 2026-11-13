@@ -1,4 +1,4 @@
-# MockMeAI
+# Shardling
 
 Practice a system design interview with an AI interviewer and an Excalidraw
 whiteboard. Choose a problem, difficulty and duration; clarify requirements,
@@ -137,9 +137,9 @@ The Brief sends one POST per Start click with an account-scoped client request U
 
 For the one-minute local test, set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` and the server-only `INTELIPREP_ALLOW_TEST_INTERVIEWS=1` (or sign in as the configured admin) in `.env.local`, restart `npm run dev` and reload the Brief. Select **1 minute (test)** before starting. `?debug=1` has no effect. Production bundles need rebuilding after a public environment setting changes. Local start quotas are off unless `INTELIPREP_DEV_START_LIMITS=on`; chat/model quotas stay enabled.
 
-## MockMeAI branding and domain
+## Shardling branding and domain
 
-The public product name is **MockMeAI**, with `https://mockmeai.com` as its intended
+The public product name is **Shardling**, with `https://shardling.com` as its intended
 public origin. `src/lib/brand.ts` owns the shared name, description, and domain.
 The wordmark, teal/navy theme, favicon, and Apple touch icon use the same identity.
 
@@ -150,13 +150,13 @@ Rebranding does not rename databases or remove saved interviews.
 
 Before serving the app on the custom domain:
 
-- Add `mockmeai.com` to the existing Vercel project and configure the DNS records
+- Add `shardling.com` to the existing Vercel project and configure the DNS records
   Vercel supplies. Keep the current beta deployment protection policy.
-- Add `https://mockmeai.com/auth/callback` to Supabase's allowed app return URLs.
+- Add `https://shardling.com/auth/callback` to Supabase's allowed app return URLs.
   Set its Site URL to the custom origin when cutting over. Keep the existing
   local and beta return URLs while they are still in use.
-- Update Google's consent-screen display name to **MockMeAI** and add
-  `https://mockmeai.com` to the OAuth client's JavaScript origins. The existing
+- Update Google's consent-screen display name to **Shardling** and add
+  `https://shardling.com` to the OAuth client's JavaScript origins. The existing
   Google-to-Supabase callback remains unchanged.
 
 Browser history is scoped to a website origin. Existing interviews remain on the

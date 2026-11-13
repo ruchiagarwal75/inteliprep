@@ -16,7 +16,7 @@ vi.mock("@/lib/approval-email", async (original) => ({
 const claimed = {
   id: "notification-id",
   email: "person@example.test",
-  sender: "MockMeAI <hello@mockmeai.com>",
+  sender: "Shardling <hello@shardling.com>",
   subject: "Frozen subject",
   body: "Frozen body",
 };

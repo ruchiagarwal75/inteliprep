@@ -7,10 +7,9 @@ import {
   THEME_BOOTSTRAP,
 } from "@/lib/theme-preference";
 import { AppViewerTracker } from "@/components/app-viewer-tracker";
-import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import "./globals.css";
-import { BRAND } from "@/lib/brand";
+import { siteMetadata } from "@/lib/site-metadata";
 
 // Request-specific CSP nonces cannot be embedded in statically generated HTML.
 export const dynamic = "force-dynamic";
@@ -31,19 +30,7 @@ const displayFont = Lora({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(BRAND.url),
-  applicationName: BRAND.name,
-  title: `${BRAND.name} · ${BRAND.tagline}`,
-  description: BRAND.description,
-  openGraph: {
-    type: "website",
-    siteName: BRAND.name,
-    title: `${BRAND.name} · System design interview practice`,
-    description: BRAND.description,
-  },
-  robots: { index: false, follow: false },
-};
+export const metadata = siteMetadata;
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const theme =

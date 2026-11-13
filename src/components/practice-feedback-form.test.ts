@@ -21,10 +21,10 @@ it("keeps the existing question order and adds the preference on results only", 
     }),
   );
   expect(html.indexOf("How was your practice interview?")).toBeLessThan(
-    html.indexOf("Would you do another interview on MockMeAI?"),
+    html.indexOf("Would you do another interview on Shardling?"),
   );
   expect(
-    html.indexOf("Would you do another interview on MockMeAI?"),
+    html.indexOf("Would you do another interview on Shardling?"),
   ).toBeLessThan(html.indexOf(question));
   expect(html.indexOf(question)).toBeLessThan(
     html.indexOf("Anything else you want to share?"),

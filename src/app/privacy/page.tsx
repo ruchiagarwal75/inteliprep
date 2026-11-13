@@ -1,6 +1,7 @@
+import { pageMetadata } from "@/lib/site-metadata";
 import { BRAND } from "@/lib/brand";
 import { LegalPage } from "@/components/legal-page";
-export const metadata = { title: `Privacy policy | ${BRAND.name}` };
+export const metadata = pageMetadata("Privacy policy", "/privacy");
 export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy policy">

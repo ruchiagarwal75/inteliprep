@@ -1,7 +1,8 @@
+import { pageMetadata } from "@/lib/site-metadata";
 import { BRAND } from "@/lib/brand";
 import Link from "next/link";
 import { LegalPage } from "@/components/legal-page";
-export const metadata = { title: `Terms | ${BRAND.name}` };
+export const metadata = pageMetadata("Terms", "/terms");
 export default function TermsPage() {
   return (
     <LegalPage title="Terms of use">

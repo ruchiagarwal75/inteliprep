@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { BRAND } from "@/lib/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { adminPageAccess } from "@/lib/admin-page-access";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const metadata = {
-  title: `Private admin | ${BRAND.name}`,
+  title: "Private admin",
   robots: { index: false, follow: false },
 };
 export default async function AdminLayout({

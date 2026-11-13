@@ -9,8 +9,8 @@ The existing beta URL is
 
 ## Custom domain
 
-`mockmeai.com` serves the Production deployment of the same Vercel
-project. `www.mockmeai.com` redirects to `mockmeai.com` with HTTP 308. Vercel
+`shardling.com` serves the Production deployment of the same Vercel
+project. `www.shardling.com` redirects to `shardling.com` with HTTP 308. Vercel
 Authentication protects Preview deployments. Production uses the application's invitation checks; testers do not need a Vercel account.
 
 DNS is hosted at GoDaddy. Vercel's domain configuration is the source of truth for
@@ -18,8 +18,8 @@ the required A and CNAME records; check it before updating the zone. Preserve MX
 TXT, nameservers, and unrelated records. After DNS changes, verify both hostnames,
 HTTPS, the www redirect, candidate sign-in/invitation enforcement, and `/api/health`.
 
-Supabase Site URL is `https://mockmeai.com`, with
-`https://mockmeai.com/auth/callback` allowed alongside the existing localhost and
+Supabase Site URL is `https://shardling.com`, with
+`https://shardling.com/auth/callback` allowed alongside the existing localhost and
 Vercel beta callbacks. The Google-to-Supabase callback remains unchanged.
 Browser interview history remains on the hostname where it was saved; switching
 to the custom domain does not copy or delete that IndexedDB history.

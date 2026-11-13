@@ -25,8 +25,8 @@ it("sends a fixed approval template from the verified brand with a stable retry 
       signal: expect.any(AbortSignal),
     }),
   );
-  expect(payload.from).toBe("MockMeAI <hello@mockmeai.com>");
-  expect(payload.text).toContain("https://mockmeai.com");
+  expect(payload.from).toBe("Shardling <hello@shardling.com>");
+  expect(payload.text).toContain("https://shardling.com");
   expect(payload.text).toContain("person@example.test");
 });
 

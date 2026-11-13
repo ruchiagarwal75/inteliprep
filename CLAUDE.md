@@ -1,4 +1,4 @@
-# MockMeAI
+# Shardling
 
 AI system design interviewer. An AI runs a 45 minute system design interview over
 text chat while watching the candidate's Excalidraw whiteboard, then produces a

@@ -1,6 +1,7 @@
 {
   "name": "mockmeai",
   "version": "0.1.0",
+  "description": "Shardling: AI mock system design interviews",
   "private": true,
   "engines": {
     "node": "24.x"

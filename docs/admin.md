@@ -41,7 +41,7 @@ have RLS and no browser table grants; the invitation exception is described belo
    Click **Approve** beside the account. The entry moves into Invitations as
    approved. Alternatively, enter a Google email under **Invite by email** before
    the person signs in. A new approval sends a notification from
-   `MockMeAI <hello@mockmeai.com>` through Resend.
+   `Shardling <hello@shardling.com>` through Resend.
 3. They can refresh or sign in. **Revoke** withdraws access on their next protected
    request without deleting their account or saved interviews.
 
@@ -58,9 +58,9 @@ pagination controls. Existing approvals, accounts and saved interviews remain in
 
 ### Approval emails
 
-Verify `mockmeai.com` in Resend and add a **sending-only** `RESEND_API_KEY` to
+Verify `shardling.com` in Resend and add a **sending-only** `RESEND_API_KEY` to
 `.env.local` for local work and Vercel **Production** for the deployed app.
-The key is server-only. The verified sender is `hello@mockmeai.com`; no mailbox
+The key is server-only. The verified sender is `hello@shardling.com`; no mailbox
 or Supabase Auth SMTP change is required for these outgoing notifications.
 Sending does not change the Google OAuth test-user list.
 

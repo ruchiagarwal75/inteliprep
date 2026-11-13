@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/lib/site-metadata";
 import { LegalLinks } from "@/components/legal-links";
 import { redirect } from "next/navigation";
 import { GoogleSignIn } from "@/components/google-sign-in";
@@ -10,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Brand } from "@/components/brand";
 import { BRAND } from "@/lib/brand";
 
-export const metadata = { title: `Sign in | ${BRAND.name}` };
+export const metadata = pageMetadata("Sign in", "/sign-in");
 export const dynamic = "force-dynamic";
 
 export default async function SignInPage({

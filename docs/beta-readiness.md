@@ -33,12 +33,12 @@ No console settings or environment variables were changed for this work.
 
 1. In the Google Cloud project that owns the OAuth client, open Google Auth
    Platform, then Branding.
-2. Set the app name to MockMeAI and choose a support email you monitor.
+2. Set the app name to Shardling and choose a support email you monitor.
 3. Upload the existing square logo, `src/app/apple-icon.png`.
-4. Add `mockmeai.com` to authorized domains. Keep the required Supabase domain
+4. Add `shardling.com` to authorized domains. Keep the required Supabase domain
    and the existing OAuth callback URI.
-5. Set homepage to `https://mockmeai.com`, privacy policy to
-   `https://mockmeai.com/privacy`, and terms to `https://mockmeai.com/terms`.
+5. Set homepage to `https://shardling.com`, privacy policy to
+   `https://shardling.com/privacy`, and terms to `https://shardling.com/terms`.
 6. Save, finish Google's verification if requested, and test a fresh Google
    sign-in to check the displayed name and logo.
 

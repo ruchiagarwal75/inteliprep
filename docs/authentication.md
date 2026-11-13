@@ -12,7 +12,7 @@ The InteliPrep Supabase project is `bjqjocrfsiprlvnitfuo`. Its Google provider c
 https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback
 ```
 
-1. In the Google Cloud project, configure the consent screen for MockMeAI with
+1. In the Google Cloud project, configure the consent screen for Shardling with
    External audience. During testing, add the test accounts under Audience.
 2. Configure only the basic sign-in scopes: `openid`, email, and profile.
 3. Create an OAuth client of type Web application. Add the Supabase callback above
@@ -21,13 +21,13 @@ https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback
 4. Enter Google’s Client ID and Client Secret directly into Supabase’s Google
    provider settings, enable the provider, and save. The Google secret belongs in
    Supabase; the app does not need it.
-5. In Supabase → Authentication → URL Configuration, use `https://mockmeai.com` as
+5. In Supabase → Authentication → URL Configuration, use `https://shardling.com` as
    Site URL. Keep these exact app return URLs:
 
 ```text
 http://localhost:3000/auth/callback
 https://inteliprep-ruchiagarwal75s-projects.vercel.app/auth/callback
-https://mockmeai.com/auth/callback
+https://shardling.com/auth/callback
 ```
 
 The Google-to-Supabase callback and Supabase-to-app return URLs serve different
@@ -155,20 +155,20 @@ Do not create or replace the client, secret or callback during a branding change
 
 1. Open **Google Auth Platform → Branding** (or APIs & Services → OAuth consent
    screen in the older navigation).
-2. Set **App name** to **MockMeAI**. Select a support email you monitor and keep
+2. Set **App name** to **Shardling**. Select a support email you monitor and keep
    the developer-contact email current.
-3. Upload the existing MockMeAI square logo from `src/app/apple-icon.png` (also
-   served at `https://mockmeai.com/apple-icon.png`). Google accepts PNG/JPG/BMP,
+3. Upload the existing Shardling square logo from `src/app/apple-icon.png` (also
+   served at `https://shardling.com/apple-icon.png`). Google accepts PNG/JPG/BMP,
    under 1 MB, and recommends 120 × 120. Do not upload the SVG logo.
 4. Under **App domain**, set:
-   - Homepage: `https://mockmeai.com`
-   - Privacy policy: `https://mockmeai.com/privacy`
-   - Terms of service: `https://mockmeai.com/terms`
-5. Under **Authorized domains**, add `mockmeai.com` and complete ownership
+   - Homepage: `https://shardling.com`
+   - Privacy policy: `https://shardling.com/privacy`
+   - Terms of service: `https://shardling.com/terms`
+5. Under **Authorized domains**, add `shardling.com` and complete ownership
    verification if Google requests it. Keep the Supabase domain required by the
    existing callback configuration.
 6. Under **Clients**, edit the existing Web application client. Include
-   `https://mockmeai.com` in Authorized JavaScript origins. Preserve the redirect
+   `https://shardling.com` in Authorized JavaScript origins. Preserve the redirect
    URI `https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback` exactly.
 7. Under **Audience**, keep External and Testing during private beta, with the
    intended test accounts. The Google test list and the app invitation list are
@@ -178,7 +178,7 @@ Do not create or replace the client, secret or callback during a branding change
    verification, reviewers must be able to reach the homepage and policy links;
    coordinate that with the deliberate end of deployment-level beta protection.
 9. Test a fresh Google sign-in, confirm the displayed branding and return to
-   MockMeAI, and verify an invited account can start while an uninvited account
+   Shardling, and verify an invited account can start while an uninvited account
    sees the invitation notice.
 
 Reference: [Google's OAuth branding settings](https://support.google.com/cloud/answer/15549049).
@@ -220,7 +220,7 @@ beta hostname.
 
 1. Open the [IntelliPrep Supabase project's URL Configuration](https://supabase.com/dashboard/project/bjqjocrfsiprlvnitfuo/auth/url-configuration).
 2. Under **Authentication → URL Configuration**, keep **Site URL** set to
-   `https://mockmeai.com`. This remains the production default.
+   `https://shardling.com`. This remains the production default.
 3. Under **Redirect URLs**, choose **Add URL** and add this exact URL:
 
    ```text

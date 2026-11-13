@@ -743,7 +743,7 @@ test("the brief remembers level and defaults to the suggested next problem", asy
   await expect(
     page.getByRole("heading", { name: "Too short to score", exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "MockMeAI home", exact: true }).click();
+  await page.getByRole("link", { name: "Shardling home", exact: true }).click();
   await page.goto("/interview/new");
   await expect(
     page.getByRole("combobox", { name: "Difficulty", exact: true }),
