@@ -907,7 +907,7 @@
   },
   {
     "path": "src/app/theme.css",
-    "line": 226,
+    "line": 233,
     "text": "--font-accent: \"MockMeAI handwriting\", cursive;",
     "reason": "Internal CSS font-family alias shared between declaration and use. Not displayed text."
   },

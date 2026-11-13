@@ -1,0 +1,367 @@
+.dialog {
+  --font-play-read: "Pixelify Sans", monospace;
+  --game-world: var(--pixel-violet);
+  --game-world-edge: var(--pixel-violet-edge);
+  --foreground: var(--intro-text);
+  --muted: var(--intro-muted);
+  --focus-ring: var(--pixel-sprite-gold);
+  --surface: var(--intro-panel);
+  color: var(--intro-text);
+  background: var(--intro-sky);
+  border: 4px solid var(--intro-edge);
+  border-radius: 0;
+  padding: 20px 24px;
+  margin: auto;
+  width: min(760px, calc(100vw - 24px));
+  max-width: none;
+  height: min(608px, calc(100dvh - 24px));
+  max-height: none;
+  overflow: hidden;
+  font-family: "Pixelify Sans", monospace;
+}
+.dialog::backdrop {
+  background: var(--backdrop);
+}
+.shell {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 44px 54px minmax(120px, 1fr) 104px 36px 64px;
+  gap: 8px;
+}
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.top small {
+  font-size: 18px;
+}
+.skip,
+.back,
+.look {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--intro-text);
+  text-decoration: underline;
+  font:
+    400 18px/1.3 "Pixelify Sans",
+    monospace;
+  min-height: 44px;
+  padding: 8px;
+  cursor: pointer;
+}
+.dialog .shell .dialog .shell .title {
+  color: var(--pixel-sprite-gold);
+  font: 400 18px/1.6 var(--font-play-pixel);
+  text-align: center;
+  margin: 0;
+  align-self: center;
+}
+.scene {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  animation: wipe 180ms steps(3, end);
+}
+.stars {
+  position: absolute;
+  inset: 0;
+}
+.stars span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--intro-text);
+  animation: twinkle 3s steps(2, end) infinite;
+}
+.ground {
+  position: absolute;
+  inset: auto 0 0;
+  height: 24px;
+  border-top: 8px solid var(--pixel-violet);
+  background: var(--pixel-violet-edge);
+}
+.ground::after {
+  content: "";
+  position: absolute;
+  inset: 4px 0;
+  border-top: 4px dashed var(--intro-brick);
+  border-bottom: 4px dashed var(--intro-brick);
+}
+.shardling {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+}
+.shardling img {
+  display: block;
+  image-rendering: pixelated;
+  animation: idle 1500ms steps(2, end) infinite;
+}
+.path {
+  position: absolute;
+  left: 9%;
+  right: 9%;
+  bottom: 27px;
+  height: 12px;
+  border-top: 8px dotted var(--pixel-sprite-gold);
+  transform: rotate(-5deg);
+  transform-origin: left;
+}
+.worlds {
+  display: flex;
+  position: absolute;
+  top: 4px;
+  inset-inline: 10%;
+  justify-content: space-between;
+  gap: 12px;
+}
+.worlds > div {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  min-width: 64px;
+}
+.worlds > div > div {
+  width: 56px;
+  height: 56px;
+  background: var(--pixel-violet);
+  border-color: var(--pixel-violet-edge);
+}
+.worlds span,
+.worlds small {
+  font:
+    18px/1 "Pixelify Sans",
+    monospace;
+}
+.worlds small {
+  color: var(--intro-muted);
+}
+.encounter {
+  position: absolute;
+  bottom: 24px;
+  right: 16%;
+  display: flex;
+  align-items: end;
+}
+.encounter > svg {
+  opacity: 0.85;
+}
+.bossArrival {
+  margin-left: -48px;
+  animation: arrive 600ms steps(3, end) both;
+}
+.guide {
+  --guide-size: 140px;
+  position: absolute;
+  bottom: 24px;
+  left: 16%;
+  animation: idle 1500ms steps(2, end) infinite;
+}
+.treasure {
+  position: absolute;
+  bottom: 24px;
+  right: 16%;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+.xp {
+  padding: 8px;
+  border: 4px solid var(--pixel-sprite-gold);
+  color: var(--pixel-sprite-gold);
+  font: 16px/1 var(--font-play-pixel);
+}
+.threeStars {
+  display: flex;
+  gap: 8px;
+}
+.scene[data-scene="4"] .shardling {
+  left: 16%;
+}
+.startFlag {
+  position: absolute;
+  bottom: 92px;
+  left: 14%;
+  font: 16px/1 var(--font-play-pixel);
+  color: var(--pixel-sprite-gold);
+}
+.farGate {
+  position: absolute;
+  right: 14%;
+  bottom: 44px;
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+.speech {
+  position: relative;
+  border: 4px solid var(--intro-edge);
+  padding: 18px 20px 12px;
+  background: var(--intro-panel);
+}
+.speaker {
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  padding: 0 8px;
+  background: var(--intro-panel);
+  color: var(--pixel-sprite-gold);
+  font: 400 10px/1.6 var(--font-play-pixel);
+}
+.speech p {
+  font:
+    400 22px/1.35 "Pixelify Sans",
+    monospace;
+  margin: 0;
+  color: var(--intro-text);
+}
+.arrow {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+  font:
+    18px/1 "Pixelify Sans",
+    monospace;
+  color: var(--pixel-sprite-gold);
+  animation: twinkle 800ms steps(2, end) infinite;
+}
+.dots {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+.dots span {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--intro-muted);
+}
+.dots span[aria-current="step"] {
+  background: var(--pixel-sprite-gold);
+  border-color: var(--pixel-sprite-gold);
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+.final {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.error {
+  position: absolute;
+  bottom: 4px;
+  left: 24px;
+  margin: 0;
+  color: var(--pixel-sprite-gold);
+  font-size: 18px;
+}
+.dialog button:focus-visible {
+  outline: 3px solid var(--pixel-sprite-gold);
+  outline-offset: 4px;
+}
+.dialog[data-paused] * {
+  animation-play-state: paused !important;
+}
+@keyframes wipe {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes arrive {
+  from {
+    transform: translateX(32px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes idle {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes twinkle {
+  50% {
+    opacity: 0.3;
+  }
+}
+@media (max-width: 600px) {
+  .dialog {
+    padding: 12px;
+    height: min(688px, calc(100dvh - 24px));
+  }
+  .shell {
+    grid-template-rows: 44px 64px minmax(140px, 1fr) 112px 28px 116px;
+    gap: 8px;
+  }
+  .dialog .shell .dialog .shell .title {
+    font-size: 14px;
+  }
+  .speech {
+    padding: 20px 12px 8px;
+  }
+  .speech p {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+  .speaker {
+    font-size: 9px;
+    padding-inline: 4px;
+    left: 8px;
+  }
+  .actions {
+    align-items: center;
+  }
+  .final {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .actions :global(.practice-primary) {
+    font-size: 10px;
+    min-height: 48px;
+  }
+  .guide {
+    left: 6%;
+  }
+  .treasure {
+    right: 4%;
+  }
+  .encounter {
+    right: 8%;
+  }
+  .worlds {
+    inset-inline: 4%;
+  }
+  .farGate {
+    right: 5%;
+  }
+  .startFlag {
+    left: 5%;
+  }
+  .scene[data-scene="4"] .shardling {
+    left: 16%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog *,
+  .dialog *::before,
+  .dialog *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

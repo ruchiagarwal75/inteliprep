@@ -12,5 +12,12 @@
     "sha256": "42144b97bd2942ea606e5d880684eae0f7be5c804bdd57b1faac5a8d7699ae6e",
     "license": "public/fonts/play/PressStart2P-OFL.txt",
     "licenseSource": "https://github.com/google/fonts/blob/main/ofl/pressstart2p/OFL.txt"
+  },
+  {
+    "file": "public/fonts/play/PixelifySans-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/pixelifysans/v3/CHylV-3HFUT7aC4iv1TxGDR9Jn0Eiw.woff2",
+    "sha256": "4a5633a0c9c1b73abd133a56d3716c2d8df2ed03cb987346f72194aeb224f382",
+    "license": "public/fonts/play/PixelifySans-OFL.txt",
+    "licenseSource": "https://github.com/google/fonts/blob/main/ofl/pixelifysans/OFL.txt"
   }
 ]

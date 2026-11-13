@@ -1,5 +1,12 @@
 /* All application and illustration colors are defined here. Light is the default. */
 :root {
+  /* The story is a fixed night scene in either app theme. */
+  --intro-sky: #17143a;
+  --intro-panel: #19152f;
+  --intro-text: #ffffff;
+  --intro-muted: #c3b2ff;
+  --intro-edge: #ffffff;
+  --intro-brick: #6c56a3;
   /* Supplied boss pigments stay unchanged in both themes. */
   --boss-outline: #141026;
   --boss-hair: #221c3a;
