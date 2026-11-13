@@ -33,3 +33,20 @@ vertical padding, with a tap target above 44px.
 `course-fixes-4-quiz.spec.ts` visits every question in Topics 0 through 3 in both
 themes and target sizes. When all options are one line, it requires all four to
 sit above Check without scrolling. Screenshots: `quiz-{light,dark}-{1440,375}.png`.
+
+## 3. Question-specific slide references
+
+All 29 questions have one-based teaching references on the server. Topics 0 and
+1 use the supplied mapping. Topic 2 links to vector similarity, bi-encoders,
+representation size, ANN tuning, or embedding compatibility. Topic 3 links to
+hybrid retrieval, rank fusion, rewriting, reranking, or freshness. Unknown older
+question IDs fall back to slide 1. The public question includes only that slide
+number, not an answer or teaching feedback.
+
+Both the header's Slides button and a wrong answer's See slide N button open at
+that reference. Reading saves its own cursor but reopening during the quiz starts
+at the reference again. Selected choices and the paused drill clock are preserved.
+The mapping unit tests cover every question. The browser reference test covers all
+four topics in both themes and widths; the existing review and overlay tests check
+choice retention, retry, timer pause, scrolling, focus and Escape. Screenshots:
+`reference-T{0,1}-{light,dark}-{1440,375}.png`.

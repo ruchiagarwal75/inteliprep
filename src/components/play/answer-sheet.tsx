@@ -12,11 +12,13 @@ export function AnswerSheet({
   result,
   animate,
   onNext,
+  onSlides,
 }: {
   question: DrillQuestion;
   result: DrillResult;
   animate?: boolean;
   onNext: () => void;
+  onSlides?: () => void;
 }) {
   const next = useRef<HTMLButtonElement>(null);
   const sheet = useRef<HTMLElement>(null);
@@ -90,6 +92,11 @@ export function AnswerSheet({
         </p>
       )}
       {result.ifWrong && <p>{result.ifWrong}</p>}
+      {!result.correct && onSlides && (
+        <button type="button" className="practice-link" onClick={onSlides}>
+          See slide {question.courseSlide ?? 1}
+        </button>
+      )}
       {result.badgesEarned.length > 0 && (
         <Celebration title="Badge earned" badges={result.badgesEarned} />
       )}

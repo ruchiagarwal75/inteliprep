@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_COURSE_SLIDES } from "./course/slides-public";
 export const drillTypeSchema = z.enum([
   "math",
   "spot_flaw",
@@ -42,6 +43,7 @@ export const drillAnswerSchema = z.discriminatedUnion("type", [
 export type DrillAnswer = z.infer<typeof drillAnswerSchema>;
 const questionFields = {
   courseKind: z.enum(["concept", "flaw", "math"]).optional(),
+  courseSlide: z.number().int().min(1).max(MAX_COURSE_SLIDES).optional(),
   attemptId: z.uuid(),
   drillId: z.string(),
   topic: z.string(),

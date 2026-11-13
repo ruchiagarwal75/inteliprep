@@ -12,9 +12,11 @@ type Load =
   | { kind: "error" };
 export function CourseSlidesOverlay({
   level,
+  initialSlide = 1,
   onClose,
 }: {
   level: number;
+  initialSlide?: number;
   onClose: () => void;
 }) {
   const { request } = useCandidateAccount();
@@ -86,7 +88,18 @@ export function CourseSlidesOverlay({
           </div>
         )}
         {load.kind === "ready" && (
-          <CourseSlides {...load.lesson} review={{ onClose }} />
+          <CourseSlides
+            {...load.lesson}
+            review={{
+              onClose,
+              initialIndex:
+                Number.isSafeInteger(initialSlide) &&
+                initialSlide >= 1 &&
+                initialSlide <= load.lesson.slides.length
+                  ? initialSlide - 1
+                  : 0,
+            }}
+          />
         )}
       </div>
     </dialog>

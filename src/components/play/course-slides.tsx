@@ -21,9 +21,9 @@ export function CourseSlides({
   seenThrough,
   lastViewedIndex,
   review,
-}: CourseLesson & { review?: { onClose: () => void } }) {
+}: CourseLesson & { review?: { onClose: () => void; initialIndex?: number } }) {
   const { request } = useCandidateAccount();
-  const initialIndex = review ? lastViewedIndex : 0;
+  const initialIndex = review?.initialIndex ?? 0;
   const [index, setIndex] = useState(initialIndex),
     [error, setError] = useState("");
   const next = useRef<HTMLDivElement>(null),

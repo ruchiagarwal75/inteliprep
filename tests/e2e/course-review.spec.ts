@@ -8,7 +8,7 @@ import {
 } from "./play-helpers";
 import { mkdirSync } from "node:fs";
 import { modelCalls } from "./course-evidence";
-test("a quiz can review slides at its last position without losing a choice or counting reading time", async ({
+test("a quiz can review slides at its question reference without losing a choice or counting reading time", async ({
   page,
   context,
 }) => {
@@ -42,7 +42,7 @@ test("a quiz can review slides at its last position without losing a choice or c
     "Could not load the slides. Your answer is kept.",
   );
   await overlay.getByRole("button", { name: "Retry", exact: true }).click();
-  await expect(overlay.getByLabel("Slide counter")).toHaveText("13 / 13");
+  await expect(overlay.getByLabel("Slide counter")).toHaveText("6 / 13");
   expect((await paused).status()).toBe(200);
   const time = await page
     .getByLabel("Time on this drill", { exact: true })
@@ -52,14 +52,14 @@ test("a quiz can review slides at its last position without losing a choice or c
     page.getByLabel("Time on this drill", { exact: true }),
   ).toHaveText(time ?? "");
   await overlay.getByRole("button", { name: "Back", exact: true }).click();
-  await expect(overlay.getByLabel("Slide counter")).toHaveText("12 / 13");
+  await expect(overlay.getByLabel("Slide counter")).toHaveText("5 / 13");
   await captureReview("slides-overlay");
   await overlay
     .getByRole("button", { name: "Close slides", exact: true })
     .click();
   await expect(selected).toBeChecked();
   await page.getByRole("button", { name: "Slides", exact: true }).click();
-  await expect(overlay.getByLabel("Slide counter")).toHaveText("12 / 13");
+  await expect(overlay.getByLabel("Slide counter")).toHaveText("6 / 13");
   await page.keyboard.press("Escape");
   await expect(overlay).toHaveCount(0);
   await expect(selected).toBeChecked();

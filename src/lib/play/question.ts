@@ -1,4 +1,5 @@
 import "server-only";
+import { courseQuestionSlide } from "./course/question-slides";
 import { courseQuestionTitle } from "./course/titles";
 import { randomInt } from "node:crypto";
 import type { DrillDefinition, DrillVariant } from "./definition";
@@ -37,6 +38,10 @@ export function publicQuestion(
     type: drill.type,
     courseKind: drill.type === "spot_flaw" ? drill.course?.kind : undefined,
     title: courseQuestionTitle(drill.id, drill.title),
+    courseSlide:
+      drill.type === "spot_flaw" && drill.course
+        ? courseQuestionSlide(drill.id)
+        : undefined,
     prompt:
       drill.type === "math"
         ? fillNumbers(drill.prompt, variant.parameters)

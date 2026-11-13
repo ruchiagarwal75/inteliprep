@@ -42,7 +42,7 @@ export function DrillCard({
   outcomes?: (boolean | null)[];
   animatePoints?: boolean;
 }) {
-  const [slidesOpen, setSlidesOpen] = useState(false);
+  const [slidesAt, setSlidesAt] = useState<number>();
   useEffect(() => {
     markRoundReady();
   }, [question.attemptId]);
@@ -61,7 +61,11 @@ export function DrillCard({
         total={question.total}
         combo={combo}
         outcomes={outcomes}
-        onSlides={question.courseKind ? () => setSlidesOpen(true) : undefined}
+        onSlides={
+          question.courseKind
+            ? () => setSlidesAt(question.courseSlide ?? 1)
+            : undefined
+        }
       />
       <article
         data-drill-card
@@ -83,7 +87,7 @@ export function DrillCard({
             result={result}
             resumed={resumed}
             busy={busy || Boolean(onRetry)}
-            paused={slidesOpen}
+            paused={slidesAt !== undefined}
           />
         </header>
         <h1>{question.title}</h1>
@@ -119,12 +123,18 @@ export function DrillCard({
           result={result}
           animate={animatePoints}
           onNext={onNext}
+          onSlides={
+            question.courseKind
+              ? () => setSlidesAt(question.courseSlide ?? 1)
+              : undefined
+          }
         />
       )}
-      {slidesOpen && (
+      {slidesAt !== undefined && (
         <CourseSlidesOverlay
           level={question.level}
-          onClose={() => setSlidesOpen(false)}
+          initialSlide={slidesAt}
+          onClose={() => setSlidesAt(undefined)}
         />
       )}
     </div>
