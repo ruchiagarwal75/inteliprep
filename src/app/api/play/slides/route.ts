@@ -5,7 +5,7 @@ import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
 import { MAX_COURSE_SLIDES } from "@/lib/play/course/slides-public";
 const inputSchema = z
   .object({
-    level: z.number().int().min(1).max(9),
+    level: z.number().int().min(0).max(9),
     index: z
       .number()
       .int()
@@ -39,7 +39,7 @@ export const GET = playEndpoint("/api/play/slides", async (request, userId) => {
   const level = z.coerce
     .number()
     .int()
-    .min(1)
+    .min(0)
     .max(9)
     .safeParse(new URL(request.url).searchParams.get("level"));
   if (!level.success)

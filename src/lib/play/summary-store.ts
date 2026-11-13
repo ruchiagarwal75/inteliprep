@@ -1,3 +1,4 @@
+import { courseLevelOpen } from "./course/path-access";
 import { courseQuestionTitle } from "./course/titles";
 import "server-only";
 import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./course/metadata";
@@ -25,7 +26,9 @@ export async function nextRoundLevel(
           (node) => node.level === level.level && node.available,
         )) &&
       !passed.includes(level.level) &&
-      levelUnlocked(level.level, levels, passed),
+      (topic === RAG_COURSE_ID
+        ? courseLevelOpen(level.level, passed)
+        : levelUnlocked(level.level, levels, passed)),
   );
   return next ? { level: next.level, title: next.title } : undefined;
 }

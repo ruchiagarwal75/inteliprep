@@ -12,7 +12,7 @@ export default async function CourseTopicPage({
 }) {
   const user = await playAccountId(),
     level = Number((await params).level);
-  if (!Number.isSafeInteger(level) || level < 1 || level > 9) notFound();
+  if (!Number.isSafeInteger(level) || level < 0 || level > 9) notFound();
   const lesson = await courseLesson(user, level).catch((cause: unknown) => {
     if (cause instanceof PlayError && [403, 404].includes(cause.status))
       return { error: cause };

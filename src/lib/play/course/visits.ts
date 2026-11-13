@@ -1,9 +1,9 @@
 import "server-only";
 import { withPlayer, type PlayTransaction } from "../database";
 import { PlayError } from "../errors";
-import { levelUnlocked } from "../round-rules";
+import { courseLevelOpen } from "./path-access";
 import { courseTopic } from "./content";
-import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./metadata";
+import { RAG_COURSE_ID } from "./metadata";
 
 async function lessonAccess(
   sql: PlayTransaction,
@@ -14,9 +14,8 @@ async function lessonAccess(
   if (!topic) throw new PlayError("This topic is coming soon.", 404);
   const rows =
     await sql`select level from practice_game.level_progress where user_id=${userId} and topic=${RAG_COURSE_ID} and status='passed'`;
-  const unlocked = levelUnlocked(
+  const unlocked = courseLevelOpen(
     level,
-    RAG_COURSE_NODES,
     rows.map((row) => Number(row.level)),
   );
   const [started] = unlocked

@@ -150,8 +150,8 @@ it("allows the quiz immediately on a revisit and halves replay XP", async () => 
 });
 
 it("the notebook shows all slides but only the owner's answered questions and solutions", async () => {
-  const mine = await courseNotebook(user),
-    theirs = await courseNotebook(other);
+  const mine = (await courseNotebook(user)).filter((row) => row.level > 0),
+    theirs = (await courseNotebook(other)).filter((row) => row.level > 0);
   expect(mine.map((row) => row.level)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   expect(mine[0].slides).toHaveLength(13);
   expect(theirs[0].slides).toHaveLength(13);

@@ -8,17 +8,18 @@ const source = readFileSync(
   "utf8",
 );
 it("compiles the supplied lesson and keeps every question and the other topics unchanged", () => {
+  const oldTopics = ragCourse.filter((topic) => topic.level > 0);
   const original = parseCourseMarkdown(source);
-  expect(original.slice(1)).toEqual(ragCourse.slice(1));
-  expect(original[0].questions).toEqual(ragCourse[0].questions);
+  expect(original.slice(1)).toEqual(oldTopics.slice(1));
+  expect(original[0].questions).toEqual(oldTopics[0].questions);
   expect(
     parseCourseSlidesMarkdown(
       readFileSync("docs/play-content/rag-course/topic-1-slides-v2.md", "utf8"),
       { 2: "pipeline", 6: "overlap", 8: "split-table", 9: "small-to-big" },
     ),
-  ).toEqual(ragCourse[0].slides);
-  expect(ragCourse).toHaveLength(3);
-  for (const topic of ragCourse) {
+  ).toEqual(oldTopics[0].slides);
+  expect(ragCourse).toHaveLength(4);
+  for (const topic of oldTopics) {
     expect(topic.slides).toHaveLength(topic.level === 1 ? 13 : 5);
     expect(topic.questions).toHaveLength(7);
     expect(new Set(topic.questions.map((q) => q.id)).size).toBe(7);
@@ -52,5 +53,9 @@ it("keeps playable path nodes aligned with authored course topics", async () => 
   ).toEqual(ragCourse.map((topic) => [topic.level, topic.title]));
   expect(RAG_COURSE_NODES.filter((node) => !node.available)).toHaveLength(6);
   for (const node of RAG_COURSE_NODES)
-    expect(Object.keys(node).sort()).toEqual(["available", "level", "title"]);
+    expect(Object.keys(node).sort()).toEqual(
+      node.level === 0
+        ? ["available", "level", "minutes", "title"]
+        : ["available", "level", "title"],
+    );
 });

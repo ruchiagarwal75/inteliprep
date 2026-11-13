@@ -69,6 +69,7 @@ export async function startRound(userId: string, input: StartRoundInput) {
       const rows =
         await sql`select level from practice_game.level_progress where user_id=${userId} and topic=${input.topic} and status='passed'`;
       if (
+        input.topic !== RAG_COURSE_ID &&
         !levelUnlocked(
           input.level,
           levels,

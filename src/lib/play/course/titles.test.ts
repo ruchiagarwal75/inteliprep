@@ -7,7 +7,9 @@ import { summaryDisplay } from "../summary-store";
 import { roundSummarySchema } from "../public";
 it("uses all 21 supplied question titles in authored order", () => {
   expect(
-    ragCourse.flatMap((topic) => topic.questions.map((q) => q.title)),
+    ragCourse
+      .filter((topic) => topic.level > 0)
+      .flatMap((topic) => topic.questions.map((q) => q.title)),
   ).toEqual([
     "Big chunks",
     "Cut sentences",
@@ -33,7 +35,9 @@ it("uses all 21 supplied question titles in authored order", () => {
   ]);
 });
 it("relabels saved prompts and review lists without rewriting their snapshots", () => {
-  const drill = { ...courseDrills[0], title: "T1-Q1" };
+  const first = courseDrills.find((drill) => drill.id === "rag-course-t1-q1");
+  if (!first) throw Error("Missing original course question");
+  const drill = { ...first, title: "T1-Q1" };
   const view = publicQuestion(
     drill,
     createVariant(drill),

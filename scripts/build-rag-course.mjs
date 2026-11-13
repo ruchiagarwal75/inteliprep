@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { parseCourseMarkdown } from "../src/lib/play/course/parse.mjs";
 import { parseCourseSlidesMarkdown } from "../src/lib/play/course/parse-slides.mjs";
+import { parsePrimerMarkdown } from "../src/lib/play/course/parse-primer.mjs";
 const course = readdirSync("docs/play-content/rag-course")
   .filter((name) => /^topics-.*\.md$/u.test(name))
   .sort()
@@ -10,6 +11,11 @@ const course = readdirSync("docs/play-content/rag-course")
     ),
   )
   .sort((a, b) => a.level - b.level);
+course.unshift(
+  parsePrimerMarkdown(
+    readFileSync("docs/play-content/rag-course/topic-0-primer.md", "utf8"),
+  ),
+);
 if (new Set(course.map((topic) => topic.level)).size !== course.length)
   throw Error("Duplicate course topic");
 const first = course.find((topic) => topic.level === 1);

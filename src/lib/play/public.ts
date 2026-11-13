@@ -114,9 +114,13 @@ export const startRoundInputSchema = z.discriminatedUnion("mode", [
     .object({
       ...startFields,
       mode: z.literal("level"),
-      level: z.number().int().min(1).max(100),
+      level: z.number().int().min(0).max(100),
     })
-    .strict(),
+    .strict()
+    .refine(
+      (input) => input.level !== 0 || input.topic === "rag-course",
+      "Topic zero is only available in the RAG course",
+    ),
   z.object({ ...startFields, mode: z.literal("placement") }).strict(),
   z.object({ ...startFields, mode: z.literal("review") }).strict(),
 ]);

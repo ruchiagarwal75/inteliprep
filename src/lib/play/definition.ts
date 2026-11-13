@@ -44,7 +44,7 @@ export const mathTemplateSchema = z.object({
 const common = {
   id: z.string().regex(/^[a-z0-9-]+$/u),
   topic: z.string(),
-  level: z.number().int().positive(),
+  level: z.number().int().nonnegative(),
   title: z.string(),
   prompt: z.string(),
   why: z.string(),

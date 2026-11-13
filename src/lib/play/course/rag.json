@@ -1,5 +1,306 @@
 [
   {
+    "level": 0,
+    "title": "RAG basics",
+    "slides": [
+      {
+        "title": "Why LLMs need help",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "LLMs learn from public data up to a cutoff date. Ask about your company's refund policy, last week's incident or a customer's contract, and the model has never seen it."
+          },
+          {
+            "kind": "paragraph",
+            "text": "It will often answer anyway, confidently and wrongly. That's called a hallucination."
+          }
+        ]
+      },
+      {
+        "title": "RAG in one sentence",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "**Retrieval-Augmented Generation:** before the LLM answers, search your own documents for the most relevant pieces and add them to the prompt. The model answers from those pieces and can cite them."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Think of it as an open-book exam for the model."
+          }
+        ]
+      },
+      {
+        "title": "A tiny example",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "A user asks: \"Can contractors expense a home office chair?\""
+          },
+          {
+            "kind": "numbered",
+            "items": [
+              "Search finds 3 paragraphs from the Expense Policy.",
+              "The prompt becomes: instructions + those 3 paragraphs + the question.",
+              "The LLM answers: \"No. Contractors aren't covered for office furniture (Source: Expense Policy, section 4).\""
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Nothing was retrained. Update the policy document, and tomorrow's answer changes too."
+          }
+        ]
+      },
+      {
+        "title": "When RAG is the right tool",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Use RAG when:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "answers depend on private or company data",
+              "the data changes often (docs, tickets, prices)",
+              "users need sources they can check",
+              "different users are allowed to see different documents"
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Skip it when the model already knows enough (general coding questions), or when all the data fits easily in one prompt."
+          }
+        ]
+      },
+      {
+        "title": "RAG vs fine-tuning vs long context",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**Fine-tuning** teaches a model a style, format or skill. It's a poor way to add facts that change, because you'd retrain every time.",
+              "**Long context** pastes whole documents into the prompt. Fine for a few files, but slow and expensive for thousands, and details in the middle get missed.",
+              "**RAG** fetches only the relevant pieces at question time. Fresh, cheaper per question, and easy to trace back to sources."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Real systems often combine them."
+          }
+        ]
+      },
+      {
+        "title": "Embeddings: meaning as numbers",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "An embedding is a list of numbers (a vector, often 384 to 3,072 of them) that represents what a piece of text means."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Texts with similar meaning get vectors that point in similar directions, even with no words in common. \"Reset my password\" sits close to \"I can't log in\"."
+          },
+          {
+            "kind": "paragraph",
+            "text": "That's what lets search find meaning, not just matching words."
+          }
+        ]
+      },
+      {
+        "title": "Embedding model vs LLM",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Two different models with two different jobs:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Embedding model:** text in, vector out. Small, fast and cheap. Used to index documents and to encode each question.",
+              "**LLM:** text in, text out. Large, slower and more expensive. Used to write the final answer."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "In RAG, the embedding model finds the right pieces. The LLM reads them and writes the answer."
+          }
+        ]
+      },
+      {
+        "title": "The two halves of every RAG system",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**Offline (indexing):** collect documents, split them into chunks, embed each chunk, and store the vectors plus metadata in a vector database. Runs ahead of time and again on every update.",
+              "**Online (answering):** embed the question, find the nearest chunks, build the prompt, call the LLM, and return the answer with citations. Runs on every question, usually in a second or two."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Where you've already seen RAG",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "Support bots that answer from help-center articles",
+              "\"Ask the wiki\" assistants at work",
+              "Coding assistants that search your repo before suggesting code",
+              "Search engines that write a summary with links"
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "If a chatbot shows its sources, there's a good chance RAG is behind it."
+          }
+        ]
+      },
+      {
+        "title": "Your path through RAG World",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "You now know what RAG is and when to use it. Next, you'll learn how each stage really works, and how interviewers test it, one topic at a time: from ingestion and chunking all the way to evaluation and safety."
+          },
+          {
+            "kind": "paragraph",
+            "text": "By the end, you'll be able to design \"ChatGPT for your company's docs\" end to end, one of the most common AI system design interview questions."
+          }
+        ]
+      }
+    ],
+    "questions": [
+      {
+        "id": "P-Q1",
+        "title": "Why RAG",
+        "type": "concept",
+        "prompt": "What problem does RAG mainly solve?",
+        "options": [
+          "LLMs don't know your private or recent data, so they guess",
+          "LLMs are too slow to answer questions",
+          "LLMs can't write code",
+          "LLMs can't count tokens"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "RAG gives the model the facts it was never trained on.",
+        "why": "Without your documents in the prompt, the model fills gaps with plausible guesses.",
+        "ifWrong": {}
+      },
+      {
+        "id": "P-Q2",
+        "title": "Open book",
+        "type": "concept",
+        "prompt": "In a RAG system, what happens right before the LLM writes its answer?",
+        "options": [
+          "Relevant pieces of your documents are retrieved and added to the prompt",
+          "The LLM is retrained on your documents",
+          "The question is translated into SQL",
+          "The answer is copied from a cache of past answers"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Retrieve first, then generate.",
+        "why": "The model answers \"open book\" from the pieces it was handed.",
+        "ifWrong": {}
+      },
+      {
+        "id": "P-Q3",
+        "title": "Fresh docs",
+        "type": "concept",
+        "prompt": "Your expense policy changed this morning. What does a RAG system need so answers reflect the change?",
+        "options": [
+          "Re-index the updated document",
+          "Retrain the LLM",
+          "Fine-tune the embedding model",
+          "Nothing; the LLM learns it automatically"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "In RAG, fresh knowledge means fresh documents, not a new model.",
+        "why": "Re-indexing updates what search can find. The models stay the same.",
+        "ifWrong": {
+          "1": "Retraining is slow and costly, and RAG exists so you don't have to."
+        }
+      },
+      {
+        "id": "P-Q4",
+        "title": "Fine-tune or RAG",
+        "type": "concept",
+        "prompt": "Which goal fits fine-tuning better than RAG?",
+        "options": [
+          "Make the model always answer in your support team's tone and format",
+          "Answer questions about this week's support tickets",
+          "Answer questions about each customer's contract",
+          "Cite the exact HR handbook section in each answer"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Fine-tuning shapes behavior and style. RAG supplies facts.",
+        "why": "Tone and format are stable skills. Tickets, contracts and handbooks are changing facts that need sources.",
+        "ifWrong": {}
+      },
+      {
+        "id": "P-Q5",
+        "title": "Two models",
+        "type": "concept",
+        "prompt": "Which statement about the embedding model and the LLM is true?",
+        "options": [
+          "The embedding model turns text into a vector; the LLM writes the answer text",
+          "Both models write the final answer",
+          "The embedding model is usually much larger than the LLM",
+          "The LLM produces the vectors used for search"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Embedding model finds, LLM writes.",
+        "why": "The embedding model maps text to vectors for search. The LLM reads the retrieved text and generates the reply.",
+        "ifWrong": {}
+      },
+      {
+        "id": "P-Q6",
+        "title": "Meaning match",
+        "type": "concept",
+        "prompt": "\"Reset my password\" and \"I can't log in\" share no words. Why can vector search still match them?",
+        "options": [
+          "Their embeddings are close because their meanings are similar",
+          "They have the same number of characters",
+          "They're both lowercase",
+          "The LLM rewrote one into the other"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Embeddings capture meaning, not exact words.",
+        "why": "Similar meaning puts the two vectors close together, so search finds one from the other.",
+        "ifWrong": {}
+      },
+      {
+        "id": "P-Q7",
+        "title": "Count the vectors",
+        "type": "math",
+        "prompt": "You index 1,000 documents, about 12 chunks each. How many embeddings do you store?",
+        "options": ["12,000", "1,000", "12", "120,000"],
+        "correctIndex": 0,
+        "keyIdea": "You embed every chunk, not every document.",
+        "why": "1,000 documents x 12 chunks = 12,000 vectors.",
+        "ifWrong": {
+          "1": "That's one per document, but search works on chunks."
+        }
+      },
+      {
+        "id": "P-Q8",
+        "title": "Every question",
+        "type": "concept",
+        "prompt": "Which work happens on every user question, not ahead of time?",
+        "options": [
+          "Embed the question, search for nearby chunks, then call the LLM",
+          "Split all documents into chunks",
+          "Embed every document in the company",
+          "Build the vector index from scratch"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Indexing happens offline; answering happens online.",
+        "why": "Chunking and embedding documents is done ahead of time, so each question only needs one embedding, one search and one LLM call.",
+        "ifWrong": {}
+      }
+    ]
+  },
+  {
     "level": 1,
     "title": "Ingestion and chunking",
     "slides": [

@@ -1,3 +1,4 @@
+import { courseLevelOpen } from "@/lib/play/course/path-access";
 import Link from "next/link";
 import {
   RAG_COURSE_ID,
@@ -44,7 +45,7 @@ export function CoursePath({
         <svg
           key={String(mobile)}
           className={`${styles.track} ${mobile ? styles.mobileTrack : styles.desktopTrack}`}
-          viewBox="0 0 600 3960"
+          viewBox={`0 0 600 ${RAG_COURSE_NODES.length * 440}`}
           preserveAspectRatio="none"
           aria-hidden="true"
         >
@@ -54,9 +55,7 @@ export function CoursePath({
       <ol className={styles.path} aria-label="RAG course topics">
         {RAG_COURSE_NODES.map((node, index) => {
           const complete = passed.includes(node.level),
-            open =
-              node.available &&
-              (index === 0 || passed.includes(node.level - 1) || complete);
+            open = courseLevelOpen(node.level, passed, started);
           const state = complete
             ? "passed"
             : open && index === current
@@ -125,6 +124,7 @@ export function CoursePath({
                   {node.available ? `Topic ${node.level}` : "Soon"}
                 </span>
                 <strong>{node.title}</strong>
+                {node.level === 0 && <span>About 8 min</span>}
                 {complete && <Stars count={stars[node.level] ?? 0} />}
                 {open && (
                   <Link

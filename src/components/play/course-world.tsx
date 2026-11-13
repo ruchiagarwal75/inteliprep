@@ -27,7 +27,7 @@ export function CourseWorld({
         totalLevels={RAG_COURSE_NODES.length}
       />
       <p>
-        Learn each topic, then check what you know. Topics 1 to 3 are open in
+        Learn each topic, then check what you know. Topics 0 to 3 are open in
         this beta.
       </p>
       <Link className="practice-secondary" href="/play/rag/notebook">

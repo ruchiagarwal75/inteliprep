@@ -22,7 +22,7 @@ export const courseSlideSchema = z.object({
 });
 export type CourseSlide = z.infer<typeof courseSlideSchema>;
 export const courseLessonSchema = z.object({
-  level: z.number().int().min(1).max(9),
+  level: z.number().int().min(0).max(9),
   title: z.string(),
   slides: z.array(courseSlideSchema).min(1).max(MAX_COURSE_SLIDES),
   seenThrough: z.number().int().min(-1),
