@@ -28,6 +28,9 @@ it("keeps Topic 1 slides exactly as authored and compiles the versioned topic si
     [4, 12, 10],
     [5, 12, 10],
     [6, 12, 10],
+    [7, 12, 10],
+    [8, 12, 10],
+    [9, 12, 10],
   ]);
 });
 it("rejects missing options, duplicate correct choices and missing feedback", () => {

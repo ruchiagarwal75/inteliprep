@@ -50,7 +50,7 @@ const course = [
       9: "retrieval-funnel",
     },
   }),
-  ...[4, 5, 6].map((level) =>
+  ...[4, 5, 6, 7, 8, 9].map((level) =>
     parseVersionedTopic(read(`topic-${level}-v1.md`), {
       level,
       slideCount: 12,

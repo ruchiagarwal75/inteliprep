@@ -18,6 +18,9 @@ const files = [
   "topic-4-v1.md",
   "topic-5-v1.md",
   "topic-6-v1.md",
+  "topic-7-v1.md",
+  "topic-8-v1.md",
+  "topic-9-v1.md",
 ];
 it.each(files)("preserves every question field verbatim in %s", (name) => {
   const source = readFileSync(`docs/play-content/rag-course/${name}`, "utf8");
@@ -79,9 +82,9 @@ it.each(files)("preserves every question field verbatim in %s", (name) => {
     });
   }
 });
-it("grades all 228 options through the static server path, including shuffled answers and specific feedback", async () => {
+it("grades all 348 options through the static server path, including shuffled answers and specific feedback", async () => {
   const changed = courseDrills.filter((d) => d.level > 0);
-  expect(changed).toHaveLength(57);
+  expect(changed).toHaveLength(87);
   let options = 0;
   for (const drill of changed) {
     if (drill.type !== "spot_flaw" || !drill.course)
@@ -125,6 +128,6 @@ it("grades all 228 options through the static server path, including shuffled an
       if (!correct) expect(result.ifWrong).toBeTruthy();
     }
   }
-  expect(options).toBe(228);
+  expect(options).toBe(348);
   expect(gradeWrittenAnswer).not.toHaveBeenCalled();
 });

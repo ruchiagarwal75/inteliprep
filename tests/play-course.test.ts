@@ -44,7 +44,7 @@ it("requires ordered slides and a course pass, independent of old levels", async
     /"(?:correctIndex|keyIdea|ifWrong|questions)":/,
   );
   await expect(courseLesson(user, 2)).rejects.toMatchObject({ status: 403 });
-  await expect(courseLesson(user, 7)).rejects.toMatchObject({ status: 404 });
+  await expect(courseLesson(user, 10)).rejects.toMatchObject({ status: 404 });
   await expect(startRound(user, input())).rejects.toMatchObject({
     status: 403,
   });

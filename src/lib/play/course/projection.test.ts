@@ -5,7 +5,7 @@ import { createVariant, publicQuestion } from "../question";
 import { gradeDrill } from "../grade";
 import { drillAnswerSchema } from "../public";
 it("keeps every course question a shuffled choice with no pre-answer solution fields", async () => {
-  expect(courseDrills).toHaveLength(65);
+  expect(courseDrills).toHaveLength(95);
   for (const drill of courseDrills) {
     if (drill.type !== "spot_flaw" || !drill.course)
       throw Error("Course requires choices");
