@@ -3,7 +3,7 @@ export const coursePassCount = (total: number) => Math.ceil(total * 0.75);
 export function coursePassed(results: boolean[]) {
   return (
     results.length >= 6 &&
-    results.length <= 8 &&
+    results.length <= 10 &&
     results.filter(Boolean).length >= coursePassCount(results.length)
   );
 }

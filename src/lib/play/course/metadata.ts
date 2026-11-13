@@ -2,9 +2,14 @@
 export const RAG_COURSE_ID = "rag-course";
 export const RAG_COURSE_NODES = [
   { level: 0, title: "RAG basics", available: true, minutes: 8 },
-  { level: 1, title: "Ingestion and chunking", available: true },
-  { level: 2, title: "Embeddings and the vector store", available: true },
-  { level: 3, title: "Retrieval strategy", available: true },
+  { level: 1, title: "Ingestion and chunking", available: true, minutes: 15 },
+  {
+    level: 2,
+    title: "Embeddings and the vector store",
+    available: true,
+    minutes: 15,
+  },
+  { level: 3, title: "Retrieval strategy", available: true, minutes: 15 },
   { level: 4, title: "Re-ranking", available: false },
   { level: 5, title: "Context assembly and prompt building", available: false },
   { level: 6, title: "Generation", available: false },

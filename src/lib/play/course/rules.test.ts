@@ -5,6 +5,8 @@ it("passes at 75 percent rounded up for every supported question count", () => {
     [6, 5],
     [7, 6],
     [8, 6],
+    [9, 7],
+    [10, 8],
   ]) {
     expect(coursePassCount(total)).toBe(needed);
     expect(
@@ -35,4 +37,14 @@ it("awards one star for passing, two for all correct, three when no visible time
       ...all.slice(2),
     ]),
   ).toBe(0);
+});
+
+it("keeps the same star and time bands for ten-question quizzes", () => {
+  const outcomes = (n: number, timeMs = 45000) =>
+    Array.from({ length: 10 }, (_, i) => ({ correct: i < n, timeMs }));
+  expect(courseStars(outcomes(7))).toBe(0);
+  expect(courseStars(outcomes(8))).toBe(1);
+  expect(courseStars(outcomes(9))).toBe(1);
+  expect(courseStars(outcomes(10, 45001))).toBe(2);
+  expect(courseStars(outcomes(10))).toBe(3);
 });

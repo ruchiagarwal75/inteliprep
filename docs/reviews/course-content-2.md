@@ -26,3 +26,16 @@ Content and compiler tests cover all three files and invalid source/artifact cas
 The length-cue counts are exactly 1/7, 0/10 and 2/10, with no warnings. Questions
 and grading content stay in server-only modules; the public slide projection and
 per-question API projection keep their existing boundaries.
+
+## 2. Topic size, passing and path labels
+
+The course accepts six through ten answers, retaining the 75% rounded-up rule.
+Ten-question topics need eight correct. The existing star bands, 45-second star
+time threshold, answer XP, combo rewards and first-attempt bonus are unchanged.
+Topics 1, 2 and 3 show About 15 min; the primer remains About 8 min.
+
+Rule tests cover each supported question count and ten-question star outcomes.
+Actual Postgres tests complete both revised topics with 8/10 and 9/10. They check
+unchanged answer and combo awards, and verify that a 7/10 attempt cannot revoke an
+older pass, three stars, its pass date or historical points. No data migration is
+needed.

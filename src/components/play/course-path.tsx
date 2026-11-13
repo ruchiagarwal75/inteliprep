@@ -140,10 +140,12 @@ export function CoursePath({
                   {node.available ? `Topic ${node.level}` : "Soon"}
                 </span>
                 <strong>{node.title}</strong>
-                {node.level === 0 && (
+                {"minutes" in node && (
                   <span>
-                    About 8 min
-                    {primerOptional(passed, access) ? " · Optional" : ""}
+                    About {node.minutes} min
+                    {node.level === 0 && primerOptional(passed, access)
+                      ? " · Optional"
+                      : ""}
                   </span>
                 )}
                 {complete && <Stars count={stars[node.level] ?? 0} />}
