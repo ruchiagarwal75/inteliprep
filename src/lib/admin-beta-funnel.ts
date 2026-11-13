@@ -5,6 +5,7 @@ import { recordScope } from "@/lib/admin-scope";
 import { reportingEnvironment } from "@/lib/admin-config";
 import { ADMIN_PAGE_SIZE } from "@/lib/admin-query";
 import type { betaFunnelQuery, FunnelCounts } from "@/lib/beta-funnel-query";
+import { adminWelcomeFunnel } from "./admin-welcome-funnel";
 export type FunnelUser = FunnelCounts & {
   userId: string;
   email: string | null;
@@ -28,7 +29,7 @@ export async function adminBetaFunnel(
    select f.*,u.email from filtered f left join interview_admin.registered_users u on u.id=f.user_id
    where position(lower(${query.search}) in lower(coalesce(u.email,'')))>0
  )`;
-  const [totals, users, count, state] = await Promise.all([
+  const [totals, users, count, state, welcome] = await Promise.all([
     sql<FunnelCounts[]>`${cte} select
    count(distinct user_id) filter(where event='signed_in')::int as signed_in,
    count(distinct user_id) filter(where event='started')::int as started,
@@ -49,6 +50,7 @@ export async function adminBetaFunnel(
     sql<
       { since: string }[]
     >`select beta_funnel_since::text as since from interview_admin.reporting_state`,
+    adminWelcomeFunnel(query),
   ]);
   if (!totals[0] || !state[0]) throw Error("Funnel unavailable");
   return {
@@ -59,5 +61,6 @@ export async function adminBetaFunnel(
     pageSize: ADMIN_PAGE_SIZE,
     environment: reportingEnvironment(),
     trackingSince: state[0].since,
+    welcome,
   };
 }

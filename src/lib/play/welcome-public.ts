@@ -16,3 +16,13 @@ export const welcomeFinishSchema = z.discriminatedUnion("action", [
     .strict(),
 ]);
 export type WelcomeFinish = z.infer<typeof welcomeFinishSchema>;
+export const welcomeStartSchema = z
+  .object({ requestId: z.uuid(), replay: z.boolean() })
+  .strict();
+export const WELCOME_METRICS = [
+  ["shown", "Intro shown"],
+  ["skipped", "Intro skipped"],
+  ["completed", "Intro completed"],
+  ["topicStarted", "First topic opened from intro"],
+] as const;
+export type WelcomeCounts = Record<(typeof WELCOME_METRICS)[number][0], number>;

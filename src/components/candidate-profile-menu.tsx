@@ -134,6 +134,7 @@ export function CandidateProfileMenu({
                     <Link
                       className="profile-menu-link"
                       href="/play/welcome?replay=1"
+                      prefetch={false}
                       onClick={() => setOpen(false)}
                     >
                       Replay intro

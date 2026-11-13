@@ -51,3 +51,22 @@ typed character. Visual typing is 30 characters per second. Reduced motion shows
 the whole line immediately, with no bob, wipes or blinking. Hidden tabs pause
 typing and scene animation. Failed dismissal saves show a retry message and keep
 the intro open.
+
+Item 3 passed the full check and production build with 2,040 tests.
+
+## 4. Measured actions
+
+Intro shown, skipped, completed and first Topic 0 opens use the existing Play
+event recorder. Skips retain the panel number. A client mount starts a protected,
+idempotent POST, so RSC prefetch cannot count an intro as viewed. A saved dismissal
+uses a fresh navigation so a prefetched Play redirect cannot reopen the story.
+The first Topic 0 view is counted once per account after a completed own run.
+
+The event migration adds nullable environment/test dimensions for old rows and
+the four event names. No old environment is guessed. The admin funnel adds these
+recorded action counts with the same date, environment, email and excluded-account
+filters. Replay is included and labeled. Its data function rechecks admin Auth,
+then sets a transaction-local SELECT flag for event metadata only. Browser grants
+are unchanged; private drill data retains its owner policies.
+
+The two welcome migrations are not yet applied to the hosted database.

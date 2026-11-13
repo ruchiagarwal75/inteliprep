@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminTime } from "@/components/admin-format";
 import type { adminBetaFunnel } from "@/lib/admin-beta-funnel";
 import { FUNNEL_STEPS, type betaFunnelQuery } from "@/lib/beta-funnel-query";
+import { WELCOME_METRICS } from "@/lib/play/welcome-public";
 export function AdminBetaFunnelPanel({
   data,
   query,
@@ -83,6 +84,25 @@ export function AdminBetaFunnelPanel({
         Refreshes and retries do not create extra milestones.
       </p>
       <div className="overflow-x-auto">
+        <section
+          aria-label="Welcome story counts"
+          className="mb-6 rounded border p-4"
+        >
+          <h3 className="text-xl font-semibold">Welcome story</h3>
+          <p>
+            Recorded intro actions in this range and environment. Includes
+            replay. The first topic counts once per account. Older activity was
+            not collected.
+          </p>
+          <dl className="flex flex-wrap gap-6">
+            {WELCOME_METRICS.map(([key, label]) => (
+              <div key={key}>
+                <dt>{label}</dt>
+                <dd className="text-2xl font-semibold">{data.welcome[key]}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
         <table className="w-full text-left text-sm">
           <caption className="text-left">
             Per-user activity counts in this period

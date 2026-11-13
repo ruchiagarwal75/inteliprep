@@ -4,11 +4,15 @@ import { courseLesson } from "@/lib/play/course/visits";
 import { PlayError } from "@/lib/play/errors";
 import { CourseSlides } from "@/components/play/course-slides";
 import Link from "next/link";
+import { z } from "zod";
+import { firstTopicFromIntro } from "@/lib/play/welcome-store";
 export const dynamic = "force-dynamic";
 export default async function CourseTopicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ level: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const user = await playAccountId(),
     level = Number((await params).level);
@@ -28,5 +32,9 @@ export default async function CourseTopicPage({
         </Link>
       </section>
     );
+  if (level === 0) {
+    const intro = z.uuid().safeParse((await searchParams).intro);
+    if (intro.success) await firstTopicFromIntro(user, intro.data);
+  }
   return <CourseSlides key={lesson.level} {...lesson} />;
 }

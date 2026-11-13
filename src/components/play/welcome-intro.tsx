@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { WELCOME_PANELS } from "@/lib/play/welcome-copy";
 import { WelcomeScene } from "./welcome-scene";
@@ -19,8 +18,7 @@ const visibilitySubscribe = (changed: () => void) => {
 const hiddenSnapshot = () => document.hidden;
 const serverSnapshot = () => false;
 export function WelcomeIntro({ runId }: { runId: string }) {
-  const { request } = useCandidateAccount(),
-    router = useRouter();
+  const { request } = useCandidateAccount();
   const [cursor, setCursor] = useState({ panel: 0, beat: 0, chars: 0 });
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -105,7 +103,9 @@ export function WelcomeIntro({ runId }: { runId: string }) {
         body: JSON.stringify({ runId, action, panel: cursor.panel + 1 }),
       });
       if (!response.ok) throw Error("save");
-      router.replace(topic ? `/play/rag/topics/0?intro=${runId}` : "/play");
+      window.location.replace(
+        topic ? `/play/rag/topics/0?intro=${runId}` : "/play",
+      );
     } catch {
       lock.current = false;
       setBusy(false);

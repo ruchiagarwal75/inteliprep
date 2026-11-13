@@ -1014,6 +1014,12 @@
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
   {
+    "path": "src/lib/admin-welcome-funnel.ts",
+    "line": 13,
+    "text": "await sql`select set_config('mockmeai.admin_read','true',true)`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
     "path": "src/lib/app-viewer.ts",
     "line": 1,
     "text": "export const APP_VIEWER_STORAGE_KEY = \"mockmeai:app-viewer:v1\";",
@@ -1854,6 +1860,12 @@
     "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
   },
   {
+    "path": "supabase/migrations/20261113215525_play_welcome_events.sql",
+    "line": 12,
+    "text": "create policy server_admin_events on practice_game.play_events for select to mockmeai_reporting using(current_setting('mockmeai.admin_read',true)='true');",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
     "path": "tests/admin-database.test.ts",
     "line": 45,
     "text": "it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== \"1\")(",
@@ -2109,6 +2121,12 @@
     "path": "tests/transcript-sync.test.ts",
     "line": 54,
     "text": "INTELIPREP_ENV: \"beta\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/welcome-events.test.ts",
+    "line": 24,
+    "text": "\"create schema interview_admin; create view interview_admin.registered_users as select id,id::text||'@example.invalid' as email from auth.users;grant usage on schema interview_admin to mockmeai_reporting;grant select on interview_admin.registered_users to mockmeai_reporting;\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   }
 ]
