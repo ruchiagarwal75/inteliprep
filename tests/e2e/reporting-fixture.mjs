@@ -102,6 +102,7 @@ export async function startReportingFixture(key, cert) {
       "fixes4Replay",
       "content2Slides",
       "content3Slides",
+      "content4Slides",
     ]) {
       const account = fixtureAccounts[name];
       for (const topic of course) {

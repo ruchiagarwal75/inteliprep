@@ -23,6 +23,15 @@ it("counts Topic 0 stars and ten topics without borrowing retired rewards", () =
   expect(
     courseProgress(Array.from({ length: 10 }, (_, level) => row(level))),
   ).toEqual({ stars: 30, levelsPassed: 10, totalLevels: 10 });
+  const complete = renderToStaticMarkup(
+    createElement(WorldBanner, {
+      title: "RAG",
+      unit: "topics",
+      ...courseProgress(Array.from({ length: 10 }, (_, level) => row(level))),
+    }),
+  );
+  expect(complete).toContain('aria-label="30 / 30 stars"');
+  expect(complete).toContain("10 of 10 cleared");
   expect(courseProgress([])).toEqual({
     stars: 0,
     levelsPassed: 0,
