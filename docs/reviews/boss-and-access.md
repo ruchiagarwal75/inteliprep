@@ -112,3 +112,21 @@ separately. New boss dialogue stays within 12 words and 60 characters per line.
 
 Eight targeted unit checks passed for all states, resume precedence, expiry,
 past defeats, exact sprite grids/pigments, integer scaling and dialogue length.
+
+## 5. Verified completion
+
+A passing boss uses `mockOutcome` and the existing `applyMockOutcome` path,
+without changing grading or XP. The stored signal drives defeat; the existing
+verified-Mid readiness and `rag-interview` badge are awarded once. Course progress
+is not reset after a failure. Progress retains its existing chosen-level rule:
+a Mid pass validates Mid, rather than granting a Senior or Staff assessment.
+
+The path reuses a shared World notice for the unlock and victory cards. The
+victory claim is server-owned, serialized per account and persisted with a
+timestamp. Two tabs cannot both win the first claim. The card can be dismissed,
+auto-dismisses after 6.5 seconds and uses the existing reduced-motion CSS.
+
+The prompt link keeps `from=play`; start attribution now recognizes both the
+retired `rag` event namespace and the current `rag-course` namespace. Eight
+targeted completion/readiness tests passed, including one-time XP/badges/claims,
+failed-boss replayability and prompt-to-boss attribution. No model was called.

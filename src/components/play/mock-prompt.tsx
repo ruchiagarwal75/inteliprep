@@ -41,7 +41,7 @@ export function MockPrompt({
         <h2>You&apos;re ready to test this for real.</h2>
         <p>The {title} World boss is waiting.</p>
       </div>
-      <Link className="practice-primary" href={RAG_BOSS.href}>
+      <Link className="practice-primary" href={RAG_BOSS.promptHref}>
         Go to the {title} boss
       </Link>
     </div>

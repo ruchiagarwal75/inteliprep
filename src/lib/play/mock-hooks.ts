@@ -74,14 +74,14 @@ export async function observeMockStart(
       )
         return;
       const [shown] =
-        await sql`select 1 from practice_game.play_events where user_id=${userId} and event='mock_prompt_shown' and topic=${topic.id}`;
+        await sql`select 1 from practice_game.play_events where user_id=${userId} and event='mock_prompt_shown' and topic in (${topic.id},${playProgressTopic(topic.id)})`;
       if (shown)
         await recordPlayEvent(
           sql,
           userId,
           "mock_started_from_prompt",
           interviewId,
-          { topic: topic.id },
+          { topic: playProgressTopic(topic.id) },
         );
     });
   } catch (cause) {

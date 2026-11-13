@@ -15,4 +15,5 @@ export const RAG_BOSS = {
   level: "mid",
   durationMinutes: 45,
   href: "/play/rag#rag-boss",
+  promptHref: "/play/rag?from=play#rag-boss",
 } as const;

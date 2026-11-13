@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import {
   useEffect,
   useLayoutEffect,
@@ -8,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
-import { GameGuide } from "./game-guide";
+import { WorldNotice } from "./world-notice";
 import styles from "./course-unlock.module.css";
 
 /** Cosmetic only. The server supplies armed after checking the primer pass. */
@@ -49,6 +48,7 @@ export function CourseUnlock({
     const centerCurrent = () => {
       let active = true;
       const align = () => {
+        if (scene.current?.querySelector("[data-world-cleared]")) return;
         const current = '[aria-current="step"] [data-course-node]';
         if (active)
           center(
@@ -99,30 +99,7 @@ export function CourseUnlock({
       className={styles.scene}
       data-unlocking={visible || undefined}
     >
-      {visible && (
-        <section
-          className={styles.notice}
-          role="status"
-          aria-label="World unlocked"
-        >
-          <h2 data-game-label>World unlocked</h2>
-          <p>9 topics open up. Next: Ingestion and chunking.</p>
-          <GameGuide
-            size="small"
-            pose="cheer"
-            message="Let's go deeper"
-            bubble="speech"
-          />
-          <div className={styles.actions}>
-            <Link className="practice-primary" href="/play/rag/topics/1">
-              Start Topic 1
-            </Link>
-            <button type="button" className="practice-link" onClick={dismiss}>
-              Later
-            </button>
-          </div>
-        </section>
-      )}
+      {visible && <WorldNotice kind="unlocked" onDismiss={dismiss} />}
       {children}
     </div>
   );

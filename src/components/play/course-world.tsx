@@ -7,6 +7,7 @@ import { CourseUnlock } from "./course-unlock";
 import { CoursePath } from "./course-path";
 import { StartRound } from "./start-round";
 import { BossNode } from "./boss-node";
+import { BossCleared } from "./boss-cleared";
 import type { RagBossState } from "@/lib/rag-boss-public";
 export function CourseWorld({
   snapshot,
@@ -65,6 +66,12 @@ export function CourseWorld({
               .map((row) => [row.after_level, row.xp]),
           )}
         />
+        {boss.state === "defeated" && (
+          <BossCleared
+            armed={!boss.worldClearedSeenAt}
+            sessionId={boss.result.sessionId}
+          />
+        )}
         <BossNode boss={boss} />
       </CourseUnlock>
     </>
