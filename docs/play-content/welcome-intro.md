@@ -45,7 +45,7 @@ Show the girl guide, the XP badge, three stars and a chest.
 
 **Panel 4. "YOUR QUEST BEGINS"**
 The Shardling stands at the start of the RAG path. Far away at the other end, the boss gate glows, with a tiny version of The Interviewer (idle pose at 1x scale) standing in front of it, arms crossed, glasses glinting.
-"First stop: RAG basics. About 8 minutes."
+"First stop: RAG basics."
 "The RAG boss is waiting. Let's go!"
 Primary button: "Start Topic 0" (opens the Topic 0 Learn page). Secondary text link: "Look around first" (opens Play).
 

@@ -33,7 +33,7 @@ export const WELCOME_PANELS = [
     beats: [
       {
         speaker: "SHARDLING",
-        line: "First stop: RAG basics. About 8 minutes.",
+        line: "First stop: RAG basics.",
       },
       { speaker: "SHARDLING", line: "The RAG boss is waiting. Let's go!" },
     ],
