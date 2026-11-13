@@ -97,3 +97,51 @@ Screenshots under `artifacts/course-fixes-5/`:
 - `T8-S9-{theme}-{width}.png`
 - `T8-S5-{theme}-{width}.png`
 - `T8-S2-{theme}-{width}.png`
+
+## 6. Shared Play palette, requested during this task
+
+Shared background, surface, text, border and accent tokens now alias the Play
+palette in light and dark modes. Mock, results, admin, public pages and the hero
+panel follow the same colors. Feedback states use the matching Play semantic
+colors. The streak color uses Play gold so it remains readable on lavender.
+Logo and mascot pigments stay intact. Whiteboard export remains white.
+
+Palette contracts pass WCAG AA for text, controls, charts and feedback. The
+selected browser run passes 25 course/theme stories. Three additional page-palette
+stories pass after correcting a test's hex-format assumption: minification may
+serialize white as #fff. The check now compares rendered colors. These stories
+cover 13 routes at both widths and themes, including public/legal/sign-in, Play,
+Mock, history, Brief, Progress and admin. Interview/results checks also verify
+white image exports, theme persistence, blocked storage and no wrong-theme flash.
+
+Item 6 passes check (2,001 tests), build and both private-content scans.
+Screenshots are under `artifacts/course-fixes-5/palette/`, including:
+
+- [Home light](../../artifacts/course-fixes-5/palette/public-_-light-1440.png)
+- [Home dark phone](../../artifacts/course-fixes-5/palette/public-_-dark-375.png)
+- [Brief light phone](../../artifacts/course-fixes-5/palette/invited-_interview_new-light-375.png)
+- [Interview light](../../artifacts/course-fixes-5/palette/interview-light-1440.png)
+- [Results dark](../../artifacts/course-fixes-5/palette/results-dark-1440.png)
+- [Admin dark](../../artifacts/course-fixes-5/palette/admin-_admin-dark-1440.png)
+
+## Files and scope
+
+1. `course-slides.tsx`, new `course-learn-header.tsx` and `slide-overflow.ts`,
+   slide frame/controls CSS, `play-frame.tsx`, `slide-keys.ts`, the replacement
+   focus-shell browser contract and existing footer-action selectors.
+2. `course-unlock.tsx`, its CSS, the path caption marker and overlap browser test.
+3. Initial alignment in `course-unlock.tsx` and path/scroll-behavior browser tests.
+4. `answer-sheet.tsx`, `lesson.module.css`, notebook rendering, saved-feedback
+   unit tests and isolated browser fixtures.
+5. Four diagram modules, shared box spacing, `svg-clearance.ts` and the rendered
+   diagram browser contract.
+6. `theme.css`, palette contracts, theme/page browser coverage, screenshot helpers
+   and the styling notes in `CLAUDE.md` and `play-game-design.md`.
+
+All six items pass their full check and production build. Final count: 2,001
+unit/integration tests passed, with two existing skips. All 28 selected browser
+stories pass across the final runs. The entire legacy browser suite is not
+claimed green; its separate short-desktop quiz-layout issue remains outside this
+work. Screenshots stay local and untracked. No live model calls, paid tests, data
+migrations or owner-account QA. Course content, grading/reward rules and saved
+history are preserved. Main and Production stay at `c2b3104`.

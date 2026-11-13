@@ -7,7 +7,8 @@ Mock grading and content remain unchanged.
 ## World colors
 
 RAG uses violet. Chat and serving uses sky blue, Agents coral and Final Loop
-gold. The logo and primary mode navigation keep brand teal. XP is gold, chests
+gold. Shared app backgrounds, cards and controls use the Play violet palette in
+both themes. Logo and mascot artwork keep their own colors. XP is gold, chests
 pink, correct answers green and wrong answers soft red. Palette tests check
 text and foreground icons in both themes.
 

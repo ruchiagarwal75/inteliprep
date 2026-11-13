@@ -43,6 +43,19 @@ describe("application palette", () => {
   for (const theme of ["light", "dark"] as const)
     it(`meets AA for text, controls, feedback and chart labels in ${theme}`, () => {
       const color = palette(theme);
+      for (const [shared, play] of [
+        ["--background", "--pixel-sky"],
+        ["--surface", "--pixel-card"],
+        ["--surface-raised", "--pixel-panel"],
+        ["--foreground", "--pixel-text"],
+        ["--muted", "--pixel-muted"],
+        ["--border", "--pixel-line"],
+        ["--accent", "--pixel-violet"],
+        ["--accent-text", "--pixel-violet-text"],
+        ["--arch-panel", "--pixel-card"],
+        ["--arch-caption", "--pixel-text"],
+      ])
+        expect(color(shared)).toBe(color(play));
       const pairs = [
         ...[
           "--background",

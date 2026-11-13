@@ -310,7 +310,9 @@ scoped beneath page/component classes; migrate it only when relevant, not in a
 wholesale rewrite. Admin retains Tailwind utilities mapped to the same theme
 variables. Keep its new styles in that system rather than adding global selectors.
 
-Light is the default. Put every app color (including inline SVG paint and admin
+Light is the default. Shared app backgrounds, surfaces, text and controls alias the
+Play palette in `theme.css`, including admin and Mock. Keep mascot/logo pigments
+and the white diagram-export token separate. Put every app color (including inline SVG paint and admin
 utilities) in `src/app/theme.css`; dark overrides belong on `html[data-theme="dark"]`.
 Use semantic tokens, never Tailwind palette colors. `check-theme-colors.mjs` and
 palette contrast tests enforce this. ThemeProvider owns the toggle; the server cookie

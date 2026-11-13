@@ -23,7 +23,7 @@ test("both themes render Home, live interview and scored results; AI images stay
   await expect(
     page.getByRole("heading", { name: "Recent sessions", exact: true }),
   ).toBeVisible();
-  await captureThemes(page, "home");
+  await captureThemes(page, "home", "artifacts/course-fixes-5/palette");
   await page.goto("/interview/new");
   await expect(
     page.getByRole("button", { name: "Switch to light mode" }),
@@ -71,7 +71,7 @@ test("both themes render Home, live interview and scored results; AI images stay
   const after = (await boardState(page)).whiteboard;
   expect(after.elements).toEqual(before.elements);
   expect(after.appState).toEqual(before.appState);
-  await captureThemes(page, "interview");
+  await captureThemes(page, "interview", "artifacts/course-fixes-5/palette");
   // Capture and inspect the real export used by the grader, then supply a public scored UI fixture.
   await setTheme(page, "dark");
   let finalImage: unknown;
@@ -111,7 +111,7 @@ test("both themes render Home, live interview and scored results; AI images stay
   ).toBeVisible();
   await whiteCorner(page, finalImage);
   await page.getByText("Show evidence (1)", { exact: true }).first().click();
-  await captureThemes(page, "results");
+  await captureThemes(page, "results", "artifacts/course-fixes-5/palette");
   await page.getByRole("tab", { name: "Final diagram", exact: true }).click();
   await expect(page.locator(".final-diagram .excalidraw")).toHaveClass(
     /theme--dark/u,

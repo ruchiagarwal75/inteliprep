@@ -9,10 +9,14 @@ export async function setTheme(page: Page, theme: "light" | "dark") {
       .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 }
-export async function captureThemes(page: Page, name: string) {
-  mkdirSync(screenshotFolder, { recursive: true });
+export async function captureThemes(
+  page: Page,
+  name: string,
+  folder = screenshotFolder,
+) {
+  mkdirSync(folder, { recursive: true });
   for (const width of [1440, 375]) {
-    await page.setViewportSize({ width, height: 1000 });
+    await page.setViewportSize({ width, height: width === 1440 ? 669 : 812 });
     for (const theme of ["light", "dark"] as const) {
       await setTheme(page, theme);
       await page.evaluate(() => document.fonts.ready);
@@ -24,13 +28,13 @@ export async function captureThemes(page: Page, name: string) {
         )
         .toBe(true);
       await page.screenshot({
-        path: `${screenshotFolder}/${name}-${theme}-${width}.png`,
+        path: `${folder}/${name}-${theme}-${width}.png`,
         fullPage: true,
         animations: "disabled",
       });
     }
   }
-  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.setViewportSize({ width: 1440, height: 669 });
 }
 export async function whiteCorner(page: Page, image: unknown) {
   expect(typeof image).toBe("string");

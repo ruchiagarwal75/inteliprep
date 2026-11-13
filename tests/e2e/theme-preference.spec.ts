@@ -7,10 +7,7 @@ test("light is the first-time default; the toggle is remembered before paint", a
 }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
-  await expect(page.locator("body")).toHaveCSS(
-    "background-color",
-    "rgb(255, 255, 255)",
-  );
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(
     page.getByRole("button", { name: "Switch to dark mode" }),
   ).toBeVisible();
