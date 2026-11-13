@@ -7,8 +7,8 @@
 }
 .logo {
   display: block;
-  width: 180px;
-  height: 70px;
+  width: 194px;
+  height: 48px;
   max-width: 100%;
 }
 .logo img {
@@ -27,14 +27,19 @@
   display: block;
 }
 .small .logo {
-  width: 144px;
-  height: 56px;
+  width: 155px;
+  height: 40px;
 }
 .hero {
-  width: 280px;
-  height: 110px;
+  width: 291px;
+  height: 72px;
 }
 .signInIcon {
   display: block;
   margin-bottom: var(--space-2);
+}
+
+.logo img,
+.signInIcon {
+  image-rendering: pixelated;
 }

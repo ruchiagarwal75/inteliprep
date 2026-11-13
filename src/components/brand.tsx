@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BRAND } from "@/lib/brand";
 import styles from "./brand.module.css";
 
-/** Show the supplied files unchanged; CSS chooses the variant for the app theme. */
+/** Use the locally generated transparent pixel variants for the current theme. */
 export function BrandLogo({ hero = false }: { hero?: boolean }) {
   return (
     <span
@@ -12,18 +12,18 @@ export function BrandLogo({ hero = false }: { hero?: boolean }) {
     >
       <Image
         className={styles.light}
-        src="/brand/shardling-lockup.svg"
+        src="/brand/pixel/shardling-lockup.svg"
         alt=""
-        width={446}
-        height={152}
+        width={194}
+        height={48}
         unoptimized
       />
       <Image
         className={styles.dark}
-        src="/brand/shardling-lockup-badge.svg"
+        src="/brand/pixel/shardling-lockup-dark.svg"
         alt=""
-        width={482}
-        height={188}
+        width={194}
+        height={48}
         unoptimized
       />
     </span>
@@ -32,7 +32,7 @@ export function BrandLogo({ hero = false }: { hero?: boolean }) {
 export function BrandMark({ size = 24 }: { size?: number }) {
   return (
     <Image
-      src="/brand/shardling-mark.svg"
+      src="/brand/pixel/shardling-mark.svg"
       alt=""
       width={size}
       height={size}

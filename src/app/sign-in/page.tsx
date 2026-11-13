@@ -47,7 +47,7 @@ export default async function SignInPage({
           <ThemeToggle />
         </header>
         <Image
-          src="/brand/shardling-icon.svg"
+          src="/brand/pixel/shardling-icon.svg"
           alt=""
           width={64}
           height={64}

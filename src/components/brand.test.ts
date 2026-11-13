@@ -9,16 +9,16 @@ import manifest from "@/app/manifest";
 const hashes = z
   .record(z.string(), z.string())
   .parse(JSON.parse(readFileSync("scripts/brand-asset-sha256.json", "utf8")));
-it("uses the supplied light and dark lockups with a named Home link", () => {
+it("uses transparent pixel lockups with a named Home link", () => {
   const html = renderToStaticMarkup(createElement(Brand));
   expect(html).toContain('aria-label="Shardling home"');
-  expect(html).toContain("/brand/shardling-lockup.svg");
-  expect(html).toContain("/brand/shardling-lockup-badge.svg");
+  expect(html).toContain("/brand/pixel/shardling-lockup.svg");
+  expect(html).toContain("/brand/pixel/shardling-lockup-dark.svg");
   expect(html).not.toContain("<svg");
   expect(html).not.toContain("/brand-mark.svg");
   expect(
     renderToStaticMarkup(createElement(BrandLogo, { hero: true })),
-  ).toContain("/brand/shardling-lockup.svg");
+  ).toContain("/brand/pixel/shardling-lockup.svg");
 });
 it.each(Object.entries(hashes))(
   "keeps supplied %s byte-for-byte",
@@ -33,10 +33,10 @@ it.each([
   ["src/app/favicon.ico", "favicon.ico"],
   ["src/app/icon.svg", "favicon.svg"],
   ["src/app/apple-icon.png", "apple-touch-icon-180.png"],
-])("copies %s unchanged for Next conventions", (alias, name) =>
-  expect(readFileSync(alias).equals(readFileSync(`public/brand/${name}`))).toBe(
-    true,
-  ),
+])("copies pixel %s for Next conventions", (alias, name) =>
+  expect(
+    readFileSync(alias).equals(readFileSync(`public/brand/pixel/${name}`)),
+  ).toBe(true),
 );
 it.each([
   ["favicon-16.png", 16, 16],
@@ -52,5 +52,8 @@ it.each([
 });
 it("uses the supplied manifest icons", () =>
   expect(manifest()).toMatchObject({
-    icons: [{ src: "/brand/icon-192.png" }, { src: "/brand/icon-512.png" }],
+    icons: [
+      { src: "/brand/pixel/icon-192.png" },
+      { src: "/brand/pixel/icon-512.png" },
+    ],
   }));

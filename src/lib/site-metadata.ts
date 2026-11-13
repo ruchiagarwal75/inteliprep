@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { BRAND } from "./brand";
 
 const image = {
-  url: "/brand/og-image-1200x630.png",
+  url: "/brand/pixel/og-image-1200x630.png",
   width: 1200,
   height: 630,
   alt: `${BRAND.name} interview practice`,
@@ -48,10 +48,10 @@ export const siteMetadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/brand/favicon-16.png", type: "image/png", sizes: "16x16" },
-      { url: "/brand/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/brand/pixel/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/brand/pixel/favicon-32.png", type: "image/png", sizes: "32x32" },
     ],
-    apple: "/brand/apple-touch-icon-180.png",
+    apple: "/brand/pixel/apple-touch-icon-180.png",
   },
   manifest: "/manifest.webmanifest",
   robots: { index: false, follow: false },
