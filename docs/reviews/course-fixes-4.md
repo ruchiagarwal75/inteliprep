@@ -21,3 +21,15 @@ S6 and S9 use landscape SVGs on desktop and keep their portrait versions below
 1440×669 and 375×812, in both themes. It checks alignment, the fade, card spacing,
 diagram height, keyboard navigation, and horizontal overflow. Screenshots are
 under `artifacts/course-fixes-4/learn-T*-S*-{light,dark}-{1440,375}.png`.
+
+## 2. Quiz options and Check bar
+
+The reproduction found a 52px title. Option four ended at y=649.88 while Check
+started at y=591.81. The inherited heading rule overrode the card's intended size.
+A scoped card rule now fixes the title at 32px. The prompt and answer legend use
+less vertical spacing. Option rows keep 16px horizontal padding and use 12px
+vertical padding, with a tap target above 44px.
+
+`course-fixes-4-quiz.spec.ts` visits every question in Topics 0 through 3 in both
+themes and target sizes. When all options are one line, it requires all four to
+sit above Check without scrolling. Screenshots: `quiz-{light,dark}-{1440,375}.png`.
