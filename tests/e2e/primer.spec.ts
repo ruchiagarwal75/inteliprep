@@ -50,7 +50,10 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
     if (slide < 10)
       await page.getByRole("button", { name: "Next", exact: true }).click();
   }
-  await page.getByRole("button", { name: "Start quiz", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Start quiz", exact: true })
+    .last()
+    .click();
   await expect(
     page.getByRole("heading", { name: "Why RAG", exact: true }),
   ).toBeVisible({ timeout: 30000 });

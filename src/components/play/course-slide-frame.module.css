@@ -13,6 +13,7 @@
   line-height: 1.7;
 }
 .scrolling {
+  height: 100%;
   flex: 1 1 auto;
   overflow: auto;
   overscroll-behavior: contain;

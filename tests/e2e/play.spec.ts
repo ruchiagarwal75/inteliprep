@@ -55,7 +55,10 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   page.on("request", (r) => {
     if (r.url().endsWith("/api/play/round") && r.method() === "POST") starts++;
   });
-  await page.getByRole("button", { name: "Start quiz", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Start quiz", exact: true })
+    .last()
+    .click();
   await expect(
     page.getByRole("button", { name: "Check answer", exact: true }),
   ).toBeVisible();

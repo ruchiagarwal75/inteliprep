@@ -81,3 +81,12 @@ The browser can read its own public outcomes. Only server commands write stars,
 chests, combos or XP, under the per-player lock. Points, correct flags and reward
 seeds are rejected in client request schemas. Database tests exercise old rows,
 repeated migrations, concurrent opens and duplicate submissions.
+
+## Course Learn focus shell
+
+Course Learn pages hide the site header and HUD, as the quiz does. A viewport grid
+keeps the exit, topic title, slide segments, unlocked quiz action and theme toggle
+at the top, with Back and Next/Start quiz at the bottom. Only the card scrolls.
+The card starts at its top on every slide, with a 24px fade while more remains.
+Arrow keys and Enter navigate; Escape returns to the path. Review dialogs keep
+their own reader and close action. Reading and quiz access rules stay on the server.

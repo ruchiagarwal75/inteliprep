@@ -1,76 +1,102 @@
 .lesson {
-  display: flex;
-  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 12px;
-  max-width: 760px;
-  margin: 0 auto;
+  height: 100dvh;
+  padding: 16px max(12px, calc((100vw - 960px) / 2));
+  background: var(--pixel-sky);
   font: 400 16px/1.7 var(--font-play-read);
 }
 .lesson[data-review] {
+  position: static;
   height: 100%;
   min-height: 0;
+  padding: 0;
   gap: 8px;
+  grid-template-rows: minmax(0, 1fr) auto;
 }
-.lesson[data-review] .controls {
-  position: static;
-  padding-block: 8px;
+.lesson:has(> [role="alert"]) {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
-.lesson > :not(article) {
-  flex: none;
-}
-.lesson > p {
-  margin: 0;
-}
-.lesson:not([data-review]) {
-  padding-bottom: var(--slide-runway, 0px);
+.lesson[data-review]:has(> [role="alert"]) {
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 .heading {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto 40px;
   gap: 8px;
+  align-items: center;
 }
 .lesson .heading h1 {
-  flex: 1;
   min-width: 0;
   font-size: 14px;
   margin: 0;
-}
-.heading button:global(.practice-secondary) {
-  min-height: 32px;
-  padding: 8px;
-  font-size: 14px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 40px;
+  color: var(--pixel-muted);
+  border: 2px solid var(--pixel-line);
+  background: var(--pixel-panel);
+}
+.heading .quiz button {
+  min-height: 40px;
+  padding: 8px;
+  font: 650 14px/1.5 var(--font-play-read);
+  white-space: nowrap;
+}
+.progress {
+  grid-column: 1 / -1;
+}
+.reader {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  min-height: 0;
 }
 .controls {
   display: flex;
-  gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
-  margin: 0;
-  position: sticky;
-  bottom: 0;
-  z-index: 3;
   justify-content: space-between;
-  padding-block: 16px;
+  gap: 16px;
   background: var(--pixel-sky);
 }
-.lesson > p:last-child {
-  color: var(--pixel-muted);
-  font-size: 14px;
+.controls > :global(.practice-primary),
+.controls > div {
+  width: 180px;
 }
-@media (max-width: 600px) {
-  .lesson {
-    gap: 8px;
-  }
-  .lesson h1 {
-    font-size: 14px;
-  }
+.controls > div > button {
+  width: 100%;
 }
-
+.controls :global(.practice-primary) {
+  min-height: 52px;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
 .fade {
   position: absolute;
-  inset: -24px 0 auto;
+  inset: auto 16px 0;
   height: 24px;
-  background: linear-gradient(to bottom, transparent, var(--pixel-sky));
+  background: linear-gradient(to bottom, transparent, var(--pixel-card));
   pointer-events: none;
+}
+@media (max-width: 599px) {
+  .lesson {
+    gap: 8px;
+    padding-block: 12px;
+  }
+  .lesson[data-review] {
+    padding: 0;
+  }
+  .lesson .heading h1 {
+    font-size: 10px;
+  }
 }

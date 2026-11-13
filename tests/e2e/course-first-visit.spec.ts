@@ -34,7 +34,10 @@ test("a separate fresh account must see all slides once, then can revisit its qu
         page.getByRole("button", { name: "Start quiz", exact: true }),
       ).toHaveCount(0);
   }
-  await page.getByRole("button", { name: "Start quiz", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Start quiz", exact: true })
+    .last()
+    .click();
   await expect(
     page.getByRole("heading", { name: "Big chunks", exact: true }),
   ).toBeVisible();

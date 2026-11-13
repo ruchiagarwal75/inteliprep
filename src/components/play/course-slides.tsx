@@ -1,12 +1,13 @@
 "use client";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { CourseLearnHeader } from "./course-learn-header";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { StartRound } from "./start-round";
 import { CourseSlideSaves } from "./course-slide-saves";
 import { CourseSlideFrame } from "./course-slide-frame";
-import { useLessonViewport } from "./lesson-viewport";
+import { useSlideOverflow } from "./slide-overflow";
 import { useSlideKeys } from "./slide-keys";
 import type { CourseLesson } from "@/lib/play/course/slides-public";
 import styles from "./course.module.css";
@@ -23,6 +24,7 @@ export function CourseSlides({
   review,
 }: CourseLesson & { review?: { onClose: () => void; initialIndex?: number } }) {
   const { request } = useCandidateAccount();
+  const router = useRouter();
   const initialIndex = review?.initialIndex ?? 0;
   const [index, setIndex] = useState(initialIndex),
     [error, setError] = useState("");
@@ -83,13 +85,12 @@ export function CourseSlides({
     (direction: number) => move(currentIndex.current + direction),
     [move],
   );
-  useSlideKeys({ reader, primary: next, move: moveBy });
-  const covered = useLessonViewport({
-    reader,
-    controls: next,
-    index,
-    review: Boolean(review),
-  });
+  const leave = useCallback(() => {
+    if (review) review.onClose();
+    else router.push("/play/rag");
+  }, [review, router]);
+  useSlideKeys({ reader, primary: next, move: moveBy, leave });
+  const covered = useSlideOverflow(reader, index);
   return (
     <section
       ref={reader}
@@ -98,45 +99,12 @@ export function CourseSlides({
       aria-label="Topic slides"
     >
       {!review && (
-        <header className={styles.heading}>
-          <Link
-            className="practice-link"
-            href="/play/rag"
-            aria-label="Back to topics"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="m14 6-6 6 6 6" />
-            </svg>
-          </Link>
-          <h1 data-game-label>
-            Topic {level} · {title}
-          </h1>
-          {complete && !last && (
-            <StartRound
-              topic={RAG_COURSE_ID}
-              mode="level"
-              level={level}
-              label="Start quiz"
-              variant="secondary"
-            />
-          )}
-        </header>
-      )}
-      {slide && (
-        <CourseSlideFrame
-          key={index}
-          slide={slide}
+        <CourseLearnHeader
+          level={level}
+          title={title}
           index={index}
           count={slides.length}
-          scrollable={Boolean(review)}
+          complete={complete}
         />
       )}
       {error && (
@@ -151,12 +119,16 @@ export function CourseSlides({
           </button>
         </div>
       )}
-      <div
-        ref={next}
-        data-slide-controls
-        className={styles.controls}
-        data-covered={covered || undefined}
-      >
+      <div className={styles.reader}>
+        {slide && (
+          <CourseSlideFrame
+            key={index}
+            slide={slide}
+            index={index}
+            count={slides.length}
+            scrollable
+          />
+        )}
         {covered && (
           <span
             className={styles.fade}
@@ -164,6 +136,8 @@ export function CourseSlides({
             aria-label="More slide content below"
           />
         )}
+      </div>
+      <div ref={next} data-slide-controls className={styles.controls}>
         <button
           type="button"
           className={`practice-secondary ${buttons.button}`}
@@ -198,7 +172,6 @@ export function CourseSlides({
           </button>
         )}
       </div>
-      {!review && <p>Arrow keys to move. Enter to continue.</p>}
     </section>
   );
 }

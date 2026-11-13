@@ -58,7 +58,10 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
       if (n < slides)
         await page.getByRole("button", { name: "Next", exact: true }).click();
     }
-    await page.getByRole("button", { name: "Start quiz", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Start quiz", exact: true })
+      .last()
+      .click();
     await expect(
       page.getByRole("button", { name: "Check answer", exact: true }),
     ).toBeVisible({ timeout: 30000 });

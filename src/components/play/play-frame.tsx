@@ -17,7 +17,11 @@ export function PlayFrame({
       className={`practice-page ${game.game} ${active === "play" ? pixel.page : ""}`}
       data-pixel-play={active === "play" || undefined}
       data-world={world}
-      data-lesson-route={pathname.endsWith("/drill") || undefined}
+      data-lesson-route={
+        pathname.endsWith("/drill") ||
+        /^\/play\/rag\/topics\/\d+$/u.test(pathname) ||
+        undefined
+      }
     >
       {children}
     </main>

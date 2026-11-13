@@ -48,7 +48,10 @@ test("slides move instantly while ordered saves and the quiz gate wait in the ba
     for (let slide = 6; slide <= 13; slide++)
       await page.keyboard.press("ArrowRight");
     await expect(page.getByLabel("Slide counter")).toHaveText("13 / 13");
-    await page.getByRole("button", { name: "Start quiz", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Start quiz", exact: true })
+      .last()
+      .click();
     expect(starts).toBe(0);
     release();
     await expect(

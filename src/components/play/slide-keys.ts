@@ -6,10 +6,12 @@ export function useSlideKeys({
   reader,
   primary,
   move,
+  leave,
 }: {
   reader: RefObject<HTMLElement | null>;
   primary: RefObject<HTMLDivElement | null>;
   move: (direction: number) => void;
+  leave: () => void;
 }) {
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
@@ -29,7 +31,10 @@ export function useSlideKeys({
           ))
       )
         return;
-      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        leave();
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
         move(event.key === "ArrowLeft" ? -1 : 1);
       } else if (
@@ -45,5 +50,5 @@ export function useSlideKeys({
     };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, [reader, primary, move]);
+  }, [reader, primary, move, leave]);
 }

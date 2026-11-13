@@ -3,7 +3,7 @@ import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
 
-test("Learn slides remain readable in short windows and scroll with the page", async ({
+test("Learn slides remain readable in short windows with card scrolling", async ({
   page,
   context,
 }) => {
