@@ -9,20 +9,12 @@ The existing beta URL is
 
 ## Custom domain
 
-`shardling.com` serves the Production deployment of the same Vercel
-project. `www.shardling.com` redirects to `shardling.com` with HTTP 308. Vercel
-Authentication protects Preview deployments. Production uses the application's invitation checks; testers do not need a Vercel account.
-
-DNS is hosted at GoDaddy. Vercel's domain configuration is the source of truth for
-the required A and CNAME records; check it before updating the zone. Preserve MX,
-TXT, nameservers, and unrelated records. After DNS changes, verify both hostnames,
-HTTPS, the www redirect, candidate sign-in/invitation enforcement, and `/api/health`.
-
-Supabase Site URL is `https://shardling.com`, with
-`https://shardling.com/auth/callback` allowed alongside the existing localhost and
-Vercel beta callbacks. The Google-to-Supabase callback remains unchanged.
-Browser interview history remains on the hostname where it was saved; switching
-to the custom domain does not copy or delete that IndexedDB history.
+`shardling.com` is the intended Shardling origin. This beta rebrand does not
+change Production domain assignments or Auth settings. Follow the
+[cutover checklist](reviews/shardling-rebrand.md) after reviewing Preview.
+The app redirects www to apex with 308, preserving path/query, while allowing
+OAuth callbacks to finish on the host that owns their PKCE cookies. Legacy-host
+redirects stay disabled unless the owner explicitly enables the cutover flag.
 
 ## Deployment shape
 

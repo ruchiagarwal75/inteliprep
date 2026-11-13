@@ -196,3 +196,5 @@ on port 3100, with no paid model calls. It covers private access, real drawing,
 chat, end, saved results and headers. CI installs Chromium with OS dependencies.
 Screenshots in `artifacts/` remain local and are not versioned. See CLAUDE.md for
 current dependency overrides and the remaining low-severity Mermaid/KaTeX notes.
+
+See the [Shardling cutover checklist and compatibility audit](docs/reviews/shardling-rebrand.md) for domain, OAuth, Resend and environment setup. Production is unchanged by this beta rebrand.

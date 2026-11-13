@@ -46,3 +46,16 @@ it("does not grant access or falsely report uninvited status on a database outag
   expect(r.headers.get("location")).toContain("/sign-in?error=");
   expect(r.headers.get("Cache-Control")).toBe("private, no-store");
 });
+
+it.each([
+  "shardling.com",
+  "www.shardling.com",
+  "mockmeai.com",
+  "www.mockmeai.com",
+  "beta.example.test",
+])("keeps the callback on %s after code exchange", async (host) => {
+  const response = await GET(
+    new Request(`https://${host}/auth/callback?code=fixture`),
+  );
+  expect(response.headers.get("location")).toBe(`https://${host}/play`);
+});

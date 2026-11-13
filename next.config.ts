@@ -1,9 +1,13 @@
+import { domainRedirects } from "./src/lib/domain-redirects";
 import { resolve } from "node:path";
 import type { NextConfig } from "next";
 import { securityHeaders } from "./src/lib/security-headers";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return domainRedirects();
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.js$/u,

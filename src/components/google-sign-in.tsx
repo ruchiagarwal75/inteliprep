@@ -1,5 +1,6 @@
 "use client";
 
+import { oauthCallbackUrl } from "@/lib/oauth-callback";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 
@@ -16,12 +17,10 @@ export function GoogleSignIn({
     setBusy(true);
     setError(undefined);
     try {
-      const callback = new URL("/auth/callback", window.location.origin);
-      if (returnTo) callback.searchParams.set("next", returnTo);
       const { error } = await supabaseBrowser().auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: callback.href,
+          redirectTo: oauthCallbackUrl(window.location.origin, returnTo),
           scopes: "openid email profile",
         },
       });
