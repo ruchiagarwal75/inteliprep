@@ -6,6 +6,7 @@ import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { StartRound } from "./start-round";
 import { CourseSlideSaves } from "./course-slide-saves";
 import { CourseSlideFrame } from "./course-slide-frame";
+import { useLessonViewport } from "./lesson-viewport";
 import { useSlideKeys } from "./slide-keys";
 import type { CourseLesson } from "@/lib/play/course/slides-public";
 import styles from "./course.module.css";
@@ -83,6 +84,12 @@ export function CourseSlides({
     [move],
   );
   useSlideKeys({ reader, primary: next, move: moveBy });
+  const covered = useLessonViewport({
+    reader,
+    controls: next,
+    index,
+    review: Boolean(review),
+  });
   return (
     <section
       ref={reader}
@@ -91,26 +98,37 @@ export function CourseSlides({
       aria-label="Topic slides"
     >
       {!review && (
-        <Link className="practice-link" href="/play/rag">
-          Back to topics
-        </Link>
-      )}
-      {!review && (
-        <>
-          <p data-game-label>Topic {level} · Learn</p>
-          <h1 data-game-label>{title}</h1>
-        </>
-      )}
-      {!review && complete && !last && (
-        <div className={styles.quick}>
-          <StartRound
-            topic={RAG_COURSE_ID}
-            mode="level"
-            level={level}
-            label="Start quiz"
-          />
-          <span>Or review the slides below.</span>
-        </div>
+        <header className={styles.heading}>
+          <Link
+            className="practice-link"
+            href="/play/rag"
+            aria-label="Back to topics"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="m14 6-6 6 6 6" />
+            </svg>
+          </Link>
+          <h1 data-game-label>
+            Topic {level} · {title}
+          </h1>
+          {complete && !last && (
+            <StartRound
+              topic={RAG_COURSE_ID}
+              mode="level"
+              level={level}
+              label="Start quiz"
+              variant="secondary"
+            />
+          )}
+        </header>
       )}
       {slide && (
         <CourseSlideFrame
@@ -133,7 +151,19 @@ export function CourseSlides({
           </button>
         </div>
       )}
-      <div ref={next} className={styles.controls}>
+      <div
+        ref={next}
+        data-slide-controls
+        className={styles.controls}
+        data-covered={covered || undefined}
+      >
+        {covered && (
+          <span
+            className={styles.fade}
+            role="img"
+            aria-label="More slide content below"
+          />
+        )}
         <button
           type="button"
           className={`practice-secondary ${buttons.button}`}

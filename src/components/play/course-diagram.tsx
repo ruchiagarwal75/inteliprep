@@ -1,9 +1,6 @@
 import type { CourseDiagramKind } from "@/lib/play/course/slide-diagrams";
-import {
-  PipelineDiagram,
-  OverlapDiagram,
-  SmallToBigDiagram,
-} from "./course-diagram-chunking";
+import { PipelineDiagram } from "./course-diagram-chunking";
+import { OverlapDiagram, SmallToBigDiagram } from "./course-diagram-landscape";
 import { SplitTableDiagram } from "./course-diagram-table";
 import {
   TwoTowerDiagram,
@@ -68,6 +65,8 @@ export function CourseDiagram({ kind }: { kind: CourseDiagramKind }) {
       className={
         styles.figure +
         ([
+          "overlap",
+          "small-to-big",
           "pipeline",
           "split-table",
           "rag-answer",

@@ -1,6 +1,6 @@
 .frame {
   display: flex;
-  flex: 1 1 auto;
+  flex: none;
   flex-direction: column;
   min-height: 0;
   padding: clamp(16px, 3vw, 32px);
@@ -13,6 +13,7 @@
   line-height: 1.7;
 }
 .scrolling {
+  flex: 1 1 auto;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -26,8 +27,8 @@
   color: var(--pixel-muted);
 }
 .body {
-  flex: 1 1 auto;
-  min-height: 280px;
+  flex: none;
+  min-height: 0;
   width: 100%;
   max-width: 640px;
   margin-inline: auto;
@@ -59,4 +60,8 @@
   .frame > h2 {
     font-size: 12px;
   }
+}
+
+.body > :last-child {
+  margin-bottom: 0;
 }

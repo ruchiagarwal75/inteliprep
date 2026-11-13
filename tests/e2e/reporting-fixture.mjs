@@ -93,6 +93,20 @@ export async function startReportingFixture(key, cert) {
         name === "primerLegacy"
       )
         await operator`insert into practice_game.level_progress(user_id,topic,level,status) values(${account.id},'rag-course',1,'open') on conflict do nothing`;
+    const course = JSON.parse(
+      readFileSync("src/lib/play/course/rag.json", "utf8"),
+    );
+    for (const name of ["fixes4Learn", "fixes4Quiz"]) {
+      const account = fixtureAccounts[name];
+      for (const topic of course) {
+        await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${account.id},'rag-course',${topic.level},${topic.level < 3 ? "passed" : "open"},${topic.level < 3 ? new Date() : null}) on conflict do nothing`;
+        await operator`insert into practice_game.course_visits(user_id,course_id,level,seen_through,last_viewed_index,completed_at) values(${account.id},'rag-course',${topic.level},${topic.slides.length - 1},${topic.slides.length - 1},now())`;
+      }
+    }
+    for (const level of [0, 1, 2])
+      await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${fixtureAccounts.fixes4Path.id},'rag-course',${level},${level < 2 ? "passed" : "open"},${level < 2 ? new Date() : null})`;
+    for (const level of [0, 1])
+      await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${fixtureAccounts.fixes4Unlock.id},'rag-course',${level},${level === 0 ? "passed" : "open"},${level === 0 ? new Date() : null})`;
     // Synthetic ledger history for the retired-XP HUD regression, never a real account.
     const restored = fixtureAccounts.courseRestored.id;
     await operator`insert into practice_game.player_profiles(user_id) values(${restored})`;

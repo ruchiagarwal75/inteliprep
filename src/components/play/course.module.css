@@ -21,26 +21,38 @@
 .lesson > p {
   margin: 0;
 }
-.lesson h1 {
-  font-size: 18px;
+.lesson:not([data-review]) {
+  padding-bottom: var(--slide-runway, 0px);
+}
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lesson .heading h1 {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
   margin: 0;
 }
-.controls,
-.quick {
+.heading button:global(.practice-secondary) {
+  min-height: 32px;
+  padding: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.controls {
   display: flex;
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
   margin: 0;
-}
-.controls {
   position: sticky;
   bottom: 0;
   z-index: 3;
   justify-content: space-between;
   padding-block: 16px;
   background: var(--pixel-sky);
-  border-top: 2px solid var(--pixel-line);
 }
 .lesson > p:last-child {
   color: var(--pixel-muted);
@@ -53,4 +65,12 @@
   .lesson h1 {
     font-size: 14px;
   }
+}
+
+.fade {
+  position: absolute;
+  inset: -24px 0 auto;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, var(--pixel-sky));
+  pointer-events: none;
 }

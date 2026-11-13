@@ -60,7 +60,7 @@ export function PipelineDiagram() {
     </>
   );
 }
-export function OverlapDiagram() {
+export function OverlapPortrait() {
   return (
     <svg viewBox="0 0 320 280" aria-hidden="true">
       <Box x={8} y={20} width={304} labels={["Document"]} />
@@ -89,7 +89,7 @@ export function OverlapDiagram() {
     </svg>
   );
 }
-export function SmallToBigDiagram() {
+export function SmallToBigPortrait() {
   return (
     <svg viewBox="0 0 320 248" aria-hidden="true">
       <rect className={styles.node} x="8" y="20" width="190" height="188" />

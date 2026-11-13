@@ -1,5 +1,21 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  fixes4Learn: {
+    id: "71717171-7171-4171-8171-717171717171",
+    email: "fixes4-learn@example.invalid",
+  },
+  fixes4Quiz: {
+    id: "72727272-7272-4272-8272-727272727272",
+    email: "fixes4-quiz@example.invalid",
+  },
+  fixes4Path: {
+    id: "73737373-7373-4373-8373-737373737373",
+    email: "fixes4-path@example.invalid",
+  },
+  fixes4Unlock: {
+    id: "74747474-7474-4474-8474-747474747474",
+    email: "fixes4-unlock@example.invalid",
+  },
   primerFresh: {
     id: "81818181-8181-4181-8181-818181818181",
     email: "primer-fresh@example.invalid",

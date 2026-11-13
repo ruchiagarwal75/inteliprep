@@ -58,3 +58,28 @@
     margin-inline: auto;
   }
 }
+
+.portrait {
+  display: none !important;
+}
+@media (min-width: 600px) {
+  .figure {
+    margin-block: 16px;
+  }
+  .figure svg {
+    max-height: 220px;
+  }
+  .figure .landscape {
+    max-height: 200px;
+  }
+}
+@media (max-width: 599px) {
+  .landscape {
+    display: none !important;
+  }
+  .portrait {
+    display: block !important;
+    max-width: 360px;
+    margin-inline: auto;
+  }
+}
