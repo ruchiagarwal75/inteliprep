@@ -97,7 +97,8 @@ to the old domain, the owner must update its scope or replace it in the dashboar
    the apex and www HTTPS JavaScript origins. Keep all old active origins and the
    Google-to-Supabase callback
    `https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback` unchanged. Keep beta
-   audience/test users and scopes unchanged. Complete any requested verification.
+   audience/test users and scopes unchanged. Complete any requested verification, then click Publish branding. Changes to the
+   name, logo or domain may remain draft branding until verified and published.
 5. Resend: add and verify `shardling.com`, install its exact DNS records, and confirm
    that the existing sending key can send from `hello@shardling.com`. Approval
    templates use `Shardling <hello@shardling.com>`. No test email was sent.
@@ -108,3 +109,48 @@ to the old domain, the owner must update its scope or replace it in the dashboar
 
 Browser history is origin-scoped. Old attempts remain in their original host's
 storage; moving domains does not transfer that storage or sign-in cookies.
+
+## Verification and files
+
+`npm run check` passes: lint, typecheck, formatting and 1,934 stubbed/local tests,
+with two existing skips. `npm run build` and both private-content browser-chunk
+scans pass. No live or paid tests ran. A built-server HTTP check confirms the www
+308 preserves repeated query keys, including `tag=a&tag=b`, and that the legacy
+host stays accessible while the flag is off. Unit tests cover enabled redirects,
+callback exceptions and same-host code exchange on all five host forms.
+
+The browser check visits Home and Sign in at 1440px and 375px, in both themes.
+It checks titles, raw-source OG/Twitter/robots tags, canonical URLs, favicon and
+manifest responses, local Nunito loading, theme persistence, console/hydration
+errors and horizontal overflow. It blocks analytics and all API requests and
+uses a fresh signed-out browser. It does not sign in with the owner's account.
+Whiteboard export code is unchanged and its existing tests remain passing.
+
+Screenshots under `artifacts/shardling/`:
+
+| View | Light | Dark |
+| --- | --- | --- |
+| Home desktop | [1440](../../artifacts/shardling/home-light-1440.png) | [1440](../../artifacts/shardling/home-dark-1440.png) |
+| Home phone | [375](../../artifacts/shardling/home-light-375.png) | [375](../../artifacts/shardling/home-dark-375.png) |
+| Sign in desktop | [1440](../../artifacts/shardling/sign-in-light-1440.png) | [1440](../../artifacts/shardling/sign-in-dark-1440.png) |
+| Sign in phone | [375](../../artifacts/shardling/sign-in-light-375.png) | [375](../../artifacts/shardling/sign-in-dark-375.png) |
+| Header desktop | [1440](../../artifacts/shardling/home-header-light-1440.png) | [1440](../../artifacts/shardling/home-header-dark-1440.png) |
+| Header phone | [375](../../artifacts/shardling/home-header-light-375.png) | [375](../../artifacts/shardling/home-header-dark-375.png) |
+
+Files by change:
+
+- Identity/metadata: `src/lib/{brand,site-metadata}.ts`, their tests,
+  `src/app/{layout,robots,sitemap}.tsx/ts`, child page metadata, approval/copy
+  tests, active operator docs, `package.json` description and `.env.example`.
+- Assets: `public/brand*`, icons and font/license, Next icon conventions,
+  `src/components/{brand,brand-face}`, the brand CSS Module and tests,
+  `mascotArt.ts` static face export, its preservation test, Home hero and chat
+  avatar, `src/app/{theme.css,manifest.ts}`, `scripts/build-brand-assets.mjs`.
+- Domain/auth: `src/lib/{domain-redirects,oauth-callback}.ts`, redirect tests,
+  `next.config.ts`, `google-sign-in.tsx`, callback tests and the cutover checklist.
+- Audit: `scripts/check-brand.mjs`, `src/lib/brand-audit.test.ts` and the
+  339-entry compatibility/historical catalog linked above.
+
+The deferred `course-fixes-5.md` and `learn-mode.md` files remain untouched.
+
+Dashboard references: [Supabase redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls), [Google branding verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/brand-verification).

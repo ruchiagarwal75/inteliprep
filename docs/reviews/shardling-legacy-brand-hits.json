@@ -1,0 +1,2036 @@
+[
+  {
+    "path": ".env.example",
+    "line": 13,
+    "text": "INTELIPREP_TEST_MODEL_503_ONCE=",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": ".env.example",
+    "line": 27,
+    "text": "INTELIPREP_ENV=",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": ".env.example",
+    "line": 38,
+    "text": "INTELIPREP_ALLOW_TEST_INTERVIEWS=0",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": ".env.example",
+    "line": 41,
+    "text": "INTELIPREP_DEV_START_LIMITS=off",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": ".env.example",
+    "line": 56,
+    "text": "# Restricted mockmeai_reporting runtime connection, configured by the operator script.",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": ".env.example",
+    "line": 64,
+    "text": "MOCKMEAI_REDIRECT_ENABLED=0",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "CLAUDE.md",
+    "line": 332,
+    "text": "`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "CLAUDE.md",
+    "line": 335,
+    "text": "Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "CLAUDE.md",
+    "line": 336,
+    "text": "`inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "CLAUDE.md",
+    "line": 348,
+    "text": "`/api/monitoring/viewer` or set `mockmeai:exclude-analytics=1` in that browser's",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 68,
+    "text": "Interview URLs are `/interview/<id>` and results are `/interview/<id>/results`. Old `?session=` links still work. Set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` before starting the dev server to show the 1-minute test option. History shows the three most recent attempts for each account, with View all revealing the rest. Every saved attempt remains independently readable and editable in IndexedDB; no history view or automatic cleanup deletes them. Signing out keeps browser history. The legacy anonymous `inteliprep` database stays separate from `inteliprep:account:<id>` to avoid assigning anonymous evidence to the wrong account; an explicit import policy is future work.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 70,
+    "text": "start quotas are skipped locally unless `INTELIPREP_DEV_START_LIMITS=on`.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 74,
+    "text": "Redis is only required for Vercel or `INTELIPREP_ENV=beta`.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 138,
+    "text": "For the one-minute local test, set `NEXT_PUBLIC_ENABLE_TEST_INTERVIEWS=1` and the server-only `INTELIPREP_ALLOW_TEST_INTERVIEWS=1` (or sign in as the configured admin) in `.env.local`, restart `npm run dev` and reload the Brief. Select **1 minute (test)** before starting. `?debug=1` has no effect. Production bundles need rebuilding after a public environment setting changes. Local start quotas are off unless `INTELIPREP_DEV_START_LIMITS=on`; chat/model quotas stay enabled.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 147,
+    "text": "`inteliprep` storage keys, cookies, Redis namespaces, signed-token contexts, and",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 148,
+    "text": "`INTELIPREP_*` environment variables are deliberately retained for compatibility.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "README.md",
+    "line": 173,
+    "text": "scorecard content stays plain. [Before/after captures](artifacts/mockmeai-architecture/README.md)",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 109,
+    "text": "`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 219,
+    "text": "`INTELIPREP_ADMIN_DB_TEST=1 npm test -- tests/admin-database.test.ts` runs an opt-in",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 251,
+    "text": "A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 272,
+    "text": "`localStorage.setItem(\"mockmeai:exclude-analytics\", \"1\")` before navigating to app",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 328,
+    "text": "`mockmeai_reporting` and its restricted grants/policies.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 332,
+    "text": "`postgres.<project-ref>` to `mockmeai_reporting.<project-ref>`. It refuses to",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/admin.md",
+    "line": 394,
+    "text": "- Alternatively, open the IntelliPrep project in Supabase, open SQL Editor,",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 9,
+    "text": "The InteliPrep Supabase project is `bjqjocrfsiprlvnitfuo`. Its Google provider callback is:",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 20,
+    "text": "`https://inteliprep-ruchiagarwal75s-projects.vercel.app` as JavaScript origins.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 29,
+    "text": "https://inteliprep-ruchiagarwal75s-projects.vercel.app/auth/callback",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 98,
+    "text": "The anonymous `inteliprep` browser database is left intact and hidden from account",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 145,
+    "text": "`MOCKMEAI_INVITED_EMAILS` list without overriding any existing row, including",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 194,
+    "text": "Operator checklist: Supabase Dashboard, IntelliPrep, Authentication, Sign In /",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 211,
+    "text": "old unassigned `inteliprep` database are retained. An account-scoped local",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 221,
+    "text": "1. Open the [IntelliPrep Supabase project's URL Configuration](https://supabase.com/dashboard/project/bjqjocrfsiprlvnitfuo/auth/url-configuration).",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 227,
+    "text": "https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/auth/callback",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/authentication.md",
+    "line": 231,
+    "text": "5. Start a fresh sign-in from the [stable beta preview](https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/sign-in).",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 163,
+    "text": "| 1 | `chat-display.ts`, `problems.ts`, `configured-clarifications.ts`, opening/display tests | [711d3f5](https://github.com/ruchiagarwal75/inteliprep/commit/711d3f567749174754014bb6ef638f4945846b30) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 164,
+    "text": "| 2 | `scoring-eligibility.ts`, `scorecard-calibration.ts`, End confirmation/timer/header components and tests | [7c4fb4c](https://github.com/ruchiagarwal75/inteliprep/commit/7c4fb4cc2183f4ec7b81276fe39befcdee73c539) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 165,
+    "text": "| 3 | `short-interview-scorecard.ts`, `interview-grading.ts`, `end-interview.ts`, `interview-tracking.ts`, short-result/admin components, additive scoring migration and tests | [3626a9e](https://github.com/ruchiagarwal75/inteliprep/commit/3626a9e47940dc67b4708330f350055b3af3145b) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 166,
+    "text": "| 4 | `tests/e2e/whiteboard.spec.ts`, `tests/e2e/fixture-auth.ts`, this report | [52be646](https://github.com/ruchiagarwal75/inteliprep/commit/52be64601f19ecf5e6aed9ce4ab005b6ab9584eb) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 168,
+    "text": "| 7 | `admin-beta-funnel.ts`, `beta-funnel-query.ts`, `beta-funnel-tracking.ts`, admin funnel page/API/panel, scorecard-view API/tracker, auth/reporting hooks, additive funnel migration, privacy/admin docs, database and browser tests | [6bbd93d](https://github.com/ruchiagarwal75/inteliprep/commit/6bbd93dac09916b830e91772762069d8a5ebcc2b) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 169,
+    "text": "| 8 | `interview-instructions.ts` and its tests | [7524758](https://github.com/ruchiagarwal75/inteliprep/commit/7524758aca9600528bbdb6ba355baf4723f840a9) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 170,
+    "text": "| 9 | `llm.ts`, `discussion-reply.ts`, `interviewer-input.ts`, pending diagram helper and tests | [a698308](https://github.com/ruchiagarwal75/inteliprep/commit/a698308a1b2f7e7f8ca31c09e66c1f2a745d2442) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/beta-readiness.md",
+    "line": 171,
+    "text": "| 10 | `discussion-reply.ts`, `discussion-acknowledgement.ts`, `pending-question-reply.ts`, turn/session/context wiring and tests | [1d08d11](https://github.com/ruchiagarwal75/inteliprep/commit/1d08d115fb446911683faad6c0c731dc76731740) |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 3,
+    "text": "The Vercel project is `inteliprep` in `ruchiagarwal75s-projects`:",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 4,
+    "text": "[project dashboard](https://vercel.com/ruchiagarwal75s-projects/inteliprep).",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 8,
+    "text": "[the protected interview app](https://inteliprep-ruchiagarwal75s-projects.vercel.app/interview).",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 23,
+    "text": "`INTELIPREP_ENV=production`; without it the readiness guard rejects Production",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 32,
+    "text": "The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 52,
+    "text": "1. Connect the Vercel account and import `ruchiagarwal75/inteliprep`. Use the Next.js",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 71,
+    "text": "`INTELIPREP_ENV=production` in Production only, use the intended Auth and database",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 89,
+    "text": "| `INTELIPREP_ENV` | Leave blank locally, or use `beta` to exercise shared safeguards. Set `production` in Vercel Production to opt in to this release |",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 211,
+    "text": "INTELIPREP_TEST_MODEL_503_ONCE=1 npm run dev",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/play-content/game-pixel.md",
+    "line": 114,
+    "text": "Pixel flame + streak number, a pixel daily square (filled green when done, with the label \"DAILY\"), pixel star + \"132 XP\" in gold, and \"LV 2\" with a 10-block XP bar. Keep the MockMeAI logo and the Play / Mock / Progress nav in Inter.",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 1,
+    "text": "You're working on MockMeAI (this repo). I had the codebase reviewed for security issues and bad practices before launch. Fix the items below in order. Each item says where the problem is, why it matters, what to do and how to check it's done.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 38,
+    "text": "- **Fix:** Only accept `durationMinutes: 1` when a server-only flag is on (for example `INTELIPREP_ALLOW_TEST_INTERVIEWS=1`, not a `NEXT_PUBLIC_` variable) or when the caller is the admin. Otherwise return 400. Add a test.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 71,
+    "text": "- **Where:** `docs/authentication.md` says the Google consent screen is set up as \"InteliPrep\".",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 72,
+    "text": "- **Why:** Users will see \"InteliPrep\" when signing in to MockMeAI, which looks like phishing.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 73,
+    "text": "- **Fix:** This one is in the Google Cloud console, not the code. List the exact steps for me: app name MockMeAI, logo, the `mockmeai.com` authorized domain, and the privacy and terms URLs from item 5. Update `docs/authentication.md`.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 84,
+    "text": "- **Fix:** Add a migration that creates a `mockmeai_reporting` role with:",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 122,
+    "text": "- **Where:** `artifacts/` has 42 tracked PNG files (about 4.9 MB), plus the new `artifacts/mockmeai-design-review/` folder.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/code-review-2026-11-07.md",
+    "line": 138,
+    "text": "- Old \"InteliPrep\" names remain in env vars (`INTELIPREP_*`), the auth cookie (`inteliprep-auth`) and Redis keys (`inteliprep:v1`).",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/design-review-2026-11-07.md",
+    "line": 1,
+    "text": "# MockMeAI design review implementation",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/design-review-2026-11-07.md",
+    "line": 26,
+    "text": "8. **Identity:** interviewer bubbles include a small M avatar and MockMeAI interviewer label.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/design-review-2026-11-07.md",
+    "line": 79,
+    "text": "[Before/after gallery](../../artifacts/mockmeai-design-review/README.md).",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/design-review-2026-11-07.md",
+    "line": 168,
+    "text": "- [Before/after screenshots and gallery](../../artifacts/mockmeai-design-review/README.md)",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/pixel-fixes-1.md",
+    "line": 17,
+    "text": "`20261112081802_play_active_drill_time.sql` adds timing and revision metadata only. It has been applied to the existing IntelliPrep database. Owner RLS remains enabled, browser timing writes are denied, and the reporting role retains the required access. There is no deletion or bulk replacement of answers, results or rewards. Other environments can run `npm run db:play`; `npm run db:play -- --verify` checks the clock columns too.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/play-fixes-round-1.md",
+    "line": 11,
+    "text": "The agent did not change environment variables. In Vercel, open **inteliprep → Settings →",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/production-retest-2026-11-09.md",
+    "line": 78,
+    "text": "inteliprep → Logs, select Production, set the UTC window to 03:37–03:40 on",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/rag-course-build.md",
+    "line": 18,
+    "text": "`20261112184249_play_rag_course_visits.sql` adds one private owner-scoped table. Browser roles can read their own visits but cannot write them. The existing reporting role writes under the verified owner context. Applying the migration twice is safe. It has been applied to the existing IntelliPrep database and its RLS and grants verified. No existing records were updated or deleted. Other environments can apply it with `npm run db:play` using their operator connection.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 1,
+    "text": "# MockMeAI retest (Nov 7, 2026, 7 PM)",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 12,
+    "text": "| 2 | Block 1-minute test interviews | Pass | `requireTestInterviewAccess()` returns 400 unless the caller is the admin or `INTELIPREP_ALLOW_TEST_INTERVIEWS=1`. There's a test for it. |",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 13,
+    "text": "| 3 | Sign-up gate | Pass (private beta) | Invite list in `MOCKMEAI_INVITED_EMAILS`, checked on every candidate API call, plus a `/not-invited` page. See \"Still to do\" for one gap. |",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 17,
+    "text": "| 7 | Low-privilege reporting database user | Pass | New `mockmeai_reporting` role and migration. The agent's check confirmed it can't read other tables or delete anything. The app now uses `SUPABASE_REPORTING_CONNECTION_STRING`. |",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 23,
+    "text": "| 13 | Confusing names | Pass | `isPrivateBeta()` is renamed to `usesSharedStore()`. The old `inteliprep` cookie and Redis names are kept on purpose and explained in `CLAUDE.md`. |",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 51,
+    "text": "- `MOCKMEAI_INVITED_EMAILS`",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/retest-2026-11-07.md",
+    "line": 53,
+    "text": "- Leave `INTELIPREP_ALLOW_TEST_INTERVIEWS` unset in production.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-audit-2026-11-07.md",
+    "line": 1,
+    "text": "You're working on MockMeAI (this repo). I had a deep security audit done on commit `a59c3a5` and the live site. **No critical or high-severity vulnerabilities were found.** Fix the items below in order. Each one says what's wrong, why it matters, what to do and how to check it's done.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-audit-2026-11-07.md",
+    "line": 14,
+    "text": "- **Production (mockmeai.com):** CSP with a nonce, `X-Frame-Options: DENY`, HSTS (2 years), `nosniff`, `Referrer-Policy` and `Permissions-Policy` are all present.",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-hardening-2026-11-07.md",
+    "line": 1,
+    "text": "# MockMeAI pre-launch security hardening",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-hardening-2026-11-07.md",
+    "line": 12,
+    "text": "Server-only `INTELIPREP_ALLOW_TEST_INTERVIEWS=1` or fresh admin verification is",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-hardening-2026-11-07.md",
+    "line": 14,
+    "text": "3. **Private access selected:** `MOCKMEAI_INVITED_EMAILS` is an exact-email,",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-hardening-2026-11-07.md",
+    "line": 30,
+    "text": "6. **Google branding:** docs/authentication.md now has the MockMeAI branding,",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/security-hardening-2026-11-07.md",
+    "line": 99,
+    "text": "- Add invitees to `MOCKMEAI_INVITED_EMAILS` for each intended environment and",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/spec.md",
+    "line": 394,
+    "text": "The `inteliprep:account:<userId>` IndexedDB database stores each account’s versioned",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/spec.md",
+    "line": 395,
+    "text": "interview records and active session pointer. The legacy anonymous `inteliprep`",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/spec.md",
+    "line": 818,
+    "text": "Vercel deployments (or local `INTELIPREP_ENV=beta`) require model credentials,",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/spec.md",
+    "line": 891,
+    "text": "Local development can set `INTELIPREP_TEST_MODEL_503_ONCE=1` to inject a 503 before",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/spec.md",
+    "line": 1036,
+    "text": "INTELIPREP_DEV_START_LIMITS=on, while deployed limits always apply. The Brief puts",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/spec.md",
+    "line": 1260,
+    "text": "the preference in `mockmeai-theme` (cookie) and `mockmeai:theme` (localStorage), with",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "next.config.ts",
+    "line": 28,
+    "text": "distDir: process.env.MOCKMEAI_E2E_BUILD === \"1\" ? \".next-e2e\" : \".next\",",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "next.config.ts",
+    "line": 31,
+    "text": "process.env.MOCKMEAI_E2E_BUILD === \"1\"",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "package-lock.json",
+    "line": 2,
+    "text": "\"name\": \"mockmeai\",",
+    "reason": "Package identity is explicitly preserved by the rebrand rules."
+  },
+  {
+    "path": "package-lock.json",
+    "line": 8,
+    "text": "\"name\": \"mockmeai\",",
+    "reason": "Package identity is explicitly preserved by the rebrand rules."
+  },
+  {
+    "path": "package.json",
+    "line": 2,
+    "text": "\"name\": \"mockmeai\",",
+    "reason": "Package identity is explicitly preserved by the rebrand rules."
+  },
+  {
+    "path": "scripts/check-private-play.mjs",
+    "line": 65,
+    "text": "process.env.MOCKMEAI_E2E_BUILD === \"1\"",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/check-private-problems.mjs",
+    "line": 4,
+    "text": "process.env.MOCKMEAI_E2E_BUILD === \"1\" ? \".next-e2e/static\" : \".next/static\",",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/configure-reporting.mjs",
+    "line": 26,
+    "text": "await tx`select set_config('mockmeai.reporting_password',${password},true)`;",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/configure-reporting.mjs",
+    "line": 27,
+    "text": "await tx`do $$ begin execute format('alter role mockmeai_reporting login password %L',current_setting('mockmeai.reporting_password')); end $$`;",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/configure-reporting.mjs",
+    "line": 33,
+    "text": "url.username = \"mockmeai_reporting\" + suffix;",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/migrate-admin.mjs",
+    "line": 29,
+    "text": "await tx`select pg_advisory_xact_lock(hashtext('inteliprep_admin_reporting_migration'))`;",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/migrate-admin.mjs",
+    "line": 138,
+    "text": "(process.env.MOCKMEAI_INVITED_EMAILS ?? \"\")",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/migrate-play.mjs",
+    "line": 28,
+    "text": "await tx`select pg_advisory_xact_lock(hashtext('mockmeai_play_migration'))`;",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/migrate-play.mjs",
+    "line": 67,
+    "text": "await sql`select rolbypassrls,rolsuper from pg_roles where rolname='mockmeai_reporting'`;",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "scripts/verify-reporting-role.mjs",
+    "line": 20,
+    "text": "role.name !== \"mockmeai_reporting\" ||",
+    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
+  },
+  {
+    "path": "src/app/api/admin/feedback/route.test.ts",
+    "line": 18,
+    "text": "(await GET(new Request(\"https://mockmeai.test/api/admin/feedback\")))",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/feedback/route.test.ts",
+    "line": 29,
+    "text": "\"https://mockmeai.test/api/admin/feedback?search=hello&includeExcluded=1&page=2\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/feedback/route.test.ts",
+    "line": 40,
+    "text": "(await GET(new Request(\"https://mockmeai.test/api/admin/feedback?page=0\")))",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/funnel/route.test.ts",
+    "line": 16,
+    "text": "(await GET(new Request(\"https://mockmeai.test/api/admin/funnel\"))).status,",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/funnel/route.test.ts",
+    "line": 27,
+    "text": "\"https://mockmeai.test/api/admin/funnel?from=2026-11-09&to=2026-11-01\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/email/route.test.ts",
+    "line": 13,
+    "text": "const request = (body: unknown, origin = \"https://mockmeai.com\") =>",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/email/route.test.ts",
+    "line": 14,
+    "text": "new Request(\"https://mockmeai.com/api/admin/invites/email\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/route.test.ts",
+    "line": 30,
+    "text": "new Request(\"https://mockmeai.test/api/admin/invites?pendingPage=0\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/route.test.ts",
+    "line": 38,
+    "text": "origin: string | null = \"https://mockmeai.test\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/route.test.ts",
+    "line": 40,
+    "text": "return new Request(\"https://mockmeai.test/api/admin/invites\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/route.test.ts",
+    "line": 54,
+    "text": "(await GET(new Request(\"https://mockmeai.test/api/admin/invites\")))",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/route.test.ts",
+    "line": 102,
+    "text": "new Request(\"https://mockmeai.test/api/admin/invites\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/admin/invites/route.test.ts",
+    "line": 105,
+    "text": "origin: \"https://mockmeai.test\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/feedback/route.test.ts",
+    "line": 16,
+    "text": "function request(body: unknown, origin = \"https://mockmeai.test\") {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/feedback/route.test.ts",
+    "line": 17,
+    "text": "return new Request(\"https://mockmeai.test/api/feedback\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/feedback/route.test.ts",
+    "line": 42,
+    "text": "new Request(`https://mockmeai.test/api/feedback?interviewId=${id}`),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/feedback/route.test.ts",
+    "line": 124,
+    "text": "new Request(`https://mockmeai.test/api/feedback?interviewId=${id}`),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/feedback/route.test.ts",
+    "line": 131,
+    "text": "new Request(\"https://mockmeai.test/api/feedback?interviewId=wrong\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/health/route.test.ts",
+    "line": 29,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/interview/account-isolation.test.ts",
+    "line": 40,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/interview/end/route-beta.test.ts",
+    "line": 41,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/interview/start/route.test.ts",
+    "line": 19,
+    "text": "vi.stubEnv(\"INTELIPREP_ALLOW_TEST_INTERVIEWS\", \"0\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/interview/view/route.test.ts",
+    "line": 9,
+    "text": "new Request(\"https://mockmeai.test/api/interview/view\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/interview/view/route.test.ts",
+    "line": 13,
+    "text": "origin: \"https://mockmeai.test\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/monitoring/viewer/route.test.ts",
+    "line": 22,
+    "text": "origin = \"https://mockmeai.com\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/monitoring/viewer/route.test.ts",
+    "line": 24,
+    "text": "return new Request(\"https://mockmeai.com/api/monitoring/viewer\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/auth-routes.test.ts",
+    "line": 16,
+    "text": "{ name: \"inteliprep-auth\", value: \"fixture\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/auth-routes.test.ts",
+    "line": 17,
+    "text": "{ name: \"inteliprep-auth.0\", value: \"fixture\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/auth-routes.test.ts",
+    "line": 114,
+    "text": "\"inteliprep-auth\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/auth-routes.test.ts",
+    "line": 115,
+    "text": "\"inteliprep-auth.0\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 27,
+    "text": "new Request(\"https://mockmeai.test/auth/callback?code=fixture\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 29,
+    "text": "expect(r.headers.get(\"location\")).toBe(\"https://mockmeai.test/play\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 36,
+    "text": "\"https://mockmeai.test/auth/callback?code=fixture&next=https://attacker.test\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 39,
+    "text": "expect(r.headers.get(\"location\")).toBe(\"https://mockmeai.test/not-invited\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 44,
+    "text": "new Request(\"https://mockmeai.test/auth/callback?code=fixture\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 53,
+    "text": "\"mockmeai.com\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 54,
+    "text": "\"www.mockmeai.com\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/sign-out/route.ts",
+    "line": 19,
+    "text": "if (name === \"inteliprep-auth\" || name.startsWith(\"inteliprep-auth.\"))",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/app/handmade-accents.css",
+    "line": 2,
+    "text": "font-family: \"MockMeAI handwriting\";",
+    "reason": "Internal CSS font-family alias shared between declaration and use. Not displayed text."
+  },
+  {
+    "path": "src/app/theme.css",
+    "line": 210,
+    "text": "--font-accent: \"MockMeAI handwriting\", cursive;",
+    "reason": "Internal CSS font-family alias shared between declaration and use. Not displayed text."
+  },
+  {
+    "path": "src/components/app-viewer-tracker.tsx",
+    "line": 22,
+    "text": "if (localStorage.getItem(\"mockmeai:exclude-analytics\") === \"1\") return;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/app-viewer-tracker.tsx",
+    "line": 33,
+    "text": "? navigator.locks.request(\"mockmeai-app-viewer\", identify)",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/candidate-account-provider.tsx",
+    "line": 71,
+    "text": "const channel = new BroadcastChannel(\"inteliprep-account\");",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/candidate-account-provider.tsx",
+    "line": 107,
+    "text": "const channel = new BroadcastChannel(\"inteliprep-account\");",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/interview-feedback-card.tsx",
+    "line": 17,
+    "text": "const key = `mockmeai:feedback:${userId}:${interviewId}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/interview-mascot.tsx",
+    "line": 60,
+    "text": "if (debug) console.info(\"[MockMeAI mascot]\", event, detail);",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/interview-mascot.tsx",
+    "line": 62,
+    "text": "const key = `mockmeai:mascot-clock:v2:${sessionId}:${test ? (immediate ? \"instant\" : \"test\") : \"normal\"}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/laptop-note.tsx",
+    "line": 3,
+    "text": "const key = \"inteliprep:laptop-note-dismissed\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/mascot-art/mascot.css",
+    "line": 1,
+    "text": "/* MockMeAI mascot animations. Only transform and opacity are animated. */",
+    "reason": "Original supplied mascot artwork/comment retained byte-for-byte; the user asked to restore this character."
+  },
+  {
+    "path": "src/components/mascot-art/mascotArt.ts",
+    "line": 1,
+    "text": "// MockMeAI mascot: exact artwork for a nerdy girl with big gold glasses and curly black hair.",
+    "reason": "Original supplied mascot artwork/comment retained byte-for-byte; the user asked to restore this character."
+  },
+  {
+    "path": "src/components/mascot-preference.tsx",
+    "line": 5,
+    "text": "export const MASCOT_PREFERENCE_KEY = \"mockmeai:show-mascot\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/mascot-preference.tsx",
+    "line": 6,
+    "text": "const changeEvent = \"mockmeai:mascot-preference\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/play/course-unlock.tsx",
+    "line": 46,
+    "text": "const key = `mockmeai:primer-unlocked:${userId}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/play/game-sounds.tsx",
+    "line": 3,
+    "text": "const key = \"mockmeai:game-sounds\",",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/play/game-sounds.tsx",
+    "line": 4,
+    "text": "changed = \"mockmeai:game-sounds-changed\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/components/scaling-story/ScalingStory.tsx",
+    "line": 6,
+    "text": "// \"How a system scales\" animation for MockMeAI. Seven short steps that loop:",
+    "reason": "Historical animation-source comment. The existing animation artwork is preserved."
+  },
+  {
+    "path": "src/components/use-interview-starter.ts",
+    "line": 43,
+    "text": "const key = `inteliprep:pending-start:${userId}:${next.problemId}:${next.level}:${next.durationMinutes}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/app-viewer.ts",
+    "line": 1,
+    "text": "export const APP_VIEWER_STORAGE_KEY = \"mockmeai:app-viewer:v1\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/approval-email.test.ts",
+    "line": 23,
+    "text": "\"Idempotency-Key\": \"mockmeai-approval/notification-123\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/approval-email.ts",
+    "line": 44,
+    "text": "\"Idempotency-Key\": `mockmeai-approval/${notificationId}`,",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/beta-config.test.ts",
+    "line": 26,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/beta-config.test.ts",
+    "line": 33,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"production\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/beta-config.test.ts",
+    "line": 40,
+    "text": "expect(redisNamespace()).toBe(\"inteliprep:v1:production\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/beta-config.test.ts",
+    "line": 46,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/beta-config.test.ts",
+    "line": 65,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/beta-config.test.ts",
+    "line": 73,
+    "text": "expect(redisNamespace()).toBe(\"inteliprep:v1:preview\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/beta-config.ts",
+    "line": 14,
+    "text": "return process.env.VERCEL === \"1\" || process.env.INTELIPREP_ENV === \"beta\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/beta-config.ts",
+    "line": 24,
+    "text": "process.env.INTELIPREP_ENV !== \"production\"",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/beta-config.ts",
+    "line": 47,
+    "text": "// The legacy InteliPrep prefix is a persistence identifier. Renaming it drops live state.",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/beta-config.ts",
+    "line": 49,
+    "text": "return `inteliprep:v1:${process.env.VERCEL_ENV ?? process.env.INTELIPREP_ENV ?? \"local\"}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/brand-audit.test.ts",
+    "line": 23,
+    "text": "text: \"Welcome to MockMeAI\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/brief-preferences.ts",
+    "line": 16,
+    "text": "`mockmeai:brief-level:v1:${userId}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/brief-preferences.ts",
+    "line": 18,
+    "text": "`mockmeai:brief-track:v1:${userId}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/candidate-auth.test.ts",
+    "line": 30,
+    "text": "name: \"inteliprep-auth\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/candidate-browser-scope.test.ts",
+    "line": 38,
+    "text": "const request = indexedDB.open(\"inteliprep\", 1);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/candidate-browser-scope.test.ts",
+    "line": 58,
+    "text": "\"inteliprep\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/candidate-invites.test.ts",
+    "line": 42,
+    "text": "vi.stubEnv(\"MOCKMEAI_INVITED_EMAILS\", \"invited@example.test\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/clear-practice-history.test.ts",
+    "line": 33,
+    "text": "store.setItem(`inteliprep:draft:${b}:keep`, \"another account\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/clear-practice-history.test.ts",
+    "line": 40,
+    "text": "[...values.keys()].some((key) => key.startsWith(`inteliprep:draft:${a}:`)),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/clear-practice-history.test.ts",
+    "line": 44,
+    "text": "expect(store.getItem(`inteliprep:draft:${b}:keep`)).toBe(\"another account\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/clear-practice-history.ts",
+    "line": 17,
+    "text": "const request = indexedDB.deleteDatabase(`inteliprep:account:${userId}`);",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/clear-practice-history.ts",
+    "line": 35,
+    "text": "(key.startsWith(`inteliprep:draft:${userId}:`) ||",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/clear-practice-history.ts",
+    "line": 36,
+    "text": "key.startsWith(`mockmeai:feedback:${userId}:`))",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/development-model-fault.ts",
+    "line": 11,
+    "text": "process.env.INTELIPREP_TEST_MODEL_503_ONCE === \"1\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 21,
+    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", flag);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 22,
+    "text": "for (const host of [\"mockmeai.com\", \"www.mockmeai.com\"])",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 26,
+    "text": "it.each([\"mockmeai.com\", \"www.mockmeai.com\"])(",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 29,
+    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 40,
+    "text": "\"mockmeai.com\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 41,
+    "text": "\"www.mockmeai.com\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 44,
+    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.test.ts",
+    "line": 56,
+    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/domain-redirects.ts",
+    "line": 9,
+    "text": "if (process.env.MOCKMEAI_REDIRECT_ENABLED === \"1\")",
+    "reason": "Required disabled legacy-host redirect configuration. Only enabled by the explicitly named server flag."
+  },
+  {
+    "path": "src/lib/domain-redirects.ts",
+    "line": 10,
+    "text": "hosts.push(\"mockmeai.com\", \"www.mockmeai.com\");",
+    "reason": "Required disabled legacy-host redirect configuration. Only enabled by the explicitly named server flag."
+  },
+  {
+    "path": "src/lib/draft-journal.ts",
+    "line": 36,
+    "text": "let tab = sessionStorage.getItem(\"inteliprep:draft-tab\");",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/draft-journal.ts",
+    "line": 39,
+    "text": "sessionStorage.setItem(\"inteliprep:draft-tab\", tab);",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/draft-journal.ts",
+    "line": 44,
+    "text": "`inteliprep:draft:${userId}:${sessionId}:${tab}`,",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/fixtures/legacy-session-record-test.ts",
+    "line": 11,
+    "text": "const context = \"inteliprep/shared-session/v1\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/fixtures/redis-session-test.ts",
+    "line": 12,
+    "text": "if (String(args[1]).includes(\"inteliprep-idempotent-start-v1\")) {",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/idempotent-interview-start.test.ts",
+    "line": 56,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/idempotent-interview-start.test.ts",
+    "line": 91,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/idempotent-interview-start.ts",
+    "line": 32,
+    "text": "export const START_SCRIPT = `-- inteliprep-idempotent-start-v1",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/idempotent-interview-start.ts",
+    "line": 62,
+    "text": "inteliprepStarts?: Map<string, Entry>;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/idempotent-interview-start.ts",
+    "line": 64,
+    "text": "const local = (state.inteliprepStarts ??= new Map());",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/interview-database.ts",
+    "line": 54,
+    "text": "const name = `inteliprep:account:${userId}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/interview-resume.test.ts",
+    "line": 27,
+    "text": "inteliprepSessions?: Map<string, Session>;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-resume.test.ts",
+    "line": 29,
+    "text": ").inteliprepSessions?.delete(id);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-retention.test.ts",
+    "line": 40,
+    "text": "const request = indexedDB.open(`inteliprep:account:${user}`, 1);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-context.test.ts",
+    "line": 18,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-context.test.ts",
+    "line": 21,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-context.test.ts",
+    "line": 28,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-context.test.ts",
+    "line": 33,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-context.test.ts",
+    "line": 73,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-context.ts",
+    "line": 8,
+    "text": "inteliprepSessions?: Map<string, Session>;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/interview-session-context.ts",
+    "line": 21,
+    "text": "return (local.inteliprepSessions ??= new Map());",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/interview-session-timer.test.ts",
+    "line": 36,
+    "text": "inteliprepSessions?: Map<string, Session>;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-session-timer.test.ts",
+    "line": 38,
+    "text": ").inteliprepSessions?.delete(id);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/interview-storage.test.ts",
+    "line": 170,
+    "text": "\"inteliprep:account:11111111-1111-4111-8111-111111111111\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/normalize-question-keys.test.ts",
+    "line": 46,
+    "text": "const context = \"inteliprep/browser-resume/v1\";",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/play/api.test.ts",
+    "line": 29,
+    "text": "new Request(\"https://mockmeai.test/api/play/submit\", { method: \"POST\" }),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/play/course/versioned-content.test.ts",
+    "line": 116,
+    "text": "const dir = mkdtempSync(join(tmpdir(), \"mockmeai-course-\"));",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/play/database.ts",
+    "line": 21,
+    "text": "await sql`select set_config('mockmeai.user_id',${userId},true),pg_advisory_xact_lock(hashtext('mockmeai-play'),hashtext(${userId}))`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/practice-history-generation.ts",
+    "line": 3,
+    "text": "return `mockmeai:history-generation:${userId}`;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/reporting-db.test.ts",
+    "line": 15,
+    "text": "\"postgres://mockmeai_reporting:fixture@db.invalid/postgres\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/reporting-db.ts",
+    "line": 48,
+    "text": "application_name: \"inteliprep-reporting\",",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 95,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 101,
+    "text": "expect(args).toContain(\"inteliprep:v1:beta:limit:model:day\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 102,
+    "text": "expect(args).toContain(\"inteliprep:v1:beta:limit:model:hour\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 105,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 116,
+    "text": "vi.stubEnv(\"INTELIPREP_PRIVATE_BETA\", \"0\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 117,
+    "text": "vi.stubEnv(\"INTELIPREP_DEV_START_LIMITS\", \"off\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 120,
+    "text": "vi.stubEnv(\"INTELIPREP_DEV_START_LIMITS\", \"on\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.test.ts",
+    "line": 128,
+    "text": "vi.stubEnv(\"INTELIPREP_DEV_START_LIMITS\", \"off\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/request-limits.ts",
+    "line": 25,
+    "text": "inteliprepRequestCounters?: Map<string, Counter>;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/request-limits.ts",
+    "line": 27,
+    "text": "const counters = (state.inteliprepRequestCounters ??= new Map());",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/request-limits.ts",
+    "line": 97,
+    "text": "process.env.INTELIPREP_DEV_START_LIMITS !== \"on\"",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/session-token.test.ts",
+    "line": 34,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/session-token.ts",
+    "line": 44,
+    "text": "const CONTEXT = \"inteliprep/browser-resume/v1\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/session-token.ts",
+    "line": 46,
+    "text": "\"mockmeai-local-development-resume-secret-not-for-deployment\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/session-token.ts",
+    "line": 53,
+    "text": "process.env.INTELIPREP_ENV !== \"beta\"",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/shared-interview-session.test.ts",
+    "line": 37,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/shared-session-isolation.test.ts",
+    "line": 23,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/shared-session-migration.test.ts",
+    "line": 27,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/shared-session-record.ts",
+    "line": 36,
+    "text": "const context = \"inteliprep/shared-session/v1\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/supabase-config.ts",
+    "line": 43,
+    "text": "name: \"inteliprep-auth\",",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/test-interview-access.test.ts",
+    "line": 10,
+    "text": "vi.stubEnv(\"INTELIPREP_ALLOW_TEST_INTERVIEWS\", \"0\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/test-interview-access.test.ts",
+    "line": 22,
+    "text": "vi.stubEnv(\"INTELIPREP_ALLOW_TEST_INTERVIEWS\", \"0\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/test-interview-access.test.ts",
+    "line": 28,
+    "text": "vi.stubEnv(\"INTELIPREP_ALLOW_TEST_INTERVIEWS\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/test-interview-access.ts",
+    "line": 11,
+    "text": "process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS === \"1\"",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/theme-preference.ts",
+    "line": 2,
+    "text": "export const THEME_COOKIE = \"mockmeai-theme\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/theme-preference.ts",
+    "line": 3,
+    "text": "export const THEME_STORAGE_KEY = \"mockmeai:theme\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/theme-preference.ts",
+    "line": 4,
+    "text": "export const THEME_EVENT = \"mockmeai-theme-change\";",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/viewer-row-budget.test.ts",
+    "line": 15,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/viewer-row-budget.test.ts",
+    "line": 27,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/viewer-row-budget.ts",
+    "line": 13,
+    "text": "mockmeaiViewerBudget?: Map<string, Set<string>>;",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/viewer-row-budget.ts",
+    "line": 34,
+    "text": "const budgets = (state.mockmeaiViewerBudget ??= new Map());",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/viewer-tracking.ts",
+    "line": 11,
+    "text": ".update(`mockmeai-app-viewer-v1:${id.toLowerCase()}`)",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/visitor-ip.test.ts",
+    "line": 4,
+    "text": "new Request(\"https://mockmeai.com/api/monitoring/viewer\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/visitor-ip.ts",
+    "line": 22,
+    "text": ".update(`mockmeai/ip-visitor/v1:${canonical}`)",
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/proxy.test.ts",
+    "line": 23,
+    "text": "name: \"inteliprep-auth\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/proxy.test.ts",
+    "line": 49,
+    "text": "expect(request.cookies.get(\"inteliprep-auth\")?.value).toBe(",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/proxy.test.ts",
+    "line": 52,
+    "text": "expect(response.cookies.get(\"inteliprep-auth\")?.value).toBe(",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 4,
+    "text": "if not exists(select 1 from pg_roles where rolname='mockmeai_reporting') then",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 5,
+    "text": "create role mockmeai_reporting login noinherit nosuperuser nocreatedb nocreaterole noreplication nobypassrls;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 9,
+    "text": "if exists(select 1 from pg_roles where rolname='mockmeai_reporting' and (rolinherit or rolsuper or rolcreatedb or rolcreaterole or rolreplication or rolbypassrls)) then",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 13,
+    "text": "grant usage on schema interview_admin to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 16,
+    "text": "grant select (id,email,created_at) on auth.users to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 23,
+    "text": "revoke all on interview_admin.registered_users from public,anon,authenticated,mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 24,
+    "text": "grant select on interview_admin.registered_users to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 30,
+    "text": "execute format('grant select,insert,update on interview_admin.%I to mockmeai_reporting',entry.tablename);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108003142_reporting_least_privilege.sql",
+    "line": 32,
+    "text": "execute format('create policy reporting_service on interview_admin.%I to mockmeai_reporting using (true) with check (true)',entry.tablename);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108050628_beta_invitations.sql",
+    "line": 11,
+    "text": "grant select, insert, update on interview_admin.beta_invites to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261108050628_beta_invitations.sql",
+    "line": 14,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109011503_beta_approval_emails.sql",
+    "line": 21,
+    "text": "grant select, insert, update on interview_admin.beta_approval_emails to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109011503_beta_approval_emails.sql",
+    "line": 24,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109180853_identified_app_visitors.sql",
+    "line": 11,
+    "text": "grant select, insert, update on interview_admin.app_visitor_accounts to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109180853_identified_app_visitors.sql",
+    "line": 14,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109184934_ip_visitor_comparison.sql",
+    "line": 15,
+    "text": "grant select,insert,update on interview_admin.app_ip_visitors to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109184934_ip_visitor_comparison.sql",
+    "line": 18,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109194452_practice_feedback.sql",
+    "line": 21,
+    "text": "grant select,insert,update on interview_admin.feedback to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109194452_practice_feedback.sql",
+    "line": 24,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109231409_beta_funnel.sql",
+    "line": 17,
+    "text": "grant select,insert,update on interview_admin.beta_funnel_events to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261109231409_beta_funnel.sql",
+    "line": 19,
+    "text": "create policy reporting_service on interview_admin.beta_funnel_events to mockmeai_reporting using(true) with check(true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261111221816_play_game.sql",
+    "line": 4,
+    "text": "grant usage on schema practice_game to authenticated, mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261111221816_play_game.sql",
+    "line": 95,
+    "text": "execute format('grant select,insert,update on practice_game.%I to mockmeai_reporting',entry.tablename);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261111221816_play_game.sql",
+    "line": 97,
+    "text": "execute format('create policy server_owner on practice_game.%I to mockmeai_reporting using (user_id=nullif(current_setting(''mockmeai.user_id'',true),'''')::uuid) with check (user_id=nullif(current_setting(''mockmeai.user_id'',true),'''')::uuid)',entry.tablename);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261111221816_play_game.sql",
+    "line": 106,
+    "text": "grant delete on practice_game.review_queue to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112042654_play_chests.sql",
+    "line": 10,
+    "text": "grant select,insert,update on practice_game.chest_opens to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112042654_play_chests.sql",
+    "line": 13,
+    "text": "create policy server_owner on practice_game.chest_opens to mockmeai_reporting",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112042654_play_chests.sql",
+    "line": 14,
+    "text": "using (user_id=nullif(current_setting('mockmeai.user_id',true),'')::uuid)",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112042654_play_chests.sql",
+    "line": 15,
+    "text": "with check (user_id=nullif(current_setting('mockmeai.user_id',true),'')::uuid);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112184249_play_rag_course_visits.sql",
+    "line": 13,
+    "text": "grant select,insert,update on practice_game.course_visits to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112184249_play_rag_course_visits.sql",
+    "line": 16,
+    "text": "create policy server_owner on practice_game.course_visits to mockmeai_reporting",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112184249_play_rag_course_visits.sql",
+    "line": 17,
+    "text": "using (user_id=nullif(current_setting('mockmeai.user_id',true),'')::uuid)",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261112184249_play_rag_course_visits.sql",
+    "line": 18,
+    "text": "with check (user_id=nullif(current_setting('mockmeai.user_id',true),'')::uuid);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "tests/admin-database.test.ts",
+    "line": 45,
+    "text": "it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== \"1\")(",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/beta-funnel-database.test.ts",
+    "line": 32,
+    "text": "it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== \"1\")(",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/capture-pixel.ts",
+    "line": 33,
+    "text": "localStorage.setItem(\"mockmeai:theme\", theme);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/capture-pixel.ts",
+    "line": 34,
+    "text": "document.cookie = `mockmeai-theme=${theme}; Path=/; SameSite=Lax`;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/capture-pixel.ts",
+    "line": 35,
+    "text": "window.dispatchEvent(new Event(\"mockmeai-theme-change\"));",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/capture-pixel.ts",
+    "line": 80,
+    "text": "localStorage.setItem(\"mockmeai:theme\", theme);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/capture-pixel.ts",
+    "line": 81,
+    "text": "document.cookie = `mockmeai-theme=${theme}; Path=/; SameSite=Lax`;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/capture-pixel.ts",
+    "line": 82,
+    "text": "window.dispatchEvent(new Event(\"mockmeai-theme-change\"));",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/course-diagrams.spec.ts",
+    "line": 15,
+    "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/course-diagrams.spec.ts",
+    "line": 18,
+    "text": "(value) => localStorage.setItem(\"mockmeai:theme\", value),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/fixture-auth.ts",
+    "line": 9,
+    "text": "name: \"inteliprep-auth\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/fixture-service.mjs",
+    "line": 7,
+    "text": "const jwtSecret = \"mockmeai-ci-only-auth-fixture-not-a-production-key\";",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/genai.spec.ts",
+    "line": 13,
+    "text": "localStorage.setItem(\"mockmeai:show-mascot\", \"false\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/interview.spec.ts",
+    "line": 61,
+    "text": "name: \"inteliprep-auth\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/interview.spec.ts",
+    "line": 87,
+    "text": "localStorage.setItem(\"mockmeai:show-mascot\", \"false\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/interview.spec.ts",
+    "line": 250,
+    "text": "if (key.startsWith(\"mockmeai:feedback:\")) localStorage.removeItem(key);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/interview.spec.ts",
+    "line": 908,
+    "text": "\"inteliprep:account:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/reporting-fixture.mjs",
+    "line": 85,
+    "text": "\"alter role mockmeai_reporting password 'ci-only-reporting-fixture'\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/reporting-fixture.mjs",
+    "line": 135,
+    "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/server.mjs",
+    "line": 52,
+    "text": "MOCKMEAI_E2E_BUILD: \"1\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/server.mjs",
+    "line": 59,
+    "text": "INTELIPREP_ALLOW_TEST_INTERVIEWS: \"0\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/server.mjs",
+    "line": 74,
+    "text": "INTELIPREP_ENV: \"\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/theme-helpers.ts",
+    "line": 58,
+    "text": "\"inteliprep:account:dddddddd-dddd-4ddd-8ddd-dddddddddddd\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/theme-preference.spec.ts",
+    "line": 19,
+    "text": "(await context.cookies()).find((cookie) => cookie.name === \"mockmeai-theme\")",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/theme-preference.spec.ts",
+    "line": 23,
+    "text": "await page.evaluate(() => localStorage.getItem(\"mockmeai:theme\")),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/theme-preference.spec.ts",
+    "line": 43,
+    "text": "localStorage.setItem(\"mockmeai:theme\", \"dark\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/tracks.spec.ts",
+    "line": 11,
+    "text": "localStorage.setItem(\"mockmeai:show-mascot\", \"false\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/whiteboard.spec.ts",
+    "line": 9,
+    "text": "const r = indexedDB.open(`inteliprep:account:${userId}`);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/whiteboard.spec.ts",
+    "line": 58,
+    "text": "localStorage.setItem(\"mockmeai:exclude-analytics\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/whiteboard.spec.ts",
+    "line": 59,
+    "text": "localStorage.setItem(\"mockmeai:show-mascot\", \"false\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/fixtures/play-postgres.ts",
+    "line": 23,
+    "text": "const dir = await mkdtemp(join(tmpdir(), \"mockmeai-play-\"));",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/fixtures/play-postgres.ts",
+    "line": 41,
+    "text": "`create role anon; create role authenticated; create role mockmeai_reporting login password 'test-only' nobypassrls; create schema auth; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$select (nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub')::uuid$$;grant usage on schema auth to authenticated;`,",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/fixtures/play-postgres.ts",
+    "line": 65,
+    "text": "`postgres://mockmeai_reporting:test-only@127.0.0.1:${port}/postgres`,",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/live/full-genai-run.ts",
+    "line": 40,
+    "text": "\"mockmeai-full-script-test-checkpoint-key\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/local-model-retry.test.ts",
+    "line": 26,
+    "text": "vi.stubEnv(\"INTELIPREP_ENV\", \"\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/local-model-retry.test.ts",
+    "line": 27,
+    "text": "vi.stubEnv(\"INTELIPREP_TEST_MODEL_503_ONCE\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/local-model-retry.test.ts",
+    "line": 133,
+    "text": "if (mode === \"beta\") vi.stubEnv(\"INTELIPREP_ENV\", \"beta\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/setup.ts",
+    "line": 22,
+    "text": "process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS = \"1\";",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/setup.ts",
+    "line": 32,
+    "text": "inteliprepRequestCounters?: Map<string, unknown>;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/setup.ts",
+    "line": 34,
+    "text": "state.inteliprepRequestCounters?.clear();",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/transcript-sync.test.ts",
+    "line": 54,
+    "text": "INTELIPREP_ENV: \"beta\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  }
+]
