@@ -25,6 +25,9 @@ it("keeps Topic 1 slides exactly as authored and compiles the versioned topic si
     [1, 13, 7],
     [2, 13, 10],
     [3, 12, 10],
+    [4, 12, 10],
+    [5, 12, 10],
+    [6, 12, 10],
   ]);
 });
 it("rejects missing options, duplicate correct choices and missing feedback", () => {
@@ -46,7 +49,15 @@ it("keeps playable path nodes aligned with authored course topics", async () => 
       node.level,
       node.title,
     ]),
-  ).toEqual(ragCourse.map((topic) => [topic.level, topic.title]));
+  ).toEqual(
+    ragCourse
+      .filter((topic) =>
+        RAG_COURSE_NODES.some(
+          (node) => node.level === topic.level && node.available,
+        ),
+      )
+      .map((topic) => [topic.level, topic.title]),
+  );
   expect(RAG_COURSE_NODES.filter((node) => !node.available)).toHaveLength(6);
   for (const node of RAG_COURSE_NODES)
     expect(Object.keys(node).sort()).toEqual(

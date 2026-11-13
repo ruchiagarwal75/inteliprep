@@ -49,7 +49,7 @@ export function parseVersionedTopic(
   markdown,
   { level, slideCount, questionCount, diagrams = {} },
 ) {
-  const heading = new RegExp(`^# Topic ${level}: (.+), v2 \\(`, "mu").exec(
+  const heading = new RegExp(`^# Topic ${level}: (.+), v[12] \\(`, "mu").exec(
     markdown,
   );
   const parts = markdown.split("## Slides\n")[1]?.split("## Questions\n");

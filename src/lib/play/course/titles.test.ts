@@ -5,10 +5,10 @@ import { courseQuestionTitle } from "./titles";
 import { createVariant, publicQuestion } from "../question";
 import { summaryDisplay } from "../summary-store";
 import { roundSummarySchema } from "../public";
-it("uses all 27 supplied question titles in authored order", () => {
+it("preserves the first 27 supplied question titles in authored order", () => {
   expect(
     ragCourse
-      .filter((topic) => topic.level > 0)
+      .filter((topic) => topic.level > 0 && topic.level <= 3)
       .flatMap((topic) => topic.questions.map((q) => q.title)),
   ).toEqual([
     "Big chunks",

@@ -9,6 +9,9 @@ it("maps every question to its closest teaching slide, including the supplied pr
     1: [6, 6, 8, 10, 6, 11, 11],
     2: [3, 2, 5, 6, 8, 12, 9, 11, 12, 6],
     3: [2, 2, 5, 6, 7, 8, 7, 9, 10, 11],
+    4: [1, 2, 5, 6, 8, 7, 2, 4, 10, 11],
+    5: [2, 3, 4, 5, 6, 9, 10, 2, 8, 7],
+    6: [3, 8, 8, 5, 6, 2, 10, 10, 7, 9],
   };
   for (const topic of ragCourse) {
     const refs = topic.questions.map((q) =>

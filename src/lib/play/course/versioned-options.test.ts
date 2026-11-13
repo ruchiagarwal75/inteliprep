@@ -11,7 +11,14 @@ vi.mock("../written-grader", () => ({
     throw Error("Static course grading must not call a model");
   }),
 }));
-const files = ["topic-1-questions-v2.md", "topic-2-v2.md", "topic-3-v2.md"];
+const files = [
+  "topic-1-questions-v2.md",
+  "topic-2-v2.md",
+  "topic-3-v2.md",
+  "topic-4-v1.md",
+  "topic-5-v1.md",
+  "topic-6-v1.md",
+];
 it.each(files)("preserves every question field verbatim in %s", (name) => {
   const source = readFileSync(`docs/play-content/rag-course/${name}`, "utf8");
   const level = Number(/^# Topic (\d):/u.exec(source)?.[1]);
@@ -72,9 +79,9 @@ it.each(files)("preserves every question field verbatim in %s", (name) => {
     });
   }
 });
-it("grades all 108 options through the static server path, including shuffled answers and specific feedback", async () => {
+it("grades all 228 options through the static server path, including shuffled answers and specific feedback", async () => {
   const changed = courseDrills.filter((d) => d.level > 0);
-  expect(changed).toHaveLength(27);
+  expect(changed).toHaveLength(57);
   let options = 0;
   for (const drill of changed) {
     if (drill.type !== "spot_flaw" || !drill.course)
@@ -118,6 +125,6 @@ it("grades all 108 options through the static server path, including shuffled an
       if (!correct) expect(result.ifWrong).toBeTruthy();
     }
   }
-  expect(options).toBe(108);
+  expect(options).toBe(228);
   expect(gradeWrittenAnswer).not.toHaveBeenCalled();
 });

@@ -24,6 +24,12 @@ const files = [
   },
   { level: 2, name: "topic-2-v2.md", slideCount: 13, questionCount: 10 },
   { level: 3, name: "topic-3-v2.md", slideCount: 12, questionCount: 10 },
+  ...[4, 5, 6].map((level) => ({
+    level,
+    name: `topic-${level}-v1.md`,
+    slideCount: 12,
+    questionCount: 10,
+  })),
 ];
 it.each(files)(
   "compiles every authored question field in $name with complete feedback and bounded references",
@@ -60,7 +66,7 @@ it.each(files)(
     }
   },
 );
-it("has exactly the supplied length-cue counts and no warnings for Topics 1 to 3", () => {
+it("has exactly the supplied length-cue counts and no warnings for Topics 1 to 6", () => {
   const topics = ragCourse.filter((t) => t.level > 0);
   expect(
     topics.map(
@@ -73,7 +79,7 @@ it("has exactly the supplied length-cue counts and no warnings for Topics 1 to 3
           ),
         ).length,
     ),
-  ).toEqual([1, 0, 2]);
+  ).toEqual([1, 0, 2, 1, 1, 1]);
   expect(courseContentWarnings(topics)).toEqual([]);
 });
 it("rejects malformed fields, option count, correct marks, duplicate or missing feedback, IDs and references", () => {

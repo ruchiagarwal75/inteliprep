@@ -50,6 +50,13 @@ const course = [
       9: "retrieval-funnel",
     },
   }),
+  ...[4, 5, 6].map((level) =>
+    parseVersionedTopic(read(`topic-${level}-v1.md`), {
+      level,
+      slideCount: 12,
+      questionCount: 10,
+    }),
+  ),
 ];
 for (const warning of courseContentWarnings(course)) console.warn(warning);
 const output = "src/lib/play/course/rag.json";
