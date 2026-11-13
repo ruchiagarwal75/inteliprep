@@ -76,3 +76,19 @@ check remain in place. This does not make unfinished topic content playable.
 speech-bubble styling, a single pulse, centering, reduced motion and no horizontal
 overflow in both themes and target sizes. The existing primer story still checks
 the real quiz-to-unlock flow. Screenshots: `unlock-{light,dark}-{1440,375}.png`.
+
+## 6. Topic 0 distractors and content warning
+
+The authored primer and its private compiled JSON use every supplied distractor
+and per-option explanation. Q7 now offers 1,012 and explains addition versus
+multiplication; the 1,000 explanation remains. A frozen contract test verifies
+that all prompts, correct answers, key ideas and why lines are unchanged. The
+content tests also grade each new distractor through the static server grader.
+Saved private question snapshots are not rewritten.
+
+The compiler warns when the correct choice is uniquely longest in more than half
+a topic's questions. Equal-length ties do not count. Topic 0 no longer triggers
+it. Topics 1, 2 and 3 each trigger at 5 of 7; their content is outside this item's
+requested edits and is left unchanged. Warning boundary and tie tests pass.
+The full quiz browser matrix is rerun with the new options. Screenshots:
+`quiz-{light,dark}-{1440,375}.png`.

@@ -24,7 +24,7 @@ it("compiles all supplied primer prose, eight question titles and authored feedb
   ]);
   expect(primer.questions[6]).toMatchObject({
     type: "math",
-    options: ["12,000", "1,000", "12", "120,000"],
+    options: ["12,000", "1,000", "1,012", "120,000"],
   });
   expect(() =>
     parsePrimerMarkdown(source.replace("- ✓ 12,000", "- 12,000")),

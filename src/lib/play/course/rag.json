@@ -181,14 +181,18 @@
         "prompt": "What problem does RAG mainly solve?",
         "options": [
           "LLMs don't know your private or recent data, so they guess",
-          "LLMs are too slow to answer questions",
-          "LLMs can't write code",
-          "LLMs can't count tokens"
+          "LLMs forget earlier turns in a long chat, so they lose track",
+          "LLMs answer too slowly, so search makes responses faster",
+          "LLMs can't follow formatting rules without extra examples"
         ],
         "correctIndex": 0,
         "keyIdea": "RAG gives the model the facts it was never trained on.",
         "why": "Without your documents in the prompt, the model fills gaps with plausible guesses.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "That's conversation memory. RAG is about knowledge the model never had.",
+          "2": "RAG adds a search step, so it usually adds a little latency.",
+          "3": "Formatting is a prompting or fine-tuning job, not retrieval."
+        }
       },
       {
         "id": "P-Q2",
@@ -197,14 +201,18 @@
         "prompt": "In a RAG system, what happens right before the LLM writes its answer?",
         "options": [
           "Relevant pieces of your documents are retrieved and added to the prompt",
-          "The LLM is retrained on your documents",
-          "The question is translated into SQL",
-          "The answer is copied from a cache of past answers"
+          "The model is briefly fine-tuned on the matching documents",
+          "The whole document collection is pasted into the prompt",
+          "The question is matched to a cached answer from a past user"
         ],
         "correctIndex": 0,
         "keyIdea": "Retrieve first, then generate.",
         "why": "The model answers \"open book\" from the pieces it was handed.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Nothing is trained at question time. The pieces go into the prompt.",
+          "2": "Only the top few relevant pieces fit and help. That's why we search.",
+          "3": "A cache can sit in front of RAG, but RAG itself retrieves documents."
+        }
       },
       {
         "id": "P-Q3",
@@ -213,15 +221,17 @@
         "prompt": "Your expense policy changed this morning. What does a RAG system need so answers reflect the change?",
         "options": [
           "Re-index the updated document",
-          "Retrain the LLM",
-          "Fine-tune the embedding model",
-          "Nothing; the LLM learns it automatically"
+          "Increase the LLM's context window",
+          "Retrain the LLM on the new policy",
+          "Switch to a newer embedding model"
         ],
         "correctIndex": 0,
         "keyIdea": "In RAG, fresh knowledge means fresh documents, not a new model.",
         "why": "Re-indexing updates what search can find. The models stay the same.",
         "ifWrong": {
-          "1": "Retraining is slow and costly, and RAG exists so you don't have to."
+          "1": "A bigger window doesn't help if the new text never gets retrieved.",
+          "2": "Retraining is slow and costly, and RAG exists so you don't have to.",
+          "3": "The models are fine. The index still holds the old text."
         }
       },
       {
@@ -231,14 +241,18 @@
         "prompt": "Which goal fits fine-tuning better than RAG?",
         "options": [
           "Make the model always answer in your support team's tone and format",
-          "Answer questions about this week's support tickets",
-          "Answer questions about each customer's contract",
-          "Cite the exact HR handbook section in each answer"
+          "Answer questions about each customer's contract terms and renewal dates",
+          "Answer questions about this week's support tickets and their status",
+          "Cite the exact HR handbook section behind each answer"
         ],
         "correctIndex": 0,
         "keyIdea": "Fine-tuning shapes behavior and style. RAG supplies facts.",
         "why": "Tone and format are stable skills. Tickets, contracts and handbooks are changing facts that need sources.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Contracts are private facts that change. That's RAG.",
+          "2": "Tickets change daily. Retrieval keeps up; fine-tuning can't.",
+          "3": "Citations need the source text in the prompt. That's RAG."
+        }
       },
       {
         "id": "P-Q5",
@@ -247,14 +261,18 @@
         "prompt": "Which statement about the embedding model and the LLM is true?",
         "options": [
           "The embedding model turns text into a vector; the LLM writes the answer text",
-          "Both models write the final answer",
-          "The embedding model is usually much larger than the LLM",
-          "The LLM produces the vectors used for search"
+          "The LLM turns text into vectors; the embedding model writes the answer",
+          "Both are the same model, called in two different modes",
+          "The embedding model is the larger one, so it only runs at indexing time"
         ],
         "correctIndex": 0,
         "keyIdea": "Embedding model finds, LLM writes.",
         "why": "The embedding model maps text to vectors for search. The LLM reads the retrieved text and generates the reply.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Swapped. The embedding model makes vectors; the LLM writes.",
+          "2": "They're usually separate models with different sizes and jobs.",
+          "3": "It's usually smaller, and it also runs on every question."
+        }
       },
       {
         "id": "P-Q6",
@@ -263,26 +281,31 @@
         "prompt": "\"Reset my password\" and \"I can't log in\" share no words. Why can vector search still match them?",
         "options": [
           "Their embeddings are close because their meanings are similar",
-          "They have the same number of characters",
-          "They're both lowercase",
-          "The LLM rewrote one into the other"
+          "The search engine expands each query with a synonym list",
+          "An LLM rewrites every question before the search runs",
+          "Keyword search on word stems finds a shared root"
         ],
         "correctIndex": 0,
         "keyIdea": "Embeddings capture meaning, not exact words.",
         "why": "Similar meaning puts the two vectors close together, so search finds one from the other.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Synonym lists help keyword search. Vector search matches meaning directly.",
+          "2": "Rewriting can help, but vector search matches these even without it.",
+          "3": "They share no words or stems. Only meaning connects them."
+        }
       },
       {
         "id": "P-Q7",
         "title": "Count the vectors",
         "type": "math",
         "prompt": "You index 1,000 documents, about 12 chunks each. How many embeddings do you store?",
-        "options": ["12,000", "1,000", "12", "120,000"],
+        "options": ["12,000", "1,000", "1,012", "120,000"],
         "correctIndex": 0,
         "keyIdea": "You embed every chunk, not every document.",
         "why": "1,000 documents x 12 chunks = 12,000 vectors.",
         "ifWrong": {
-          "1": "That's one per document, but search works on chunks."
+          "1": "That's one per document, but search works on chunks.",
+          "2": "Multiply, don't add. Each of the 1,000 documents has 12 chunks."
         }
       },
       {
@@ -292,14 +315,18 @@
         "prompt": "Which work happens on every user question, not ahead of time?",
         "options": [
           "Embed the question, search for nearby chunks, then call the LLM",
-          "Split all documents into chunks",
-          "Embed every document in the company",
-          "Build the vector index from scratch"
+          "Re-embed the documents that match the question, then search",
+          "Split the matching documents into chunks, then call the LLM",
+          "Rebuild the vector index for the user's documents, then search"
         ],
         "correctIndex": 0,
         "keyIdea": "Indexing happens offline; answering happens online.",
         "why": "Chunking and embedding documents is done ahead of time, so each question only needs one embedding, one search and one LLM call.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Documents are embedded once, offline. Only the question is embedded live.",
+          "2": "Chunking happens offline, before any question arrives.",
+          "3": "The index is built ahead of time and updated when documents change."
+        }
       }
     ]
   },

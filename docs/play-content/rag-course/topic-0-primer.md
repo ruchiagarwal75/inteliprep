@@ -77,73 +77,101 @@ By the end, you'll be able to design "ChatGPT for your company's docs" end to en
 P-Q1 · Why RAG
 What problem does RAG mainly solve?
 - ✓ LLMs don't know your private or recent data, so they guess
-- LLMs are too slow to answer questions
-- LLMs can't write code
-- LLMs can't count tokens
+- LLMs forget earlier turns in a long chat, so they lose track
+- LLMs answer too slowly, so search makes responses faster
+- LLMs can't follow formatting rules without extra examples
 Key idea: RAG gives the model the facts it was never trained on.
 Why: Without your documents in the prompt, the model fills gaps with plausible guesses.
+If wrong (LLMs forget earlier turns in a long chat, so they lose track): That's conversation memory. RAG is about knowledge the model never had.
+If wrong (LLMs answer too slowly, so search makes responses faster): RAG adds a search step, so it usually adds a little latency.
+If wrong (LLMs can't follow formatting rules without extra examples): Formatting is a prompting or fine-tuning job, not retrieval.
+
 
 P-Q2 · Open book
 In a RAG system, what happens right before the LLM writes its answer?
 - ✓ Relevant pieces of your documents are retrieved and added to the prompt
-- The LLM is retrained on your documents
-- The question is translated into SQL
-- The answer is copied from a cache of past answers
+- The model is briefly fine-tuned on the matching documents
+- The whole document collection is pasted into the prompt
+- The question is matched to a cached answer from a past user
 Key idea: Retrieve first, then generate.
 Why: The model answers "open book" from the pieces it was handed.
+If wrong (The model is briefly fine-tuned on the matching documents): Nothing is trained at question time. The pieces go into the prompt.
+If wrong (The whole document collection is pasted into the prompt): Only the top few relevant pieces fit and help. That's why we search.
+If wrong (The question is matched to a cached answer from a past user): A cache can sit in front of RAG, but RAG itself retrieves documents.
+
 
 P-Q3 · Fresh docs
 Your expense policy changed this morning. What does a RAG system need so answers reflect the change?
 - ✓ Re-index the updated document
-- Retrain the LLM
-- Fine-tune the embedding model
-- Nothing; the LLM learns it automatically
+- Increase the LLM's context window
+- Retrain the LLM on the new policy
+- Switch to a newer embedding model
 Key idea: In RAG, fresh knowledge means fresh documents, not a new model.
 Why: Re-indexing updates what search can find. The models stay the same.
-If wrong (Retrain the LLM): Retraining is slow and costly, and RAG exists so you don't have to.
+If wrong (Increase the LLM's context window): A bigger window doesn't help if the new text never gets retrieved.
+If wrong (Retrain the LLM on the new policy): Retraining is slow and costly, and RAG exists so you don't have to.
+If wrong (Switch to a newer embedding model): The models are fine. The index still holds the old text.
+
 
 P-Q4 · Fine-tune or RAG
 Which goal fits fine-tuning better than RAG?
 - ✓ Make the model always answer in your support team's tone and format
-- Answer questions about this week's support tickets
-- Answer questions about each customer's contract
-- Cite the exact HR handbook section in each answer
+- Answer questions about each customer's contract terms and renewal dates
+- Answer questions about this week's support tickets and their status
+- Cite the exact HR handbook section behind each answer
 Key idea: Fine-tuning shapes behavior and style. RAG supplies facts.
 Why: Tone and format are stable skills. Tickets, contracts and handbooks are changing facts that need sources.
+If wrong (Answer questions about each customer's contract terms and renewal dates): Contracts are private facts that change. That's RAG.
+If wrong (Answer questions about this week's support tickets and their status): Tickets change daily. Retrieval keeps up; fine-tuning can't.
+If wrong (Cite the exact HR handbook section behind each answer): Citations need the source text in the prompt. That's RAG.
+
 
 P-Q5 · Two models
 Which statement about the embedding model and the LLM is true?
 - ✓ The embedding model turns text into a vector; the LLM writes the answer text
-- Both models write the final answer
-- The embedding model is usually much larger than the LLM
-- The LLM produces the vectors used for search
+- The LLM turns text into vectors; the embedding model writes the answer
+- Both are the same model, called in two different modes
+- The embedding model is the larger one, so it only runs at indexing time
 Key idea: Embedding model finds, LLM writes.
 Why: The embedding model maps text to vectors for search. The LLM reads the retrieved text and generates the reply.
+If wrong (The LLM turns text into vectors; the embedding model writes the answer): Swapped. The embedding model makes vectors; the LLM writes.
+If wrong (Both are the same model, called in two different modes): They're usually separate models with different sizes and jobs.
+If wrong (The embedding model is the larger one, so it only runs at indexing time): It's usually smaller, and it also runs on every question.
+
 
 P-Q6 · Meaning match
 "Reset my password" and "I can't log in" share no words. Why can vector search still match them?
 - ✓ Their embeddings are close because their meanings are similar
-- They have the same number of characters
-- They're both lowercase
-- The LLM rewrote one into the other
+- The search engine expands each query with a synonym list
+- An LLM rewrites every question before the search runs
+- Keyword search on word stems finds a shared root
 Key idea: Embeddings capture meaning, not exact words.
 Why: Similar meaning puts the two vectors close together, so search finds one from the other.
+If wrong (The search engine expands each query with a synonym list): Synonym lists help keyword search. Vector search matches meaning directly.
+If wrong (An LLM rewrites every question before the search runs): Rewriting can help, but vector search matches these even without it.
+If wrong (Keyword search on word stems finds a shared root): They share no words or stems. Only meaning connects them.
+
 
 P-Q7 · Count the vectors (math)
 You index 1,000 documents, about 12 chunks each. How many embeddings do you store?
 - ✓ 12,000
 - 1,000
-- 12
+- 1,012
 - 120,000
 Key idea: You embed every chunk, not every document.
 Why: 1,000 documents x 12 chunks = 12,000 vectors.
 If wrong (1,000): That's one per document, but search works on chunks.
+If wrong (1,012): Multiply, don't add. Each of the 1,000 documents has 12 chunks.
+
 
 P-Q8 · Every question
 Which work happens on every user question, not ahead of time?
 - ✓ Embed the question, search for nearby chunks, then call the LLM
-- Split all documents into chunks
-- Embed every document in the company
-- Build the vector index from scratch
+- Re-embed the documents that match the question, then search
+- Split the matching documents into chunks, then call the LLM
+- Rebuild the vector index for the user's documents, then search
 Key idea: Indexing happens offline; answering happens online.
 Why: Chunking and embedding documents is done ahead of time, so each question only needs one embedding, one search and one LLM call.
+If wrong (Re-embed the documents that match the question, then search): Documents are embedded once, offline. Only the question is embedded live.
+If wrong (Split the matching documents into chunks, then call the LLM): Chunking happens offline, before any question arrives.
+If wrong (Rebuild the vector index for the user's documents, then search): The index is built ahead of time and updated when documents change.
