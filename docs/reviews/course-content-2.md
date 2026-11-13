@@ -56,3 +56,64 @@ labels of at least 13px, unclipped text, 3/6/12 HNSW nodes, two of six IVF clust
 scanned and the exact RRF lists. The existing slide/notebook diagram regression
 also passes. Screenshots of all nine diagrams in both themes and sizes are in
 `artifacts/course-content-2/T{2,3}-S*-{light,dark}-{1440,375}.png`.
+
+## 4. Content and end-to-end contracts
+
+The additional source contract compares every question field and every revised
+slide paragraph with the supplied Markdown. All 108 options across the 27 revised
+questions go through the actual static server grader with shuffled positions.
+Checks include correctness, expected answer, Key idea, Why, specific If wrong
+feedback and the absence of private fields before submission. The model grader is
+stubbed to throw if called.
+
+A separate synthetic browser account reads and passes Topics 2 and 3 at 8/10.
+Each run deliberately gets the first question wrong, opens See slide on the
+matching reference and returns to finish the quiz. Result screenshots cover both
+themes and target widths. The slide account, quiz account and earlier regression
+accounts are isolated from one another and from the owner's account.
+
+The production browser fixture now verifies the compiled course before its build,
+matching the normal prebuild contract. Both production builds retain the private
+question-content browser-chunk scan. Screenshots stay on disk outside Git.
+
+## Files by item
+
+1. Compiler and definitions: `scripts/build-rag-course.mjs`,
+   `src/lib/play/course/{parse,parse-v2}.mjs`, `definition.ts`, `rag.json`,
+   `question-slides.ts`, `src/lib/play/round-refresh.ts`, content and compatibility
+   tests, `package.json`, and the three unchanged authored source files.
+2. Passing and labels: `src/lib/play/course/{rules,metadata}.ts`,
+   `src/components/play/course-path.tsx`, rule/metadata tests and the ten-question
+   Postgres test.
+3. Diagrams: `src/components/play/course-diagram*.tsx`, the diagram CSS Module,
+   `src/lib/play/course/slide-diagrams.ts`, compiler mapping and JSON, diagram
+   tests and isolated browser fixtures.
+4. Contracts: `src/lib/play/course/versioned-options.test.ts`,
+   `tests/e2e/course-content-2-pass.spec.ts`, the browser fixture and server script,
+   and this report.
+
+No database migration is needed. `course-fixes-5.md` and `learn-mode.md` remain
+untouched and outside these commits.
+
+## Verification results
+
+- `npm run check` and `npm run build` pass for all four items.
+- Final unit/integration run: 1,901 passed, two existing skips.
+- `npm run test:e2e -- 'course-|primer'`: 28 passed in 7.7 minutes.
+- All 108 revised options use the static grader. No model calls were made.
+- The 25 revised slides were checked in both themes at 1440 x 669 and 375 x 812.
+- All nine diagrams satisfy the desktop height, portrait, font and overflow checks.
+- Topic 2 and Topic 3 each complete at 8/10 with the correct wrong-answer slide.
+- Source-file SHA-256 checks confirm all supplied wording remains unchanged.
+- Both private-content production chunk scans pass.
+
+Screenshot overviews, each containing all nine diagrams:
+
+- [Light desktop](../../artifacts/course-content-2/contact-light-1440.jpg)
+- [Dark desktop](../../artifacts/course-content-2/contact-dark-1440.jpg)
+- [Light narrow](../../artifacts/course-content-2/contact-light-375.jpg)
+- [Dark narrow](../../artifacts/course-content-2/contact-dark-375.jpg)
+
+Individual PNGs use `T2-S2`, `T2-S3`, `T2-S8`, `T2-S9`, `T2-S11`,
+`T3-S4`, `T3-S5`, `T3-S7` and `T3-S9`, followed by the theme and width.
+Passed-topic PNGs use `T{2,3}-passed-{light,dark}-{1440,375}.png`.

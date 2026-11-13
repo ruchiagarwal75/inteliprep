@@ -114,6 +114,7 @@ function next(args) {
   });
 }
 try {
+  execFileSync(process.execPath, ["scripts/build-rag-course.mjs", "--check"]);
   execFileSync(process.execPath, ["scripts/copy-whiteboard-fonts.mjs"]);
   await next(["build", "--webpack"]);
   await next(["start", "--hostname", "127.0.0.1", "--port", "3100"]);

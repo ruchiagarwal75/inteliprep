@@ -111,6 +111,8 @@ export async function startReportingFixture(key, cert) {
     // A historical completed round makes the replay story a real replay,
     // including the first-try bonus eligibility check.
     await operator`insert into practice_game.play_sessions(id,user_id,request_id,topic,level,mode,created_at,completed_at) values(${randomUUID()},${fixtureAccounts.fixes4Replay.id},${randomUUID()},'rag-course',0,'level',now()-interval '2 days',now()-interval '2 days')`;
+    for (const level of [0, 1])
+      await operator`insert into practice_game.level_progress(user_id,topic,level,status,best_stars,passed_at) values(${fixtureAccounts.content2Quiz.id},'rag-course',${level},'passed',3,now())`;
     for (const level of [0, 1, 2])
       await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${fixtureAccounts.fixes4Path.id},'rag-course',${level},${level < 2 ? "passed" : "open"},${level < 2 ? new Date() : null})`;
     for (const level of [0, 1])
