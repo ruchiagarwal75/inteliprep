@@ -159,7 +159,8 @@ The automatic welcome and profile-menu replay share the revised four-panel
 story. RAG gets a plain-language explanation before the guide introduces
 practice and rewards. The gate scene follows that preparation. The Shardling
 introduces the Interviewer and explains the mock system design interview before
-the Interviewer speaks. The closing scene invites the player to start Topic 0.
+the Interviewer speaks. The closing scene invites the player to choose a topic
+on Play. A single "Go to Play" button saves completion and opens `/play`.
 
 The browser checks now inspect all 11 dialogue beats in both themes at both
 screen sizes, including speaker labels and the two-line phone limit. The replay

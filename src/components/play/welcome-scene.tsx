@@ -1,10 +1,8 @@
 import Image from "next/image";
-import { BossGate } from "./boss-gate";
-import { InterviewerSprite } from "./interviewer-sprite";
+import { WelcomeLearningPath } from "./welcome-learning-path";
 import { PixelMascot } from "./pixel-mascot";
 import { PixelSprite } from "./pixel-sprite";
 import { PIXEL_ART } from "./pixel-art";
-import { TopicIcon } from "./topic-icon";
 import styles from "./welcome-intro.module.css";
 const stars = [
   [8, 16],
@@ -31,41 +29,18 @@ export function WelcomeScene({ panel }: { panel: number }) {
           />
         ))}
       </div>
-      {(panel === 3 || panel === 4) && <div className={styles.path} />}
-      {panel === 3 && (
-        <div className={styles.worlds}>
-          {(
-            [
-              ["rag", "RAG"],
-              ["chat-serving", "Chat and serving"],
-              ["agents", "Agents"],
-            ] as const
-          ).map(([topic, label], i) => (
-            <div key={topic} data-world={topic}>
-              <TopicIcon topic={topic} locked={i > 0} />
-              <span>{label}</span>
-              {i > 0 && <small>Soon</small>}
-            </div>
-          ))}
-        </div>
+      {(panel === 3 || panel === 4) && (
+        <WelcomeLearningPath layout={panel === 3 ? "encounter" : "journey"} />
       )}
-      {(panel === 1 || panel === 4) && (
+      {panel === 1 && (
         <div className={styles.shardling}>
           <Image
             src="/brand/pixel/shardling-mark.svg"
-            width={panel === 1 ? 144 : 96}
-            height={panel === 1 ? 144 : 96}
+            width={144}
+            height={144}
             alt=""
             priority
           />
-        </div>
-      )}
-      {panel === 3 && (
-        <div className={styles.encounter}>
-          <BossGate scale={4} />
-          <div className={styles.bossArrival}>
-            <InterviewerSprite scale={3} />
-          </div>
         </div>
       )}
       {panel === 2 && (
@@ -86,15 +61,6 @@ export function WelcomeScene({ panel }: { panel: number }) {
               ))}
             </div>
             <PixelSprite art={PIXEL_ART.chest} width={72} height={54} />
-          </div>
-        </>
-      )}
-      {panel === 4 && (
-        <>
-          <span className={styles.startFlag}>RAG</span>
-          <div className={styles.farGate}>
-            <BossGate scale={2} />
-            <InterviewerSprite scale={1} />
           </div>
         </>
       )}

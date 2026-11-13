@@ -559,7 +559,7 @@
   },
   {
     "path": "docs/reviews/welcome-intro.md",
-    "line": 105,
+    "line": 106,
     "text": "backend event-read policy. The configured runtime role is `mockmeai_reporting`,",
     "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
   },
@@ -2046,8 +2046,14 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "tests/e2e/welcome-path.spec.ts",
+    "line": 14,
+    "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "tests/e2e/welcome.spec.ts",
-    "line": 15,
+    "line": 16,
     "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },

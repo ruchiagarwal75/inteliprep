@@ -27,8 +27,8 @@ Rules: fixture accounts only, no live model calls, no env or secret changes, no 
 
 **Panel 1. "WELCOME, ENGINEER"**
 Shardling waves.
-"Hi! I'm a Shardling. I'll be your companion."
-"Let's get you ready for AI system design interviews."
+"Hi! I’m a Shardling, a tiny piece of big AI systems."
+"Welcome to our world!"
 
 **Panel 2. "YOUR FIRST WORLD"**
 Show the girl guide, the XP badge, three stars and a chest. The Shardling introduces RAG before the guide explains the learning loop.
@@ -40,7 +40,7 @@ Then name tag "GUIDE":
 "Clear topics to earn XP, stars and chests."
 
 **Panel 3. "MEET THE INTERVIEWER"**
-Show a pixel world path that ends at a glowing pixel boss gate (see "Boss gate" below). The world icons for RAG, Chat and serving, and Agents sit along the top; RAG is lit, and the others show "Soon".
+Show a pixel learning path that ends at a glowing pixel boss gate (see "Boss gate" below). Keep this scene focused on the Interviewer. Do not show topic icons or coming-soon worlds above the path.
 The boss, "The Interviewer" (idle pose, see "Boss art" below), steps out in front of the gate with a 3-step pixel slide and a lens glint. The Shardling introduces the challenge before the Interviewer speaks.
 Name tag "SHARDLING":
 "After training, you'll meet the Interviewer."
@@ -50,9 +50,10 @@ Then name tag "THE INTERVIEWER":
 
 **Panel 4. "YOUR QUEST BEGINS"**
 The Shardling stands at the start of the RAG path. Far away at the other end, the boss gate glows, with a tiny version of The Interviewer (idle pose at 1x scale) standing in front of it, arms crossed, glasses glinting.
+The yellow trail has square lesson stops and stepped turns. Topic 0, the practice topics and the boss are marked along the route, rather than a tilted row of dots.
 "First, let's help AI find the right facts."
-"Topic 0 starts with the basics. Let's go!"
-Primary button: "Start Topic 0" (opens the Topic 0 Learn page). Secondary text link: "Look around first" (opens Play).
+"Head to Play and choose your first topic."
+Primary button: "Go to Play" (opens Play). Completing the intro does not start a topic.
 
 If the app already asks for the player's interview level somewhere on first visit, put that question on this panel above the buttons ("Which interview are you preparing for? Mid / Senior / Staff") and remove the old prompt. Don't add a second level picker.
 
@@ -189,7 +190,7 @@ Record these Play events with the existing event recorder: `intro_shown`, `intro
 ## 5. Tests
 
 1. Server: a new account gets the intro once, and it doesn't come back after skipping or completing, including on a second browser. An existing account with progress doesn't get it automatically.
-2. Browser: all 4 panels in both themes at both sizes, keyboard navigation, skip from every panel, "Start Topic 0", "Look around first", reduced motion, and "Replay intro" from the profile menu.
+2. Browser: all 4 panels in both themes at both sizes, keyboard navigation, skip from every panel, "Go to Play", reduced motion, and "Replay intro" from the profile menu. Completion opens Play, stays dismissed after refresh and does not record a topic start.
 3. All events are recorded once per action.
 
 ## Report

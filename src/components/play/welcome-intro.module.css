@@ -37,8 +37,7 @@
   font-size: 18px;
 }
 .skip,
-.back,
-.look {
+.back {
   background: none;
   border: 0;
   border-radius: 0;
@@ -103,70 +102,6 @@
   image-rendering: pixelated;
   animation: idle 1500ms steps(2, end) infinite;
 }
-.path {
-  position: absolute;
-  left: 9%;
-  right: 9%;
-  bottom: 27px;
-  height: 12px;
-  border-top: 8px dotted var(--pixel-sprite-gold);
-  transform: rotate(-5deg);
-  transform-origin: left;
-}
-.worlds {
-  display: flex;
-  position: absolute;
-  top: 4px;
-  inset-inline: 10%;
-  justify-content: space-between;
-  gap: 12px;
-}
-.worlds > div {
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 4px;
-  min-width: 64px;
-}
-.worlds > div > div {
-  width: 56px;
-  height: 56px;
-  background: var(--pixel-violet);
-  border-color: var(--pixel-violet-edge);
-}
-.worlds span,
-.worlds small {
-  font:
-    18px/1 "Pixelify Sans",
-    monospace;
-}
-.worlds small {
-  color: var(--intro-muted);
-}
-.worlds > div:first-child > div {
-  outline: 2px solid var(--pixel-sprite-gold);
-}
-.worlds > div:not(:first-child) > div {
-  opacity: 0.45;
-}
-.worlds span {
-  text-align: center;
-  max-width: 112px;
-}
-.encounter {
-  position: absolute;
-  bottom: 24px;
-  right: 16%;
-  display: flex;
-  align-items: end;
-}
-.encounter > svg {
-  opacity: 0.85;
-}
-.bossArrival {
-  margin-left: -48px;
-  animation: arrive 600ms steps(3, end) both;
-}
 .guide {
   --guide-size: 140px;
   position: absolute;
@@ -190,24 +125,6 @@
 }
 .threeStars {
   display: flex;
-  gap: 8px;
-}
-.scene[data-scene="4"] .shardling {
-  left: 16%;
-}
-.startFlag {
-  position: absolute;
-  bottom: 124px;
-  left: 14%;
-  font: 16px/1 var(--font-play-pixel);
-  color: var(--pixel-sprite-gold);
-}
-.farGate {
-  position: absolute;
-  right: 14%;
-  bottom: 44px;
-  display: flex;
-  align-items: end;
   gap: 8px;
 }
 .speech {
@@ -289,11 +206,6 @@
   justify-content: space-between;
   align-items: center;
 }
-.final {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
 .error {
   position: absolute;
   bottom: 4px;
@@ -318,16 +230,6 @@
     opacity: 0;
   }
   to {
-    opacity: 1;
-  }
-}
-@keyframes arrive {
-  from {
-    transform: translateX(32px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
     opacity: 1;
   }
 }
@@ -369,11 +271,6 @@
   .actions {
     align-items: center;
   }
-  .final {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
-  }
   .actions :global(.practice-primary) {
     font-size: 10px;
     min-height: 48px;
@@ -383,21 +280,6 @@
   }
   .treasure {
     right: 4%;
-  }
-  .encounter {
-    right: 8%;
-  }
-  .worlds {
-    inset-inline: 4%;
-  }
-  .farGate {
-    right: 5%;
-  }
-  .startFlag {
-    left: 5%;
-  }
-  .scene[data-scene="4"] .shardling {
-    left: 16%;
   }
 }
 @media (prefers-reduced-motion: reduce) {

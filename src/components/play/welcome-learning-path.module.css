@@ -1,0 +1,118 @@
+.map {
+  position: absolute;
+  inset: 8px 0 32px;
+  pointer-events: none;
+}
+.route {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  shape-rendering: crispEdges;
+}
+.route path {
+  fill: none;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+.edge {
+  stroke: var(--pixel-violet-edge);
+  stroke-width: 12px;
+}
+.road {
+  stroke: var(--pixel-sprite-gold);
+  stroke-width: 6px;
+}
+.tiles {
+  stroke: var(--intro-sky);
+  stroke-width: 2px;
+  stroke-dasharray: 2 10;
+}
+.stop {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+}
+.startNode {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: var(--pixel-sprite-gold);
+  border: 4px solid var(--intro-panel);
+  outline: 2px solid var(--pixel-sprite-gold);
+  color: var(--intro-sky);
+  font: 400 12px/1 var(--font-play-pixel);
+}
+.lessons {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+.lessons span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--intro-muted);
+  background: var(--pixel-violet-edge);
+  color: var(--intro-text);
+  font: 400 12px/1 var(--font-play-pixel);
+}
+.lessons span:nth-child(2) {
+  left: 6px;
+  top: 6px;
+}
+.lessons span:nth-child(3) {
+  left: 12px;
+  top: 12px;
+}
+.caption {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 112px;
+  color: var(--intro-text);
+  text-align: center;
+  font:
+    400 16px/1.1 "Pixelify Sans",
+    monospace;
+}
+.caption small {
+  display: block;
+  margin-top: 4px;
+  color: var(--intro-muted);
+  font:
+    400 14px/1 "Pixelify Sans",
+    monospace;
+}
+.finish {
+  display: flex;
+  align-items: end;
+  width: 96px;
+  height: 64px;
+}
+.finish > svg + svg {
+  margin-left: -32px;
+}
+.map[data-learning-path="journey"] .finish > svg + svg {
+  margin-left: 0;
+}
+.traveler {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translateX(-50%);
+}
+.traveler img {
+  display: block;
+  image-rendering: pixelated;
+}
