@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { courseProgress } from "@/lib/play/course/progress";
 import type { PlayerSnapshot } from "@/lib/play/player";
-import { RAG_COURSE_ID, RAG_COURSE_NODES } from "@/lib/play/course/metadata";
+import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import { WorldBanner } from "./world-banner";
 import { CourseUnlock } from "./course-unlock";
 import { CoursePath } from "./course-path";
@@ -25,9 +26,7 @@ export function CourseWorld({
       <WorldBanner
         title="RAG"
         unit="topics"
-        stars={levels.reduce((sum, row) => sum + row.best_stars, 0)}
-        levelsPassed={levels.filter((row) => row.status === "passed").length}
-        totalLevels={RAG_COURSE_NODES.length}
+        {...courseProgress(snapshot.levels)}
       />
       <p>
         Learn each topic, then check what you know. Topics 0 to 3 are open in
