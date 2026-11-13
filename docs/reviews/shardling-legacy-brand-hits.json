@@ -97,43 +97,43 @@
   },
   {
     "path": "docs/admin.md",
-    "line": 109,
+    "line": 121,
     "text": "`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 219,
+    "line": 231,
     "text": "`INTELIPREP_ADMIN_DB_TEST=1 npm test -- tests/admin-database.test.ts` runs an opt-in",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 251,
+    "line": 263,
     "text": "A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 272,
+    "line": 284,
     "text": "`localStorage.setItem(\"mockmeai:exclude-analytics\", \"1\")` before navigating to app",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 328,
+    "line": 340,
     "text": "`mockmeai_reporting` and its restricted grants/policies.",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 332,
+    "line": 344,
     "text": "`postgres.<project-ref>` to `mockmeai_reporting.<project-ref>`. It refuses to",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 394,
+    "line": 406,
     "text": "- Alternatively, open the IntelliPrep project in Supabase, open SQL Editor,",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -1854,6 +1854,18 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "tests/e2e/boss-browser-helpers.ts",
+    "line": 18,
+    "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/boss-browser-helpers.ts",
+    "line": 128,
+    "text": "const request = indexedDB.open(`inteliprep:account:${userId}`);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "tests/e2e/capture-pixel.ts",
     "line": 33,
     "text": "localStorage.setItem(\"mockmeai:theme\", theme);",
@@ -1945,13 +1957,13 @@
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 85,
+    "line": 87,
     "text": "\"alter role mockmeai_reporting password 'ci-only-reporting-fixture'\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 141,
+    "line": 148,
     "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },

@@ -249,14 +249,14 @@ health check needs authorized access without removing deployment protection.
 
 1. Confirm Production is publicly reachable, candidate APIs require sign-in, and
    uninvited accounts are blocked. Check Vercel protection separately on Preview.
-2. In an authorized browser, open `/api/health`: expect 200 with `status: "ok"` and
-   both checks true. It checks Redis and settings, not provider billing/model access.
-3. Start a 45-minute scaling interview, ask a clarification, draw and explain,
+2. Open `/api/health`: expect 200 with `status: "ok"`. Detailed configuration and
+   shared-store checks stay in server logs. Provider billing/model access is separate.
+3. With a separate Pro/admin QA account, start a 45-minute scaling interview, ask a clarification, draw and explain,
    then refresh. Confirm draft, board, transcript and countdown survive.
 4. Redeploy the same branch and reopen the same browser session. Confirm the server
    resumes progress without restarting its timer.
 5. End and score. Repeated scoring should return cached feedback. Run a 1-minute
-   empty attempt and verify an unassessed scorecard and preserved draft choice.
+   empty attempt as an admin and verify an unassessed scorecard and preserved unsent draft.
 6. Test two overlapping requests against one session: the second should return 409.
    With synthetic requests, exceed the start quota: expect 429 and `Retry-After`.
    A Redis outage should produce 503 before a new model call.

@@ -1,4 +1,5 @@
 import { fixtureAccounts } from "./fixture-accounts.mjs";
+import { seedBossFixtures, bossFixtureSnapshot } from "./boss-fixture.mjs";
 import EmbeddedPostgres from "embedded-postgres";
 import postgres from "postgres";
 import { randomUUID } from "node:crypto";
@@ -75,6 +76,7 @@ export async function startReportingFixture(key, cert) {
       "20261112213851_play_course_long_lessons.sql",
       "20261112225318_play_activity_order.sql",
       "20261112233202_play_course_primer.sql",
+      "20261113200924_play_mock_access.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
@@ -84,6 +86,11 @@ export async function startReportingFixture(key, cert) {
     await operator.unsafe(
       "alter role mockmeai_reporting password 'ci-only-reporting-fixture'",
     );
+    // Existing Mock stories stay entitled. New boss stories exercise real Free defaults.
+    for (const [name, account] of Object.entries(fixtureAccounts))
+      if (!name.startsWith("boss"))
+        await operator`insert into practice_game.mock_access(user_id,plan) values(${account.id},'pro') on conflict do nothing`;
+    await seedBossFixtures(operator);
     // Existing course stories represent returning players. New primer QA accounts
     // are deliberately not seeded, so the real fresh-player gate is exercised.
     for (const [name, account] of Object.entries(fixtureAccounts))
@@ -148,6 +155,7 @@ export async function startReportingFixture(key, cert) {
       await operator`update practice_game.drill_attempts set created_at=now()-interval '5 hours',started_at=case when started_at is null then null else now()-interval '5 hours' end,submitted_at=case when submitted_at is null then null else now()-interval '5 hours' end,active_since=null where session_id=${id} and user_id=${user}`;
       return { aged: true };
     },
+    bossSnapshot: (name) => bossFixtureSnapshot(operator, name),
     playAnswer: async (id) => {
       const [row] =
         await operator`select private_variant from practice_game.drill_attempts where id=${id}`;

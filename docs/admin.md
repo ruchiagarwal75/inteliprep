@@ -5,6 +5,18 @@
 existing structured server logs; it adds no external analytics or monitoring
 service. Account counts come directly from `auth.users`.
 
+User detail pages also manage Mock access. Missing plan rows mean Free; the
+configured admin is always Pro. Free/Pro changes and free-boss resets revalidate
+the admin, require same-origin writes and append actor/time audit rows. Starts
+read the current plan on every request. Resetting a running Free attempt releases
+the boss node without deleting its session or invalidating its resume checkpoint.
+
+Pro interest is a single per-account timestamp shown on that user's detail page.
+It does not send an email. The additive access tables are in `practice_game`,
+with owner-only browser reads and no browser writes. See
+[boss and access verification](reviews/boss-and-access.md) for the migration,
+refund conditions and fixture-only test evidence.
+
 ## Setup
 
 1. Set server-only `ADMIN_USER_ID` to the exact Supabase Auth UUID of the owner.

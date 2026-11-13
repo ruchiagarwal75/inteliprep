@@ -160,3 +160,34 @@ empty bounded body and uses the feedback request limits. It records one timestam
 per user, shown on their admin detail page. It sends no email. Targeted tests
 passed signed-out/invite/origin denials, owner selection, input bounds, 429 and
 deduplicated storage.
+
+## 8. Final QA
+
+The final server tests use isolated Postgres, signed fixture identities and
+stubbed provider failures. Admin API denials, fresh plan changes, reset audit
+entries, continued resume after reset, and the final-error refund observer are
+covered. Resetting a running attempt now marks its old attempt as returned before
+clearing the slot. The old interview and verified checkpoint are kept.
+
+Browser checks use local fixture Auth, Postgres and a fake model service. All six
+node states, confirmation, both locked catalogs, interest, admin plan changes,
+one-time World cleared and topic replay links passed in both themes at 1440 x 669
+and 375 x 812. The real start/save/resume/end adapters were exercised without any
+live model calls. Screenshots are in `artifacts/boss-and-access/`; they are local
+QA artifacts and stay out of Git. Selected desktop and phone images were opened
+and visually checked.
+
+The first gallery run exposed a fixture-isolation issue: changing accounts in the
+same browser context and navigating the same hash URL reused its old page.
+Each state now uses a fresh browser context. The corrected four galleries and 32
+existing Mock/Play/theme regressions all passed. The other seven new boss browser
+checks passed separately. The regression includes timer expiry, unsent drafts,
+45/60-minute mocks, white AI exports, course unlocks, Learn sizing, chest rewards
+and progress. No owner account was used or changed.
+
+All implementation items passed `npm run check` and `npm run build`. The final
+check passed 2,032 tests, with two existing skipped tests. Verification also
+includes the server-private browser-chunk scans. The default
+Free plan is intentional: an operator can grant Pro on the existing admin user
+detail page. Pro notification records interest only. No billing or mail was added.
+No interview scoring, whiteboard behavior or existing progress was changed.

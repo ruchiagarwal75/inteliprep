@@ -1,6 +1,28 @@
 ## RAG course update
 
-The [RAG course specification](play-content/rag-course-build.md) supersedes the four-level RAG content and typed Play drill flow below. The course uses a separate persisted `rag-course` identity, preserving all old `rag` attempts, XP and badges. Course content is compiled from the authored Markdown into a server-only module. Slides are public; solutions and explanations are projected only after the owning player answers. Mock is unchanged.
+The [RAG course specification](play-content/archive/rag-course-build.md) supersedes the four-level RAG content and typed Play drill flow below. The course uses a separate persisted `rag-course` identity, preserving all old `rag` attempts, XP and badges. Course content is compiled from the authored Markdown into a server-only module. Slides are public; solutions and explanations are projected only after the owning player answers. Mock's engine is unchanged; new starts follow the access rules below.
+
+## RAG boss and mock access
+
+After Topic 9, the path has a final boss: the existing enterprise RAG assistant
+mock at Mid level for 45 minutes. Free accounts have one attempt, counted at
+session creation. Other mocks and boss retries require a server-owned Pro plan.
+The configured admin is always Pro. Existing sessions remain resumable and
+viewable on any plan. There is no payment or Pro-email integration.
+
+`practice_game.mock_access` stores the plan, free-use reference, Pro interest and
+victory-notice timestamp. `boss_attempts` preserves every boss launch and outcome;
+`mock_access_changes` audits grants, resets and server refunds. RLS gives browsers
+owner-only SELECT and no writes. The player lock serializes access decisions,
+while the existing Redis request fence preserves the original session and clock.
+
+A verified, eligible scorecard passes exactly when its signal is `yes` or
+`strong_yes`. Existing XP, readiness and badge hooks consume it unchanged. Mid
+validates Mid, not Senior or Staff. Defeat never locks course replays. The victory
+notice is claimed once per account. RAG scorecard areas below 3/Solid link back
+to the related Learn topics; that navigation threshold does not decide passing.
+
+See [boss verification](reviews/boss-and-access.md) for migration and QA evidence.
 
 # Play beta design
 

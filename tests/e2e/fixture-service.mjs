@@ -115,6 +115,11 @@ export function startFixtureService(key, cert, reporting) {
           await reporting.playAnswer(url.searchParams.get("attempt")),
         );
       if (url.pathname === "/fixture/stats") return json(200, { modelCalls });
+      if (url.pathname === "/fixture/boss")
+        return json(
+          200,
+          await reporting.bossSnapshot(url.searchParams.get("account")),
+        );
       if (url.pathname === "/fixture/invitation" && req.method === "POST") {
         let raw = "";
         for await (const chunk of req) raw += chunk;

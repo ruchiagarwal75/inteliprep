@@ -30,6 +30,8 @@ export async function changeMockAccess(userId: string, input: unknown) {
       await sql`insert into practice_game.mock_access(user_id,plan) values(${userId},${command.plan}) on conflict(user_id) do update set plan=excluded.plan,updated_at=now()`;
       await sql`insert into practice_game.mock_access_changes(id,user_id,actor_id,action,old_plan,new_plan) values(${randomUUID()},${userId},${actor},'plan_changed',${before.plan},${command.plan})`;
     } else if (before.freeBossSessionId) {
+      // Release the path node too. Keep the old interview and checkpoint resumable.
+      await sql`update practice_game.boss_attempts set refunded_at=now(),refund_category='admin_reset' where user_id=${userId} and session_id=${before.freeBossSessionId} and ended_at is null and refunded_at is null`;
       await sql`update practice_game.mock_access set free_boss_used_at=null,free_boss_session_id=null,updated_at=now() where user_id=${userId}`;
       await sql`insert into practice_game.mock_access_changes(id,user_id,actor_id,action,session_id) values(${randomUUID()},${userId},${actor},'free_attempt_reset',${before.freeBossSessionId})`;
     }

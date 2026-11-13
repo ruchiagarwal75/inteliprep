@@ -14,6 +14,13 @@ text and foreground icons in both themes.
 
 ## Ownership and flow
 
+The RAG course ends with a shared pixel gate and the supplied interviewer sprite.
+Topic 9 unlocks its Mid-level, 45-minute mock. Free accounts have one attempt;
+Pro/admin accounts can retry. Locked, ready, running, used, retry and defeated
+states come from the server. Passing uses the existing verified mock signal,
+awards the existing badge/XP, and claims the shared World notice once per account.
+The gate opens on defeat. All course topics remain replayable afterward.
+
 Pure server rules own par times, stars, replay XP, combos, seeded chests and the
 player level curve. Transactional commands consume saved attempts and append
 unique ledger references. Public schemas project outcomes for the HUD and UI.

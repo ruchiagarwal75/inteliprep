@@ -1,5 +1,7 @@
+import { bossAccounts } from "./boss-fixture.mjs";
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  ...bossAccounts,
   fixes5FeedbackDarkDesktop: {
     id: "60606060-6060-4060-8060-606060606060",
     email: "fixes5-feedback-dark-desktop@example.invalid",
