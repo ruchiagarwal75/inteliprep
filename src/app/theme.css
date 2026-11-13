@@ -1,5 +1,6 @@
 /* All application and illustration colors are defined here. Light is the default. */
 :root {
+  --font-brand: "Nunito", "Inter", sans-serif;
   --pixel-sprite-outline: #4a4380;
   --pixel-sprite-hair: #1b1b2f;
   --pixel-sprite-skin: #f2c79b;

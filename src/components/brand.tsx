@@ -1,6 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
+import { BrandFace } from "./brand-face";
+import styles from "./brand.module.css";
 
 /** The logo and wordmark share one accessible link back to Home. */
 export function Brand({
@@ -14,22 +15,11 @@ export function Brand({
     <Link
       href="/"
       aria-label={`${BRAND.name} home`}
-      className="inline-flex shrink-0 items-center gap-2.5 align-middle no-underline"
+      className={`${styles.link} ${small ? styles.small : ""}`}
     >
-      <Image
-        src="/brand-mark.svg"
-        alt=""
-        width={small ? 28 : 36}
-        height={small ? 28 : 36}
-      />
-      <span
-        className={
-          compact
-            ? "sr-only"
-            : `${small ? "text-lg" : "text-2xl"} font-bold tracking-tight`
-        }
-      >
-        {BRAND.name}
+      <BrandFace size={small ? 28 : 36} />
+      <span className={compact ? "sr-only" : styles.wordmark}>
+        {BRAND.name.toLowerCase()}
       </span>
     </Link>
   );

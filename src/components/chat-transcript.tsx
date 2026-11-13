@@ -1,4 +1,5 @@
 "use client";
+import { BrandFace } from "./brand-face";
 import { BRAND } from "@/lib/brand";
 
 import { useEffect, type RefObject } from "react";
@@ -56,7 +57,7 @@ export function ChatTranscript({
             {message.role === "assistant" && (
               <div className="interviewer-identity">
                 <span className="interviewer-avatar" aria-hidden="true">
-                  M
+                  <BrandFace size={22} />
                 </span>
                 <span>{BRAND.name} interviewer</span>
               </div>

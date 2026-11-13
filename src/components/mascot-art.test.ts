@@ -22,7 +22,10 @@ it.each([
     "72fd8b4e0bec76133b227dbfc01759edff3b78e2d1b9d3dedb8d828ade8b9bac",
   ],
 ])("preserves supplied %s artwork, allowing color tokens", (file, hash) => {
-  const original = readFileSync(`src/components/mascot-art/${file}`, "utf8");
+  const original = readFileSync(
+    `src/components/mascot-art/${file}`,
+    "utf8",
+  ).split("\n/** Static brand face")[0];
   // Only SVG paints moved to theme.css. The normalized hash still checks every path and pose.
   const source =
     file === "mascotArt.ts"

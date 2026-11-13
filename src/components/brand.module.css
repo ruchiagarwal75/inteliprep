@@ -1,0 +1,34 @@
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/brand/Nunito.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+}
+.link {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--space-1);
+  vertical-align: middle;
+  text-decoration: none;
+  color: var(--foreground);
+}
+.wordmark {
+  font: 800 1.75rem/1 var(--font-brand);
+  letter-spacing: -0.03em;
+}
+.small .wordmark {
+  font-size: 1.25rem;
+}
+.heroMark {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.face {
+  flex: none;
+}
+.face * {
+  animation: none !important;
+}
