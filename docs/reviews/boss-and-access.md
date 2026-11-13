@@ -130,3 +130,11 @@ The prompt link keeps `from=play`; start attribution now recognizes both the
 retired `rag` event namespace and the current `rag-course` namespace. Eight
 targeted completion/readiness tests passed, including one-time XP/badges/claims,
 failed-boss replayability and prompt-to-boss attribution. No model was called.
+
+## 6. Scorecard practice links
+
+Every RAG scorecard area below the existing 3/Solid display bar links to the
+specified Learn topics, including Topic 0. Solid, Strong, unassessed and other
+problems have no replay links. This navigation threshold does not decide boss
+passing and does not change the grader. All seven current area titles are tested
+against the mapping. Original quotes and evidence rendering are unchanged.

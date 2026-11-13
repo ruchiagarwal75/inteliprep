@@ -8,6 +8,7 @@ import { SCORE_LABELS, SIGNAL_LABELS, type Scorecard } from "@/lib/scorecard";
 import type { Scene } from "@/lib/scene";
 import { ScorecardEvidence } from "@/components/scorecard-evidence";
 import { ShortInterviewResult } from "@/components/short-interview-result";
+import { ScorecardTopicReplay } from "@/components/scorecard-topic-replay";
 
 export function InterviewScorecard({
   scorecard,
@@ -96,6 +97,11 @@ export function InterviewScorecard({
             </header>
             <p>{area.rationale}</p>
             <ScorecardEvidence evidence={area.evidence} scene={scene} />
+            <ScorecardTopicReplay
+              problemId={scorecard.problemId}
+              area={area.area}
+              score={area.score}
+            />
           </article>
         ))}
       </section>
