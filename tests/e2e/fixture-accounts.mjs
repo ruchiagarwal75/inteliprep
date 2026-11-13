@@ -1,5 +1,17 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  primerFresh: {
+    id: "81818181-8181-4181-8181-818181818181",
+    email: "primer-fresh@example.invalid",
+  },
+  primerSlides: {
+    id: "82828282-8282-4282-8282-828282828282",
+    email: "primer-slides@example.invalid",
+  },
+  primerLegacy: {
+    id: "83838383-8383-4383-8383-838383838383",
+    email: "primer-legacy@example.invalid",
+  },
   courseTimer: {
     id: "86868686-8686-4868-8686-868686868686",
     email: "course-timer@example.invalid",

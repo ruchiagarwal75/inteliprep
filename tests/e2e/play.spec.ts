@@ -117,7 +117,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   await captureCourse(page, "topic-complete");
   await page.getByRole("link", { name: "Notebook", exact: true }).click();
   await expect(page.locator('[data-answered="true"]')).toHaveCount(7);
-  await expect(page.locator('[data-answered="false"]')).toHaveCount(14);
+  await expect(page.locator('[data-answered="false"]')).toHaveCount(22);
   await expect(page.locator('[data-notebook-question="T2-Q1"]')).toHaveText(
     "Fast searchTry it first",
   );

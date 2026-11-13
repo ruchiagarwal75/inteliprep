@@ -27,6 +27,10 @@
   box-shadow: 0 0 0 4px var(--game-world-gold-soft);
   animation: light 700ms 2s ease-out both;
 }
+.scene[data-unlocking]
+  :global([aria-current="step"] [aria-label="Practice guide"]) {
+  visibility: hidden;
+}
 @keyframes connect {
   from {
     stroke-dashoffset: 800;

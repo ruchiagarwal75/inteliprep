@@ -56,7 +56,9 @@ it("preserves existing visits, open progress and past quizzes without rewriting 
       await fixture.operator`select to_jsonb(p) as row from practice_game.level_progress p where user_id=${id}`;
     expect((await courseLesson(id, 1)).level).toBe(1);
     expect((await courseLesson(id, 0)).level).toBe(0);
-    expect(await startedCourseLevels(id)).toEqual([1]);
+    expect(await startedCourseLevels(id)).toEqual(
+      kind === "progress" ? [] : [1],
+    );
     expect(nextCourseLevel([], [1])?.level).toBe(1);
     expect(
       await fixture.operator`select to_jsonb(p) as row from practice_game.level_progress p where user_id=${id}`,

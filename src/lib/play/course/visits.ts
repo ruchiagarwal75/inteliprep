@@ -52,7 +52,11 @@ async function startedLevels(sql: PlayTransaction, userId: string) {
   return rows.map((row) => Number(row.level));
 }
 export function startedCourseLevels(userId: string) {
-  return withPlayer(userId, (sql) => startedLevels(sql, userId));
+  return withPlayer(userId, async (sql) => {
+    const rows =
+      await sql`select level from practice_game.course_visits where user_id=${userId} and course_id=${RAG_COURSE_ID} union select level from practice_game.play_sessions where user_id=${userId} and topic=${RAG_COURSE_ID} and level is not null order by level`;
+    return rows.map((row) => Number(row.level));
+  });
 }
 export async function seeCourseSlide(
   userId: string,

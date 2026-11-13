@@ -63,7 +63,7 @@ export function CourseUnlock({
         >
           <div>
             <h2 data-game-label>World unlocked</h2>
-            <GameGuide size="large" pose="cheer" message="Let's go deeper" />
+            <GameGuide size="small" pose="cheer" message="Let's go deeper" />
           </div>
           <button
             type="button"

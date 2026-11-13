@@ -122,3 +122,22 @@ it("protects slide reads and always uses the signed-in owner", async () => {
     1,
   );
 });
+
+it("accepts an explicit Topic 0 but never coerces a missing slide parameter to zero", async () => {
+  for (const suffix of ["", "?level=", "?level=-1", "?level=10"])
+    expect(
+      (
+        await readSlides(
+          new Request(`http://localhost/api/play/slides${suffix}`),
+        )
+      ).status,
+    ).toBe(400);
+  expect(
+    (await readSlides(new Request("http://localhost/api/play/slides?level=0")))
+      .status,
+  ).toBe(200);
+  expect(calls.lesson).toHaveBeenCalledWith(
+    "11111111-1111-4111-8111-111111111111",
+    0,
+  );
+});

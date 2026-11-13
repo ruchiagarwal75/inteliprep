@@ -49,6 +49,9 @@ export function CourseWorld({
       <CourseUnlock armed={primerUnlock}>
         <CoursePath
           started={started}
+          preserveTopicOne={levels.some(
+            (row) => row.level === 1 && row.status !== "locked",
+          )}
           passed={levels
             .filter((row) => row.status === "passed")
             .map((row) => row.level)}

@@ -87,7 +87,11 @@ export async function startReportingFixture(key, cert) {
     // Existing course stories represent returning players. New primer QA accounts
     // are deliberately not seeded, so the real fresh-player gate is exercised.
     for (const [name, account] of Object.entries(fixtureAccounts))
-      if (name.startsWith("course") || name.startsWith("play"))
+      if (
+        name.startsWith("course") ||
+        name.startsWith("play") ||
+        name === "primerLegacy"
+      )
         await operator`insert into practice_game.level_progress(user_id,topic,level,status) values(${account.id},'rag-course',1,'open') on conflict do nothing`;
     // Synthetic ledger history for the retired-XP HUD regression, never a real account.
     const restored = fixtureAccounts.courseRestored.id;

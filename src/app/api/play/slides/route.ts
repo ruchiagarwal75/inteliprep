@@ -36,11 +36,10 @@ export const POST = playEndpoint(
   },
 );
 export const GET = playEndpoint("/api/play/slides", async (request, userId) => {
-  const level = z.coerce
-    .number()
-    .int()
-    .min(0)
-    .max(9)
+  const level = z
+    .string()
+    .regex(/^[0-9]$/u)
+    .transform(Number)
     .safeParse(new URL(request.url).searchParams.get("level"));
   if (!level.success)
     return Response.json({ error: "Choose a valid topic." }, { status: 400 });

@@ -21,13 +21,16 @@ export function CoursePath({
   stars,
   chests,
   started = [],
+  preserveTopicOne = false,
 }: {
   passed: number[];
   stars: Record<number, number>;
   chests: Record<number, number>;
   started?: number[];
+  preserveTopicOne?: boolean;
 }) {
-  const currentLevel = nextCourseLevel(passed, started)?.level;
+  const access = preserveTopicOne ? [...started, 1] : started;
+  const currentLevel = nextCourseLevel(passed, access)?.level;
   const track = (mobile: boolean, segments = RAG_COURSE_NODES.length - 1) => {
     const x = (i: number) =>
       i % 2 ? (mobile ? 360 : 450) : mobile ? 240 : 150;
@@ -62,7 +65,7 @@ export function CoursePath({
       <ol className={styles.path} aria-label="RAG course topics">
         {RAG_COURSE_NODES.map((node, index) => {
           const complete = passed.includes(node.level),
-            open = courseLevelOpen(node.level, passed, started);
+            open = courseLevelOpen(node.level, passed, access);
           const state = complete
             ? "passed"
             : open && node.level === currentLevel
@@ -140,7 +143,7 @@ export function CoursePath({
                 {node.level === 0 && (
                   <span>
                     About 8 min
-                    {primerOptional(passed, started) ? " · Optional" : ""}
+                    {primerOptional(passed, access) ? " · Optional" : ""}
                   </span>
                 )}
                 {complete && <Stars count={stars[node.level] ?? 0} />}
