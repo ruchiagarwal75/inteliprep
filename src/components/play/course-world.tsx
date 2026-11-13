@@ -6,12 +6,16 @@ import { WorldBanner } from "./world-banner";
 import { CourseUnlock } from "./course-unlock";
 import { CoursePath } from "./course-path";
 import { StartRound } from "./start-round";
+import { BossNode } from "./boss-node";
+import type { RagBossState } from "@/lib/rag-boss-public";
 export function CourseWorld({
   snapshot,
+  boss,
   started = [],
   primerUnlock = false,
 }: {
   snapshot: PlayerSnapshot;
+  boss: RagBossState;
   started?: number[];
   primerUnlock?: boolean;
 }) {
@@ -61,6 +65,7 @@ export function CourseWorld({
               .map((row) => [row.after_level, row.xp]),
           )}
         />
+        <BossNode boss={boss} />
       </CourseUnlock>
     </>
   );

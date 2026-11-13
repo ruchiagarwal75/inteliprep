@@ -89,3 +89,26 @@ response still fails. Audit rows store categories and IDs, never answer text.
 The targeted server checks passed 24 tests: all Free restrictions, Topic 9,
 concurrent and expired replays, original timing, Free resume, Pro/admin access,
 fresh plan changes, publication rollback and one-time refund rules.
+
+## 4. Boss on the path
+
+The final gate is below Topic 9. Its server projection has locked, ready,
+in-progress, used, Pro-retry and defeated states. Existing running attempts take
+precedence over a later plan/course change, so their Resume link stays available.
+Past deadlines do not remain in-progress. Earlier defeats survive later retries.
+
+The confirmation uses the fixed Mid/45-minute selection and the normal start/save
+adapter. Its request ID survives retries and reloads. The existing practice-ready
+prompt now links to the boss anchor. Anchor navigation takes precedence over the
+path's initial topic centering. The gate sits outside the topic track container,
+so adding it does not stretch the track between topics.
+
+The gate and interviewer are shared pixel components. Interviewer pixels and
+colors are copied from the supplied Boss art section of `welcome-intro.md`.
+`build-boss-art.mjs --check` proves the generated grids match that source. Palette
+values stay in `theme.css`; animation uses discrete transforms/opacity, pauses in
+hidden tabs, and stops for reduced motion. The welcome flow itself is queued
+separately. New boss dialogue stays within 12 words and 60 characters per line.
+
+Eight targeted unit checks passed for all states, resume precedence, expiry,
+past defeats, exact sprite grids/pigments, integer scaling and dialogue length.

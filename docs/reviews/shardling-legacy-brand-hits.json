@@ -907,7 +907,7 @@
   },
   {
     "path": "src/app/theme.css",
-    "line": 210,
+    "line": 226,
     "text": "--font-accent: \"MockMeAI handwriting\", cursive;",
     "reason": "Internal CSS font-family alias shared between declaration and use. Not displayed text."
   },
@@ -985,7 +985,7 @@
   },
   {
     "path": "src/components/play/course-unlock.tsx",
-    "line": 68,
+    "line": 75,
     "text": "const key = `mockmeai:primer-unlocked:${userId}`;",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },

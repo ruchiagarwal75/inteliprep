@@ -22,7 +22,10 @@ export async function startInterview({
   commit,
   onTiming,
 }: {
-  choice: InterviewSelection & { durationMinutes: InterviewDuration };
+  choice: InterviewSelection & {
+    durationMinutes: InterviewDuration;
+    launch?: "rag_boss";
+  };
   requestId?: string;
   replace: boolean;
   request: typeof fetch;

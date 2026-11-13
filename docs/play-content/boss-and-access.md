@@ -39,6 +39,8 @@ In `/api/interview/start` (and anything else that creates an interview session):
 
 After Topic 9, add a large final node: "Final boss: Design an enterprise RAG assistant · Mid level · 45 min".
 
+Draw the node as a pixel boss gate: a stone gate with a glowing door, in the world palette, built like the other pixel sprites. Make it one shared component, because welcome-intro.md reuses it. Its full description is in the "Boss art" section of welcome-intro.md. When the boss is defeated, the door opens. Any mascot or guide speech added for the boss follows the dialogue rule in welcome-intro.md: at most 2 lines, 12 words per line. Show the boss character from the "Boss art" section of welcome-intro.md (build it there if it doesn't exist yet): the idle pose beside the gate on the path node and on the confirm screen, and the defeated pose in the Defeated state. Use the boss lines listed in that same section for the confirm screen, the defeated state and the not-passed state.
+
 States:
 1. **Locked** (Topic 9 not passed): visible from the start, shows "Pass Topic 9 to unlock".
 2. **Ready, free attempt unused:** a "Start boss" button opens a confirm screen: "This is your free mock interview. You get one free attempt. It takes 45 minutes, and you can resume if you get disconnected." Then it starts the mock with the fixed problem, level and duration.

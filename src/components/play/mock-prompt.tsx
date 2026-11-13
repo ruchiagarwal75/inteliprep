@@ -1,13 +1,12 @@
 "use client";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { RAG_BOSS } from "@/lib/mock-access-public";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import styles from "./celebration.module.css";
 export function MockPrompt({
   topic,
   title,
-  problemId,
-  level,
 }: {
   topic: string;
   title: string;
@@ -40,13 +39,10 @@ export function MockPrompt({
     <div ref={root} className={styles.panel}>
       <div>
         <h2>You&apos;re ready to test this for real.</h2>
-        <p>Start a {title} mock?</p>
+        <p>The {title} World boss is waiting.</p>
       </div>
-      <Link
-        className="practice-primary"
-        href={`/interview/new?problem=${problemId}&level=${level}&from=play`}
-      >
-        Start a {title} mock
+      <Link className="practice-primary" href={RAG_BOSS.href}>
+        Go to the {title} boss
       </Link>
     </div>
   );

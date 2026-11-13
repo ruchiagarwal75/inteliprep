@@ -1,5 +1,21 @@
 /* All application and illustration colors are defined here. Light is the default. */
 :root {
+  /* Supplied boss pigments stay unchanged in both themes. */
+  --boss-outline: #141026;
+  --boss-hair: #221c3a;
+  --boss-brows: #181428;
+  --boss-skin: #e2aa80;
+  --boss-skin-shade: #ba805c;
+  --boss-glasses: #08080e;
+  --boss-lens: #2e3a60;
+  --boss-white: #ffffff;
+  --boss-glint: #bedcff;
+  --boss-mouth: #7a2830;
+  --boss-jacket: #3a2e62;
+  --boss-jacket-shade: #261e46;
+  --boss-shirt: #12101a;
+  --boss-marker: #e2445c;
+  --boss-sweat: #8cc8ff;
   --pixel-sprite-outline: #4a4380;
   --pixel-sprite-hair: #1b1b2f;
   --pixel-sprite-skin: #f2c79b;

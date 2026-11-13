@@ -23,33 +23,158 @@ Rules: fixture accounts only, no live model calls, no env or secret changes, no 
 - **Sound (optional, off by default):** a soft 8-bit "blip" per few characters and a short jingle on panel 4. Add a small pixel speaker toggle in the corner. Never autoplay sound. Remember the choice per account.
 - **World icons, XP badge, stars and chest:** use the existing pixel sprites from the Play page.
 
+**Dialogue rule (applies to every Shardling and guide line, here and anywhere else in the app):** at most 2 lines per text box, at most 12 words and about 60 characters per line, one idea per box. Add a content test that fails if any intro line breaks this rule.
+
 **Panel 1. "WELCOME, ENGINEER"**
 Shardling waves.
-"Hi! I'm a Shardling. Welcome to the world of Shardlings."
-"We're the tiny pieces that big AI systems are made of."
+"Hi! I'm a Shardling, a tiny piece of big AI systems."
+"Welcome to our world!"
 
-**Panel 2. "PICK A WORLD"**
-Show the world icons from the Play page: RAG, Chat and serving, Agents. RAG is lit; the others show "Soon".
-"AI engineer interviews test how those pieces fit together: retrieval, embeddings, evals and safety."
-"Each world teaches one part, with short lessons and quick quizzes. No essays."
+**Panel 2. "A BOSS AWAITS"**
+Show a pixel world path that ends at a glowing pixel boss gate (see "Boss gate" below). The world icons for RAG, Chat and serving, and Agents sit along the top; RAG is lit, and the others show "Soon".
+The boss, "The Interviewer" (idle pose, see "Boss art" below), steps out in front of the gate with a 3-step pixel slide and a lens glint. First, the boss's own text box, with the name tag "THE INTERVIEWER":
+"So... you think you know RAG?"
+Then the next press shows the Shardling's box:
+"Every world ends with a boss."
+"The boss is a real mock interview."
 
-**Panel 3. "LEVEL UP"**
-Show the XP badge, three stars, a chest, and the girl guide from the path.
-"Clear topics to earn XP and stars, keep your streak and open chests."
-"My friend here will guide you along the path. At the end of each world, a boss waits: a real mock interview."
+**Panel 3. "TRAIN FOR THE FIGHT"**
+Show the girl guide, the XP badge, three stars and a chest.
+"Train by clearing topics. My friend will guide you."
+"Earn XP, stars and chests on the way!"
 
-**Panel 4. "YOUR FIRST STOP"**
-Shardling points at a Topic 0 node.
-"Start with RAG basics. It takes about 8 minutes."
+**Panel 4. "YOUR QUEST BEGINS"**
+The Shardling stands at the start of the RAG path. Far away at the other end, the boss gate glows, with a tiny version of The Interviewer (idle pose at 1x scale) standing in front of it, arms crossed, glasses glinting.
+"First stop: RAG basics. About 8 minutes."
+"The RAG boss is waiting. Let's go!"
 Primary button: "Start Topic 0" (opens the Topic 0 Learn page). Secondary text link: "Look around first" (opens Play).
 
 If the app already asks for the player's interview level somewhere on first visit, put that question on this panel above the buttons ("Which interview are you preparing for? Mid / Senior / Staff") and remove the old prompt. Don't add a second level picker.
+
+## Boss art (everything needed is here)
+
+### Boss gate
+A pixel stone gate with a glowing door, in the world palette (stone in dark violet and navy, the door glowing XP gold), built like the other pixel sprites. About 32 x 32 pixels, scaled by whole numbers. When the boss is defeated, the door shows open. Make it one shared component. If boss-and-access.md already built it, reuse that one; if not, build it here, and the boss node will reuse it later.
+
+### The Interviewer
+The RAG World boss: a stern interviewer with big black glasses, crossed arms and a red marker. Scary in a Nintendo way, not horror. Build it from the grids below exactly, like the other pixel sprites. Scale by whole numbers only, with `image-rendering: pixelated`. Don't redraw or restyle it. A rendered preview of both poses is in docs/play-content/boss-sprite-preview.png. Make it one shared component, so the boss node and boss screens reuse it.
+
+### Palette
+
+| Key | Color | Use |
+|---|---|---|
+| `.` | transparent | background |
+| `K` | #141026 | outline |
+| `H` | #221C3A | hair |
+| `B` | #181428 | eyebrows |
+| `S` | #E2AA80 | skin |
+| `s` | #BA805C | skin shadow |
+| `G` | #08080E | glasses frame |
+| `L` | #2E3A60 | lens |
+| `W` | #FFFFFF | eye glow, marker cap |
+| `g` | #BEDCFF | lens glint |
+| `M` | #7A2830 | mouth |
+| `J` | #3A2E62 | jacket |
+| `j` | #261E46 | jacket shadow |
+| `T` | #12101A | turtleneck |
+| `R` | #E2445C | red marker |
+| `D` | #8CC8FF | sweat drop |
+
+
+### Pose 1: idle (32 x 32)
+
+Angry brows, glowing eye slits behind dark lenses, frown.
+Animation: every 3 to 4 seconds, the lens glint (`g`) moves one pixel right for 2 frames, and the eye glow (`W`) blinks off for 1 frame. Use `steps()`. No animation with reduced motion.
+
+```
+...........KHKKKHKKHK...........
+.........KKHHHHHHHHHHKK.........
+........KHHHHHHHHHHHHHHK........
+.......KHHHHHHHHHHHHHHHHK.......
+.......KHHHHHHHHHHHHHHHHK.......
+.......KHHHHHSSHHSSHHHHHK.......
+.......KHHSSSSSHHSSSSSHHK.......
+........KSBBSSSHHSSSBBSK........
+........KSSBBBSSSSBBBSSK........
+........KSSSSBBSSBBSSSSK........
+.......KSGGGGGGGGGGGGGGSK.......
+......KGGGgLLLLGGgLLLLGGGK......
+.......KsGLWWWLGGLWWWLGsK.......
+.......KSGLLLLLGGLLLLLGSK.......
+........KGGGGGGGGGGGGGGK........
+........KSSSSSSssSSSSSSK........
+........KSSSSSSsSSSSSSSK........
+........KSSSSMMMMMMSSSSK........
+.........KSSMSSSSSSMSSK.........
+..........KSSSSSSSSSSK..........
+.........KKKTssssssTKKK.........
+.......KKJJJTTTTTTTTJJJKK.......
+.....KKJJJJjjTTTTTTjjJJJJKK.....
+...KKJJJJJJjjTTTTTTjjJJJJJJKK...
+..KJJJJJJJjjJTTTTTTJjjJJJWJJJK..
+.KJJJJJJJJjjJTTTTTTJjjJJJRJJJJK.
+.KJJJjjjjjjjjjjjjjjjjjjjjRjJJJK.
+.KJJJJJSSSJJJJJJJJJJJJSSSRJJJJK.
+.KJJJJJSSSJJJJJJJJJJJJSSSRJJJJK.
+.KJJJJJsssJJJJJJJJJJJJsssJJJJJK.
+.KJJJJJJJJJJJTTTTTTJJJJJJJJJJJK.
+.KJJJJJJJJJJJTTTTTTJJJJJJJJJJJK.
+```
+
+
+### Pose 2: defeated (32 x 32)
+
+Brows raised, right lens tilted down one pixel, small smile, sweat drop.
+
+```
+...........KHKKKHKKHK...........
+.........KKHHHHHHHHHHKK.........
+........KHHHHHHHHHHHHHHK........
+.......KHHHHHHHHHHHHHHHHK.......
+.......KHHHHHHHHHHHHHHHHK.......
+.......KHHHHHSSHHSSHHHHHKK......
+.......KHHSSSSSHHSSSSSHHKDK.....
+........KSBBBBSHHSBBBBSKKDDK....
+........KSSSSSSSSSSSSSSKKDDK....
+........KSSSSSSSSSSSSSSK.KK.....
+.......KSGGGGGGGSSSSSSSSK.......
+......KGGGLLLLLGGGGGGGGSK.......
+.......KsGLLWWLGGLLLLLGGGK......
+.......KSGLLLLLGGLWWLLGSK.......
+........KGGGGGGGGLLLLLGK........
+........KSSSSSSssGGGGGGK........
+........KSSSSMSsSSMSSSSK........
+........KSSSSSMMMMSSSSSK........
+.........KSSSSSSSSSSSSK.........
+..........KSSSSSSSSSSK..........
+.........KKKTssssssTKKK.........
+.......KKJJJTTTTTTTTJJJKK.......
+.....KKJJJJjjTTTTTTjjJJJJKK.....
+...KKJJJJJJjjTTTTTTjjJJJJJJKK...
+..KJJJJJJJjjJTTTTTTJjjJJJWJJJK..
+.KJJJJJJJJjjJTTTTTTJjjJJJRJJJJK.
+.KJJJjjjjjjjjjjjjjjjjjjjjRjJJJK.
+.KJJJJJSSSJJJJJJJJJJJJSSSRJJJJK.
+.KJJJJJSSSJJJJJJJJJJJJSSSRJJJJK.
+.KJJJJJsssJJJJJJJJJJJJsssJJJJJK.
+.KJJJJJJJJJJJTTTTTTJJJJJJJJJJJK.
+.KJJJJJJJJJJJTTTTTTJJJJJJJJJJJK.
+```
+
+
+### Lines (dialogue rule: at most 2 lines, 12 words per line)
+
+Name tag: "THE INTERVIEWER"
+- Intro, panel 2: "So... you think you know RAG?"
+- Boss confirm screen: "45 minutes. No hints. Show me your design."
+- Boss defeated: "Hmm. Not bad. You're ready."
+- Boss not passed: "Close. Train more, then come back."
 
 ## 3. Behavior
 
 1. Next with Enter or the right arrow, back with the left arrow, skip with Escape. Show a 4-dot progress row.
 2. The body text types in quickly (about 30 characters per second). Clicking or pressing Enter shows the full text first, then goes to the next panel. With reduced motion: no typing effect and no bob.
-3. Make it an accessible dialog: focus moves in and stays in, each panel has a heading, and the mascot art has empty alt text.
+3. Make it an accessible dialog: focus moves in and stays in, each panel has a heading, and the mascot and boss art have empty alt text. The name tag on each text box says who is speaking.
 4. It must fit at 1440 x 669 and 375 x 812 with no scrolling. The night-sky scene is the same in both themes; only the page around the dialog follows the theme.
 
 ## 4. Measure it

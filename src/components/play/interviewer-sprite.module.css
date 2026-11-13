@@ -1,0 +1,42 @@
+.sprite {
+  display: block;
+  flex: none;
+  image-rendering: pixelated;
+}
+.glints {
+  animation: glint 3.6s steps(1, end) infinite;
+}
+.eyes {
+  animation: blink 3.6s steps(1, end) infinite;
+}
+.sprite[data-paused] .glints,
+.sprite[data-paused] .eyes {
+  animation-play-state: paused;
+}
+@keyframes glint {
+  0%,
+  90%,
+  100% {
+    transform: translateX(0);
+  }
+  92%,
+  96% {
+    transform: translateX(1px);
+  }
+}
+@keyframes blink {
+  0%,
+  96%,
+  100% {
+    opacity: 1;
+  }
+  98% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glints,
+  .eyes {
+    animation: none;
+  }
+}

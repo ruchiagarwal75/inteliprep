@@ -1,0 +1,63 @@
+.node {
+  position: relative;
+  width: min(600px, 100%);
+  margin: 80px auto 48px;
+  padding: 32px 24px;
+  border: 2px solid var(--game-world-edge);
+  border-bottom-width: 6px;
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
+  text-align: center;
+  scroll-margin-block: 24px;
+}
+.node::before {
+  content: "";
+  position: absolute;
+  height: 80px;
+  border-left: 8px dotted var(--pixel-line);
+  bottom: 100%;
+  left: calc(50% - 4px);
+}
+.node h2 {
+  --pixel-label-size: 16px;
+  line-height: 1.7;
+  margin: 20px 0 12px;
+}
+.node p {
+  margin: 12px 0;
+}
+.art,
+.confirmArt,
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+.actions {
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+.dialogue {
+  font: 500 16px/1.5 var(--font-play-read);
+}
+.confirmArt {
+  align-items: center;
+  text-align: left;
+  margin-bottom: 24px;
+}
+.confirmArt strong {
+  --pixel-label-size: 12px;
+}
+@media (max-width: 600px) {
+  .node {
+    padding: 24px 16px;
+  }
+  .confirmArt {
+    gap: 16px;
+  }
+  .actions > * {
+    max-width: 100%;
+  }
+}

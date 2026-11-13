@@ -4,7 +4,7 @@
 - course-fixes-5.md
 - boss-and-access.md
 - brand-fixes-1.md (item 1 is done; item 2, the Resend error message, is still open)
-- welcome-intro.md
+- welcome-intro.md (includes the boss art: grids, colors and lines; preview in boss-sprite-preview.png)
 
 **Source content (don't move or rename; the build and tests read these files):**
 - rag-course/: the RAG course slides and questions, Topics 0 to 9

@@ -49,7 +49,14 @@ export function CourseUnlock({
     const centerCurrent = () => {
       let active = true;
       const align = () => {
-        if (active) center('[aria-current="step"] [data-course-node]');
+        const current = '[aria-current="step"] [data-course-node]';
+        if (active)
+          center(
+            window.location.hash === "#rag-boss" ||
+              !scene.current?.querySelector(current)
+              ? "#rag-boss"
+              : current,
+          );
       };
       const frame = requestAnimationFrame(() => {
         align();
