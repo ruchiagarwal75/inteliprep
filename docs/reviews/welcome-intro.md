@@ -38,3 +38,16 @@ theme. Pixelify Sans is self-hosted with its SIL license and a recorded hash.
 
 No first-visit level picker existed, so no extra level question was added.
 The existing Progress level picker remains available.
+
+Item 2 passed the full check with 2,040 tests and the production build. The
+content tests freeze the four panel titles and enforce the dialogue limit.
+
+## 3. Input and accessibility
+
+Enter or right arrow reveals the full line before advancing. Left arrow goes
+back and Escape saves Skip. The native modal traps focus and gives every panel a
+focused heading. A screen reader receives each whole line rather than every
+typed character. Visual typing is 30 characters per second. Reduced motion shows
+the whole line immediately, with no bob, wipes or blinking. Hidden tabs pause
+typing and scene animation. Failed dismissal saves show a retry message and keep
+the intro open.
