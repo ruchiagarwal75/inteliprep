@@ -6,6 +6,8 @@ import { adminQuery } from "@/lib/admin-query";
 import { adminUserDetail } from "@/lib/admin-user-detail";
 import { AdminInterviewDetail } from "@/components/admin-interview-detail";
 import { AdminTime } from "@/components/admin-format";
+import { adminMockAccess } from "@/lib/admin-mock-access";
+import { AdminMockAccess } from "@/components/admin-mock-access";
 export default async function AdminUserPage({
   params,
   searchParams,
@@ -40,6 +42,7 @@ export default async function AdminUserPage({
     );
   }
   if (!data) notFound();
+  const mock = await adminMockAccess(id);
   const pageUrl = (page: number) =>
     `/admin/users/${id}?page=${page}&includeExcluded=${query.includeExcluded ? "1" : "0"}`;
   return (
@@ -53,6 +56,21 @@ export default async function AdminUserPage({
       <h2 className="text-xl font-semibold">
         {data.user.email ?? "Email unavailable"}
       </h2>
+      <AdminMockAccess userId={id} initial={mock.access} />
+      {mock.changes.length > 0 && (
+        <details>
+          <summary>Mock access changes</summary>
+          <ul>
+            {mock.changes.map((change, index) => (
+              <li key={index}>
+                {change.action.replaceAll("_", " ")} ·{" "}
+                {change.actor_id ?? "Server"} ·{" "}
+                <AdminTime value={change.created_at.toISOString()} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <p>
         Signed up: <AdminTime value={data.user.signupAt} /> · {data.total}{" "}
         recorded interviews in this reporting environment

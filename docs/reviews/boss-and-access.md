@@ -44,3 +44,20 @@ Only fixture accounts will be used for QA. Interviewer and grader calls will be
 stubbed. No owner progress, environment settings, main branch or Production
 deployment will be changed. Hosted database migration status and test results
 will be recorded here as the implementation proceeds.
+
+## 2. Access model
+
+`20261113200924_play_mock_access.sql` adds `mock_access`, `boss_attempts` and
+`mock_access_changes` in `practice_game`, inside one transaction. All three have
+RLS and owner-only browser SELECT. Browser writes are revoked. The restricted
+runtime role uses the existing transaction-local owner policy. Audit entries are
+append-only for that role. No existing tables or saved attempts are rewritten.
+
+The admin user's detail page shows effective plan, free-attempt use, Pro interest
+and recent audit entries. Plan changes and resets recheck admin Auth, validate
+same-origin requests, and serialize with starts under the player's lock. Repeated
+no-op changes do not add audit rows. The configured admin cannot lose Pro.
+
+Local isolated Postgres verification passed default plans, fresh grants/revokes,
+reset idempotency, interest deduplication, audit identity/times, owner isolation
+and denied browser writes. The migration has not been applied to a hosted database.

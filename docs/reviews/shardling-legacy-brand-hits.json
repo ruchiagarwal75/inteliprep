@@ -31,25 +31,25 @@
   },
   {
     "path": "CLAUDE.md",
-    "line": 332,
+    "line": 334,
     "text": "`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "CLAUDE.md",
-    "line": 335,
+    "line": 337,
     "text": "Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "CLAUDE.md",
-    "line": 336,
+    "line": 338,
     "text": "`inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "CLAUDE.md",
-    "line": 348,
+    "line": 350,
     "text": "`/api/monitoring/viewer` or set `mockmeai:exclude-analytics=1` in that browser's",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -907,7 +907,7 @@
   },
   {
     "path": "src/app/theme.css",
-    "line": 209,
+    "line": 210,
     "text": "--font-accent: \"MockMeAI handwriting\", cursive;",
     "reason": "Internal CSS font-family alias shared between declaration and use. Not displayed text."
   },
@@ -985,7 +985,7 @@
   },
   {
     "path": "src/components/play/course-unlock.tsx",
-    "line": 46,
+    "line": 68,
     "text": "const key = `mockmeai:primer-unlocked:${userId}`;",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
@@ -1369,7 +1369,7 @@
   },
   {
     "path": "src/lib/play/course/versioned-content.test.ts",
-    "line": 116,
+    "line": 122,
     "text": "const dir = mkdtempSync(join(tmpdir(), \"mockmeai-course-\"));",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -1818,6 +1818,24 @@
     "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
   },
   {
+    "path": "supabase/migrations/20261113200924_play_mock_access.sql",
+    "line": 52,
+    "text": "execute format('grant select,insert,update on practice_game.%I to mockmeai_reporting',name);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261113200924_play_mock_access.sql",
+    "line": 54,
+    "text": "execute format('create policy server_owner on practice_game.%I to mockmeai_reporting using (user_id=nullif(current_setting(''mockmeai.user_id'',true),'''')::uuid) with check (user_id=nullif(current_setting(''mockmeai.user_id'',true),'''')::uuid)',name);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261113200924_play_mock_access.sql",
+    "line": 62,
+    "text": "revoke update on practice_game.mock_access_changes from mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
     "path": "tests/admin-database.test.ts",
     "line": 45,
     "text": "it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== \"1\")(",
@@ -1927,7 +1945,7 @@
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 135,
+    "line": 141,
     "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -1951,25 +1969,25 @@
   },
   {
     "path": "tests/e2e/theme-helpers.ts",
-    "line": 58,
+    "line": 62,
     "text": "\"inteliprep:account:dddddddd-dddd-4ddd-8ddd-dddddddddddd\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/theme-preference.spec.ts",
-    "line": 19,
+    "line": 16,
     "text": "(await context.cookies()).find((cookie) => cookie.name === \"mockmeai-theme\")",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/theme-preference.spec.ts",
-    "line": 23,
+    "line": 20,
     "text": "await page.evaluate(() => localStorage.getItem(\"mockmeai:theme\")),",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/theme-preference.spec.ts",
-    "line": 43,
+    "line": 40,
     "text": "localStorage.setItem(\"mockmeai:theme\", \"dark\");",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
