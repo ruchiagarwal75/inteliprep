@@ -9,6 +9,15 @@ for (const theme of ["light", "dark"] as const)
         page,
         context,
       }) => {
+        await page.addInitScript(() => {
+          const original = Element.prototype.scrollIntoView;
+          Element.prototype.scrollIntoView = function (options) {
+            if (typeof options === "object")
+              document.documentElement.dataset.lastPathScroll =
+                options.behavior ?? "auto";
+            return original.call(this, options);
+          };
+        });
         await signIn(context, "fixes4Unlock");
         await page.setViewportSize({
           width,
@@ -90,11 +99,15 @@ for (const theme of ["light", "dark"] as const)
             () => document.documentElement.scrollWidth <= innerWidth,
           ),
         ).toBe(true);
-        if (reduce) {
+        if (reduce || (theme === "light" && width === 1440)) {
           await notice
             .getByRole("button", { name: "Later", exact: true })
             .click();
           await expect(notice).toHaveCount(0);
+          await expect(page.locator("html")).toHaveAttribute(
+            "data-last-path-scroll",
+            reduce ? "instant" : "smooth",
+          );
           await expect
             .poll(async () =>
               node.evaluate((n) => {

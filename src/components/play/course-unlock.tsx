@@ -41,11 +41,10 @@ export function CourseUnlock({
     previouslyVisible.current = visible;
   }, [visible]);
   useEffect(() => {
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const center = (selector: string) =>
       scene.current?.querySelector(selector)?.scrollIntoView({
         block: "center",
-        behavior: reduced ? "instant" : "smooth",
+        behavior: "instant",
       });
     const centerCurrent = () => {
       let active = true;

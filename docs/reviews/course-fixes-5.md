@@ -45,3 +45,15 @@ card against every path node, caption and action, with no intersections.
 Dismiss/reload and Start Topic 1 work. Item 2 passes check (1,996 tests), build
 and both private-content scans. Screenshots: `unlock-{theme}-{width}.png` under
 `artifacts/course-fixes-5/`.
+
+## 3. First-load path centering
+
+Initial centering now uses instant scrolling, including the font-ready and
+node-animation alignment checks. The in-page move after dismissing the unlock
+card still uses smooth scrolling, or an instant move under reduced motion.
+
+The returning-player browser test checks centering within three seconds and
+records native scroll requests to reject any initial smooth pan. Eight unlock
+cases also pass, including a separate check for the permitted smooth move.
+Item 3 passes check (1,996 tests), build and both private-content scans.
+Screenshots: `path-{theme}-{width}.png` under `artifacts/course-fixes-5/`.
