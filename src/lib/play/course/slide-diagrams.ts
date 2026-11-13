@@ -1,5 +1,8 @@
 /** Public teaching illustrations. No quiz content or solutions. */
 export const COURSE_DIAGRAMS = [
+  "rag-answer",
+  "rag-models",
+  "rag-two-paths",
   "pipeline",
   "overlap",
   "split-table",

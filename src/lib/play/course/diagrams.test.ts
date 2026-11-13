@@ -13,6 +13,9 @@ it("attaches the four revised ingestion diagrams and keeps other topic diagrams"
       ),
     ),
   ).toEqual([
+    [0, 2, "rag-answer"],
+    [0, 7, "rag-models"],
+    [0, 8, "rag-two-paths"],
     [1, 2, "pipeline"],
     [1, 6, "overlap"],
     [1, 8, "split-table"],

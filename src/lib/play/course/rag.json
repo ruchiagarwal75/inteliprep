@@ -27,7 +27,8 @@
             "kind": "paragraph",
             "text": "Think of it as an open-book exam for the model."
           }
-        ]
+        ],
+        "diagram": "rag-answer"
       },
       {
         "title": "A tiny example",
@@ -124,7 +125,8 @@
             "kind": "paragraph",
             "text": "In RAG, the embedding model finds the right pieces. The LLM reads them and writes the answer."
           }
-        ]
+        ],
+        "diagram": "rag-models"
       },
       {
         "title": "The two halves of every RAG system",
@@ -136,7 +138,8 @@
               "**Online (answering):** embed the question, find the nearest chunks, build the prompt, call the LLM, and return the answer with citations. Runs on every question, usually in a second or two."
             ]
           }
-        ]
+        ],
+        "diagram": "rag-two-paths"
       },
       {
         "title": "Where you've already seen RAG",

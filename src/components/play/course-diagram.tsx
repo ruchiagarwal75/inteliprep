@@ -10,8 +10,25 @@ import {
   AnnDiagram,
   RrfDiagram,
 } from "./course-diagram-retrieval";
+import {
+  RagAnswerDiagram,
+  RagModelsDiagram,
+  RagTwoPathsDiagram,
+} from "./course-diagram-primer";
 import styles from "./course-diagram.module.css";
 const diagrams = {
+  "rag-answer": {
+    art: RagAnswerDiagram,
+    alt: "Question flows through search of your docs, top pieces, the LLM and an answer with sources. Retrieved pieces are highlighted in gold.",
+  },
+  "rag-models": {
+    art: RagModelsDiagram,
+    alt: "Two models have different jobs. The embedding model maps text to a vector of numbers, highlighted in gold. The LLM maps text to a text answer.",
+  },
+  "rag-two-paths": {
+    art: RagTwoPathsDiagram,
+    alt: "Offline, documents are chunked, embedded and stored in the vector database. Online, a question is embedded, searches that database, then goes through a prompt and LLM to an answer.",
+  },
   pipeline: {
     art: PipelineDiagram,
     alt: "Document pipeline: connect, parse, clean, chunk, enrich, embed and index. Chunking is highlighted in gold.",
@@ -50,7 +67,13 @@ export function CourseDiagram({ kind }: { kind: CourseDiagramKind }) {
       data-course-diagram={kind}
       className={
         styles.figure +
-        (["pipeline", "split-table"].includes(kind)
+        ([
+          "pipeline",
+          "split-table",
+          "rag-answer",
+          "rag-models",
+          "rag-two-paths",
+        ].includes(kind)
           ? " " + styles.pipeline
           : "")
       }
