@@ -1,9 +1,46 @@
+import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
-import { BrandFace } from "./brand-face";
 import styles from "./brand.module.css";
 
-/** The logo and wordmark share one accessible link back to Home. */
+/** Show the supplied files unchanged; CSS chooses the variant for the app theme. */
+export function BrandLogo({ hero = false }: { hero?: boolean }) {
+  return (
+    <span
+      className={`${styles.logo} ${hero ? styles.hero : ""}`}
+      aria-hidden="true"
+    >
+      <Image
+        className={styles.light}
+        src="/brand/shardling-lockup.svg"
+        alt=""
+        width={446}
+        height={152}
+        unoptimized
+      />
+      <Image
+        className={styles.dark}
+        src="/brand/shardling-lockup-badge.svg"
+        alt=""
+        width={482}
+        height={188}
+        unoptimized
+      />
+    </span>
+  );
+}
+export function BrandMark({ size = 24 }: { size?: number }) {
+  return (
+    <Image
+      src="/brand/shardling-mark.svg"
+      alt=""
+      width={size}
+      height={size}
+      unoptimized
+    />
+  );
+}
+/** Preserve the existing Home link and compact/small interfaces. */
 export function Brand({
   compact = false,
   small = false,
@@ -17,10 +54,7 @@ export function Brand({
       aria-label={`${BRAND.name} home`}
       className={`${styles.link} ${small ? styles.small : ""}`}
     >
-      <BrandFace size={small ? 28 : 36} />
-      <span className={compact ? "sr-only" : styles.wordmark}>
-        {BRAND.name.toLowerCase()}
-      </span>
+      {compact ? <BrandMark size={36} /> : <BrandLogo />}
     </Link>
   );
 }

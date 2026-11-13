@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
-import { BrandFace } from "@/components/brand-face";
-import { Brand } from "@/components/brand";
+import { Brand, BrandLogo } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LegalLinks } from "@/components/legal-links";
 import { HomeMascot } from "@/components/mascot-moments";
@@ -20,7 +19,7 @@ export function PlayLanding() {
         </header>
         <section className={styles.landing}>
           <div>
-            <BrandFace size={64} />
+            <BrandLogo hero />
             <p className="practice-eyebrow">AI engineer practice</p>
             <h1>{BRAND.tagline}</h1>
             <p>{BRAND.pitch}</p>

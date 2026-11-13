@@ -225,8 +225,3 @@ export function buildMascot(pose: Pose): string {
   if (pose === 'done') return done();
   return wave();
 }
-
-/** Static brand face reuses the original shapes without changing the three poses. */
-export function buildMascotFace(): string {
-  return hairBack() + head() + face('normal') + eyes('open') + glasses(false) + mouth('big');
-}

@@ -1,41 +1,56 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
-import { Brand } from "./brand";
-import { BrandFace } from "./brand-face";
-import { buildMascotFace } from "./mascot-art/mascotArt";
+import { z } from "zod";
+import { Brand, BrandLogo } from "./brand";
 import manifest from "@/app/manifest";
-it("reuses the existing girl's face and lowercase wordmark without redrawing her", () => {
-  const html = renderToStaticMarkup(createElement(BrandFace, { size: 16 }));
-  expect(html).toContain(buildMascotFace());
-  expect(html).toContain('width="16"');
-  const logo = renderToStaticMarkup(createElement(Brand));
-  expect(logo).toContain('aria-label="Shardling home"');
-  expect(logo).toContain("shardling</span>");
+const hashes = z
+  .record(z.string(), z.string())
+  .parse(JSON.parse(readFileSync("scripts/brand-asset-sha256.json", "utf8")));
+it("uses the supplied light and dark lockups with a named Home link", () => {
+  const html = renderToStaticMarkup(createElement(Brand));
+  expect(html).toContain('aria-label="Shardling home"');
+  expect(html).toContain("/brand/shardling-lockup.svg");
+  expect(html).toContain("/brand/shardling-lockup-badge.svg");
+  expect(html).not.toContain("<svg");
+  expect(html).not.toContain("/brand-mark.svg");
+  expect(
+    renderToStaticMarkup(createElement(BrandLogo, { hero: true })),
+  ).toContain("/brand/shardling-lockup.svg");
 });
+it.each(Object.entries(hashes))(
+  "keeps supplied %s byte-for-byte",
+  (name, hash) =>
+    expect(
+      createHash("sha256")
+        .update(readFileSync(`public/brand/${name}`))
+        .digest("hex"),
+    ).toBe(hash),
+);
 it.each([
-  ["favicon-32x32.png", 32, 32],
-  ["apple-touch-icon.png", 180, 180],
+  ["src/app/favicon.ico", "favicon.ico"],
+  ["src/app/icon.svg", "favicon.svg"],
+  ["src/app/apple-icon.png", "apple-touch-icon-180.png"],
+])("copies %s unchanged for Next conventions", (alias, name) =>
+  expect(readFileSync(alias).equals(readFileSync(`public/brand/${name}`))).toBe(
+    true,
+  ),
+);
+it.each([
+  ["favicon-16.png", 16, 16],
+  ["favicon-32.png", 32, 32],
+  ["apple-touch-icon-180.png", 180, 180],
   ["icon-192.png", 192, 192],
   ["icon-512.png", 512, 512],
-  ["og-image.png", 1200, 630],
-])("ships %s at its required size", (file, w, h) => {
-  const png = readFileSync(`public/${file}`);
-  expect(png.toString("ascii", 1, 4)).toBe("PNG");
-  expect(png.readUInt32BE(16)).toBe(w);
-  expect(png.readUInt32BE(20)).toBe(h);
+  ["og-image-1200x630.png", 1200, 630],
+])("has the supplied dimensions for %s", (name, w, h) => {
+  const data = readFileSync(`public/brand/${name}`);
+  expect(data.readUInt32BE(16)).toBe(w);
+  expect(data.readUInt32BE(20)).toBe(h);
 });
-it("provides matching vector assets and manifest icons", () => {
-  for (const name of [
-    "public/brand-mark.svg",
-    "public/brand-lockup.svg",
-    "public/favicon.svg",
-    "src/app/icon.svg",
-  ])
-    expect(readFileSync(name, "utf8")).toMatch(/shardling/iu);
+it("uses the supplied manifest icons", () =>
   expect(manifest()).toMatchObject({
-    name: "Shardling",
-    icons: [{ src: "/icon-192.png" }, { src: "/icon-512.png" }],
-  });
-});
+    icons: [{ src: "/brand/icon-192.png" }, { src: "/brand/icon-512.png" }],
+  }));

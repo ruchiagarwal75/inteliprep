@@ -10,18 +10,26 @@ requested description. Titles use `%s | Shardling`, with the exact default
 `Shardling: AI mock system design interviews`. OG and Twitter metadata share a
 1200 x 630 light image. Public sitemap URLs use the same canonical origin.
 
-The user rejected the initial crystal draft before it was committed and chose
-the previous girl mascot's face for the logo. The original wave, working and done
-poses, pixel guide poses, timing and hi! bubble are retained. The logo crops the
-existing face without redrawing it. The lowercase wordmark uses local Nunito at
-weight 800, licensed under OFL. Its color follows the theme text. No dependency
-was added. `node scripts/build-brand-assets.mjs` regenerates static assets using
-Next's installed font tools and the already-installed Sharp package.
+The original girl mascot and its poses, timing and hi! bubble remain restored.
+The latest logo files come from the user's `Claude outputs/shardling-brand.zip`.
+All 12 supplied assets are copied byte-for-byte to `public/brand/`. No paths,
+colors, shapes, metadata or proportions inside those files are rewritten.
+The light lockup and dark badge are selected with theme CSS, without filters or
+recoloring. Both Home heroes, every header and Sign in show the supplied lockup.
+Sign in also uses the supplied `shardling-icon.svg`.
 
-Assets in public: `brand-mark.svg`, `brand-lockup.svg`, `favicon.svg`,
-`favicon-32x32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` and
-`og-image.png`. Next's `icon.svg`, `favicon.ico` and `apple-icon.png` use matching
-art. `/manifest.webmanifest` declares the 192 and 512 icons.
+`python3 scripts/import-brand-assets.py <zip-or-folder>` copies the complete set
+and updates Next icon files and legacy public URL aliases without conversion.
+`scripts/brand-asset-sha256.json` records the source hashes. Tests compare every
+asset against those hashes and compare the three Next icon aliases byte-for-byte.
+The earlier custom asset generator and logo-only Nunito font are removed. Body
+and heading fonts are unchanged, and the supplied logos need no font download.
+
+Public assets: `shardling-lockup.svg`, `shardling-lockup-badge.svg`,
+`shardling-mark.svg`, `shardling-icon.svg`, `favicon.ico`, `favicon.svg`,
+`favicon-16.png`, `favicon-32.png`, `apple-touch-icon-180.png`, `icon-192.png`,
+`icon-512.png` and `og-image-1200x630.png`, all under `/brand/`.
+Next's icon conventions and the manifest use this same supplied set.
 
 No JSON-LD existed. There was no robots file; the new file preserves unrestricted
 crawling and supplies the new host/sitemap. Existing page-level noindex/nofollow
@@ -112,7 +120,7 @@ storage; moving domains does not transfer that storage or sign-in cookies.
 
 ## Verification and files
 
-`npm run check` passes: lint, typecheck, formatting and 1,934 stubbed/local tests,
+`npm run check` passes: lint, typecheck, formatting and 1,950 stubbed/local tests,
 with two existing skips. `npm run build` and both private-content browser-chunk
 scans pass. No live or paid tests ran. A built-server HTTP check confirms the www
 308 preserves repeated query keys, including `tag=a&tag=b`, and that the legacy
@@ -121,7 +129,7 @@ callback exceptions and same-host code exchange on all five host forms.
 
 The browser check visits Home and Sign in at 1440px and 375px, in both themes.
 It checks titles, raw-source OG/Twitter/robots tags, canonical URLs, favicon and
-manifest responses, local Nunito loading, theme persistence, console/hydration
+manifest responses, supplied image loading and theme selection, theme persistence, console/hydration
 errors and horizontal overflow. It blocks analytics and all API requests and
 uses a fresh signed-out browser. It does not sign in with the owner's account.
 Whiteboard export code is unchanged and its existing tests remain passing.
@@ -142,10 +150,10 @@ Files by change:
 - Identity/metadata: `src/lib/{brand,site-metadata}.ts`, their tests,
   `src/app/{layout,robots,sitemap}.tsx/ts`, child page metadata, approval/copy
   tests, active operator docs, `package.json` description and `.env.example`.
-- Assets: `public/brand*`, icons and font/license, Next icon conventions,
-  `src/components/{brand,brand-face}`, the brand CSS Module and tests,
-  `mascotArt.ts` static face export, its preservation test, Home hero and chat
-  avatar, `src/app/{theme.css,manifest.ts}`, `scripts/build-brand-assets.mjs`.
+- Assets: `public/brand*`, icons and Next icon conventions,
+  `src/components/brand.tsx`, the brand CSS Module and tests,
+  Home hero and chat avatar, `src/app/{theme.css,manifest.ts}`, the byte-preserving
+  importer and source hashes. The temporary face helper is removed.
 - Domain/auth: `src/lib/{domain-redirects,oauth-callback}.ts`, redirect tests,
   `next.config.ts`, `google-sign-in.tsx`, callback tests and the cutover checklist.
 - Audit: `scripts/check-brand.mjs`, `src/lib/brand-audit.test.ts` and the

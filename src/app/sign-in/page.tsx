@@ -1,3 +1,5 @@
+import Image from "next/image";
+import brandStyles from "@/components/brand.module.css";
 import { pageMetadata } from "@/lib/site-metadata";
 import { LegalLinks } from "@/components/legal-links";
 import { redirect } from "next/navigation";
@@ -44,6 +46,14 @@ export default async function SignInPage({
           <Brand />
           <ThemeToggle />
         </header>
+        <Image
+          src="/brand/shardling-icon.svg"
+          alt=""
+          width={64}
+          height={64}
+          unoptimized
+          className={brandStyles.signInIcon}
+        />
         <h1 className="mb-3 text-2xl font-semibold">Sign in to practice</h1>
         <p className="text-muted mb-6">
           {BRAND.tagline} Sign in to start a practice round.

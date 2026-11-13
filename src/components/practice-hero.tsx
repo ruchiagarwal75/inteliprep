@@ -1,3 +1,4 @@
+import { BrandLogo } from "./brand";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import ScalingStory from "@/components/scaling-story/ScalingStory";
@@ -18,6 +19,7 @@ export function PracticeHero({
       aria-labelledby="practice-title"
     >
       <div className="practice-hero-copy">
+        {!brief && <BrandLogo hero />}
         {!brief && (
           <p className="practice-eyebrow">System design, at your own pace</p>
         )}

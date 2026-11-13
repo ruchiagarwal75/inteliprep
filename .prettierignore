@@ -18,3 +18,6 @@ src/components/mascot-art/mascot.css
 # Supplied scaling story: preserve the author's files exactly.
 src/components/scaling-story/ScalingStory.tsx
 src/components/scaling-story/scalingStory.css
+
+# User-supplied brand bundle: never rewrite its bytes.
+public/brand/
