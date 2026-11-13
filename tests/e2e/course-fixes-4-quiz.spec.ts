@@ -30,7 +30,11 @@ test("all course questions keep one-line options above Check at short desktop si
   let checked = 0;
   for (const level of [0, 1, 2, 3]) {
     await openPlayLevel(page, level);
-    for (let ordinal = 0; ordinal < (level === 0 ? 8 : 7); ordinal++) {
+    for (
+      let ordinal = 0;
+      ordinal < (level === 0 ? 8 : level === 1 ? 7 : 10);
+      ordinal++
+    ) {
       const view = await playView(page);
       expect(view.question.ordinal).toBe(ordinal);
       for (const theme of ["light", "dark"] as const) {

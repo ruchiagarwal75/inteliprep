@@ -587,107 +587,137 @@
         "id": "T1-Q1",
         "title": "Big chunks",
         "type": "concept",
+        "slide": 6,
         "prompt": "Why do very large chunks hurt retrieval?",
         "options": [
           "One embedding averages many topics, so the match is diluted",
-          "Vector databases can't store them",
-          "LLMs can't read more than 1,000 tokens",
-          "They need more embedding dimensions"
+          "Vector databases reject chunks over a few hundred tokens",
+          "Bigger chunks need more embedding dimensions to fit",
+          "The LLM can only read chunks shorter than 1,000 tokens"
         ],
         "correctIndex": 0,
         "keyIdea": "One vector per chunk. The more ideas in a chunk, the blurrier its vector.",
         "why": "Large chunks mix topics, so similarity to any one question drops, and they waste context tokens.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Vector stores hold fixed-size vectors. Chunk length doesn't change that.",
+          "2": "The model's vector size is fixed. A long chunk gets the same number of dimensions.",
+          "3": "LLMs read far more than that. The real issue is the blurry vector."
+        }
       },
       {
         "id": "T1-Q2",
         "title": "Cut sentences",
         "type": "concept",
+        "slide": 6,
         "prompt": "You split every 300 tokens with no overlap, and a key sentence is cut in half. Best fix?",
         "options": [
           "Add 10 to 20% overlap, or split on sentence boundaries",
-          "Use more embedding dimensions",
-          "Use a bigger LLM",
-          "Remove stop words"
+          "Switch to an embedding model with more dimensions",
+          "Double the chunk size to 600 tokens so cuts happen less often",
+          "Strip stop words so each sentence fits inside one chunk"
         ],
         "correctIndex": 0,
         "keyIdea": "Overlap and sentence-aware splits keep ideas whole.",
         "why": "Neither half of a split sentence carries the full meaning. Overlap repeats the boundary text in both chunks.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "More dimensions can't rebuild a sentence that was cut in half.",
+          "2": "Bigger chunks still cut sentences somewhere, and they blur the vector.",
+          "3": "Removing words damages meaning and doesn't stop the cut."
+        }
       },
       {
         "id": "T1-Q3",
         "title": "Split tables",
         "type": "flaw",
+        "slide": 8,
         "prompt": "Spot the flaw: Markdown docs are cut every 500 tokens, splitting a pricing table in the middle.",
         "options": [
           "Rows lose their header row, so answers about the table come out wrong",
-          "500 tokens is too small for Markdown",
-          "Tables can't be embedded",
-          "The overlap is too large"
+          "500 tokens is too small a chunk size for Markdown files",
+          "Embedding models can't read Markdown table syntax, so tables are ignored",
+          "The table should be removed, since tables don't embed well"
         ],
         "correctIndex": 0,
         "keyIdea": "Keep tables with their headers.",
         "why": "A row like \"Pro | 49 | 10\" means nothing without \"Plan | Price | Seats\".",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Size isn't the problem. Any fixed cut can split a table.",
+          "2": "They can read it. The trouble is the rows that lost their header.",
+          "3": "Tables hold key facts. Keep them with headers, or turn rows into sentences."
+        }
       },
       {
         "id": "T1-Q4",
         "title": "Citation metadata",
         "type": "concept",
+        "slide": 10,
         "prompt": "Which metadata lets the answer show \"Source: HR Handbook, updated Mar 2026\"?",
         "options": [
-          "Title, source and timestamp",
-          "The embedding vector",
-          "The chunk overlap",
-          "The token count"
+          "Title, source and updated timestamp",
+          "The chunk's embedding vector",
+          "The chunk's overlap and token count",
+          "The similarity score from the search"
         ],
         "correctIndex": 0,
         "keyIdea": "Citations and freshness come from metadata, not from the vector.",
         "why": "The vector is only for matching. Display info must be stored alongside it.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "A vector is just numbers for matching. It can't be turned back into a title.",
+          "2": "Those describe chunking, not where the text came from.",
+          "3": "The score says how well it matched, not where it came from."
+        }
       },
       {
         "id": "T1-Q5",
         "title": "Chunk count",
         "type": "math",
+        "slide": 6,
         "prompt": "2M documents, about 4,000 tokens each, 500-token chunks with 100-token overlap. About how many chunks?",
-        "options": ["16M", "20M", "2M", "200M"],
-        "correctIndex": 1,
+        "options": ["20M", "16M", "2M", "200M"],
+        "correctIndex": 0,
         "keyIdea": "Chunks per doc is roughly doc tokens divided by (chunk size minus overlap).",
         "why": "Each new chunk moves forward 400 tokens, so 4,000 / 400 = 10 chunks per doc, and 2M x 10 = 20M.",
         "ifWrong": {
-          "0": "That forgets the overlap: 4,000 / 500 = 8.",
-          "2": "That's one chunk per document."
+          "1": "That forgets the overlap: 4,000 / 500 = 8.",
+          "2": "That's one chunk per document.",
+          "3": "That's 100 chunks per document. Each chunk adds 400 new tokens, so it's 10."
         }
       },
       {
         "id": "T1-Q6",
         "title": "Stale chunks",
         "type": "flaw",
+        "slide": 11,
         "prompt": "Spot the flaw: when a document is edited, its new chunks are added but its old chunks stay in the index.",
         "options": [
-          "Outdated text still gets retrieved; replace a document's chunks by document ID",
-          "The embedding model needs retraining",
-          "Edits should be ignored",
-          "Overlap causes this"
+          "Old text still gets retrieved; replace a document's chunks by its ID",
+          "The embedding model must be retrained after every document edit to stay accurate",
+          "Edits should be ignored until a monthly full re-index",
+          "Overlap between old and new chunks causes duplicate vectors"
         ],
         "correctIndex": 0,
         "keyIdea": "Updates must replace, not just add.",
         "why": "Old chunks still match questions and return stale or conflicting answers.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "The model is fine. The index still holds the old chunks.",
+          "2": "That serves stale answers for weeks. Replace chunks on each edit.",
+          "3": "Overlap isn't the cause. The old chunks were never removed."
+        }
       },
       {
         "id": "T1-Q7",
         "title": "Changed chunks",
         "type": "math",
+        "slide": 11,
         "prompt": "100K documents are edited per day, 10 chunks each, and about 2 chunks actually change per edit. With chunk hashes, how many chunks do you re-embed daily?",
-        "options": ["1M", "200K", "100K", "2M"],
-        "correctIndex": 1,
+        "options": ["200K", "1M", "100K", "2M"],
+        "correctIndex": 0,
         "keyIdea": "Hash chunks and re-embed only what changed.",
         "why": "100K edits x 2 changed chunks = 200K.",
         "ifWrong": {
-          "0": "That re-embeds every chunk of every edited document."
+          "1": "That re-embeds every chunk of every edited document.",
+          "2": "That's one chunk per edit. About 2 change each time.",
+          "3": "That's 20 chunks per edit. Only about 2 change."
         }
       }
     ]
@@ -697,49 +727,274 @@
     "title": "Embeddings and the vector store",
     "slides": [
       {
-        "title": "What an embedding is",
+        "title": "What an embedding really is",
         "body": [
           {
             "kind": "paragraph",
-            "text": "A list of numbers that captures meaning. Similar meaning, nearby vectors. Documents and queries must use the same model."
+            "text": "An embedding model turns text into a fixed-length list of numbers, for example 768 or 1,536 of them. Texts with similar meaning land close together."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "The length is set by the model, whether the input is 5 words or 500.",
+              "Every model has its own space. A vector from model A can't be compared with one from model B.",
+              "Retrieval can never be better than the embedding model. If it can't tell two meanings apart, no index can."
+            ]
           }
         ]
       },
       {
-        "title": "Bi-encoder retrieval",
+        "title": "Measuring \"close\"",
         "body": [
           {
-            "kind": "paragraph",
-            "text": "Query and documents are encoded separately (two towers) and compared with a dot product or cosine similarity. Document vectors are computed ahead of time, which is why you can search millions in milliseconds."
-          }
-        ],
-        "diagram": "two-tower"
-      },
-      {
-        "title": "Dimensions and memory",
-        "body": [
+            "kind": "bullets",
+            "items": [
+              "**Cosine similarity:** the angle between two vectors, from -1 to 1. Length doesn't matter.",
+              "**Dot product:** angle times length. Ranks the same as cosine when vectors are normalized to length 1.",
+              "**Euclidean (L2) distance:** straight-line distance. For normalized vectors, it also ranks the same as cosine."
+            ]
+          },
           {
             "kind": "paragraph",
-            "text": "Raw size = vectors x dimensions x bytes per number (float32 = 4, float16 = 2, int8 = 1). More dimensions is not always better. Quantization saves memory for a small recall cost."
+            "text": "Use the metric the model was trained for. Most text models are used with normalized vectors and cosine or dot product."
           }
         ]
       },
       {
-        "title": "Approximate search (ANN)",
+        "title": "Bi-encoders: why search is fast",
         "body": [
           {
             "kind": "paragraph",
-            "text": "Exact search compares every vector: too slow at scale. HNSW: a graph, fast with high recall, memory heavy. IVF: clusters, searches only a few (nprobe trades recall for speed). ScaNN: quantization plus re-scoring. Tune recall@k against p95 latency."
+            "text": "The query and each document are encoded separately. Document vectors are computed once, at indexing time, and stored."
+          },
+          {
+            "kind": "paragraph",
+            "text": "At question time you only:"
+          },
+          {
+            "kind": "numbered",
+            "items": [
+              "Embed the query (one fast model call).",
+              "Compare it with the stored vectors."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "The catch: the model never reads the query and the document together, so it misses fine details. Topic 4 (re-ranking) fixes that for the top results."
           }
-        ],
-        "diagram": "ann"
+        ]
       },
       {
-        "title": "Choosing and changing models",
+        "title": "Choosing an embedding model",
         "body": [
           {
             "kind": "paragraph",
-            "text": "Pick by evaluating on your own questions, not just a leaderboard: domain, languages, max input length, cost. A new model means re-embedding everything; run old and new indexes side by side and switch after evaluation."
+            "text": "Judge models on your own data, not only on a public leaderboard like MTEB:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Quality:** recall@k on 100 to 200 real questions with known right chunks.",
+              "**Domain and language:** legal, code, medical or multilingual text may need a specialized model.",
+              "**Max input length:** longer chunks get truncated or rejected.",
+              "**Dimensions:** more dimensions mean more memory and slower search.",
+              "**Cost and hosting:** an API priced per token, or self-hosted. Some data can't leave your network."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Memory math",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Raw vector memory = number of vectors x dimensions x bytes per number."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "float32 = 4 bytes, float16 = 2, int8 = 1, binary = 1/8.",
+              "Example: 10M chunks x 1,024 dimensions x 4 bytes = about 41 GB."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "The index adds more on top, for example the links in an HNSW graph."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Some models let you keep only the first part of each vector (Matryoshka embeddings), for example 256 of 1,024 dimensions, for a small recall cost."
+          }
+        ]
+      },
+      {
+        "title": "Quantization: smaller vectors",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**float16:** half the memory, almost no recall loss.",
+              "**int8:** a quarter of the memory, a small recall loss.",
+              "**Product quantization (PQ):** splits each vector into pieces and stores a short code per piece. Often 30x smaller or more, with more recall loss.",
+              "**Binary:** 1 bit per dimension, 32x smaller. Use it only with re-scoring."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "The common pattern: search the small vectors for the top 100 candidates, then re-score those with full-precision vectors. You keep most of the recall for a fraction of the memory."
+          }
+        ]
+      },
+      {
+        "title": "Exact vs approximate search",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Exact search compares the query with every vector. It's perfect, and fine for small collections, but too slow at 100M vectors."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Approximate nearest neighbor (ANN) indexes check only a small part of the data and still find most true neighbors."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Recall@10 = 95%** means the index found, on average, 9.5 of the true top 10.",
+              "Every ANN index trades **recall, latency and memory**. You tune for two; you pay with the third."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "HNSW: a graph you walk",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "HNSW stacks layers of graphs: a few long links at the top, dense links at the bottom. A search starts at the top, walks toward the query, and drops down a layer at a time."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**M:** links per node. Higher means better recall and more memory.",
+              "**efSearch:** candidates explored per query. Higher means better recall and more latency.",
+              "**efConstruction:** build effort. Higher means a better graph and a slower build."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Strengths: high recall at low latency, easy inserts. Weaknesses: the graph lives in memory, and deletes are usually only marked, then cleaned up later."
+          }
+        ]
+      },
+      {
+        "title": "IVF: search only nearby clusters",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "IVF groups vectors into clusters with k-means, for example 4,096 clusters. Each vector goes into the list of its nearest cluster center."
+          },
+          {
+            "kind": "paragraph",
+            "text": "At question time, it finds the closest few centers and scans only their lists."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**nlist:** number of clusters. More clusters means shorter lists to scan.",
+              "**nprobe:** clusters scanned per query. Higher means better recall and more latency."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "IVF uses less memory than HNSW and pairs well with PQ (IVF-PQ) for billion-scale sets. Its weakness: a true neighbor in a cluster you didn't scan is missed."
+          }
+        ]
+      },
+      {
+        "title": "Picking a vector store",
+        "body": [
+          {
+            "kind": "bullets",
+            "items": [
+              "**A library (FAISS, hnswlib):** fastest, but you build storage, updates, filters and scaling yourself.",
+              "**Postgres with pgvector:** vectors next to your data, with SQL filters and transactions. Great when you already run Postgres and the data fits on one machine.",
+              "**A vector database (Pinecone, Weaviate, Qdrant, Milvus):** built-in sharding, filtering and managed scaling.",
+              "**A search engine (Elasticsearch, OpenSearch):** strong keyword search plus vector search in one place, which helps hybrid retrieval (Topic 3)."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Interview tip: state the needs first (scale, filters, update rate, latency, team skills), then pick a tool."
+          }
+        ]
+      },
+      {
+        "title": "Filters and multi-tenant data",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Real queries almost always need filters: customer, permissions, product, date."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Post-filtering:** take the top k, then drop what doesn't match. A strict filter can leave few or zero results.",
+              "**Filtered search:** apply the filter during the search, so all k results pass it. Most vector stores support this.",
+              "**Partition by tenant:** a separate index or namespace per customer. Strong isolation and easy deletes, but many small indexes to run."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Permissions belong in the search itself, never only in the prompt."
+          }
+        ]
+      },
+      {
+        "title": "Changing embedding models",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "A new model means a new vector space. Every document must be re-embedded; you can't mix old and new vectors."
+          },
+          {
+            "kind": "paragraph",
+            "text": "A safe migration:"
+          },
+          {
+            "kind": "numbered",
+            "items": [
+              "Build a second index with the new model in the background.",
+              "Write new and changed documents to both indexes.",
+              "Compare both on the same question set.",
+              "Switch reads with a flag, keep the old index for rollback, then delete it."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Store the model name and version with every vector, so a mismatch is caught early."
+          }
+        ]
+      },
+      {
+        "title": "Interview checklist",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "When asked \"How would you store and search the vectors?\", cover:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "The embedding model and how you'd test it on your data",
+              "Vector count, dimensions and the memory math",
+              "The index type and its recall versus latency knobs",
+              "Filters and permissions inside the search",
+              "How you'd re-embed when the model changes"
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Doing the memory math out loud (\"10M x 1,024 x 4 bytes is about 41 GB, so int8 gets us to about 10 GB\") is a strong Senior signal."
           }
         ]
       }
@@ -749,107 +1004,196 @@
         "id": "T2-Q1",
         "title": "Fast search",
         "type": "concept",
+        "slide": 3,
         "prompt": "Why is bi-encoder retrieval fast enough for millions of documents?",
         "options": [
-          "Document vectors are computed ahead of time; a query is compared with a dot product",
-          "It reads the full text of every document per query",
-          "It runs the model on every document per query",
-          "It only searches titles"
+          "Document vectors are precomputed, so only the query is embedded live",
+          "The model reads the query together with each document in a single pass",
+          "Documents are matched by keyword first, then embedded on the fly",
+          "Vectors are compressed so tightly that comparisons cost nothing"
         ],
         "correctIndex": 0,
         "keyIdea": "Precompute document vectors once; only the query is encoded at search time.",
         "why": "Comparing vectors is cheap. Running a model on every document per query is not.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "That's a cross-encoder. It's accurate but far too slow for millions of documents.",
+          "2": "Only the query is embedded at search time. Document vectors already exist.",
+          "3": "Compression saves memory. The speed comes from precomputing document vectors."
+        }
       },
       {
         "id": "T2-Q2",
         "title": "Cosine score",
         "type": "concept",
-        "prompt": "Two embeddings have cosine similarity 0.92. What does that mean?",
+        "slide": 2,
+        "prompt": "Two embeddings have a cosine similarity of 0.92. What does that tell you?",
         "options": [
-          "The model sees them as very close in meaning",
-          "92% of their words overlap",
-          "There's a 92% chance the answer is correct",
-          "They share 92% of their tokens"
+          "The model places the two texts very close in meaning",
+          "About 92% of the words in the two texts are the same",
+          "An answer built from them is 92% likely to be correct",
+          "The two documents are 92% of the way to being identical"
         ],
         "correctIndex": 0,
-        "keyIdea": "Cosine similarity measures direction of meaning, not word overlap or correctness.",
-        "why": "Two texts with different words can still score high if they mean the same thing.",
-        "ifWrong": {}
+        "keyIdea": "Cosine measures the angle between meanings, not word overlap or correctness.",
+        "why": "Two texts with different words can score high if they mean the same thing.",
+        "ifWrong": {
+          "1": "Cosine compares vector directions. Texts can score high with no shared words.",
+          "2": "Similarity says the texts are related, not that an answer is right.",
+          "3": "Cosine isn't a percentage of sameness. It reflects a small angle between vectors."
+        }
       },
       {
         "id": "T2-Q3",
         "title": "Float32 memory",
         "type": "math",
-        "prompt": "10M chunks, 1,024 dimensions, float32. About how much raw vector memory?",
-        "options": ["10 GB", "41 GB", "82 GB", "4 GB"],
-        "correctIndex": 1,
+        "slide": 5,
+        "prompt": "10M chunks, 1,024 dimensions, stored as float32. About how much raw vector memory?",
+        "options": ["41 GB", "10 GB", "82 GB", "4 GB"],
+        "correctIndex": 0,
         "keyIdea": "Size = vectors x dimensions x bytes per number.",
         "why": "10M x 1,024 x 4 bytes = about 41 GB.",
         "ifWrong": {
-          "0": "That forgets the 4 bytes per float32 number."
+          "1": "That forgets the 4 bytes per float32 number.",
+          "2": "That uses 8 bytes per number. float32 is 4 bytes.",
+          "3": "Check the zeros: 10M x 1,024 is about 10 billion numbers."
         }
       },
       {
         "id": "T2-Q4",
         "title": "Int8 memory",
         "type": "math",
+        "slide": 6,
         "prompt": "The same 10M x 1,024 vectors stored as int8 instead of float32. About how much memory?",
-        "options": ["41 GB", "20 GB", "10 GB", "5 GB"],
-        "correctIndex": 2,
+        "options": ["10 GB", "41 GB", "20 GB", "5 GB"],
+        "correctIndex": 0,
         "keyIdea": "int8 uses 1 byte per number, a quarter of float32.",
         "why": "10M x 1,024 x 1 byte = about 10 GB.",
         "ifWrong": {
-          "1": "That's float16 (2 bytes)."
+          "1": "That's still float32 at 4 bytes per number.",
+          "2": "That's float16 at 2 bytes per number.",
+          "3": "int8 is 1 byte per number, not half a byte."
         }
       },
       {
         "id": "T2-Q5",
         "title": "HNSW vs IVF",
         "type": "concept",
+        "slide": 8,
         "prompt": "Which statement about HNSW and IVF is true?",
         "options": [
-          "HNSW usually gives high recall at low latency but uses more memory",
-          "IVF compares the query with every vector",
-          "HNSW is an exact search",
-          "IVF can't be tuned"
+          "HNSW usually gives high recall at low latency but needs more memory",
+          "IVF compares each query with every vector, which is why recall is high",
+          "HNSW returns exact results, so its recall is always a perfect 100%",
+          "IVF has no tuning knobs, so its recall is fixed when the index is built"
         ],
         "correctIndex": 0,
         "keyIdea": "Every ANN index trades recall, speed and memory.",
-        "why": "HNSW keeps a graph in memory. IVF searches only nearby clusters and is tuned with nprobe.",
-        "ifWrong": {}
+        "why": "HNSW keeps a graph in memory. IVF scans only nearby clusters and is tuned with nprobe.",
+        "ifWrong": {
+          "1": "IVF scans only the nprobe nearest clusters. That's why it's fast.",
+          "2": "HNSW is approximate. It can miss true neighbors; efSearch trades recall for speed.",
+          "3": "nprobe is IVF's main knob. Raise it for recall, lower it for speed."
+        }
       },
       {
         "id": "T2-Q6",
         "title": "Model mismatch",
         "type": "flaw",
-        "prompt": "Spot the flaw: queries now use a new embedding model, but document vectors were made with the old one.",
+        "slide": 12,
+        "prompt": "Spot the flaw: queries now use a new embedding model, but the document vectors were made with the old one.",
         "options": [
-          "Vectors from different models aren't comparable; re-embed the documents",
-          "It just runs a bit slower",
-          "Only the query cache needs clearing",
-          "The LLM will correct the mismatch"
+          "The vectors live in different spaces; re-embed the documents",
+          "It only adds some latency until the query cache warms up",
+          "The query cache needs clearing, but the index itself is fine",
+          "The LLM will notice the mismatch and correct the final answer"
         ],
         "correctIndex": 0,
         "keyIdea": "Queries and documents must share one embedding model.",
-        "why": "Each model has its own vector space. Mixing them gives near-random results.",
-        "ifWrong": {}
+        "why": "Each model has its own vector space. Mixing them gives close to random results.",
+        "ifWrong": {
+          "1": "Speed isn't the problem. The similarity scores become close to random.",
+          "2": "The index is the problem. Its vectors came from the old model.",
+          "3": "The LLM only sees what retrieval returns. Bad retrieval means bad context."
+        }
       },
       {
         "id": "T2-Q7",
         "title": "IVF recall",
         "type": "concept",
-        "prompt": "Your IVF index has low recall@10. Which knob helps most?",
+        "slide": 9,
+        "prompt": "Your IVF index finds only 8 of the true top 10 (compared with exact search). Which knob helps most?",
         "options": [
-          "Increase nprobe to search more clusters (costs latency)",
-          "Lower the embedding dimensions",
-          "Shorten the chunks",
-          "Raise the LLM temperature"
+          "Raise nprobe so each query scans more clusters",
+          "Lower the dimensions so the search runs faster",
+          "Shorten the chunks so each vector is more precise",
+          "Raise the LLM temperature for more varied answers"
         ],
         "correctIndex": 0,
-        "keyIdea": "nprobe is IVF's recall-versus-speed dial.",
-        "why": "Searching more clusters finds more true neighbors, at the cost of more comparisons.",
-        "ifWrong": {}
+        "keyIdea": "nprobe is IVF's recall versus speed dial.",
+        "why": "Scanning more clusters finds more true neighbors, at the cost of more comparisons.",
+        "ifWrong": {
+          "1": "Fewer dimensions loses information. It won't help IVF find the missed neighbors.",
+          "2": "Chunk size changes what's indexed, not how well IVF finds the true neighbors.",
+          "3": "Temperature affects generation, not retrieval."
+        }
+      },
+      {
+        "id": "T2-Q8",
+        "title": "Filter after search",
+        "type": "flaw",
+        "slide": 11,
+        "prompt": "Spot the flaw: search returns the top 10 chunks, then removes the ones the user can't access. Some users get zero results.",
+        "options": [
+          "A filter after search can drop all 10; filter during the search",
+          "The embedding model doesn't understand permissions; retrain it",
+          "Ten is too few; always fetch the top 1,000 and filter after that",
+          "Users with zero results should get a cached answer from other users"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Apply filters inside the search, not after it.",
+        "why": "When most chunks are off-limits, the top 10 can all be filtered out. Filtered search returns 10 allowed results.",
+        "ifWrong": {
+          "1": "Models don't do access control. Permissions are metadata filters.",
+          "2": "Fetching more helps a little but still fails for strict filters, and it costs latency.",
+          "3": "That hides the bug and can leak content the user isn't allowed to see."
+        }
+      },
+      {
+        "id": "T2-Q9",
+        "title": "Re-embedding cost",
+        "type": "math",
+        "slide": 12,
+        "prompt": "You switch embedding models and must re-embed 20M chunks of about 400 tokens each. At $0.02 per million tokens, about how much does it cost?",
+        "options": ["$160", "$16", "$1,600", "$160,000"],
+        "correctIndex": 0,
+        "keyIdea": "Re-embedding is usually cheap in API cost. Time, rate limits and running two indexes are the real cost.",
+        "why": "20M x 400 = 8 billion tokens = 8,000 million tokens x $0.02 = $160.",
+        "ifWrong": {
+          "1": "Check the zeros: 8 billion tokens is 8,000 million, not 800 million.",
+          "2": "That uses $0.20 per million tokens.",
+          "3": "That prices per thousand tokens. The rate is per million."
+        }
+      },
+      {
+        "id": "T2-Q10",
+        "title": "Binary vectors",
+        "type": "concept",
+        "slide": 6,
+        "prompt": "You switch to 1-bit binary vectors to save memory, and recall drops. What's the standard fix?",
+        "options": [
+          "Fetch about 100 candidates, then re-score them at full precision",
+          "Go back to float32 for every vector, since binary can never work well",
+          "Add more dimensions to the binary vectors so they hold more detail",
+          "Return only the top 3 results so that fewer mistakes are visible"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Search small, re-score precise.",
+        "why": "Binary search is a cheap first pass. Re-scoring 100 candidates with full vectors recovers most of the lost recall.",
+        "ifWrong": {
+          "1": "That gives up the 32x memory saving. Re-scoring keeps both.",
+          "2": "The model sets the dimensions. Re-scoring is the usual fix.",
+          "3": "That hides the problem and lowers recall even more."
+        }
       }
     ]
   },
@@ -858,48 +1202,277 @@
     "title": "Retrieval strategy",
     "slides": [
       {
-        "title": "Dense vs sparse",
+        "title": "Retrieval is the ceiling",
         "body": [
           {
             "kind": "paragraph",
-            "text": "Dense (vectors) catches meaning and synonyms. Sparse (BM25 keyword search) catches exact terms: IDs, error codes, acronyms, rare names."
+            "text": "If the right chunk isn't in the top results, the LLM can't use it. Retrieval quality caps answer quality."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Measure retrieval on its own:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Recall@k:** how often a right chunk shows up in the top k.",
+              "**MRR:** how high the first right chunk ranks, on average."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Build a test set of 100 to 200 real questions with their right chunks before you tune anything. Topic 7 goes deeper on evaluation."
           }
         ]
       },
       {
-        "title": "Why hybrid wins",
+        "title": "Dense search: matching meaning",
         "body": [
           {
             "kind": "paragraph",
-            "text": "Run both and merge. Reciprocal Rank Fusion (RRF): each list adds 1 / (k + rank), with k often 60. It merges by rank, so you never need to compare raw scores."
+            "text": "Dense search embeds the query and finds the nearest chunk vectors."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Good at:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Paraphrases and synonyms: \"get my money back\" finds \"Refund policy\".",
+              "Natural-language questions."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Weak at:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Exact strings: IDs, error codes, SKUs, rare names.",
+              "Negation: \"not covered\" can sit close to \"covered\".",
+              "Very short queries that carry little meaning."
+            ]
           }
-        ],
-        "diagram": "rrf"
+        ]
+      },
+      {
+        "title": "Keyword search: BM25",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "BM25 scores a chunk by the query words it contains:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Rare words count more than common ones. \"ERR_4012\" matters more than \"the\".",
+              "Repeating a word helps, but less each time.",
+              "Long chunks are normalized, so they don't win just by being long."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Good at exact terms, codes, names and acronyms. Weak at synonyms. It's cheap, fast and needs no model."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Learned sparse models such as SPLADE add related words to each chunk, which closes part of the synonym gap."
+          }
+        ]
+      },
+      {
+        "title": "Hybrid search",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Run keyword and dense search in parallel and merge the two lists. Each catches what the other misses, so hybrid usually beats either one alone."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Two ways to merge:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Score blending:** normalize both scores, then weight them, for example 0.7 dense + 0.3 keyword. Needs tuning, because the scales differ.",
+              "**Reciprocal Rank Fusion (RRF):** uses ranks only. Simple, robust and a strong default."
+            ]
+          }
+        ]
+      },
+      {
+        "title": "RRF, step by step",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Each document gets 1 / (k + rank) from every list it appears in. k is often 60."
+          },
+          {
+            "kind": "paragraph",
+            "text": "With k = 60:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Doc A:** rank 1 in keyword, rank 2 in dense: 1/61 + 1/62 = about 0.0325",
+              "**Doc B:** rank 3 in keyword, rank 1 in dense: 1/63 + 1/61 = about 0.0323",
+              "**Doc C:** rank 2 in keyword only: 1/62 = about 0.0161"
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Showing up in both lists beats ranking high in just one."
+          }
+        ]
       },
       {
         "title": "Query rewriting",
         "body": [
           {
             "kind": "paragraph",
-            "text": "Turn chatty follow-ups into standalone queries (\"what about contractors?\" becomes \"PTO policy for contractors\"). Fix typos, expand acronyms."
+            "text": "Users type messy queries. Fix them before you search:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Standalone rewrite:** in a chat, turn \"what about contractors?\" into \"PTO policy for contractors\", using the conversation.",
+              "**Clean up:** fix typos, expand acronyms (\"PTO\" to \"paid time off\"), drop filler words.",
+              "**HyDE:** ask an LLM to write a short fake answer, then embed that. A fake answer often looks more like the real document than the question does."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Each rewrite is an extra LLM call, often a few hundred ms. Use a small, fast model."
           }
         ]
       },
       {
-        "title": "Multi-query expansion",
+        "title": "Multi-query and decomposition",
         "body": [
           {
+            "kind": "bullets",
+            "items": [
+              "**Multi-query:** write 3 to 5 versions of the question, search each, merge with RRF. Better recall for vague questions.",
+              "**Decomposition:** split a compound question into parts. \"Compare the 2025 and 2026 parental leave policies\" becomes one search per year."
+            ]
+          },
+          {
             "kind": "paragraph",
-            "text": "Generate 3 to 5 versions of the question, search each, merge. Better recall, more latency and cost."
+            "text": "Run the searches in parallel. Added latency is the rewrite call plus the slowest search, not the sum of all searches."
           }
         ]
       },
       {
-        "title": "Metadata filtering",
+        "title": "Filters and boosts",
         "body": [
           {
             "kind": "paragraph",
-            "text": "Restrict by product, date range, language or permissions. Filter inside the search, not after it, or you can lose all your top results."
+            "text": "Metadata turns \"similar\" into \"relevant right now\":"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "**Hard filters:** product = billing, language = en, user can access. Apply them inside the search (Topic 2).",
+              "**Soft boosts:** rank newer or more trusted documents higher without hiding the rest.",
+              "**Filters from the question:** \"2026 pricing\" becomes year = 2026, using rules or a small LLM call."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Old and new versions of a page look almost the same to an embedding. Only metadata can tell them apart."
+          }
+        ]
+      },
+      {
+        "title": "How many results?",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Retrieve wide, then narrow:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Fetch 50 to 100 candidates.",
+              "Re-rank them (Topic 4).",
+              "Send the best 5 to 10 to the LLM."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Too few, and the right chunk sits just past the cutoff. Too many, and you pay for more tokens while the model misses facts buried in the middle of a long context."
+          },
+          {
+            "kind": "paragraph",
+            "text": "Be careful with fixed score cutoffs. Scores aren't comparable across queries, so a fixed threshold can drop good results."
+          }
+        ]
+      },
+      {
+        "title": "Routing: search the right place",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "Real systems have several sources: docs, tickets, code, a SQL database."
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "A router (rules or a small LLM) picks which sources to search, or whether to search at all.",
+              "\"What's our refund policy?\" goes to the docs index.",
+              "\"How many refunds did we issue last week?\" goes to SQL. Vector search can't count."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Searching every source every time adds latency and noise."
+          }
+        ]
+      },
+      {
+        "title": "Debugging bad retrieval",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "When an answer is wrong, check retrieval first:"
+          },
+          {
+            "kind": "numbered",
+            "items": [
+              "Is the right chunk in the index at all? If not, it's an ingestion bug (Topic 1).",
+              "Is it in the top 100? If not, try hybrid search or query rewriting.",
+              "In the top 100 but not the top 5? It's a ranking problem. Add re-ranking (Topic 4).",
+              "In the prompt, but the answer is still wrong? It's a generation problem (Topic 6)."
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Log the query, the retrieved IDs and their scores for every request, so you can replay failures."
+          }
+        ]
+      },
+      {
+        "title": "Interview checklist",
+        "body": [
+          {
+            "kind": "paragraph",
+            "text": "When asked \"How would you retrieve the right context?\", cover:"
+          },
+          {
+            "kind": "bullets",
+            "items": [
+              "Hybrid search (BM25 plus dense), merged with RRF",
+              "Query rewriting for chat follow-ups",
+              "Filters for permissions, product and freshness, inside the search",
+              "Retrieve wide (50 to 100), re-rank, send the best few",
+              "Recall@k on a labeled question set to prove it works"
+            ]
+          },
+          {
+            "kind": "paragraph",
+            "text": "Explaining why dense search alone misses error codes and IDs is a strong Senior signal."
           }
         ]
       }
@@ -909,112 +1482,205 @@
         "id": "T3-Q1",
         "title": "Error codes",
         "type": "concept",
-        "prompt": "A user searches \"ERR_4012 timeout\" and dense-only search misses the right doc. Why?",
+        "slide": 2,
+        "prompt": "A user searches \"ERR_4012 timeout\" and dense-only search misses the doc that mentions ERR_4012. Why?",
         "options": [
-          "Exact rare tokens like error codes aren't captured well by embeddings; add keyword search",
-          "The embedding dimension is too small",
-          "The chunk overlap is too large",
-          "The LLM is too small"
+          "Embeddings blur rare exact strings like codes; add keyword search",
+          "The embedding dimension is too small to store a code like that one",
+          "The chunk overlap pushed the error code into a neighboring chunk",
+          "The query is too short, so it must be expanded into 5 variants first"
         ],
         "correctIndex": 0,
         "keyIdea": "Keyword search catches exact strings that vectors blur.",
-        "why": "Embeddings capture meaning. \"ERR_4012\" has little meaning, but it is an exact match.",
-        "ifWrong": {}
+        "why": "Embeddings capture meaning. \"ERR_4012\" carries little meaning, but it's an exact match for BM25.",
+        "ifWrong": {
+          "1": "More dimensions won't help. A code has little meaning for the model to capture.",
+          "2": "Overlap repeats text; it doesn't hide it. The miss comes from the search method.",
+          "3": "Expansion adds cost and noise. An exact keyword match finds it directly."
+        }
       },
       {
         "id": "T3-Q2",
         "title": "Meaning match",
         "type": "concept",
-        "prompt": "Which query is dense search better at than keyword search?",
+        "slide": 2,
+        "prompt": "Which search is dense retrieval better at than keyword search?",
         "options": [
           "\"how do I get my money back\" finding a doc titled \"Refund policy\"",
-          "\"SKU-88213\"",
-          "\"RFC 7231\"",
-          "\"ERR_4012\""
+          "\"SKU-88213\" finding the product page that lists that exact SKU",
+          "\"RFC 7231\" finding the spec that has that number in its title",
+          "\"ERR_4012\" finding the runbook that lists that exact error code"
         ],
         "correctIndex": 0,
         "keyIdea": "Dense search matches meaning even with no shared words.",
         "why": "\"money back\" and \"refund\" share no words but mean the same thing.",
-        "ifWrong": {}
+        "ifWrong": {
+          "1": "Exact IDs are where keyword search is strongest.",
+          "2": "An exact number in a title is a keyword match.",
+          "3": "Rare codes are where keyword search beats dense search."
+        }
       },
       {
         "id": "T3-Q3",
         "title": "RRF score",
         "type": "math",
-        "prompt": "With RRF and k = 60, a document is rank 1 in keyword search and rank 3 in dense search. Its fused score?",
-        "options": ["About 0.032", "About 0.016", "About 1.33", "About 0.5"],
+        "slide": 5,
+        "prompt": "With RRF and k = 60, a document is rank 1 in keyword search and rank 3 in dense search. What's its fused score?",
+        "options": ["About 0.032", "About 0.016", "About 1.33", "About 0.0003"],
         "correctIndex": 0,
         "keyIdea": "RRF adds 1 / (k + rank) from each list.",
         "why": "1/61 + 1/63 = 0.0164 + 0.0159 = about 0.032.",
         "ifWrong": {
           "1": "That counts only one list.",
-          "2": "That forgets k: 1/1 + 1/3."
+          "2": "That forgets k: 1/1 + 1/3.",
+          "3": "That multiplies the two parts. RRF adds them."
         }
       },
       {
         "id": "T3-Q4",
         "title": "Follow-up queries",
         "type": "flaw",
-        "prompt": "Spot the flaw: in a chat, the user's follow-up is \"what about contractors?\" and retrieval searches just that text.",
+        "slide": 6,
+        "prompt": "Spot the flaw: in a chat, the user's follow-up is \"what about contractors?\", and retrieval searches just that text.",
         "options": [
-          "The query lacks context; rewrite it into a standalone query using the conversation",
-          "Contractors should be filtered out",
-          "The chunk size is wrong",
-          "The reranker is missing"
+          "The query lacks context; rewrite it into a standalone question",
+          "Contractors should be filtered out of the index for privacy reasons",
+          "The chunks are too large to match such a short, specific question",
+          "A reranker would fix this without any change to the query itself"
         ],
         "correctIndex": 0,
         "keyIdea": "Rewrite follow-ups into standalone queries before searching.",
-        "why": "\"what about contractors?\" alone matches almost anything.",
-        "ifWrong": {}
+        "why": "\"what about contractors?\" alone matches almost anything. \"PTO policy for contractors\" matches the right doc.",
+        "ifWrong": {
+          "1": "That hides the very documents the user is asking about.",
+          "2": "Chunk size isn't the problem. The query is missing \"PTO policy\".",
+          "3": "A reranker only reorders what search found, and search used the wrong query."
+        }
       },
       {
         "id": "T3-Q5",
         "title": "Multi-query cost",
         "type": "concept",
+        "slide": 7,
         "prompt": "What's the main trade-off of multi-query expansion?",
         "options": [
-          "Better recall, but more latency and cost",
-          "Better precision, but lower recall",
-          "Lower cost, but worse answers",
-          "No trade-off"
+          "Better recall, but extra latency and cost per question",
+          "Better precision, but it usually lowers recall for vague questions",
+          "Lower cost per question, but answers get noticeably worse",
+          "It replaces the reranker, so the pipeline gets simpler"
         ],
         "correctIndex": 0,
-        "keyIdea": "More searches find more, but each one costs time and tokens.",
-        "why": "You add an LLM call to write the variants plus several searches to run and merge.",
-        "ifWrong": {}
+        "keyIdea": "More searches find more, but each one costs time and money.",
+        "why": "You add an LLM call to write the variants, plus several searches to run and merge.",
+        "ifWrong": {
+          "1": "More queries usually raise recall. The extra results can add noise.",
+          "2": "It costs more: an LLM call plus several searches.",
+          "3": "Merging more results makes good ranking matter even more."
+        }
       },
       {
         "id": "T3-Q6",
         "title": "Old pricing",
         "type": "flaw",
+        "slide": 8,
         "prompt": "Spot the flaw: a user asks about 2026 pricing, and the 2023 pricing page ranks first.",
         "options": [
-          "No date or version filter; filter or boost by date and version metadata",
-          "The embedding model is broken",
-          "The chunks are too small",
-          "The LLM temperature is too high"
+          "Ranking ignores dates; filter or boost by date and version",
+          "The embedding model is broken and needs to be replaced",
+          "The chunks are too small to include the year in the text",
+          "The LLM temperature is too high, so it picks older facts"
         ],
         "correctIndex": 0,
         "keyIdea": "Use metadata to keep results current.",
-        "why": "Old and new pricing pages look almost identical to an embedding.",
-        "ifWrong": {}
+        "why": "Old and new pricing pages look almost the same to an embedding. Only date or version metadata separates them.",
+        "ifWrong": {
+          "1": "The model works. Any embedding model sees the two pages as near twins.",
+          "2": "Even with the year in the text, the vectors stay close. Use metadata.",
+          "3": "Temperature affects wording, not which page search ranks first."
+        }
       },
       {
         "id": "T3-Q7",
         "title": "Multi-query latency",
         "type": "math",
+        "slide": 7,
         "prompt": "Multi-query: an LLM rewrite takes 300 ms, then 4 searches of 40 ms each run in parallel, then merging takes 10 ms. How much latency does this add compared with one 40 ms search?",
         "options": [
           "About 310 ms",
           "About 430 ms",
           "About 120 ms",
-          "No added latency"
+          "About 350 ms"
         ],
         "correctIndex": 0,
         "keyIdea": "Parallel searches cost the slowest one, not the sum.",
-        "why": "300 + 40 + 10 = 350 ms total, versus 40 ms before, so about 310 ms more.",
+        "why": "300 + 40 + 10 = 350 ms in total, versus 40 ms before, so about 310 ms more.",
         "ifWrong": {
-          "1": "That runs the 4 searches one after another."
+          "1": "That runs the 4 searches one after another.",
+          "2": "That counts only the extra searches and forgets the 300 ms rewrite.",
+          "3": "That's the total. The question asks how much it adds to the 40 ms search."
+        }
+      },
+      {
+        "id": "T3-Q8",
+        "title": "Too much context",
+        "type": "flaw",
+        "slide": 9,
+        "prompt": "Spot the flaw: to be safe, the system sends the top 50 retrieved chunks straight into the prompt.",
+        "options": [
+          "It wastes tokens and buries key facts; re-rank and send the best few",
+          "Fifty is too few; send the top 200 so that nothing ever gets missed",
+          "The LLM can't accept more than 10 chunks at once, so the request fails",
+          "No flaw: more context always makes the final answer more accurate"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Retrieve wide, re-rank, send few.",
+        "why": "Every chunk costs tokens, and models miss facts buried in long, noisy context.",
+        "ifWrong": {
+          "1": "More chunks means more cost and more noise. Retrieve wide, but send few.",
+          "2": "Context windows hold far more. The problem is cost and focus, not a hard limit.",
+          "3": "Models often miss facts in the middle of long context, and you pay for every token."
+        }
+      },
+      {
+        "id": "T3-Q9",
+        "title": "Count, don't search",
+        "type": "concept",
+        "slide": 10,
+        "prompt": "A user asks, \"How many refunds did we issue last week?\" What should the system do?",
+        "options": [
+          "Route it to a SQL query on the orders data",
+          "Search the refund policy docs and let the LLM estimate",
+          "Run hybrid search over tickets and count the matches",
+          "Ask the LLM directly; it has seen refund data before"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Route each question to the source that can answer it.",
+        "why": "Counting needs a database query. Vector search returns similar text, not totals.",
+        "ifWrong": {
+          "1": "Policy docs explain refunds; they don't count them. The LLM would guess.",
+          "2": "Ticket matches aren't refunds, and top-k search never returns every row.",
+          "3": "The model has never seen your data. It would make up a number."
+        }
+      },
+      {
+        "id": "T3-Q10",
+        "title": "Ranked 37th",
+        "type": "concept",
+        "slide": 11,
+        "prompt": "The right chunk ranks 37th for a question, but only the top 5 go into the prompt. What's the best next step?",
+        "options": [
+          "Re-rank the top 50 so the right chunk moves up",
+          "Re-chunk every document, since the chunk is missing from the index",
+          "Switch to a larger LLM so it can answer without that chunk",
+          "Lower the LLM temperature so it stops guessing the answer"
+        ],
+        "correctIndex": 0,
+        "keyIdea": "Found but ranked too low is a ranking problem.",
+        "why": "Search already found the chunk. A re-ranker scores the top candidates more carefully and moves it into the top 5.",
+        "ifWrong": {
+          "1": "It's in the index: it ranked 37th. Fix the ranking, not ingestion.",
+          "2": "No model can use a chunk it never sees.",
+          "3": "Temperature doesn't change which chunks reach the prompt."
         }
       }
     ]

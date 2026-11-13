@@ -77,7 +77,8 @@ it("grades seven shuffled choices without AI, preserves legacy rewards, queues m
     if (drill.type !== "spot_flaw" || !drill.course)
       throw Error("Expected course choice");
     ids.add(drill.id);
-    const sourceIndex = i === 4 ? 0 : drill.correctIndex;
+    const sourceIndex =
+      i === 4 ? drill.options.indexOf("16M") : drill.correctIndex;
     const answer = {
       type: "spot_flaw" as const,
       option: String(variant.order.indexOf(sourceIndex)),

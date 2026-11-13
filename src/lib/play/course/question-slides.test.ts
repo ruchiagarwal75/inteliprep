@@ -7,8 +7,8 @@ it("maps every question to its closest teaching slide, including the supplied pr
   const expected: Readonly<Record<number, number[]>> = {
     0: [1, 2, 3, 5, 7, 6, 8, 8],
     1: [6, 6, 8, 10, 6, 11, 11],
-    2: [2, 1, 3, 3, 4, 5, 4],
-    3: [1, 1, 2, 3, 4, 5, 4],
+    2: [3, 2, 5, 6, 8, 12, 9, 11, 12, 6],
+    3: [2, 2, 5, 6, 7, 8, 7, 9, 10, 11],
   };
   for (const topic of ragCourse) {
     const refs = topic.questions.map((q) =>

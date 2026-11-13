@@ -5,7 +5,7 @@ import { ragCourse } from "./content";
 import { COURSE_DIAGRAMS } from "./slide-diagrams";
 import { CourseDiagram } from "@/components/play/course-diagram";
 
-it("attaches the four revised ingestion diagrams and keeps other topic diagrams", () => {
+it("keeps primer and ingestion illustrations while versioned retrieval illustrations are added", () => {
   expect(
     ragCourse.flatMap((topic) =>
       topic.slides.flatMap((slide, index) =>
@@ -20,9 +20,6 @@ it("attaches the four revised ingestion diagrams and keeps other topic diagrams"
     [1, 6, "overlap"],
     [1, 8, "split-table"],
     [1, 9, "small-to-big"],
-    [2, 2, "two-tower"],
-    [2, 4, "ann"],
-    [3, 2, "rrf"],
   ]);
   expect(
     ragCourse.every((topic) =>

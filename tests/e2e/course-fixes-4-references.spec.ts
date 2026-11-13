@@ -21,8 +21,8 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
   for (const [level, expected, total] of [
     [0, 1, 10],
     [1, 6, 13],
-    [2, 2, 5],
-    [3, 1, 5],
+    [2, 3, 13],
+    [3, 2, 12],
   ]) {
     await openPlayLevel(page, level);
     const view = await playView(page);

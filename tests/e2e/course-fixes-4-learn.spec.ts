@@ -28,8 +28,8 @@ test("all course slides start at the top, fit or show a fade, and have no empty 
       for (const [level, total] of [
         [0, 10],
         [1, 13],
-        [2, 5],
-        [3, 5],
+        [2, 13],
+        [3, 12],
       ]) {
         await page.goto(`/play/rag/topics/${level}`);
         if ((await page.locator("html").getAttribute("data-theme")) !== theme) {

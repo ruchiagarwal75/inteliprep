@@ -1,10 +1,11 @@
 /** Shared authored choices and teaching feedback. */
-export function parseCourseChoices(source) {
+export function parseCourseChoices(source, { completeFeedback = false } = {}) {
   const optionRows = [...source.matchAll(/^- (✓ )?(.+)$/gmu)];
   if (optionRows.length !== 4 || optionRows.filter((m) => m[1]).length !== 1)
     throw Error("A question needs four options and one correct answer");
   const options = optionRows.map((m) => m[2]);
   const correctIndex = optionRows.findIndex((m) => m[1]);
+  if (new Set(options).size !== 4) throw Error("Options must be distinct");
   const keyIdea = /^Key idea: (.+)$/mu.exec(source)?.[1];
   const why = /^Why: (.+)$/mu.exec(source)?.[1];
   if (!keyIdea || !why) throw Error("Missing teaching feedback");
@@ -12,14 +13,18 @@ export function parseCourseChoices(source) {
   for (const match of source.matchAll(/^If wrong \((.+)\): (.+)$/gmu)) {
     const matches = options
       .map((text, index) => ({
-        text: text.replace(/^About /u, ""),
+        text: completeFeedback ? text : text.replace(/^About /u, ""),
         index,
       }))
       .filter((option) => option.text === match[1]);
     if (matches.length !== 1 || matches[0].index === correctIndex)
       throw Error("Wrong-option feedback must match one wrong option");
-    ifWrong[String(matches[0].index)] = match[2];
+    const key = String(matches[0].index);
+    if (key in ifWrong) throw Error("Duplicate wrong-option feedback");
+    ifWrong[key] = match[2];
   }
+  if (completeFeedback && Object.keys(ifWrong).length !== 3)
+    throw Error("Every wrong option needs feedback");
   return { options, correctIndex, keyIdea, why, ifWrong };
 }
 

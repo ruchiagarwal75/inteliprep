@@ -1,4 +1,5 @@
 import "server-only";
+import { RAG_COURSE_ID } from "./course/metadata";
 import { z } from "zod";
 import type { PlayTransaction } from "./database";
 import { drillDefinitionSchema, drillVariantSchema } from "./definition";
@@ -45,8 +46,10 @@ export async function refreshUnanswered(
       })
       .parse(row.private_variant);
     const definition =
-      bank.find((drill) => drill.id === snapshot.definition.id) ??
-      snapshot.definition;
+      round.topic === RAG_COURSE_ID
+        ? snapshot.definition
+        : (bank.find((drill) => drill.id === snapshot.definition.id) ??
+          snapshot.definition);
     const outdatedMath =
       definition.type === "math" &&
       (snapshot.definition.type !== "math" ||
@@ -57,6 +60,12 @@ export async function refreshUnanswered(
         !parametersMatch(definition.math, snapshot.variant.parameters));
     if (!stale && !outdatedMath) continue;
     renewed = true;
+    // A course content release must not replace a saved question or its options.
+    // Clock renewal stays independent from the immutable course snapshot.
+    if (round.topic === RAG_COURSE_ID) {
+      await sql`update practice_game.drill_attempts set variant_revision=variant_revision+1,active_elapsed_ms=0,active_since=null,started_at=${row.ordinal === round.active_ordinal ? now : null} where user_id=${userId} and id=${row.id} and answer is null and submitted_at is null`;
+      continue;
+    }
     const variant = { definition, variant: createVariant(definition) };
     await sql`update practice_game.drill_attempts set private_variant=${sql.json(variant)},variant_revision=variant_revision+1,active_elapsed_ms=0,active_since=null,started_at=${row.ordinal === round.active_ordinal ? now : null} where user_id=${userId} and id=${row.id} and answer is null and submitted_at is null`;
   }

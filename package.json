@@ -8,7 +8,7 @@
   "scripts": {
     "predev": "node scripts/copy-whiteboard-fonts.mjs",
     "postbuild": "node scripts/check-private-problems.mjs && node scripts/check-private-play.mjs",
-    "prebuild": "node scripts/copy-whiteboard-fonts.mjs",
+    "prebuild": "node scripts/build-rag-course.mjs --check && node scripts/copy-whiteboard-fonts.mjs",
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",

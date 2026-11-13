@@ -5,7 +5,7 @@ import { courseQuestionTitle } from "./titles";
 import { createVariant, publicQuestion } from "../question";
 import { summaryDisplay } from "../summary-store";
 import { roundSummarySchema } from "../public";
-it("uses all 21 supplied question titles in authored order", () => {
+it("uses all 27 supplied question titles in authored order", () => {
   expect(
     ragCourse
       .filter((topic) => topic.level > 0)
@@ -25,6 +25,9 @@ it("uses all 21 supplied question titles in authored order", () => {
     "HNSW vs IVF",
     "Model mismatch",
     "IVF recall",
+    "Filter after search",
+    "Re-embedding cost",
+    "Binary vectors",
     "Error codes",
     "Meaning match",
     "RRF score",
@@ -32,6 +35,9 @@ it("uses all 21 supplied question titles in authored order", () => {
     "Multi-query cost",
     "Old pricing",
     "Multi-query latency",
+    "Too much context",
+    "Count, don't search",
+    "Ranked 37th",
   ]);
 });
 it("relabels saved prompts and review lists without rewriting their snapshots", () => {

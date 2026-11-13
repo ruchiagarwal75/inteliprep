@@ -7,29 +7,25 @@ const source = readFileSync(
   "docs/play-content/rag-course/topics-1-3.md",
   "utf8",
 );
-it("compiles the supplied lesson and keeps every question and the other topics unchanged", () => {
-  const oldTopics = ragCourse.filter((topic) => topic.level > 0);
-  const original = parseCourseMarkdown(source);
-  expect(original.slice(1)).toEqual(oldTopics.slice(1));
-  expect(original[0].questions).toEqual(oldTopics[0].questions);
+it("keeps Topic 1 slides exactly as authored and compiles the versioned topic sizes", () => {
   expect(
     parseCourseSlidesMarkdown(
       readFileSync("docs/play-content/rag-course/topic-1-slides-v2.md", "utf8"),
       { 2: "pipeline", 6: "overlap", 8: "split-table", 9: "small-to-big" },
     ),
-  ).toEqual(oldTopics[0].slides);
-  expect(ragCourse).toHaveLength(4);
-  for (const topic of oldTopics) {
-    expect(topic.slides).toHaveLength(topic.level === 1 ? 13 : 5);
-    expect(topic.questions).toHaveLength(7);
-    expect(new Set(topic.questions.map((q) => q.id)).size).toBe(7);
-    for (const q of topic.questions) {
-      expect(q.options).toHaveLength(4);
-      expect(q.options[q.correctIndex]).toBeTruthy();
-      expect(q.keyIdea).toBeTruthy();
-      expect(q.why).toBeTruthy();
-    }
-  }
+  ).toEqual(ragCourse[1].slides);
+  expect(
+    ragCourse.map((topic) => [
+      topic.level,
+      topic.slides.length,
+      topic.questions.length,
+    ]),
+  ).toEqual([
+    [0, 10, 8],
+    [1, 13, 7],
+    [2, 13, 10],
+    [3, 12, 10],
+  ]);
 });
 it("rejects missing options, duplicate correct choices and missing feedback", () => {
   for (const changed of [
