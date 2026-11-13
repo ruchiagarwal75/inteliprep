@@ -2,14 +2,17 @@ import Link from "next/link";
 import type { PlayerSnapshot } from "@/lib/play/player";
 import { RAG_COURSE_ID, RAG_COURSE_NODES } from "@/lib/play/course/metadata";
 import { WorldBanner } from "./world-banner";
+import { CourseUnlock } from "./course-unlock";
 import { CoursePath } from "./course-path";
 import { StartRound } from "./start-round";
 export function CourseWorld({
   snapshot,
   started = [],
+  primerUnlock = false,
 }: {
   snapshot: PlayerSnapshot;
   started?: number[];
+  primerUnlock?: boolean;
 }) {
   const levels = snapshot.levels.filter((row) => row.topic === RAG_COURSE_ID);
   const reviews =
@@ -44,20 +47,22 @@ export function CourseWorld({
           />
         </section>
       )}
-      <CoursePath
-        started={started}
-        passed={levels
-          .filter((row) => row.status === "passed")
-          .map((row) => row.level)}
-        stars={Object.fromEntries(
-          levels.map((row) => [row.level, row.best_stars]),
-        )}
-        chests={Object.fromEntries(
-          snapshot.chests
-            .filter((row) => row.topic === RAG_COURSE_ID)
-            .map((row) => [row.after_level, row.xp]),
-        )}
-      />
+      <CourseUnlock armed={primerUnlock}>
+        <CoursePath
+          started={started}
+          passed={levels
+            .filter((row) => row.status === "passed")
+            .map((row) => row.level)}
+          stars={Object.fromEntries(
+            levels.map((row) => [row.level, row.best_stars]),
+          )}
+          chests={Object.fromEntries(
+            snapshot.chests
+              .filter((row) => row.topic === RAG_COURSE_ID)
+              .map((row) => [row.after_level, row.xp]),
+          )}
+        />
+      </CourseUnlock>
     </>
   );
 }

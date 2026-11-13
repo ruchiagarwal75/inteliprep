@@ -225,6 +225,7 @@ export const advanceRoundSchema = z
 export const BADGE_LABELS = {
   "first-level": "First level cleared",
   "first-topic": "First topic cleared",
+  "rag-rookie": "RAG Rookie",
   "math-five": "Caught the math",
   "rag-practice": "RAG practice-ready",
   "rag-interview": "RAG interview-ready",

@@ -98,6 +98,10 @@ export async function rewardRound(
     );
     if (badge) badges.push(badge);
   }
+  if (summary.topic === RAG_COURSE_ID && summary.passedLevels.includes(0)) {
+    const badge = await awardBadge(sql, userId, "rag-rookie");
+    if (badge) badges.push(badge);
+  }
   if (summary.mode === "level" && summary.passed && summary.level !== null) {
     const [previous] =
       await sql`select count(*)::integer as count from practice_game.play_sessions where user_id=${userId} and topic=${summary.topic} and level=${summary.level} and mode='level' and completed_at is not null and id<>${id}`;

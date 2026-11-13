@@ -40,6 +40,9 @@
   stroke-linecap: butt;
   stroke-linejoin: miter;
 }
+.track .primerConnector {
+  opacity: 0;
+}
 .track .filled {
   stroke: var(--game-world);
 }

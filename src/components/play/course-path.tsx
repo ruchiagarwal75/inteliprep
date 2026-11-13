@@ -28,12 +28,12 @@ export function CoursePath({
   started?: number[];
 }) {
   const currentLevel = nextCourseLevel(passed, started)?.level;
-  const track = (mobile: boolean) => {
+  const track = (mobile: boolean, segments = RAG_COURSE_NODES.length - 1) => {
     const x = (i: number) =>
       i % 2 ? (mobile ? 360 : 450) : mobile ? 240 : 150;
     return (
       `M ${x(0)} 120` +
-      RAG_COURSE_NODES.slice(1)
+      RAG_COURSE_NODES.slice(1, segments + 1)
         .map(
           (_, i) =>
             ` V ${i * 440 + 364} H ${x(i + 1)} V ${(i + 1) * 440 + 120}`,
@@ -52,6 +52,11 @@ export function CoursePath({
           aria-hidden="true"
         >
           <path d={track(mobile)} />
+          <path
+            d={track(mobile, 1)}
+            data-primer-connector
+            className={styles.primerConnector}
+          />
         </svg>
       ))}
       <ol className={styles.path} aria-label="RAG course topics">
@@ -70,6 +75,7 @@ export function CoursePath({
               key={node.level}
               className={styles.step}
               data-state={state}
+              data-topic-level={node.level}
               data-side={index % 2}
               aria-current={state === "current" ? "step" : undefined}
             >
@@ -80,6 +86,7 @@ export function CoursePath({
                 >
                   <summary
                     className={styles.node}
+                    data-course-node
                     aria-label={`Topic ${node.level}: ${node.title}`}
                   >
                     {complete ? (
@@ -105,6 +112,7 @@ export function CoursePath({
               ) : open ? (
                 <Link
                   className={styles.node}
+                  data-course-node
                   href={courseTopicHref(node.level)}
                   aria-label={`Topic ${node.level}: ${node.title}`}
                 >
@@ -117,6 +125,7 @@ export function CoursePath({
               ) : (
                 <div
                   className={styles.node}
+                  data-course-node
                   aria-disabled="true"
                   aria-label={`Topic ${node.level}: ${node.title}, ${node.available ? "locked" : "coming soon"}`}
                 >

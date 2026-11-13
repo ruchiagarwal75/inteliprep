@@ -6,8 +6,10 @@ import { startedCourseLevels } from "@/lib/play/course/visits";
 export const dynamic = "force-dynamic";
 export default async function TopicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ topic: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const userId = await playAccountId();
   if ((await params).topic !== "rag") notFound();
@@ -15,5 +17,21 @@ export default async function TopicPage({
     playerSnapshot(userId),
     startedCourseLevels(userId),
   ]);
-  return <CourseWorld snapshot={snapshot} started={started} />;
+  const query = await searchParams;
+  const primerUnlock =
+    query.primer === "1" &&
+    query.unlocked === "1" &&
+    snapshot.levels.some(
+      (row) =>
+        row.topic === "rag-course" &&
+        row.level === 0 &&
+        row.status === "passed",
+    );
+  return (
+    <CourseWorld
+      snapshot={snapshot}
+      started={started}
+      primerUnlock={primerUnlock}
+    />
+  );
 }

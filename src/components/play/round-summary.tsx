@@ -30,7 +30,12 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
         ? "Placement complete"
         : "Review complete";
 
-  const next = summary.nextLevel ? `?unlocked=${summary.nextLevel.level}` : "";
+  const next =
+    course && summary.earnedBadges.includes("rag-rookie")
+      ? "?unlocked=1&primer=1"
+      : summary.nextLevel
+        ? `?unlocked=${summary.nextLevel.level}`
+        : "";
   return (
     <section className={styles.complete} aria-label="Round results" data-lesson>
       <header className={styles.top}>
