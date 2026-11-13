@@ -143,7 +143,7 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
   }
   await expect(page.getByLabel("7 / 30 stars", { exact: true })).toBeVisible();
   await expect(
-    page.getByLabel("Topic 7: Evaluation, coming soon", { exact: true }),
+    page.getByRole("link", { name: /^Topic 7: Evaluation/ }),
   ).toBeVisible();
   const response = page.waitForResponse(
     (r) =>

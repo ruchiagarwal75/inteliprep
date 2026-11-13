@@ -18,9 +18,14 @@ export const RAG_COURSE_NODES = [
     minutes: 15,
   },
   { level: 6, title: "Generation", available: true, minutes: 15 },
-  { level: 7, title: "Evaluation", available: false },
-  { level: 8, title: "Freshness, scale and serving", available: false },
-  { level: 9, title: "Failure modes and safety", available: false },
+  { level: 7, title: "Evaluation", available: true, minutes: 15 },
+  {
+    level: 8,
+    title: "Freshness, scale and serving",
+    available: true,
+    minutes: 15,
+  },
+  { level: 9, title: "Failure modes and safety", available: true, minutes: 15 },
 ] as const;
 export const courseTopicHref = (level: number) => `/play/rag/topics/${level}`;
 export const playWorldHref = (id: string) =>

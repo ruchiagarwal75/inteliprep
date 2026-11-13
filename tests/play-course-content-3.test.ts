@@ -66,7 +66,7 @@ it("unlocks Topics 4 to 6 in order and preserves the existing ten-question rewar
     levelsPassed: 7,
     totalLevels: 10,
   });
-  expect(courseLevelOpen(7, [0, 1, 2, 3, 4, 5, 6])).toBe(false);
+  expect(courseLevelOpen(7, [0, 1, 2, 3, 4, 5, 6])).toBe(true);
   const [reviews] =
     await db.operator`select count(*)::integer as count from practice_game.review_queue where user_id=${user} and topic='rag-course' and level between 4 and 6 and step=2`;
   expect(reviews.count).toBe(6);

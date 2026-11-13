@@ -18,3 +18,18 @@ reference. All 348 non-primer options, including the 120 new choices, pass throu
 the real static server grader with shuffled option positions. Item 1 passes
 `npm run check` (1,980 tests) and `npm run build`, including both private-content
 browser-chunk scans.
+
+## 2. Open the complete path
+
+Topics 7 to 9 now have sequential unlocks and About 15 min labels. The path says
+"All 10 RAG topics are open in this beta." No RAG topic remains Soon.
+The existing ten-topic and thirty-star totals need no rule change.
+
+The isolated Postgres test passes each new topic at 8/10, checks access isolation,
+records two review items per quiz and retains the first-attempt bonus. The final
+chest stays open in a new snapshot; retrying it creates one ledger award. Every
+notebook topic has slides, and unanswered entries expose no solution fields.
+Existing browser expectations now reflect all ten topics and their notebook
+counts. No rewards, pass rules, saved progress or database schema changed.
+Item 2 passes `npm run check` (1,982 tests) and `npm run build`, including both
+private browser-chunk scans.
