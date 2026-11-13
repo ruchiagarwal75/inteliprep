@@ -21,7 +21,7 @@ same account state. Replay is a separate run and never resets progress.
 Existing practice sessions, course visits, scores, XP or badges suppress the
 automatic intro. A profile or time-zone initialization alone does not.
 
-Hosted migration has not been applied yet. Tests use isolated fixture accounts.
+Hosted migration status is recorded below. Tests use isolated fixture accounts.
 
 Item 1 passed the full check with 2,038 tests and the production build, including
 private-content scans. Server tests cover cross-request suppression, replay,
@@ -69,4 +69,85 @@ filters. Replay is included and labeled. Its data function rechecks admin Auth,
 then sets a transaction-local SELECT flag for event metadata only. Browser grants
 are unchanged; private drill data retains its owner policies.
 
-The two welcome migrations are not yet applied to the hosted database.
+The two welcome migrations are listed and verified below.
+
+Item 4 passed 2,043 tests and the production build. Real isolated SQL checks
+prove event deduplication, first-topic ownership, filtered counts, and removal
+of the admin read flag after a transaction.
+
+## 5. Browser QA
+
+The first browser run passed 32 checks, including all 16 panel/theme/size views,
+cross-browser Skip, Replay and the existing Boss/Mock/Play regressions. It found
+a keyboard edge at the end of the dialog's Tab sequence, now closed explicitly.
+Three test assumptions were corrected: Learn's existing heading includes Topic 0,
+Next has a separate alert announcer, and unauthorized admin pages intentionally
+return 404 while their APIs return 403.
+
+Manual screenshot review also found a duplicated heading selector in the new
+styles. Titles now use Press Start 2P as requested. The night scene has enough
+height to keep world labels clear of the gate at both sizes. The dialogue remains
+at most two rendered lines on phones. Focused controls remain visible.
+
+Only isolated local QA accounts are used. Welcome fixtures use the real Free
+default; existing Mock stories keep their test entitlement. No live model or
+owner account was used, and no existing saved interview was changed.
+
+### Hosted migration
+
+On November 13, applied only these additive, transaction-wrapped files to the
+configured Supabase project `bjqjocrfsiprlvnitfuo`:
+
+- `20261113213647_play_welcome.sql`
+- `20261113215525_play_welcome_events.sql`
+
+Verified RLS, owner-only browser reads, denied browser writes and the scoped
+backend event-read policy. The configured runtime role is `mockmeai_reporting`,
+without superuser or RLS bypass. It sees none of these account rows without an
+owner/admin transaction context. No environment value or secret changed. The
+Supabase connector is unavailable, so verification used the existing pinned-TLS
+operator and runtime connections, with metadata queries only.
+
+### Final validation
+
+All 13 welcome browser checks passed after the focus fix. The 23 existing
+Boss/Mock/Play regressions passed in the preceding run. Screenshots cover all four
+panels in both themes at 1440 x 669 and 375 x 812; selected images and the admin
+funnel were opened for visual review. No horizontal scroll or dialog scroll was
+found. Browser counters confirmed zero model calls for the intro and course flow.
+
+The final verification commands are `npm run check` and `npm run build`, including
+2,046 unit/integration tests and the private-content chunk scans. Two opt-in live
+tests remain skipped. A temporary brand-inventory mismatch after editing this
+report was corrected and its targeted audit passed before the final run.
+
+Release scope is beta only. The Preview deployment is checked after pushing.
+Production, the main branch, existing saved interviews and owner progress stay
+untouched. Optional sound is not implemented. Replay is available in the profile
+menu, including for existing players who skip automatic onboarding.
+
+### Files by item
+
+1. `welcome-store.ts`, `welcome-public.ts`, the protected welcome API/page,
+   Play entry and profile menu, and the welcome-state migration.
+2. `welcome-copy.ts`, `welcome-scene.tsx`, `welcome-intro.tsx`, its CSS Module,
+   theme tokens and the self-hosted Pixelify Sans font/license/manifest.
+3. `welcome-accessibility.ts` and `welcome-intro.tsx` for focus, keys and motion.
+4. `welcome-session.tsx`, the start API, `play/events.ts`, the event migration,
+   Topic 0 view attribution, `admin-welcome-funnel.ts` and the admin funnel panel.
+5. `tests/welcome-*.test.ts`, `tests/e2e/welcome.spec.ts`, its fixture/helper
+   updates, the brand inventory and this report. The authored intro spec remains
+   in place because the shared boss-art generator reads its supplied grids.
+
+### Screenshots
+
+Local artifacts are excluded from Git.
+
+| Panel | Desktop light | Desktop dark | Phone light | Phone dark |
+| --- | --- | --- | --- | --- |
+| Welcome | [Light](../../artifacts/welcome-intro/panel-1-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-1-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-1-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-1-dark-375.png) |
+| Boss | [Light](../../artifacts/welcome-intro/panel-2-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-2-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-2-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-2-dark-375.png) |
+| Train | [Light](../../artifacts/welcome-intro/panel-3-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-3-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-3-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-3-dark-375.png) |
+| Quest | [Light](../../artifacts/welcome-intro/panel-4-ready-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-4-ready-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-4-ready-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-4-ready-dark-375.png) |
+
+[Admin funnel](../../artifacts/welcome-intro/admin-funnel.png)

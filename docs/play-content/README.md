@@ -11,6 +11,7 @@
 - rag-levels-1-2.md and rag-levels-3-4.md: retired drill content, still read for old attempts and tests
 - game-pixel.md: sprite grids, read by the pixel art test
 - course-fixes-4.md: read by the content-cue test
+- welcome-intro.md: authored boss sprite grids, read by build-boss-art.mjs and its test; retain it as source content after the intro is finished
 
 **archive/**: finished or superseded instructions, kept for history. Don't act on them.
 

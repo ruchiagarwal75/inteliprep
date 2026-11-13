@@ -558,6 +558,12 @@
     "reason": "Operator warning about an unowned domain. It must never be an allowed Auth host."
   },
   {
+    "path": "docs/reviews/welcome-intro.md",
+    "line": 105,
+    "text": "backend event-read policy. The configured runtime role is `mockmeai_reporting`,",
+    "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
     "path": "docs/spec.md",
     "line": 394,
     "text": "The `inteliprep:account:<userId>` IndexedDB database stores each account’s versioned",
@@ -1981,13 +1987,13 @@
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 87,
+    "line": 93,
     "text": "\"alter role mockmeai_reporting password 'ci-only-reporting-fixture'\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 148,
+    "line": 159,
     "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2037,6 +2043,12 @@
     "path": "tests/e2e/tracks.spec.ts",
     "line": 11,
     "text": "localStorage.setItem(\"mockmeai:show-mascot\", \"false\"),",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/e2e/welcome.spec.ts",
+    "line": 15,
+    "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {

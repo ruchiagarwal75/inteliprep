@@ -12,7 +12,8 @@ async function required(sql: PlayTransaction, userId: string) {
   const [row] = await sql`select welcome_seen_at is not null as seen,
    exists(select 1 from practice_game.play_sessions) or
    exists(select 1 from practice_game.course_visits) or
-   exists(select 1 from practice_game.level_progress where status='passed' or best_score>0) or
+   exists(select 1 from practice_game.level_progress where status in ('open','passed') or best_score>0) or
+   exists(select 1 from practice_game.streaks where current>0 or last_active_date is not null) or
    exists(select 1 from practice_game.points_ledger) or
    exists(select 1 from practice_game.badges) or
    exists(select 1 from practice_game.topic_readiness where state<>'not_tested') as progressed

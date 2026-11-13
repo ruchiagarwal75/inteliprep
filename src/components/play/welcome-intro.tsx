@@ -1,22 +1,10 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { WELCOME_PANELS } from "@/lib/play/welcome-copy";
 import { WelcomeScene } from "./welcome-scene";
 import styles from "./welcome-intro.module.css";
-const motionSubscribe = (changed: () => void) => {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mq.addEventListener("change", changed);
-  return () => mq.removeEventListener("change", changed);
-};
-const motionSnapshot = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const visibilitySubscribe = (changed: () => void) => {
-  document.addEventListener("visibilitychange", changed);
-  return () => document.removeEventListener("visibilitychange", changed);
-};
-const hiddenSnapshot = () => document.hidden;
-const serverSnapshot = () => false;
+import { useWelcomeMotion, trapWelcomeFocus } from "./welcome-accessibility";
 export function WelcomeIntro({ runId }: { runId: string }) {
   const { request } = useCandidateAccount();
   const [cursor, setCursor] = useState({ panel: 0, beat: 0, chars: 0 });
@@ -25,16 +13,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
   const lock = useRef(false),
     dialog = useRef<HTMLDialogElement>(null),
     heading = useRef<HTMLHeadingElement>(null);
-  const reduced = useSyncExternalStore(
-    motionSubscribe,
-    motionSnapshot,
-    serverSnapshot,
-  );
-  const hidden = useSyncExternalStore(
-    visibilitySubscribe,
-    hiddenSnapshot,
-    serverSnapshot,
-  );
+  const { reduced, hidden } = useWelcomeMotion();
   const panel = WELCOME_PANELS[cursor.panel],
     beat = panel.beats[cursor.beat];
   const last = cursor.panel === 3 && cursor.beat === panel.beats.length - 1;
@@ -123,6 +102,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
         void finish("skip");
       }}
       onKeyDown={(event) => {
+        trapWelcomeFocus(event);
         if (event.key === "ArrowRight") {
           event.preventDefault();
           next();
@@ -171,11 +151,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
           <span className={styles.full} aria-live="polite">
             {beat.line}
           </span>
-          {done && (
-            <span className={styles.arrow} aria-hidden="true">
-              ▼
-            </span>
-          )}
+          {done && <span className={styles.arrow} aria-hidden="true" />}
         </button>
         <div
           className={styles.dots}

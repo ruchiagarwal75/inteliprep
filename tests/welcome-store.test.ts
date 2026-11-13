@@ -20,10 +20,23 @@ beforeAll(async () => {
 }, 30000);
 afterAll(async () => db?.close());
 it("shows a new account once and reuses its automatic run across refreshes", async () => {
+  await db.operator`insert into practice_game.player_profiles(user_id,time_zone,zone_set) values(${user},'America/Los_Angeles',true)`;
+  await db.operator`insert into practice_game.streaks(user_id) values(${user})`;
   expect(await welcomeRequired(user)).toBe(true);
   const id = await openWelcome(user, false);
   expect(id).toEqual(expect.any(String));
   expect(await openWelcome(user, false)).toBe(id);
+});
+it("recognizes a saved open topic or a historical streak as existing progress", async () => {
+  for (const kind of ["open", "streak"]) {
+    const id = crypto.randomUUID();
+    await db.operator`insert into auth.users(id) values(${id})`;
+    if (kind === "open")
+      await db.operator`insert into practice_game.level_progress(user_id,topic,level,status) values(${id},'rag-course',1,'open')`;
+    else
+      await db.operator`insert into practice_game.streaks(user_id,current,longest,last_active_date) values(${id},1,1,current_date)`;
+    expect(await welcomeRequired(id)).toBe(false);
+  }
 });
 it("records skip once and keeps it seen in another request or browser", async () => {
   const runId = await openWelcome(user, false);

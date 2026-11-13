@@ -1,5 +1,9 @@
 import { fixtureAccounts } from "./fixture-accounts.mjs";
 import { seedBossFixtures, bossFixtureSnapshot } from "./boss-fixture.mjs";
+import {
+  seedWelcomeFixtures,
+  welcomeFixtureSnapshot,
+} from "./welcome-fixture.mjs";
 import EmbeddedPostgres from "embedded-postgres";
 import postgres from "postgres";
 import { randomUUID } from "node:crypto";
@@ -77,6 +81,8 @@ export async function startReportingFixture(key, cert) {
       "20261112225318_play_activity_order.sql",
       "20261112233202_play_course_primer.sql",
       "20261113200924_play_mock_access.sql",
+      "20261113213647_play_welcome.sql",
+      "20261113215525_play_welcome_events.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
@@ -88,9 +94,14 @@ export async function startReportingFixture(key, cert) {
     );
     // Existing Mock stories stay entitled. New boss stories exercise real Free defaults.
     for (const [name, account] of Object.entries(fixtureAccounts))
-      if (!name.startsWith("boss"))
+      if (!name.startsWith("boss") && !name.startsWith("welcome"))
         await operator`insert into practice_game.mock_access(user_id,plan) values(${account.id},'pro') on conflict do nothing`;
     await seedBossFixtures(operator);
+    await seedWelcomeFixtures(operator);
+    // Established stories skip onboarding. Welcome stories have isolated fresh accounts.
+    for (const [name, account] of Object.entries(fixtureAccounts))
+      if (!name.startsWith("welcome"))
+        await operator`insert into practice_game.welcome_state(user_id,welcome_seen_at) values(${account.id},now()) on conflict do nothing`;
     // Existing course stories represent returning players. New primer QA accounts
     // are deliberately not seeded, so the real fresh-player gate is exercised.
     for (const [name, account] of Object.entries(fixtureAccounts))
@@ -156,6 +167,7 @@ export async function startReportingFixture(key, cert) {
       return { aged: true };
     },
     bossSnapshot: (name) => bossFixtureSnapshot(operator, name),
+    welcomeSnapshot: (name) => welcomeFixtureSnapshot(operator, name),
     playAnswer: async (id) => {
       const [row] =
         await operator`select private_variant from practice_game.drill_attempts where id=${id}`;

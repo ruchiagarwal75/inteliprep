@@ -37,7 +37,7 @@ export function WelcomeScene({ panel }: { panel: number }) {
           {(
             [
               ["rag", "RAG"],
-              ["chat-serving", "Chat"],
+              ["chat-serving", "Chat and serving"],
               ["agents", "Agents"],
             ] as const
           ).map(([topic, label], i) => (
