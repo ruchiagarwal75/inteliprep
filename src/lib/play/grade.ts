@@ -70,7 +70,7 @@ export async function gradeDrill(
       feedback: drill.course
         ? correct
           ? "Correct."
-          : "Take another look."
+          : ""
         : correct
           ? "You found the flaw."
           : "That does not address the main flaw.",

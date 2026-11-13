@@ -72,6 +72,20 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
           .click();
+      for (const size of [
+        { width: 1440, height: 669 },
+        { width: 375, height: 812 },
+      ]) {
+        await page.setViewportSize(size);
+        await result
+          .getByRole("button", { name: `See slide ${expected}`, exact: true })
+          .scrollIntoViewIfNeeded();
+        await expect(result).not.toContainText("Take another look.");
+        if (level < 2)
+          await page.screenshot({
+            path: `artifacts/course-fixes-4/wrong-T${level}-${theme}-${size.width}.png`,
+          });
+      }
       await result
         .getByRole("button", { name: `See slide ${expected}`, exact: true })
         .click();

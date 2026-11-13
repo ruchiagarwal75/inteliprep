@@ -19,10 +19,7 @@ export function WorldBanner({
       <div className={styles.inner}>
         <div className={styles.copy}>
           <h1 data-game-label>{title} World</h1>
-          <p>
-            Retrieval, permissions and answer quality. Build one skill at a
-            time.
-          </p>
+          <p>From RAG basics to a production design, one topic at a time.</p>
         </div>
         <div className={styles.stats}>
           <p aria-label={`${stars} / ${totalLevels * 3} stars`}>

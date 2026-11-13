@@ -149,7 +149,11 @@ export function CoursePath({
                 {complete && <Stars count={stars[node.level] ?? 0} />}
                 {open && (
                   <Link
-                    className="practice-primary"
+                    className={
+                      state === "current"
+                        ? "practice-primary"
+                        : "practice-secondary"
+                    }
                     href={courseTopicHref(node.level)}
                   >
                     {complete ? "Practice again" : "Learn"}

@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { migrationBody } from "./migration-sql.mjs";
 import { readFileSync, readdirSync } from "node:fs";
 try {
   process.loadEnvFile(".env.local");
@@ -35,9 +36,11 @@ try {
         if (existing.present && name === "20261111221816_play_game.sql")
           continue;
         await tx.unsafe(
-          readFileSync(
-            new URL(`../supabase/migrations/${name}`, import.meta.url),
-            "utf8",
+          migrationBody(
+            readFileSync(
+              new URL(`../supabase/migrations/${name}`, import.meta.url),
+              "utf8",
+            ),
           ),
         );
       }

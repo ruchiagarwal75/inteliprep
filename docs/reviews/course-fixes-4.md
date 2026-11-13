@@ -105,3 +105,49 @@ The actual Postgres replay test covers a normal pass, a 7-of-8 replay earning
 The stars regression and summary-render tests also pass. The browser completes a
 synthetic replay and checks its 2/5 XP combo messages, 44 XP total and result line.
 Screenshots: `replay-{light,dark}-{1440,375}.png`.
+
+## 8. Copy, path buttons and safe future migrations
+
+The world description uses the supplied sentence. Passed topics and optional open
+topics have outlined actions; only the current topic has a filled Learn action.
+Wrong course answers use See slide N instead of Take another look. Older saved
+grades keep their payload, but that retired sentence is suppressed when displayed.
+
+The small-fixes browser test checks the description and button hierarchy in both
+themes and sizes. The answer-copy test covers new and old grade payloads without
+mutating either. Screenshots: `path-final-{light,dark}-{1440,375}.png`; the reference
+screenshots also show the updated wrong-answer panel during the final run.
+
+Future constraint replacement files must start with begin; and end with commit;.
+A test checks that convention and freezes the byte hashes of the three already
+applied unwrapped exceptions. No applied SQL is rewritten. The Play CLI already
+owns a transaction and lock, so it removes a matched outer pair before executing
+a wrapped file inside that transaction. An actual Postgres test fails the ADD,
+then proves the original constraint and row survived. Unpaired wrappers fail.
+The rule is in CLAUDE.md. No schema migration or dashboard action is needed.
+
+## Verification
+
+All eight items have passing `npm run check` and `npm run build` runs. The final
+unit run has 1,876 passing tests and two existing skips. Both private-content
+browser-chunk scans pass. The final `npm run test:e2e -- 'course-|primer'` run has
+26 passing browser tests against the isolated production build, covering Topics
+0 through 3, 1440×669 and 375×812, both themes, and normal/reduced motion where
+relevant. Play flows assert unchanged fixture model-call counts. No live model
+calls were made.
+
+Screenshot groups in `artifacts/course-fixes-4/`:
+
+- `before-learn-1440.png`, `before-quiz-1440.png`: measured baseline.
+- `learn-T*-S*-{light,dark}-{1440,375}.png`: compact and diagram slides.
+- `quiz-{light,dark}-{1440,375}.png`: the new choices and Check spacing.
+- `wrong-T{0,1}-{light,dark}-{1440,375}.png`: the teaching feedback and See slide action.
+- `reference-T{0,1}-{light,dark}-{1440,375}.png`: the referenced overlay.
+- `path-final-{light,dark}-{1440,375}.png`: current-topic centering and button hierarchy.
+- `unlock-{light,dark}-{1440,375}.png`: the unlock moment.
+- `replay-{light,dark}-{1440,375}.png`: 44 XP and the replay note.
+
+Screenshots stay on disk and are ignored by Git. Existing saved interviews,
+progress and applied migration files are preserved. The unrelated learn-mode
+content draft is left untouched. Only beta is published; main and Production are
+outside this release.

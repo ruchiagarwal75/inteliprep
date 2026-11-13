@@ -433,3 +433,14 @@ AI / ML problems may override `genai.interviewerRules`, `evaluationArea`, and
 `safetyArea`. Preserve existing GenAI defaults and core scoring. Configured AI / ML
 phase titles are carried through the start response and public catalog, with
 optional fields for older saves. Next-practice choices stay within the track.
+
+## Constraint replacement migrations
+
+New SQL files that drop and add constraints must start with `begin;` and end
+with `commit;`, each on its own line. Keep the pair around the whole change so
+SQL Editor execution also rolls back the drop if the add fails. Do not rewrite
+applied migrations. The migration test freezes the existing unwrapped files.
+`migrate-play.mjs` already owns a transaction and advisory lock; `migrationBody`
+removes only a matched outer pair before running a new wrapped file inside it.
+Other manual runners that already own a transaction must also use `migrationBody`
+when loading a new wrapped file.

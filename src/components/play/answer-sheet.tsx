@@ -51,6 +51,11 @@ export function AnswerSheet({
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
   }, []);
+  // Older saved grades keep their original payload; suppress the retired nudge.
+  const feedback =
+    question.courseKind && result.feedback === "Take another look."
+      ? ""
+      : result.feedback;
   const heading = result.correct
     ? ["Nice!", "Exactly", "Sharp"][question.ordinal % 3]
     : "Not quite";
@@ -85,7 +90,7 @@ export function AnswerSheet({
           <strong>{result.keyIdea}</strong>
         </p>
       )}
-      <p>{result.feedback}</p>
+      {feedback && <p>{feedback}</p>}
       {(result.keyIdea || !result.correct) && result.expected && (
         <p className={styles.answer}>
           <strong>Answer:</strong> {result.expected}
