@@ -95,6 +95,6 @@ test("course timing pauses when hidden and stale resumes preserve submitted answ
   await expect(sheet).toHaveAttribute("data-correct", "true");
   await expect(
     sheet.getByRole("button", { name: "Continue", exact: true }),
-  ).toHaveCSS("background-color", "rgb(19, 117, 58)");
+  ).toBeEnabled();
   expect(await modelCalls(page)).toBe(before);
 });

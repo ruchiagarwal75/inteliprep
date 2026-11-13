@@ -20,6 +20,7 @@ function Attention({ portrait }: { portrait: boolean }) {
         y={bottom}
       />
       <path
+        data-lesson-curve
         className={styles.line}
         d={
           portrait
@@ -31,6 +32,7 @@ function Attention({ portrait }: { portrait: boolean }) {
         <circle key={x} className={styles.notice} cx={x} cy={top} r={6} />
       ))}
       <text
+        data-curve-label
         x={portrait ? 174 : 365}
         y={portrait ? 270 : 106}
         textAnchor="middle"

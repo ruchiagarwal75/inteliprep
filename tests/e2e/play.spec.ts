@@ -20,7 +20,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
       .getByRole("list", { name: "RAG course topics" })
       .locator(":scope > li"),
   ).toHaveCount(10);
-  await expect(page.getByText("Soon", { exact: true })).toHaveCount(6);
+  await expect(page.getByText("Soon", { exact: true })).toHaveCount(3);
   await expect(
     page.getByRole("button", { name: /^Open chest after Topic/u }),
   ).toHaveCount(3);
@@ -117,7 +117,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   await captureCourse(page, "topic-complete");
   await page.getByRole("link", { name: "Notebook", exact: true }).click();
   await expect(page.locator('[data-answered="true"]')).toHaveCount(7);
-  await expect(page.locator('[data-answered="false"]')).toHaveCount(22);
+  await expect(page.locator('[data-answered="false"]')).toHaveCount(58);
   await expect(page.locator('[data-notebook-question="T2-Q1"]')).toHaveText(
     "Fast searchTry it first",
   );

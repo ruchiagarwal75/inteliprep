@@ -1,5 +1,9 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  content3Quiz: {
+    id: "64646464-6464-4464-8464-646464646464",
+    email: "content3-quiz@example.invalid",
+  },
   content3Slides: {
     id: "65656565-6565-4565-8565-656565656565",
     email: "content3-slides@example.invalid",

@@ -49,7 +49,7 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     page.getByLabel("3 of 10 topics passed", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("Topic 4: Re-ranking, coming soon", { exact: true }),
+    page.getByRole("link", { name: "Topic 4: Re-ranking", exact: true }),
   ).toBeVisible();
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const response = page.waitForResponse(
@@ -84,7 +84,8 @@ test("three course topics unlock in order, preserve stars and celebrate a single
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openPlayLevel(page, 1);
   await finishPlayRound(page);
-  await expect(page.getByLabel("54 XP earned", { exact: true })).toBeVisible();
+  // Five concepts at 5 XP, two math answers at 7 XP, and 2 + 5 combo XP.
+  await expect(page.getByLabel("46 XP earned", { exact: true })).toBeVisible();
   await expect(page.getByText(/Includes.*first-try pass/u)).toHaveCount(0);
   await page.getByRole("link", { name: "Open Progress", exact: true }).click();
   await expect(page.getByText("Needs practice", { exact: true })).toBeVisible();

@@ -103,7 +103,7 @@ export async function finishPlayRound(
   capture = false,
   correct = true,
 ) {
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 10; i++) {
     const view = await playView(page),
       q = view.question;
     await expect(

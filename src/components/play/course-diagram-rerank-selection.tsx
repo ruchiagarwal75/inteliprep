@@ -18,6 +18,7 @@ function Recall({ portrait }: { portrait: boolean }) {
         y={bottom}
       />
       <path
+        data-lesson-curve
         className={styles.line}
         d={
           portrait
@@ -31,7 +32,7 @@ function Recall({ portrait }: { portrait: boolean }) {
         cy={portrait ? 122 : 48}
         r={6}
       />
-      <text x={ticks[1] + 14} y={portrait ? 115 : 69}>
+      <text data-curve-label x={ticks[1] + 14} y={portrait ? 165 : 69}>
         Good N
       </text>
       {ticks.map((x, i) => (

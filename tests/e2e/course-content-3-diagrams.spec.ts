@@ -97,6 +97,32 @@ test("all thirty-six new slides and twelve diagrams fit both themes and target s
             await figure.screenshot({
               path: `artifacts/course-content-3/T${level}-S${number}-${theme}-${size.width}-diagram.png`,
             });
+            const curve = svg.locator("[data-lesson-curve]");
+            if (await curve.count()) {
+              const overlaps = await curve.evaluate((node) => {
+                if (!(node instanceof SVGPathElement))
+                  throw Error("Missing curve");
+                const label =
+                  node.ownerSVGElement?.querySelector("[data-curve-label]");
+                const matrix = node.getScreenCTM();
+                if (!label || !matrix) throw Error("Missing curve label");
+                const box = label.getBoundingClientRect(),
+                  length = node.getTotalLength();
+                return Array.from({ length: 301 }, (_, i) => {
+                  const local = node.getPointAtLength((length * i) / 300);
+                  const point = new DOMPoint(local.x, local.y).matrixTransform(
+                    matrix,
+                  );
+                  return (
+                    point.x >= box.left &&
+                    point.x <= box.right &&
+                    point.y >= box.top &&
+                    point.y <= box.bottom
+                  );
+                }).some(Boolean);
+              });
+              expect(overlaps).toBe(false);
+            }
           }
           if (number < total)
             await page
