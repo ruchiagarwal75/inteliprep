@@ -4,7 +4,7 @@ import { compileSprite } from "./pixel-grid";
 import { BOSS_GRIDS } from "./boss-art";
 import styles from "./interviewer-sprite.module.css";
 export const BOSS_LINES = {
-  intro: "So... you think you know RAG?",
+  intro: "Show me what you'd build, and why.",
   confirm: "45 minutes. No hints. Show me your design.",
   defeated: "Hmm. Not bad. You're ready.",
   notPassed: "Close. Train more, then come back.",

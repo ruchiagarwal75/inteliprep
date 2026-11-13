@@ -29,9 +29,10 @@ concurrent/retried dismissal, owner isolation and denied browser writes.
 
 ## 2. Pixel story
 
-The four scenes use the final copy and the supplied character assets unchanged.
-Each quoted line gets its own dialogue beat so it fits a phone text box. Panel 2
-starts with the Interviewer speaking, followed by the Shardling's two lines.
+The four scenes use the supplied character assets. Each quoted line gets its
+own dialogue beat so it fits a phone text box. The revised story introduces
+the purpose of the journey, explains RAG and practice with the guide, then
+introduces the Interviewer as a mock system design interview challenge.
 The shared gate, world emblems, girl guide, stars and chest are reused. The fixed
 night palette is the same in both themes. The rest of the page keeps its chosen
 theme. Pixelify Sans is self-hosted with its SIL license and a recorded hash.
@@ -146,8 +147,27 @@ Local artifacts are excluded from Git.
 | Panel | Desktop light | Desktop dark | Phone light | Phone dark |
 | --- | --- | --- | --- | --- |
 | Welcome | [Light](../../artifacts/welcome-intro/panel-1-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-1-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-1-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-1-dark-375.png) |
-| Boss | [Light](../../artifacts/welcome-intro/panel-2-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-2-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-2-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-2-dark-375.png) |
-| Train | [Light](../../artifacts/welcome-intro/panel-3-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-3-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-3-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-3-dark-375.png) |
+| Learn | [Light](../../artifacts/welcome-intro/panel-2-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-2-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-2-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-2-dark-375.png) |
+| Interviewer | [Light](../../artifacts/welcome-intro/panel-3-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-3-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-3-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-3-dark-375.png) |
 | Quest | [Light](../../artifacts/welcome-intro/panel-4-ready-light-1440.png) | [Dark](../../artifacts/welcome-intro/panel-4-ready-dark-1440.png) | [Light](../../artifacts/welcome-intro/panel-4-ready-light-375.png) | [Dark](../../artifacts/welcome-intro/panel-4-ready-dark-375.png) |
 
 [Admin funnel](../../artifacts/welcome-intro/admin-funnel.png)
+
+## Narrative refinement
+
+The automatic welcome and profile-menu replay share the revised four-panel
+story. RAG gets a plain-language explanation before the guide introduces
+practice and rewards. The gate scene follows that preparation. The Shardling
+introduces the Interviewer and explains the mock system design interview before
+the Interviewer speaks. The closing scene invites the player to start Topic 0.
+
+The browser checks now inspect all 11 dialogue beats in both themes at both
+screen sizes, including speaker labels and the two-line phone limit. The replay
+check confirms that the learning scene precedes the boss scene. All 13 welcome
+browser checks passed, and selected desktop and phone screenshots were opened
+for visual review. The production build and private-content scans passed.
+
+`npm run check` also passed with 2,046 tests and the two existing opt-in skips.
+The database-backed checks and browser fixtures ran outside the filesystem
+sandbox because the sandbox blocks localhost sockets and PostgreSQL shared
+memory.

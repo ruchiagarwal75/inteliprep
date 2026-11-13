@@ -27,26 +27,31 @@ Rules: fixture accounts only, no live model calls, no env or secret changes, no 
 
 **Panel 1. "WELCOME, ENGINEER"**
 Shardling waves.
-"Hi! I'm a Shardling, a tiny piece of big AI systems."
-"Welcome to our world!"
+"Hi! I'm a Shardling. I'll be your companion."
+"Let's get you ready for AI system design interviews."
 
-**Panel 2. "A BOSS AWAITS"**
+**Panel 2. "YOUR FIRST WORLD"**
+Show the girl guide, the XP badge, three stars and a chest. The Shardling introduces RAG before the guide explains the learning loop.
+Name tag "SHARDLING":
+"Our first world is RAG."
+"Here, AI finds facts in documents before it answers."
+Then name tag "GUIDE":
+"I'll help you learn, then try each idea yourself."
+"Clear topics to earn XP, stars and chests."
+
+**Panel 3. "MEET THE INTERVIEWER"**
 Show a pixel world path that ends at a glowing pixel boss gate (see "Boss gate" below). The world icons for RAG, Chat and serving, and Agents sit along the top; RAG is lit, and the others show "Soon".
-The boss, "The Interviewer" (idle pose, see "Boss art" below), steps out in front of the gate with a 3-step pixel slide and a lens glint. First, the boss's own text box, with the name tag "THE INTERVIEWER":
-"So... you think you know RAG?"
-Then the next press shows the Shardling's box:
-"Every world ends with a boss."
-"The boss is a real mock interview."
-
-**Panel 3. "TRAIN FOR THE FIGHT"**
-Show the girl guide, the XP badge, three stars and a chest.
-"Train by clearing topics. My friend will guide you."
-"Earn XP, stars and chests on the way!"
+The boss, "The Interviewer" (idle pose, see "Boss art" below), steps out in front of the gate with a 3-step pixel slide and a lens glint. The Shardling introduces the challenge before the Interviewer speaks.
+Name tag "SHARDLING":
+"After training, you'll meet the Interviewer."
+"The boss challenge is a mock system design interview."
+Then name tag "THE INTERVIEWER":
+"Show me what you'd build, and why."
 
 **Panel 4. "YOUR QUEST BEGINS"**
 The Shardling stands at the start of the RAG path. Far away at the other end, the boss gate glows, with a tiny version of The Interviewer (idle pose at 1x scale) standing in front of it, arms crossed, glasses glinting.
-"First stop: RAG basics."
-"The RAG boss is waiting. Let's go!"
+"First, let's help AI find the right facts."
+"Topic 0 starts with the basics. Let's go!"
 Primary button: "Start Topic 0" (opens the Topic 0 Learn page). Secondary text link: "Look around first" (opens Play).
 
 If the app already asks for the player's interview level somewhere on first visit, put that question on this panel above the buttons ("Which interview are you preparing for? Mid / Senior / Staff") and remove the old prompt. Don't add a second level picker.
@@ -165,7 +170,7 @@ Brows raised, right lens tilted down one pixel, small smile, sweat drop.
 ### Lines (dialogue rule: at most 2 lines, 12 words per line)
 
 Name tag: "THE INTERVIEWER"
-- Intro, panel 2: "So... you think you know RAG?"
+- Intro, panel 3: "Show me what you'd build, and why."
 - Boss confirm screen: "45 minutes. No hints. Show me your design."
 - Boss defeated: "Hmm. Not bad. You're ready."
 - Boss not passed: "Close. Train more, then come back."

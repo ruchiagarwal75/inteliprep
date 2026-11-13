@@ -1,31 +1,48 @@
-/** Final introduction copy. One idea per dialogue box keeps phone text readable. */
+/** Introduce the learning journey before its interview challenge. */
 export const WELCOME_PANELS = [
   {
     title: "WELCOME, ENGINEER",
     beats: [
       {
         speaker: "SHARDLING",
-        line: "Hi! I'm a Shardling, a tiny piece of big AI systems.",
+        line: "Hi! I'm a Shardling. I'll be your companion.",
       },
-      { speaker: "SHARDLING", line: "Welcome to our world!" },
+      {
+        speaker: "SHARDLING",
+        line: "Let's get you ready for AI system design interviews.",
+      },
     ],
   },
   {
-    title: "A BOSS AWAITS",
+    title: "YOUR FIRST WORLD",
     beats: [
-      { speaker: "THE INTERVIEWER", line: "So... you think you know RAG?" },
-      { speaker: "SHARDLING", line: "Every world ends with a boss." },
-      { speaker: "SHARDLING", line: "The boss is a real mock interview." },
+      { speaker: "SHARDLING", line: "Our first world is RAG." },
+      {
+        speaker: "SHARDLING",
+        line: "Here, AI finds facts in documents before it answers.",
+      },
+      {
+        speaker: "GUIDE",
+        line: "I'll help you learn, then try each idea yourself.",
+      },
+      { speaker: "GUIDE", line: "Clear topics to earn XP, stars and chests." },
     ],
   },
   {
-    title: "TRAIN FOR THE FIGHT",
+    title: "MEET THE INTERVIEWER",
     beats: [
       {
         speaker: "SHARDLING",
-        line: "Train by clearing topics. My friend will guide you.",
+        line: "After training, you'll meet the Interviewer.",
       },
-      { speaker: "SHARDLING", line: "Earn XP, stars and chests on the way!" },
+      {
+        speaker: "SHARDLING",
+        line: "The boss challenge is a mock system design interview.",
+      },
+      {
+        speaker: "THE INTERVIEWER",
+        line: "Show me what you'd build, and why.",
+      },
     ],
   },
   {
@@ -33,9 +50,12 @@ export const WELCOME_PANELS = [
     beats: [
       {
         speaker: "SHARDLING",
-        line: "First stop: RAG basics.",
+        line: "First, let's help AI find the right facts.",
       },
-      { speaker: "SHARDLING", line: "The RAG boss is waiting. Let's go!" },
+      {
+        speaker: "SHARDLING",
+        line: "Topic 0 starts with the basics. Let's go!",
+      },
     ],
   },
 ] as const;

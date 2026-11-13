@@ -31,8 +31,8 @@ export function WelcomeScene({ panel }: { panel: number }) {
           />
         ))}
       </div>
-      {(panel === 2 || panel === 4) && <div className={styles.path} />}
-      {panel === 2 && (
+      {(panel === 3 || panel === 4) && <div className={styles.path} />}
+      {panel === 3 && (
         <div className={styles.worlds}>
           {(
             [
@@ -60,7 +60,7 @@ export function WelcomeScene({ panel }: { panel: number }) {
           />
         </div>
       )}
-      {panel === 2 && (
+      {panel === 3 && (
         <div className={styles.encounter}>
           <BossGate scale={4} />
           <div className={styles.bossArrival}>
@@ -68,7 +68,7 @@ export function WelcomeScene({ panel }: { panel: number }) {
           </div>
         </div>
       )}
-      {panel === 3 && (
+      {panel === 2 && (
         <>
           <div className={styles.guide}>
             <PixelMascot pose="cheer" />

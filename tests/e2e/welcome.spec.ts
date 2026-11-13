@@ -2,6 +2,7 @@ import { expect, test, type Page, type BrowserContext } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
+import { WELCOME_PANELS } from "../../src/lib/play/welcome-copy";
 async function open(
   page: Page,
   context: BrowserContext,
@@ -88,26 +89,30 @@ for (const [theme, width, account] of [
     page.on("pageerror", (error) => errors.push(error.message));
     await open(page, context, account, theme, width);
     const before = await modelCalls(page);
-    for (const panel of [1, 2, 3, 4]) {
+    for (const [index, content] of WELCOME_PANELS.entries()) {
+      const panel = index + 1;
       await toPanel(page, panel);
-      await shot(page, `panel-${panel}-${theme}-${width}`);
+      await expect(
+        page.getByRole("heading", { name: content.title, exact: true }),
+      ).toBeVisible();
+      for (const [beatIndex, beat] of content.beats.entries()) {
+        if (beatIndex > 0)
+          await page.getByRole("button", { name: "Next", exact: true }).click();
+        await expect(
+          page.getByText(beat.speaker, { exact: true }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("dialog").locator('[aria-live="polite"]'),
+        ).toHaveText(beat.line);
+        const suffix = beatIndex === 0 ? "" : `-beat-${beatIndex + 1}`;
+        await shot(page, `panel-${panel}${suffix}-${theme}-${width}`);
+      }
       expect(
         await page
           .getByRole("dialog")
           .evaluate((el) => getComputedStyle(el).backgroundColor),
       ).toBe("rgb(23, 20, 58)");
-      if (panel === 2) {
-        await expect(
-          page.getByText("THE INTERVIEWER", { exact: true }),
-        ).toBeVisible();
-        await page.getByRole("button", { name: "Next", exact: true }).click();
-        await expect(
-          page.getByText("SHARDLING", { exact: true }),
-        ).toBeVisible();
-        await shot(page, `panel-2-shardling-${theme}-${width}`);
-      }
     }
-    await page.getByRole("button", { name: "Next", exact: true }).click();
     await shot(page, `panel-4-ready-${theme}-${width}`);
     await page
       .getByRole("button", { name: "Look around first", exact: true })
@@ -217,7 +222,9 @@ test("keyboard reveals before advancing, traps focus, goes back and respects red
   await expect(page.getByLabel("Panel 1 of 4", { exact: true })).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByText("Welcome to our world!", { exact: true }),
+    page.getByText("Let's get you ready for AI system design interviews.", {
+      exact: true,
+    }),
   ).toHaveCount(1);
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
@@ -254,6 +261,20 @@ test("existing progress skips automatic welcome and Replay intro is explicit", a
   await page.getByRole("button", { name: "Your profile", exact: true }).click();
   await page.getByRole("link", { name: "Replay intro", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await toPanel(page, 2);
+  await expect(
+    page.getByText("Our first world is RAG.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('[data-pixel-pose="cheer"]')).toBeVisible();
+  await expect(page.locator('[data-boss-pose="idle"]')).toHaveCount(0);
+  await toPanel(page, 3);
+  await expect(
+    page.getByText("After training, you'll meet the Interviewer.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator('[data-boss-pose="idle"]')).toBeVisible();
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await page.waitForURL(/\/play$/);
   const data = await snapshot(page, "welcomeExisting");
