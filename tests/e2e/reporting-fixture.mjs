@@ -96,7 +96,12 @@ export async function startReportingFixture(key, cert) {
     const course = JSON.parse(
       readFileSync("src/lib/play/course/rag.json", "utf8"),
     );
-    for (const name of ["fixes4Learn", "fixes4Quiz", "fixes4Replay"]) {
+    for (const name of [
+      "fixes4Learn",
+      "fixes4Quiz",
+      "fixes4Replay",
+      "content2Slides",
+    ]) {
       const account = fixtureAccounts[name];
       for (const topic of course) {
         await operator`insert into practice_game.level_progress(user_id,topic,level,status,passed_at) values(${account.id},'rag-course',${topic.level},${topic.level < 3 ? "passed" : "open"},${topic.level < 3 ? new Date() : null}) on conflict do nothing`;

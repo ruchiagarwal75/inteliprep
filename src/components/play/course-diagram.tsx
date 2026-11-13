@@ -1,12 +1,17 @@
+import {
+  MultiQueryDiagram,
+  RetrievalFunnelDiagram,
+} from "./course-diagram-query";
+import { HybridMergeDiagram, RrfRanksDiagram } from "./course-diagram-hybrid";
+import { FilterTimingDiagram } from "./course-diagram-filters";
+import { HnswLayersDiagram } from "./course-diagram-hnsw";
+import { IvfClustersDiagram } from "./course-diagram-ivf";
+import { VectorAngleDiagram, BiEncoderDiagram } from "./course-diagram-vectors";
+import type { ComponentType } from "react";
 import type { CourseDiagramKind } from "@/lib/play/course/slide-diagrams";
 import { PipelineDiagram } from "./course-diagram-chunking";
 import { OverlapDiagram, SmallToBigDiagram } from "./course-diagram-landscape";
 import { SplitTableDiagram } from "./course-diagram-table";
-import {
-  TwoTowerDiagram,
-  AnnDiagram,
-  RrfDiagram,
-} from "./course-diagram-retrieval";
 import {
   RagAnswerDiagram,
   RagModelsDiagram,
@@ -42,19 +47,43 @@ const diagrams = {
     art: SmallToBigDiagram,
     alt: "A small chunk inside a parent section is highlighted in gold. Search matches that chunk; the LLM receives the larger parent section for context.",
   },
-  "two-tower": {
-    art: TwoTowerDiagram,
-    alt: "Separate query and document encoders feed a dot product. The comparison is highlighted.",
+  "vector-angle": {
+    art: VectorAngleDiagram,
+    alt: "Three vectors share an origin. Refund policy and Get my money back have a small gold angle; Office chair points away.",
   },
-  ann: {
-    art: AnnDiagram,
-    alt: "HNSW connects nearby vectors in a graph. IVF groups them into clusters and searches a nearby cluster, highlighted in gold.",
+  "bi-encoder": {
+    art: BiEncoderDiagram,
+    alt: "Offline document encoding fills the gold vector index. Each query is encoded separately; similarity search returns top k.",
   },
-  rrf: {
-    art: RrfDiagram,
-    alt: "Keyword and vector rankings merge into one RRF ranking. The combined list is highlighted.",
+  "hnsw-layers": {
+    art: HnswLayersDiagram,
+    alt: "HNSW has three layers with 3, 6 and 12 nodes. A gold search path descends to the node nearest the query star.",
   },
-};
+  "ivf-clusters": {
+    art: IvfClustersDiagram,
+    alt: "IVF scans two of six clusters, outlined in gold. A nearby dot in an unscanned cluster is missed.",
+  },
+  "filter-timing": {
+    art: FilterTimingDiagram,
+    alt: "Filtering after the top ten leaves one result. Filtering during search returns ten allowed results, highlighted in gold.",
+  },
+  "hybrid-merge": {
+    art: HybridMergeDiagram,
+    alt: "A query searches keyword and dense indexes in parallel. Their rankings merge with RRF into the top results.",
+  },
+  "rrf-ranks": {
+    art: RrfRanksDiagram,
+    alt: "Keyword ranks A, C, B; dense ranks B, A. RRF ranks A, B, C, with A and B highlighted in gold.",
+  },
+  "multi-query": {
+    art: MultiQueryDiagram,
+    alt: "An LLM rewrites one question into three queries. Parallel searches flow into a gold RRF merge and then results.",
+  },
+  "retrieval-funnel": {
+    art: RetrievalFunnelDiagram,
+    alt: "One million chunks narrow to 100 retrieved candidates, ten reranked results and five chunks in the prompt, highlighted in gold.",
+  },
+} satisfies Record<CourseDiagramKind, { art: ComponentType; alt: string }>;
 export function CourseDiagram({ kind }: { kind: CourseDiagramKind }) {
   const { art: Art, alt } = diagrams[kind];
   return (
@@ -62,20 +91,7 @@ export function CourseDiagram({ kind }: { kind: CourseDiagramKind }) {
       role="img"
       aria-label={alt}
       data-course-diagram={kind}
-      className={
-        styles.figure +
-        ([
-          "overlap",
-          "small-to-big",
-          "pipeline",
-          "split-table",
-          "rag-answer",
-          "rag-models",
-          "rag-two-paths",
-        ].includes(kind)
-          ? " " + styles.pipeline
-          : "")
-      }
+      className={`${styles.figure} ${styles.pipeline}`}
     >
       <Art />
     </figure>

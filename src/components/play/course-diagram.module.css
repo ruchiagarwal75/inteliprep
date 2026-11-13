@@ -16,7 +16,7 @@
   fill: var(--pixel-text);
   font: 500 17px var(--font-play-read);
 }
-.figure :is(path, line, rect, circle) {
+.figure :is(path, line, rect, circle, ellipse) {
   vector-effect: non-scaling-stroke;
 }
 .node,
@@ -82,4 +82,17 @@
     max-width: 360px;
     margin-inline: auto;
   }
+}
+
+.goldLine {
+  fill: none;
+  stroke: var(--game-world-gold-text);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cluster {
+  fill: var(--pixel-violet-soft);
+  stroke: var(--pixel-violet);
+  stroke-width: 2;
 }

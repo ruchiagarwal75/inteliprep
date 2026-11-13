@@ -65,9 +65,15 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         "overlap",
         "split-table",
         "small-to-big",
-        "two-tower",
-        "ann",
-        "rrf",
+        "vector-angle",
+        "bi-encoder",
+        "hnsw-layers",
+        "ivf-clusters",
+        "filter-timing",
+        "hybrid-merge",
+        "rrf-ranks",
+        "multi-query",
+        "retrieval-funnel",
       ]) {
         const diagram = page.locator(`[data-course-diagram="${kind}"]`);
         await expectReadableDiagram(diagram);

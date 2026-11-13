@@ -39,3 +39,20 @@ Actual Postgres tests complete both revised topics with 8/10 and 9/10. They chec
 unchanged answer and combo awards, and verify that a 7/10 attempt cannot revoke an
 older pass, three stars, its pass date or historical points. No data migration is
 needed.
+
+## 3. Nine responsive vector diagrams
+
+Topic 2 adds vectors/angle, bi-encoder lanes, HNSW layers, IVF clusters and filter
+placement. Topic 3 adds hybrid merge, the revised three-column RRF example,
+multi-query fan-out and a retrieval funnel. Each has a landscape layout capped at
+200px on desktop and a separate portrait layout below 600px. Native Inter labels,
+2px lines, square boxes, theme tokens and gold highlights match the existing course
+illustrations. Every SVG has a title and its figure has a descriptive alternative.
+The unused two-tower, ANN and RRF illustrations and their registry entries are removed.
+
+The diagram browser test visits every Topic 2 and 3 slide at both target sizes and
+in both themes. It checks overflow, desktop height, portrait orientation, Inter
+labels of at least 13px, unclipped text, 3/6/12 HNSW nodes, two of six IVF clusters
+scanned and the exact RRF lists. The existing slide/notebook diagram regression
+also passes. Screenshots of all nine diagrams in both themes and sizes are in
+`artifacts/course-content-2/T{2,3}-S*-{light,dark}-{1440,375}.png`.

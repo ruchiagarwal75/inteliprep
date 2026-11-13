@@ -5,7 +5,7 @@ import { ragCourse } from "./content";
 import { COURSE_DIAGRAMS } from "./slide-diagrams";
 import { CourseDiagram } from "@/components/play/course-diagram";
 
-it("keeps primer and ingestion illustrations while versioned retrieval illustrations are added", () => {
+it("attaches all nine revised retrieval diagrams and preserves primer and ingestion diagrams", () => {
   expect(
     ragCourse.flatMap((topic) =>
       topic.slides.flatMap((slide, index) =>
@@ -20,6 +20,15 @@ it("keeps primer and ingestion illustrations while versioned retrieval illustrat
     [1, 6, "overlap"],
     [1, 8, "split-table"],
     [1, 9, "small-to-big"],
+    [2, 2, "vector-angle"],
+    [2, 3, "bi-encoder"],
+    [2, 8, "hnsw-layers"],
+    [2, 9, "ivf-clusters"],
+    [2, 11, "filter-timing"],
+    [3, 4, "hybrid-merge"],
+    [3, 5, "rrf-ranks"],
+    [3, 7, "multi-query"],
+    [3, 9, "retrieval-funnel"],
   ]);
   expect(
     ragCourse.every((topic) =>

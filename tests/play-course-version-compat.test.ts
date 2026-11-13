@@ -27,7 +27,8 @@ beforeAll(async () => {
 afterAll(async () => fixture?.close());
 it("keeps an idle seven-question saved round intact while a queued review uses the new definition", async () => {
   const oldTopic = z
-    .array(courseTopicSchema)
+    // Saved rounds contain question definitions, not the retired slide diagrams.
+    .array(courseTopicSchema.omit({ slides: true }))
     .parse(
       parseCourseMarkdown(
         readFileSync("docs/play-content/rag-course/topics-1-3.md", "utf8"),

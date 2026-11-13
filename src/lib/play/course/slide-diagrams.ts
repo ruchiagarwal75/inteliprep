@@ -7,8 +7,14 @@ export const COURSE_DIAGRAMS = [
   "overlap",
   "split-table",
   "small-to-big",
-  "two-tower",
-  "ann",
-  "rrf",
+  "vector-angle",
+  "bi-encoder",
+  "hnsw-layers",
+  "ivf-clusters",
+  "filter-timing",
+  "hybrid-merge",
+  "rrf-ranks",
+  "multi-query",
+  "retrieval-funnel",
 ] as const;
 export type CourseDiagramKind = (typeof COURSE_DIAGRAMS)[number];

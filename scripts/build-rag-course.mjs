@@ -31,11 +31,24 @@ const course = [
     level: 2,
     slideCount: 13,
     questionCount: 10,
+    diagrams: {
+      2: "vector-angle",
+      3: "bi-encoder",
+      8: "hnsw-layers",
+      9: "ivf-clusters",
+      11: "filter-timing",
+    },
   }),
   parseVersionedTopic(read("topic-3-v2.md"), {
     level: 3,
     slideCount: 12,
     questionCount: 10,
+    diagrams: {
+      4: "hybrid-merge",
+      5: "rrf-ranks",
+      7: "multi-query",
+      9: "retrieval-funnel",
+    },
   }),
 ];
 for (const warning of courseContentWarnings(course)) console.warn(warning);

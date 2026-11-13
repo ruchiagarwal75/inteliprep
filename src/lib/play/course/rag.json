@@ -758,7 +758,8 @@
             "kind": "paragraph",
             "text": "Use the metric the model was trained for. Most text models are used with normalized vectors and cosine or dot product."
           }
-        ]
+        ],
+        "diagram": "vector-angle"
       },
       {
         "title": "Bi-encoders: why search is fast",
@@ -782,7 +783,8 @@
             "kind": "paragraph",
             "text": "The catch: the model never reads the query and the document together, so it misses fine details. Topic 4 (re-ranking) fixes that for the top results."
           }
-        ]
+        ],
+        "diagram": "bi-encoder"
       },
       {
         "title": "Choosing an embedding model",
@@ -884,7 +886,8 @@
             "kind": "paragraph",
             "text": "Strengths: high recall at low latency, easy inserts. Weaknesses: the graph lives in memory, and deletes are usually only marked, then cleaned up later."
           }
-        ]
+        ],
+        "diagram": "hnsw-layers"
       },
       {
         "title": "IVF: search only nearby clusters",
@@ -908,7 +911,8 @@
             "kind": "paragraph",
             "text": "IVF uses less memory than HNSW and pairs well with PQ (IVF-PQ) for billion-scale sets. Its weakness: a true neighbor in a cluster you didn't scan is missed."
           }
-        ]
+        ],
+        "diagram": "ivf-clusters"
       },
       {
         "title": "Picking a vector store",
@@ -947,7 +951,8 @@
             "kind": "paragraph",
             "text": "Permissions belong in the search itself, never only in the prompt."
           }
-        ]
+        ],
+        "diagram": "filter-timing"
       },
       {
         "title": "Changing embedding models",
@@ -1300,7 +1305,8 @@
               "**Reciprocal Rank Fusion (RRF):** uses ranks only. Simple, robust and a strong default."
             ]
           }
-        ]
+        ],
+        "diagram": "hybrid-merge"
       },
       {
         "title": "RRF, step by step",
@@ -1325,7 +1331,8 @@
             "kind": "paragraph",
             "text": "Showing up in both lists beats ranking high in just one."
           }
-        ]
+        ],
+        "diagram": "rrf-ranks"
       },
       {
         "title": "Query rewriting",
@@ -1362,7 +1369,8 @@
             "kind": "paragraph",
             "text": "Run the searches in parallel. Added latency is the rewrite call plus the slowest search, not the sum of all searches."
           }
-        ]
+        ],
+        "diagram": "multi-query"
       },
       {
         "title": "Filters and boosts",
@@ -1408,7 +1416,8 @@
             "kind": "paragraph",
             "text": "Be careful with fixed score cutoffs. Scores aren't comparable across queries, so a fixed threshold can drop good results."
           }
-        ]
+        ],
+        "diagram": "retrieval-funnel"
       },
       {
         "title": "Routing: search the right place",
