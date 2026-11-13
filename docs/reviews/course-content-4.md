@@ -33,3 +33,20 @@ Existing browser expectations now reflect all ten topics and their notebook
 counts. No rewards, pass rules, saved progress or database schema changed.
 Item 2 passes `npm run check` (1,982 tests) and `npm run build`, including both
 private browser-chunk scans.
+
+## 3. Twelve responsive vector diagrams
+
+Added the four requested diagrams for each new topic. The components reuse the
+existing responsive SVG frame, Inter labels, 2px lines, square boxes and theme
+tokens. Desktop art is capped at 200px; phones use portrait layouts below 600px.
+Every figure has descriptive alternative text and both SVG layouts have titles.
+Gold marks the teaching focus. Regression failures, failure crosses and rollback
+arrows use the existing wrong red. A contract ensures green remains exclusive to
+the two existing Topic 6 citation and faithfulness diagrams.
+
+The browser caught a clipped staircase label. Screenshot review also found lines
+crossing the online label and shard replica captions. The label and routes were
+moved clear, without changing authored slide text or the diagram style.
+
+Item 3 passes `npm run check` (1,996 tests) and `npm run build`, including both
+private browser-chunk scans. Responsive browser results are recorded in Item 4.

@@ -41,14 +41,24 @@ export function DiagramArrow({
   x,
   y,
   angle = 0,
+  tone = "normal",
 }: {
   d: string;
   x: number;
   y: number;
   angle?: number;
+  tone?: "normal" | "gold" | "wrong";
 }) {
   return (
-    <g className={styles.line}>
+    <g
+      className={
+        tone === "gold"
+          ? styles.keyLine
+          : tone === "wrong"
+            ? styles.error
+            : styles.line
+      }
+    >
       <path d={d} />
       <path
         d="m-7-5 7 5-7 5"

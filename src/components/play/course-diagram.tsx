@@ -1,3 +1,4 @@
+import { RAG_OPERATIONS_DIAGRAMS } from "./course-diagram-operations-registry";
 import { RAG_ANSWER_DIAGRAMS } from "./course-diagram-answer-registry";
 import {
   MultiQueryDiagram,
@@ -21,6 +22,7 @@ import {
 import styles from "./course-diagram.module.css";
 const diagrams = {
   ...RAG_ANSWER_DIAGRAMS,
+  ...RAG_OPERATIONS_DIAGRAMS,
   "rag-answer": {
     art: RagAnswerDiagram,
     alt: "Question flows through search of your docs, top pieces, the LLM and an answer with sources. Retrieved pieces are highlighted in gold.",

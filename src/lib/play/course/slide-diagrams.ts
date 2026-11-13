@@ -28,5 +28,17 @@ export const COURSE_DIAGRAMS = [
   "citation-check",
   "faithfulness-check",
   "streaming-timeline",
+  "evaluation-layers",
+  "reciprocal-rank",
+  "judge-agreement",
+  "regression-gates",
+  "serving-paths",
+  "index-lag",
+  "sharded-index",
+  "degradation-steps",
+  "failure-buckets",
+  "injection-paths",
+  "safety-gates",
+  "safe-rollout",
 ] as const;
 export type CourseDiagramKind = (typeof COURSE_DIAGRAMS)[number];

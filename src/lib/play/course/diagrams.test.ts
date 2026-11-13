@@ -41,6 +41,18 @@ it("attaches all nine revised retrieval diagrams and preserves primer and ingest
     [6, 5, "citation-check"],
     [6, 6, "faithfulness-check"],
     [6, 8, "streaming-timeline"],
+    [7, 1, "evaluation-layers"],
+    [7, 4, "reciprocal-rank"],
+    [7, 6, "judge-agreement"],
+    [7, 7, "regression-gates"],
+    [8, 2, "serving-paths"],
+    [8, 3, "index-lag"],
+    [8, 5, "sharded-index"],
+    [8, 9, "degradation-steps"],
+    [9, 1, "failure-buckets"],
+    [9, 3, "injection-paths"],
+    [9, 4, "safety-gates"],
+    [9, 11, "safe-rollout"],
   ]);
   expect(
     ragCourse.every((topic) =>

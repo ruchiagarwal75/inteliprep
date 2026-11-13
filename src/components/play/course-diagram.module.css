@@ -112,3 +112,15 @@
   stroke: var(--game-world-gold-text);
   stroke-width: 2;
 }
+
+.replica {
+  fill: var(--pixel-violet-soft);
+  stroke: var(--pixel-violet);
+  stroke-width: 2;
+  opacity: 0.45;
+}
+.badBar {
+  fill: var(--pixel-bad-text);
+  stroke: var(--pixel-bad-text);
+  stroke-width: 2;
+}

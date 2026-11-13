@@ -3098,7 +3098,8 @@
             "kind": "paragraph",
             "text": "Keep them separate. When a score drops, you'll know which half to fix."
           }
-        ]
+        ],
+        "diagram": "evaluation-layers"
       },
       {
         "title": "Building a test set",
@@ -3158,7 +3159,8 @@
             "kind": "paragraph",
             "text": "Retrieval metrics need no LLM, so they're fast and cheap to run on every change."
           }
-        ]
+        ],
+        "diagram": "reciprocal-rank"
       },
       {
         "title": "Generation metrics",
@@ -3195,7 +3197,8 @@
               "Calibrate: have people label 50 to 100 cases, and check how often the judge agrees before you trust it."
             ]
           }
-        ]
+        ],
+        "diagram": "judge-agreement"
       },
       {
         "title": "Regression gates",
@@ -3213,7 +3216,8 @@
               "Slice by question type: lookups, multi-part, no-answer, recent changes. One average can hide a broken slice."
             ]
           }
-        ]
+        ],
+        "diagram": "regression-gates"
       },
       {
         "title": "Online evaluation",
@@ -3565,7 +3569,8 @@
             "kind": "paragraph",
             "text": "Separately, an ingestion pipeline keeps the indexes fresh through a queue. Keep the online path stateless, so you can add servers as traffic grows."
           }
-        ]
+        ],
+        "diagram": "serving-paths"
       },
       {
         "title": "Freshness: how stale is OK?",
@@ -3586,7 +3591,8 @@
             "kind": "paragraph",
             "text": "Measure **index lag**: the time from a source edit until the change is searchable. Alert when it misses the target."
           }
-        ]
+        ],
+        "diagram": "index-lag"
       },
       {
         "title": "Streaming updates",
@@ -3622,7 +3628,8 @@
             "kind": "paragraph",
             "text": "Do the memory math first (Topic 2): 100M vectors x 768 dimensions x 4 bytes is about 307 GB raw, before index overhead."
           }
-        ]
+        ],
+        "diagram": "sharded-index"
       },
       {
         "title": "Caching",
@@ -3700,7 +3707,8 @@
             "kind": "paragraph",
             "text": "Timeouts and circuit breakers stop one slow dependency from stalling every request."
           }
-        ]
+        ],
+        "diagram": "degradation-steps"
       },
       {
         "title": "Multi-tenant isolation",
@@ -3993,7 +4001,8 @@
             "kind": "paragraph",
             "text": "Name the bucket before you fix anything."
           }
-        ]
+        ],
+        "diagram": "failure-buckets"
       },
       {
         "title": "Tracing one wrong answer",
@@ -4035,7 +4044,8 @@
             "kind": "paragraph",
             "text": "No prompt fully prevents injection. Plan to limit the damage."
           }
-        ]
+        ],
+        "diagram": "injection-paths"
       },
       {
         "title": "Limit the blast radius",
@@ -4054,7 +4064,8 @@
               "**Log and review** every tool call."
             ]
           }
-        ]
+        ],
+        "diagram": "safety-gates"
       },
       {
         "title": "Leaks through permissions",
@@ -4181,7 +4192,8 @@
               "Write a runbook for common incidents: a spike in bad answers, a reported leak, a provider outage."
             ]
           }
-        ]
+        ],
+        "diagram": "safe-rollout"
       },
       {
         "title": "Interview checklist",
