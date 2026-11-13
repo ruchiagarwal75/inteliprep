@@ -13,8 +13,9 @@ The existing beta URL is
 change Production domain assignments or Auth settings. Follow the
 [cutover checklist](reviews/shardling-rebrand.md) after reviewing Preview.
 The app redirects www to apex with 308, preserving path/query, while allowing
-OAuth callbacks to finish on the host that owns their PKCE cookies. Legacy-host
-redirects stay disabled unless the owner explicitly enables the cutover flag.
+OAuth callbacks to finish on the owned host that holds their PKCE cookies.
+
+mockmeai.com is not owned. Never allowlist it anywhere.
 
 ## Deployment shape
 

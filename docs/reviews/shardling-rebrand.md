@@ -11,25 +11,26 @@ requested description. Titles use `%s | Shardling`, with the exact default
 1200 x 630 light image. Public sitemap URLs use the same canonical origin.
 
 The original girl mascot and its poses, timing and hi! bubble remain restored.
-The latest logo files come from the user's `Claude outputs/shardling-brand.zip`.
-All 12 supplied assets are copied byte-for-byte to `public/brand/`. No paths,
-colors, shapes, metadata or proportions inside those files are rewritten.
-The light lockup and dark badge are selected with theme CSS, without filters or
-recoloring. Both Home heroes, every header and Sign in show the supplied lockup.
-Sign in also uses the supplied `shardling-icon.svg`.
+All 12 supplied source assets from `Claude outputs/shardling-brand.zip` stay
+byte-for-byte intact under `public/brand/` and retain their recorded hashes.
 
-`python3 scripts/import-brand-assets.py <zip-or-folder>` copies the complete set
-and updates Next icon files and legacy public URL aliases without conversion.
-`scripts/brand-asset-sha256.json` records the source hashes. Tests compare every
-asset against those hashes and compare the three Next icon aliases byte-for-byte.
-The earlier custom asset generator and logo-only Nunito font are removed. Body
-and heading fonts are unchanged, and the supplied logos need no font download.
+The user then requested pixel artwork, pixel lettering and no white background.
+`node scripts/build-pixel-brand.mjs` creates separate variants under
+`public/brand/pixel/`, using only local rendering. The cylinder mascot uses a
+40 x 44 grid with its original six-color palette. The wordmark uses the existing
+licensed Press Start 2P font, converted to pixel rectangles. Logos, app icons and
+favicons have transparent backgrounds. The social image uses navy rather than
+white. No image model, paid service or new dependency is used.
 
-Public assets: `shardling-lockup.svg`, `shardling-lockup-badge.svg`,
-`shardling-mark.svg`, `shardling-icon.svg`, `favicon.ico`, `favicon.svg`,
-`favicon-16.png`, `favicon-32.png`, `apple-touch-icon-180.png`, `icon-192.png`,
-`icon-512.png` and `og-image-1200x630.png`, all under `/brand/`.
-Next's icon conventions and the manifest use this same supplied set.
+Theme CSS chooses the dark or light transparent wordmark without filters. Both
+Home heroes, every header and Sign in show the pixel lockup. Sign in uses the
+pixel icon. The temporary custom face helper and unused logo-only Nunito font
+are removed. Body and heading fonts are unchanged.
+
+`python3 scripts/import-brand-assets.py <zip-or-folder>` imports the original set.
+Run the pixel builder afterward to restore the derived app aliases. The original
+source hashes in `scripts/brand-asset-sha256.json` remain unchanged. Tests verify
+all source hashes, matching pixel aliases, integer pixel geometry and transparency.
 
 No JSON-LD existed. There was no robots file; the new file preserves unrestricted
 crawling and supplies the new host/sitemap. Existing page-level noindex/nofollow
@@ -56,7 +57,7 @@ Retained categories:
 - Tests intentionally use legacy hosts, persisted keys and negative brand examples.
 - Historical reviews, authored specifications, original mascot-source comments and
   screenshot paths retain their original context. Deferred user files are untouched.
-- Legacy domains occur in the required disabled redirect and its compatibility tests.
+- The unowned former domain occurs only in warnings, negative tests and historical records.
 
 Privacy and Terms body wording is unchanged. Product references resolve through
 BRAND. Their operator/contact wording names no old brand: it says to contact the
@@ -69,10 +70,12 @@ Set these in Vercel's dashboard for the environments being reviewed/released:
 | Variable | Value | Purpose |
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | `https://shardling.com` | Canonical metadata, sitemap and approval links. Public and read at build time. |
-| `MOCKMEAI_REDIRECT_ENABLED` | `0` or unset | Keep legacy-domain redirects off until the new-domain sign-in is verified. Server only. |
 
-Later, set `MOCKMEAI_REDIRECT_ENABLED=1` and rebuild/redeploy the intended environment
-to enable the old-host redirect. No other identifier or existing key needs renaming.
+The obsolete redirect flag is removed. No storage identifier or existing key is
+renamed. Only www-to-apex redirects for the owned domain are configured.
+
+mockmeai.com is not owned. Never allowlist it anywhere.
+
 The existing Resend key must permit the newly verified sending domain; if scoped
 to the old domain, the owner must update its scope or replace it in the dashboard.
 
@@ -83,26 +86,25 @@ to the old domain, the owner must update its scope or replace it in the dashboar
    Follow the DNS values Vercel gives at the registrar and wait for TLS readiness.
    Keep both as project domains. Let the app handle the www redirect so OAuth
    callbacks can finish on their original host. Do not create a dashboard-wide
-   redirect that would override the callback exception. Keep old domains and the
-   stable beta URL attached. Do not change Preview protection.
-2. Vercel: Settings, Environment Variables, set the two entries above and rebuild
+   redirect that would override the callback exception. Keep only the owned domains and the stable beta URL attached. Remove both
+   host forms of the unowned former domain from the project. Do not change Preview protection.
+2. Vercel: Settings, Environment Variables, set the canonical-origin entry above and rebuild
    Preview. Production stays untouched until the owner reviews and releases beta
    through main. Adding the domain alone does not publish this beta code to main.
 3. Supabase: open the existing IntelliPrep project `bjqjocrfsiprlvnitfuo`,
    Authentication, URL Configuration. Add exact return URLs for:
    `https://shardling.com/auth/callback`,
    `https://www.shardling.com/auth/callback`,
-   `https://mockmeai.com/auth/callback`,
-   `https://www.mockmeai.com/auth/callback`, and
    `https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/auth/callback`.
-   Keep localhost and any existing active return URLs. Add each `?next=/admin`
+   Remove the unowned former domain from Redirect URLs and Site URL. Keep only
+   owned beta and localhost return URLs. Add each `?next=/admin`
    callback variant if using admin sign-in. Change Site URL to
    `https://shardling.com` only at the deliberate new-domain cutover.
 4. Google Cloud: open the existing OAuth project's Google Auth Platform, Branding.
    Set App name to Shardling, upload `public/icon-192.png`, and set homepage,
    privacy and terms URLs to `https://shardling.com`, `/privacy` and `/terms`.
    Add `shardling.com` under Authorized domains. In the existing Web client, add
-   the apex and www HTTPS JavaScript origins. Keep all old active origins and the
+   the apex and www HTTPS JavaScript origins. Remove the unowned former domain from Branding and JavaScript origins. Keep the
    Google-to-Supabase callback
    `https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback` unchanged. Keep beta
    audience/test users and scopes unchanged. Complete any requested verification, then click Publish branding. Changes to the
@@ -110,22 +112,21 @@ to the old domain, the owner must update its scope or replace it in the dashboar
 5. Resend: add and verify `shardling.com`, install its exact DNS records, and confirm
    that the existing sending key can send from `hello@shardling.com`. Approval
    templates use `Shardling <hello@shardling.com>`. No test email was sent.
-6. Test new sign-ins on apex, www and beta. Keep the legacy redirect flag off until
-   these pass. Then enable the old-host redirect deliberately and retest. OAuth
-   callbacks are exempt from cross-host redirects so in-flight PKCE codes keep
-   their verifier cookies. Ordinary paths redirect with 308 and preserve the query.
+6. Test sign-in on the owned apex, www and beta hosts. Do not configure a redirect
+   for the former domain. Keep only owned domains in Vercel, Supabase, Google and
+   Resend. The www redirect preserves path/query and exempts OAuth callbacks so
+   their PKCE cookies remain on the host that started sign-in.
 
 Browser history is origin-scoped. Old attempts remain in their original host's
 storage; moving domains does not transfer that storage or sign-in cookies.
 
 ## Verification and files
 
-`npm run check` passes: lint, typecheck, formatting and 1,950 stubbed/local tests,
+`npm run check` passes: lint, typecheck, formatting and 1,954 stubbed/local tests,
 with two existing skips. `npm run build` and both private-content browser-chunk
 scans pass. No live or paid tests ran. A built-server HTTP check confirms the www
-308 preserves repeated query keys, including `tag=a&tag=b`, and that the legacy
-host stays accessible while the flag is off. Unit tests cover enabled redirects,
-callback exceptions and same-host code exchange on all five host forms.
+308 preserves repeated query keys, including `tag=a&tag=b`, and no old-host redirect rule exists. Unit tests cover the owned www redirect,
+callback exceptions and same-host code exchange on the owned test host forms.
 
 The browser check visits Home and Sign in at 1440px and 375px, in both themes.
 It checks titles, raw-source OG/Twitter/robots tags, canonical URLs, favicon and
@@ -157,7 +158,7 @@ Files by change:
 - Domain/auth: `src/lib/{domain-redirects,oauth-callback}.ts`, redirect tests,
   `next.config.ts`, `google-sign-in.tsx`, callback tests and the cutover checklist.
 - Audit: `scripts/check-brand.mjs`, `src/lib/brand-audit.test.ts` and the
-  339-entry compatibility/historical catalog linked above.
+  344-entry compatibility/historical catalog linked above.
 
 The deferred `course-fixes-5.md` and `learn-mode.md` files remain untouched.
 

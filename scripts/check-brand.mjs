@@ -3,12 +3,28 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 const catalog = "docs/reviews/shardling-legacy-brand-hits.json";
-const excludes = new Set([
-  catalog,
-  "docs/reviews/shardling-rebrand.md",
-  "scripts/check-brand.mjs",
-]);
+const excludes = new Set([catalog, "scripts/check-brand.mjs"]);
 const pattern = /mockmeai|mockme|inteliprep|intelliprep/iu;
+const authPaths = new Set([
+  "src/lib/domain-redirects.ts",
+  "src/lib/oauth-callback.ts",
+  "src/components/google-sign-in.tsx",
+  "src/app/auth/callback/route.ts",
+  "README.md",
+  "docs/authentication.md",
+  "docs/deployment.md",
+  "docs/admin.md",
+  "docs/beta-readiness.md",
+  "docs/reviews/shardling-rebrand.md",
+]);
+export function blockedBrandHosts(hits) {
+  return hits.filter(
+    (hit) =>
+      authPaths.has(hit.path) &&
+      /\b(?:www\.)?mockmeai\.com\b/iu.test(hit.text) &&
+      hit.text !== "mockmeai.com is not owned. Never allowlist it anywhere.",
+  );
+}
 export function unexpectedBrandHits(hits, allowed) {
   return hits.filter(
     (hit) =>
@@ -38,6 +54,8 @@ export function brandHits() {
   return hits;
 }
 function reason(path) {
+  if (path === "docs/reviews/shardling-rebrand.md")
+    return "Operator warning about an unowned domain. It must never be an allowed Auth host.";
   if (path.startsWith("docs/reviews/"))
     return "Historical review or QA evidence, not current product copy. Preserve its original context and links.";
   if (path.startsWith("docs/play-content/"))
@@ -52,8 +70,6 @@ function reason(path) {
     return "Original supplied mascot artwork/comment retained byte-for-byte; the user asked to restore this character.";
   if (path === "src/app/theme.css" || path === "src/app/handmade-accents.css")
     return "Internal CSS font-family alias shared between declaration and use. Not displayed text.";
-  if (path === "src/lib/domain-redirects.ts")
-    return "Required disabled legacy-host redirect configuration. Only enabled by the explicitly named server flag.";
   if (path === "src/components/scaling-story/ScalingStory.tsx")
     return "Historical animation-source comment. The existing animation artwork is preserved.";
   if (path.startsWith("src/"))
@@ -71,6 +87,12 @@ if (
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   const hits = brandHits();
+  const blocked = blockedBrandHosts(hits);
+  if (blocked.length) {
+    console.error("Unowned host in auth/redirect setup:", blocked);
+    process.exitCode = 1;
+    process.exit();
+  }
   if (process.argv.includes("--record")) {
     writeFileSync(
       catalog,

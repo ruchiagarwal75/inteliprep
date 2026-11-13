@@ -5,9 +5,7 @@ import { BRAND } from "./brand";
 export function domainRedirects(): Awaited<
   ReturnType<NonNullable<NextConfig["redirects"]>>
 > {
-  const hosts = ["www.shardling.com"];
-  if (process.env.MOCKMEAI_REDIRECT_ENABLED === "1")
-    hosts.push("mockmeai.com", "www.mockmeai.com");
+  const hosts = [`www.${BRAND.domain}`];
   return hosts.map((host) => ({
     source: "/:path((?!auth/callback(?:/|$)).*)",
     has: [{ type: "host", value: host.replaceAll(".", "\\.") }],

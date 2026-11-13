@@ -30,12 +30,6 @@
     "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
   },
   {
-    "path": ".env.example",
-    "line": 64,
-    "text": "MOCKMEAI_REDIRECT_ENABLED=0",
-    "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
-  },
-  {
     "path": "CLAUDE.md",
     "line": 332,
     "text": "`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database",
@@ -204,6 +198,12 @@
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
+    "path": "docs/authentication.md",
+    "line": 250,
+    "text": "mockmeai.com is not owned. Never allowlist it anywhere.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
     "path": "docs/beta-readiness.md",
     "line": 163,
     "text": "| 1 | `chat-display.ts`, `problems.ts`, `configured-clarifications.ts`, opening/display tests | [711d3f5](https://github.com/ruchiagarwal75/inteliprep/commit/711d3f567749174754014bb6ef638f4945846b30) |",
@@ -271,39 +271,81 @@
   },
   {
     "path": "docs/deployment.md",
-    "line": 23,
+    "line": 18,
+    "text": "mockmeai.com is not owned. Never allowlist it anywhere.",
+    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/deployment.md",
+    "line": 24,
     "text": "`INTELIPREP_ENV=production`; without it the readiness guard rejects Production",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 32,
+    "line": 33,
     "text": "The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 52,
+    "line": 53,
     "text": "1. Connect the Vercel account and import `ruchiagarwal75/inteliprep`. Use the Next.js",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 71,
+    "line": 72,
     "text": "`INTELIPREP_ENV=production` in Production only, use the intended Auth and database",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 89,
+    "line": 90,
     "text": "| `INTELIPREP_ENV` | Leave blank locally, or use `beta` to exercise shared safeguards. Set `production` in Vercel Production to opt in to this release |",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 211,
+    "line": 212,
     "text": "INTELIPREP_TEST_MODEL_503_ONCE=1 npm run dev",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
+  },
+  {
+    "path": "docs/play-content/brand-fixes-1.md",
+    "line": 5,
+    "text": "## 1. Remove mockmeai.com everywhere (High, security)",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
+  },
+  {
+    "path": "docs/play-content/brand-fixes-1.md",
+    "line": 7,
+    "text": "Ruchi got a refund for mockmeai.com on Nov 11, so she no longer owns it. Anyone can buy it.",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
+  },
+  {
+    "path": "docs/play-content/brand-fixes-1.md",
+    "line": 9,
+    "text": "If `https://mockmeai.com/auth/callback` is ever added to Supabase's allowed redirect URLs, or mockmeai.com to the Google OAuth origins, whoever buys the domain can start a Google sign-in from their site and receive a real user's login code. With PKCE they hold their own verifier, so they can swap that code for the user's session. That's an account takeover.",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
+  },
+  {
+    "path": "docs/play-content/brand-fixes-1.md",
+    "line": 12,
+    "text": "1. Delete the `MOCKMEAI_REDIRECT_ENABLED` flag and the mockmeai.com / www.mockmeai.com hosts from `src/lib/domain-redirects.ts`. Keep the www.shardling.com to shardling.com redirect and its callback exception.",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
+  },
+  {
+    "path": "docs/play-content/brand-fixes-1.md",
+    "line": 13,
+    "text": "2. In docs/reviews/shardling-rebrand.md and docs/deployment.md, remove every step that adds or keeps mockmeai.com: the Supabase redirect URLs, the Google OAuth origins, \"keep old domains attached\" in Vercel and the env var row. Add one line: \"mockmeai.com is not owned. Never allowlist it anywhere.\"",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
+  },
+  {
+    "path": "docs/play-content/brand-fixes-1.md",
+    "line": 14,
+    "text": "3. Add mockmeai.com to the brand audit as a blocked host, so a test fails if it shows up in redirect code or auth docs again.",
+    "reason": "User-authored historical or deferred specification. Not rendered as app branding; leave source instructions intact."
   },
   {
     "path": "docs/play-content/game-pixel.md",
@@ -490,6 +532,30 @@
     "line": 99,
     "text": "- Add invitees to `MOCKMEAI_INVITED_EMAILS` for each intended environment and",
     "reason": "Historical review or QA evidence, not current product copy. Preserve its original context and links."
+  },
+  {
+    "path": "docs/reviews/shardling-rebrand.md",
+    "line": 77,
+    "text": "mockmeai.com is not owned. Never allowlist it anywhere.",
+    "reason": "Operator warning about an unowned domain. It must never be an allowed Auth host."
+  },
+  {
+    "path": "docs/reviews/shardling-rebrand.md",
+    "line": 84,
+    "text": "1. Vercel: open the existing inteliprep project, Settings, Domains. Add",
+    "reason": "Operator warning about an unowned domain. It must never be an allowed Auth host."
+  },
+  {
+    "path": "docs/reviews/shardling-rebrand.md",
+    "line": 94,
+    "text": "3. Supabase: open the existing IntelliPrep project `bjqjocrfsiprlvnitfuo`,",
+    "reason": "Operator warning about an unowned domain. It must never be an allowed Auth host."
+  },
+  {
+    "path": "docs/reviews/shardling-rebrand.md",
+    "line": 98,
+    "text": "`https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/auth/callback`.",
+    "reason": "Operator warning about an unowned domain. It must never be an allowed Auth host."
   },
   {
     "path": "docs/spec.md",
@@ -828,18 +894,6 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
-    "path": "src/app/auth/callback/route.test.ts",
-    "line": 53,
-    "text": "\"mockmeai.com\",",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "src/app/auth/callback/route.test.ts",
-    "line": 54,
-    "text": "\"www.mockmeai.com\",",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
     "path": "src/app/auth/sign-out/route.ts",
     "line": 19,
     "text": "if (name === \"inteliprep-auth\" || name.startsWith(\"inteliprep-auth.\"))",
@@ -853,7 +907,7 @@
   },
   {
     "path": "src/app/theme.css",
-    "line": 210,
+    "line": 209,
     "text": "--font-accent: \"MockMeAI handwriting\", cursive;",
     "reason": "Internal CSS font-family alias shared between declaration and use. Not displayed text."
   },
@@ -1039,8 +1093,20 @@
   },
   {
     "path": "src/lib/brand-audit.test.ts",
-    "line": 23,
+    "line": 28,
     "text": "text: \"Welcome to MockMeAI\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/brand-audit.test.ts",
+    "line": 44,
+    "text": "{ path, line: 1, text: \"https://mockmeai.com/auth/callback\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/brand-audit.test.ts",
+    "line": 52,
+    "text": "text: \"mockmeai.com is not owned. Never allowlist it anywhere.\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
@@ -1123,63 +1189,27 @@
   },
   {
     "path": "src/lib/domain-redirects.test.ts",
-    "line": 21,
-    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", flag);",
+    "line": 19,
+    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "src/lib/domain-redirects.test.ts",
-    "line": 22,
+    "line": 21,
     "text": "for (const host of [\"mockmeai.com\", \"www.mockmeai.com\"])",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "src/lib/domain-redirects.test.ts",
-    "line": 26,
-    "text": "it.each([\"mockmeai.com\", \"www.mockmeai.com\"])(",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "src/lib/domain-redirects.test.ts",
-    "line": 29,
+    "line": 27,
     "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "src/lib/domain-redirects.test.ts",
     "line": 40,
-    "text": "\"mockmeai.com\",",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "src/lib/domain-redirects.test.ts",
-    "line": 41,
-    "text": "\"www.mockmeai.com\",",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "src/lib/domain-redirects.test.ts",
-    "line": 44,
     "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "src/lib/domain-redirects.test.ts",
-    "line": 56,
-    "text": "vi.stubEnv(\"MOCKMEAI_REDIRECT_ENABLED\", \"1\");",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "src/lib/domain-redirects.ts",
-    "line": 9,
-    "text": "if (process.env.MOCKMEAI_REDIRECT_ENABLED === \"1\")",
-    "reason": "Required disabled legacy-host redirect configuration. Only enabled by the explicitly named server flag."
-  },
-  {
-    "path": "src/lib/domain-redirects.ts",
-    "line": 10,
-    "text": "hosts.push(\"mockmeai.com\", \"www.mockmeai.com\");",
-    "reason": "Required disabled legacy-host redirect configuration. Only enabled by the explicitly named server flag."
   },
   {
     "path": "src/lib/draft-journal.ts",

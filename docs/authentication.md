@@ -246,3 +246,5 @@ remove it or grant an account an app invitation. No dashboard settings were
 changed while documenting these steps.
 
 Reference: [Supabase redirect URL configuration](https://supabase.com/docs/guides/auth/redirect-urls).
+
+mockmeai.com is not owned. Never allowlist it anywhere.

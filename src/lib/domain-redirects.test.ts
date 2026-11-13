@@ -15,43 +15,27 @@ it("redirects www to the apex with path and query values intact", async () => {
     "https://shardling.com/play/rag?topic=rag&tag=a",
   );
 });
-it.each(["", "0", "false"])(
-  "keeps legacy host redirects off for %s",
-  async (flag) => {
-    vi.stubEnv("MOCKMEAI_REDIRECT_ENABLED", flag);
-    for (const host of ["mockmeai.com", "www.mockmeai.com"])
-      expect((await response(host)).headers.get("location")).toBeNull();
-  },
-);
-it.each(["mockmeai.com", "www.mockmeai.com"])(
-  "only redirects %s after explicit opt-in",
+it("has no redirect setup for the unowned former domain, even if an obsolete flag remains", async () => {
+  vi.stubEnv("MOCKMEAI_REDIRECT_ENABLED", "1");
+  expect(domainRedirects()).toHaveLength(1);
+  for (const host of ["mockmeai.com", "www.mockmeai.com"])
+    expect((await response(host)).headers.get("location")).toBeNull();
+});
+it.each(["shardling.com", "www.shardling.com", "beta.example.test"])(
+  "finishes OAuth on the owned %s host",
   async (host) => {
     vi.stubEnv("MOCKMEAI_REDIRECT_ENABLED", "1");
-    const r = await response(host, "/interview/new?track=genai");
-    expect(r.status).toBe(308);
-    expect(r.headers.get("location")).toBe(
-      "https://shardling.com/interview/new?track=genai",
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://shardling.com");
+    expect(
+      (
+        await response(host, "/auth/callback?code=test&next=%2Fadmin")
+      ).headers.get("location"),
+    ).toBeNull();
+    expect(oauthCallbackUrl(`https://${host}`, "/admin")).toBe(
+      `https://${host}/auth/callback?next=%2Fadmin`,
     );
   },
 );
-it.each([
-  "shardling.com",
-  "www.shardling.com",
-  "mockmeai.com",
-  "www.mockmeai.com",
-  "beta.example.test",
-])("finishes OAuth on %s even when cutover is enabled", async (host) => {
-  vi.stubEnv("MOCKMEAI_REDIRECT_ENABLED", "1");
-  vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://shardling.com");
-  expect(
-    (
-      await response(host, "/auth/callback?code=test&next=%2Fadmin")
-    ).headers.get("location"),
-  ).toBeNull();
-  expect(oauthCallbackUrl(`https://${host}`, "/admin")).toBe(
-    `https://${host}/auth/callback?next=%2Fadmin`,
-  );
-});
 it("never redirects unrelated hosts", async () => {
   vi.stubEnv("MOCKMEAI_REDIRECT_ENABLED", "1");
   expect(
