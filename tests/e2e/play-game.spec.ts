@@ -22,7 +22,7 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     await route.continue();
   });
   await page.goto("/play/rag");
-  await expect(page.getByLabel("0 / 27 stars", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("0 / 30 stars", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: /^Topic 2:/u })).toHaveCount(0);
   const node = page.getByRole("link", { name: /^Topic 1:/u });
   await expect(node).toHaveCSS("width", "96px");
@@ -44,9 +44,9 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     ).toBeVisible();
     await page.getByRole("link", { name: "Continue", exact: true }).click();
   }
-  await expect(page.getByLabel("9 / 27 stars", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("9 / 30 stars", { exact: true })).toBeVisible();
   await expect(
-    page.getByLabel("3 of 9 topics passed", { exact: true }),
+    page.getByLabel("3 of 10 topics passed", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByLabel("Topic 4: Re-ranking, coming soon", { exact: true }),

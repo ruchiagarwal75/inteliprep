@@ -1,7 +1,7 @@
-import { courseLevelOpen } from "./course/path-access";
+import { nextCourseLevel } from "./course/path-access";
 import { courseQuestionTitle } from "./course/titles";
 import "server-only";
-import { RAG_COURSE_ID, RAG_COURSE_NODES } from "./course/metadata";
+import { RAG_COURSE_ID } from "./course/metadata";
 import { z } from "zod";
 import type { PlayTransaction } from "./database";
 import type { RoundSummary } from "./public";
@@ -19,17 +19,14 @@ export async function nextRoundLevel(
       .parse(rows)
       .map((row) => row.level),
     levels = levelsForTopic(topic);
-  const next = levels.find(
-    (level) =>
-      (topic !== RAG_COURSE_ID ||
-        RAG_COURSE_NODES.some(
-          (node) => node.level === level.level && node.available,
-        )) &&
-      !passed.includes(level.level) &&
-      (topic === RAG_COURSE_ID
-        ? courseLevelOpen(level.level, passed)
-        : levelUnlocked(level.level, levels, passed)),
-  );
+  const next =
+    topic === RAG_COURSE_ID
+      ? nextCourseLevel(passed)
+      : levels.find(
+          (level) =>
+            !passed.includes(level.level) &&
+            levelUnlocked(level.level, levels, passed),
+        );
   return next ? { level: next.level, title: next.title } : undefined;
 }
 export function summaryDisplay(summary: RoundSummary): RoundSummary {

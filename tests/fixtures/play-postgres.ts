@@ -9,7 +9,8 @@ export const PLAY_OTHER_USER = "22222222-2222-4222-8222-222222222222";
 /** Actual SQL/RLS, with synthetic users and no external credentials or services. */
 export async function startPlayPostgres({
   baseOnly = false,
-}: { baseOnly?: boolean } = {}) {
+  legacyCourse = false,
+}: { baseOnly?: boolean; legacyCourse?: boolean } = {}) {
   const port = await new Promise<number>((resolve, reject) => {
     const s = createServer();
     s.on("error", reject);
@@ -51,6 +52,9 @@ export async function startPlayPostgres({
       await operator.unsafe(
         await readFile(`supabase/migrations/${name}`, "utf8"),
       );
+    if (legacyCourse && !baseOnly)
+      for (const user of [PLAY_TEST_USER, PLAY_OTHER_USER])
+        await operator`insert into practice_game.level_progress(user_id,topic,level,status) values(${user},'rag-course',1,'open') on conflict do nothing`;
   } catch (cause) {
     await operator.end({ timeout: 1 });
     await pg.stop();

@@ -21,7 +21,7 @@ vi.mock("@/lib/play/written-grader", () => ({
   },
 }));
 beforeAll(async () => {
-  fixture = await startPlayPostgres();
+  fixture = await startPlayPostgres({ legacyCourse: true });
 }, 30000);
 afterAll(async () => fixture?.close());
 

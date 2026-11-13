@@ -74,6 +74,7 @@ export async function startReportingFixture(key, cert) {
       "20261112212130_play_course_slide_positions.sql",
       "20261112213851_play_course_long_lessons.sql",
       "20261112225318_play_activity_order.sql",
+      "20261112233202_play_course_primer.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
@@ -83,6 +84,11 @@ export async function startReportingFixture(key, cert) {
     await operator.unsafe(
       "alter role mockmeai_reporting password 'ci-only-reporting-fixture'",
     );
+    // Existing course stories represent returning players. New primer QA accounts
+    // are deliberately not seeded, so the real fresh-player gate is exercised.
+    for (const [name, account] of Object.entries(fixtureAccounts))
+      if (name.startsWith("course") || name.startsWith("play"))
+        await operator`insert into practice_game.level_progress(user_id,topic,level,status) values(${account.id},'rag-course',1,'open') on conflict do nothing`;
     // Synthetic ledger history for the retired-XP HUD regression, never a real account.
     const restored = fixtureAccounts.courseRestored.id;
     await operator`insert into practice_game.player_profiles(user_id) values(${restored})`;

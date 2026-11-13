@@ -19,7 +19,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
     page
       .getByRole("list", { name: "RAG course topics" })
       .locator(":scope > li"),
-  ).toHaveCount(9);
+  ).toHaveCount(10);
   await expect(page.getByText("Soon", { exact: true })).toHaveCount(6);
   await expect(
     page.getByRole("button", { name: /^Open chest after Topic/u }),

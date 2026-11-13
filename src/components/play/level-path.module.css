@@ -83,6 +83,7 @@
 .node [data-game-label] {
   --pixel-label-size: 24px;
 }
+.step[data-state="open"] .node,
 .step[data-state="passed"] .node {
   background: var(--game-world);
   border-color: var(--game-world-edge);

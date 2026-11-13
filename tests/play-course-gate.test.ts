@@ -10,7 +10,7 @@ import { startRound } from "@/lib/play/rounds";
 let fixture: Awaited<ReturnType<typeof startPlayPostgres>>;
 vi.mock("@/lib/reporting-db", () => ({ reportingDb: () => fixture.runtime }));
 beforeAll(async () => {
-  fixture = await startPlayPostgres();
+  fixture = await startPlayPostgres({ legacyCourse: true });
 }, 30000);
 afterAll(async () => fixture?.close());
 const start = () =>

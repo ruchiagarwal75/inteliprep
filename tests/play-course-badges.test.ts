@@ -11,7 +11,7 @@ import {
 let fixture: Awaited<ReturnType<typeof startPlayPostgres>>;
 vi.mock("@/lib/reporting-db", () => ({ reportingDb: () => fixture.runtime }));
 beforeAll(async () => {
-  fixture = await startPlayPostgres();
+  fixture = await startPlayPostgres({ legacyCourse: true });
   await withPlayer(user, (sql) => ensurePlayer(sql, user));
 }, 30000);
 afterAll(async () => fixture?.close());

@@ -22,7 +22,7 @@ vi.mock("@/lib/play/written-grader", () => ({
 let fixture: Awaited<ReturnType<typeof startPlayPostgres>>;
 vi.mock("@/lib/reporting-db", () => ({ reportingDb: () => fixture.runtime }));
 beforeAll(async () => {
-  fixture = await startPlayPostgres();
+  fixture = await startPlayPostgres({ legacyCourse: true });
 }, 30000);
 afterAll(async () => {
   await fixture?.close();

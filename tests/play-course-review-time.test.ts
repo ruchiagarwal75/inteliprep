@@ -21,7 +21,7 @@ vi.mock("@/lib/play/written-grader", () => ({
   },
 }));
 beforeAll(async () => {
-  fixture = await startPlayPostgres();
+  fixture = await startPlayPostgres({ legacyCourse: true });
   const lesson = await courseLesson(user, 1);
   for (let index = 0; index < lesson.slides.length; index++)
     await seeCourseSlide(user, 1, index);

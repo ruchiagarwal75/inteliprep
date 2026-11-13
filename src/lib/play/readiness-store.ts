@@ -1,4 +1,5 @@
 import "server-only";
+import { RAG_COURSE_ID } from "./course/metadata";
 import { z } from "zod";
 import type { PlayTransaction } from "./database";
 import { levelsForTopic, playTopic } from "./catalog";
@@ -97,7 +98,9 @@ export async function recordDrillReadiness(
 ) {
   const now = new Date(),
     old = await storedReadiness(sql, userId, topic),
-    levels = levelsForTopic(topic),
+    levels = levelsForTopic(topic).filter(
+      (row) => topic !== RAG_COURSE_ID || row.level > 0,
+    ),
     passed =
       await sql`select level from practice_game.level_progress where user_id=${userId} and topic=${topic} and status='passed'`;
   const allPassed =

@@ -1,4 +1,8 @@
-import { courseLevelOpen } from "@/lib/play/course/path-access";
+import {
+  courseLevelOpen,
+  nextCourseLevel,
+  primerOptional,
+} from "@/lib/play/course/path-access";
 import Link from "next/link";
 import {
   RAG_COURSE_ID,
@@ -23,9 +27,7 @@ export function CoursePath({
   chests: Record<number, number>;
   started?: number[];
 }) {
-  const current = RAG_COURSE_NODES.findIndex(
-    (node) => node.available && !passed.includes(node.level),
-  );
+  const currentLevel = nextCourseLevel(passed, started)?.level;
   const track = (mobile: boolean) => {
     const x = (i: number) =>
       i % 2 ? (mobile ? 360 : 450) : mobile ? 240 : 150;
@@ -58,9 +60,11 @@ export function CoursePath({
             open = courseLevelOpen(node.level, passed, started);
           const state = complete
             ? "passed"
-            : open && index === current
+            : open && node.level === currentLevel
               ? "current"
-              : "locked";
+              : open
+                ? "open"
+                : "locked";
           return (
             <li
               key={node.level}
@@ -124,7 +128,12 @@ export function CoursePath({
                   {node.available ? `Topic ${node.level}` : "Soon"}
                 </span>
                 <strong>{node.title}</strong>
-                {node.level === 0 && <span>About 8 min</span>}
+                {node.level === 0 && (
+                  <span>
+                    About 8 min
+                    {primerOptional(passed, started) ? " · Optional" : ""}
+                  </span>
+                )}
                 {complete && <Stars count={stars[node.level] ?? 0} />}
                 {open && (
                   <Link

@@ -14,14 +14,13 @@ async function lessonAccess(
   if (!topic) throw new PlayError("This topic is coming soon.", 404);
   const rows =
     await sql`select level from practice_game.level_progress where user_id=${userId} and topic=${RAG_COURSE_ID} and status='passed'`;
-  const unlocked = courseLevelOpen(
-    level,
-    rows.map((row) => Number(row.level)),
-  );
-  const [started] = unlocked
-    ? []
-    : await sql`select exists(select 1 from practice_game.play_sessions where user_id=${userId} and topic=${RAG_COURSE_ID} and level=${level}) or exists(select 1 from practice_game.course_visits where user_id=${userId} and course_id=${RAG_COURSE_ID} and level=${level}) as started`;
-  if (!unlocked && !started?.started)
+  if (
+    !courseLevelOpen(
+      level,
+      rows.map((row) => Number(row.level)),
+      await startedLevels(sql, userId),
+    )
+  )
     throw new PlayError("Pass the previous topic first.", 403);
   return topic;
 }
@@ -46,12 +45,14 @@ export async function courseLesson(userId: string, level: number) {
     };
   });
 }
-export async function startedCourseLevels(userId: string) {
-  return withPlayer(userId, async (sql) => {
-    const rows =
-      await sql`select level from practice_game.course_visits where user_id=${userId} and course_id=${RAG_COURSE_ID} union select level from practice_game.play_sessions where user_id=${userId} and topic=${RAG_COURSE_ID} and level is not null order by level`;
-    return rows.map((row) => Number(row.level));
-  });
+async function startedLevels(sql: PlayTransaction, userId: string) {
+  // Locked future rows are not proof that a player ever had access.
+  const rows =
+    await sql`select level from practice_game.course_visits where user_id=${userId} and course_id=${RAG_COURSE_ID} union select level from practice_game.play_sessions where user_id=${userId} and topic=${RAG_COURSE_ID} and level is not null union select level from practice_game.level_progress where user_id=${userId} and topic=${RAG_COURSE_ID} and status in ('open','passed') order by level`;
+  return rows.map((row) => Number(row.level));
+}
+export function startedCourseLevels(userId: string) {
+  return withPlayer(userId, (sql) => startedLevels(sql, userId));
 }
 export async function seeCourseSlide(
   userId: string,

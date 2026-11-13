@@ -14,7 +14,7 @@ import { playerSnapshot } from "@/lib/play/player";
 let fixture: Awaited<ReturnType<typeof startPlayPostgres>>;
 vi.mock("@/lib/reporting-db", () => ({ reportingDb: () => fixture.runtime }));
 beforeAll(async () => {
-  fixture = await startPlayPostgres();
+  fixture = await startPlayPostgres({ legacyCourse: true });
 }, 30000);
 afterAll(async () => fixture?.close());
 it("remembers backward reading without reducing completion or changing earned progress", async () => {
