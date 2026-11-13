@@ -56,6 +56,7 @@ export function AnswerSheet({
     question.courseKind && result.feedback === "Take another look."
       ? ""
       : result.feedback;
+  const correction = result.ifWrong?.trim();
   const heading = result.correct
     ? ["Nice!", "Exactly", "Sharp"][question.ordinal % 3]
     : "Not quite";
@@ -92,11 +93,11 @@ export function AnswerSheet({
       )}
       {feedback && <p>{feedback}</p>}
       {(result.keyIdea || !result.correct) && result.expected && (
-        <p className={styles.answer}>
+        <p className={styles.answer} data-course-answer>
           <strong>Answer:</strong> {result.expected}
         </p>
       )}
-      {result.ifWrong && <p>{result.ifWrong}</p>}
+      {correction && <p data-option-feedback>{correction}</p>}
       {!result.correct && onSlides && (
         <button type="button" className="practice-link" onClick={onSlides}>
           See slide {question.courseSlide ?? 1}

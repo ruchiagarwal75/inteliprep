@@ -98,6 +98,10 @@ export async function startReportingFixture(key, cert) {
     );
     for (const name of [
       "fixes4Learn",
+      "fixes5Feedback",
+      "fixes5FeedbackDarkDesktop",
+      "fixes5FeedbackLightPhone",
+      "fixes5FeedbackDarkPhone",
       "fixes4Quiz",
       "fixes4Replay",
       "content2Slides",

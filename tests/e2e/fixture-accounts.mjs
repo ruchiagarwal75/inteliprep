@@ -1,5 +1,21 @@
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  fixes5FeedbackDarkDesktop: {
+    id: "60606060-6060-4060-8060-606060606060",
+    email: "fixes5-feedback-dark-desktop@example.invalid",
+  },
+  fixes5FeedbackLightPhone: {
+    id: "59595959-5959-4959-8959-595959595959",
+    email: "fixes5-feedback-light-phone@example.invalid",
+  },
+  fixes5FeedbackDarkPhone: {
+    id: "58585858-5858-4858-8858-585858585858",
+    email: "fixes5-feedback-dark-phone@example.invalid",
+  },
+  fixes5Feedback: {
+    id: "61616161-6161-4161-8161-616161616161",
+    email: "fixes5-feedback@example.invalid",
+  },
   content4Quiz: {
     id: "62626262-6262-4262-8262-626262626262",
     email: "content4-quiz@example.invalid",

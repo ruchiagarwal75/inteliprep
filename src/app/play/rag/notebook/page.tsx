@@ -72,7 +72,9 @@ export default async function NotebookPage() {
                         <p>
                           <strong>Right answer:</strong> {question.expected}
                         </p>
-                        {question.ifWrong && <p>{question.ifWrong}</p>}
+                        {question.ifWrong?.trim() && (
+                          <p>{question.ifWrong.trim()}</p>
+                        )}
                         <h5>Why</h5>
                         <p>{question.why}</p>
                       </>

@@ -57,3 +57,22 @@ records native scroll requests to reject any initial smooth pan. Eight unlock
 cases also pass, including a separate check for the permitted smooth move.
 Item 3 passes check (1,996 tests), build and both private-content scans.
 Screenshots: `path-{theme}-{width}.png` under `artifacts/course-fixes-5/`.
+
+## 4. Wrong-answer spacing and missing-feedback audit
+
+The empty-string paragraph was already conditional. The remaining spacing came
+from the sticky, full-width Continue rule also matching See slide. That rule now
+targets only the primary Continue button. See slide is a normal compact link.
+Whitespace-only saved feedback is omitted in both the answer panel and notebook.
+No saved payloads or authored answers are rewritten.
+
+Missing wrong-option feedback across current Topics 1 to 3: **none**. All 81
+incorrect options have feedback. The reported "Vector databases can't store them"
+option belongs to older saved content and is absent from the current bank.
+
+Five unit tests cover missing, empty and whitespace-only saved feedback, plain-text
+rendering and the full content audit. Four isolated browser cases cover all three
+empty variants at both themes and widths, checking the link's position and gap.
+The cases use separate fixture accounts to respect real request quotas. Item 4
+passes check (2,001 tests), build and both private-content scans.
+Screenshots: `wrong-answer-{theme}-{width}.png` under `artifacts/course-fixes-5/`.
