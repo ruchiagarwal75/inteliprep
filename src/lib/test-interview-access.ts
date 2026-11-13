@@ -8,7 +8,8 @@ import { ApiRequestError } from "@/lib/api-request";
 export async function requireTestInterviewAccess(durationMinutes: number) {
   if (
     durationMinutes !== 1 ||
-    process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS === "1"
+    (process.env.NODE_ENV === "test" &&
+      process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS === "1")
   )
     return;
   const admin = configuredAdminId();
@@ -21,7 +22,7 @@ export async function requireTestInterviewAccess(durationMinutes: number) {
     }
   }
   throw new ApiRequestError(
-    "One-minute interviews are only available to the admin or an explicitly enabled test environment.",
+    "One-minute interviews are only available to the admin.",
     400,
   );
 }

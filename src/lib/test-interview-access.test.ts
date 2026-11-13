@@ -29,3 +29,11 @@ it("permits ordinary sessions and an explicit server-only test flag", async () =
   await expect(requireTestInterviewAccess(1)).resolves.toBeUndefined();
   expect(verify).not.toHaveBeenCalled();
 });
+it("does not let a server test flag grant one-minute access in a deployed runtime", async () => {
+  vi.stubEnv("NODE_ENV", "production");
+  vi.stubEnv("ADMIN_USER_ID", "");
+  vi.stubEnv("INTELIPREP_ALLOW_TEST_INTERVIEWS", "1");
+  await expect(requireTestInterviewAccess(1)).rejects.toMatchObject({
+    status: 400,
+  });
+});

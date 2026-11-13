@@ -32,6 +32,7 @@ export const interviewStartSchema = interviewSelectionSchema.extend({
 export const interviewStartRequestSchema = interviewSelectionSchema.extend({
   requestId: z.uuid().optional(),
   durationMinutes: interviewDurationSchema.default(45),
+  launch: z.literal("rag_boss").optional(),
 });
 export type InterviewLevel = z.infer<typeof interviewLevelSchema>;
 export type InterviewSelection = z.infer<typeof interviewSelectionSchema>;

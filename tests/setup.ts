@@ -2,6 +2,15 @@ import { beforeEach, vi } from "vitest";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 
 const testCandidate = "11111111-1111-4111-8111-111111111111";
+// Legacy engine tests use an entitled fixture. Access policy tests unmock this
+// adapter and run the real SQL policy against isolated Postgres.
+vi.mock("@/lib/mock-start-access", async (original) => ({
+  ...(await original<typeof import("@/lib/mock-start-access")>()),
+  withMockStartAccess: async <T>(
+    _input: unknown,
+    create: (existingSessionId?: string) => Promise<T>,
+  ) => create(),
+}));
 vi.mock("@/lib/candidate-auth", async (original) => ({
   ...(await original<typeof import("@/lib/candidate-auth")>()),
   requireCandidateIdentity: vi.fn(

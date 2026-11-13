@@ -61,3 +61,31 @@ no-op changes do not add audit rows. The configured admin cannot lose Pro.
 Local isolated Postgres verification passed default plans, fresh grants/revokes,
 reset idempotency, interest deduplication, audit identity/times, owner isolation
 and denied browser writes. The migration has not been applied to a hosted database.
+
+## 3. Server start and fairness
+
+All public interview creation goes through `withMockStartAccess` at the start
+route. Free accounts must request the boss's fixed selection with `rag_boss`,
+have a persisted Topic 9 pass, and have an unused attempt. Denials use the three
+specified 403 codes. Pro/admin accounts retain normal mock selection. Deployed
+one-minute starts require fresh admin verification, even if a test flag was set.
+The old flag remains usable only inside stubbed unit tests.
+
+The owner's transaction lock serializes new requests. Creation publishes the
+canonical session with the existing Redis idempotency fence, then records the
+attempt and free-use timestamp in the same Postgres transaction. Same-request
+retries reuse that session. A durable replay cannot create another session after
+the temporary cache expires. A failed publication rolls back the entitlement.
+Resume, view, freeze and grading have no plan gate.
+
+Trusted final response failures return an unfinished Free attempt and append one
+audit entry. Browser error reports, cancelled requests, quota denials, inactivity,
+completed sessions and scorecard failures cannot return it. A refunded session
+remains resumable, consistent with the existing-session rule. End/freeze tracking
+records the verified end before grading, so a grading failure cannot refund a
+finished interview. Provider retries do not trigger refunds unless the final
+response still fails. Audit rows store categories and IDs, never answer text.
+
+The targeted server checks passed 24 tests: all Free restrictions, Topic 9,
+concurrent and expired replays, original timing, Free resume, Pro/admin access,
+fresh plan changes, publication rollback and one-time refund rules.

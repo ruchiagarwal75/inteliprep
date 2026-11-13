@@ -87,6 +87,7 @@ export async function idempotentInterviewStart(
   level: InterviewLevel,
   duration: InterviewDuration,
   requestId: string = randomUUID(),
+  expectedSessionId?: string,
 ): Promise<Result> {
   const selection = JSON.stringify([problem.id, level, duration]);
   const key = `${redisNamespace()}:start:${requestIdentity(request)}:${requestId}`;
@@ -101,6 +102,7 @@ export async function idempotentInterviewStart(
           409,
         );
       const result = await previous.result;
+      assertExpectedSession(result.interview, expectedSessionId);
       return {
         interview: {
           ...result.interview,
@@ -109,6 +111,7 @@ export async function idempotentInterviewStart(
         created: false,
       };
     }
+    if (expectedSessionId) throw existingAttemptError();
     if (local.size >= 10000) throw new BetaUnavailableError();
     const result = (async () => {
       const retry = await checkRequestLimit(request, "start");
@@ -134,9 +137,13 @@ export async function idempotentInterviewStart(
     }
   }
   const cached = await redisCommand(["GET", key]);
-  if (typeof cached === "string")
-    return { interview: readCached(cached, selection), created: false };
+  if (typeof cached === "string") {
+    const interview = readCached(cached, selection);
+    assertExpectedSession(interview, expectedSessionId);
+    return { interview, created: false };
+  }
   if (cached !== null) throw new BetaUnavailableError();
+  if (expectedSessionId) throw existingAttemptError();
   const interview = createInterviewStart(problem, level, duration);
   setInterviewReference(interview.sessionId, duration === 1);
   try {
@@ -168,4 +175,17 @@ export async function idempotentInterviewStart(
   } finally {
     interviewSessionState().delete(interview.sessionId);
   }
+}
+
+function existingAttemptError() {
+  return new InterviewSessionError(
+    "This boss attempt already exists. Resume it from the RAG path.",
+    409,
+    false,
+    "BOSS_ATTEMPT_EXISTS",
+  );
+}
+function assertExpectedSession(interview: InterviewStart, expected?: string) {
+  if (expected && interview.sessionId !== expected)
+    throw existingAttemptError();
 }

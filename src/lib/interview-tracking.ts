@@ -1,4 +1,5 @@
 import "server-only";
+import { observeBossFinish } from "@/lib/boss-lifecycle";
 import { setInterviewReference } from "@/lib/reporting-context";
 import type { SharedSessionRecord } from "@/lib/shared-session-record";
 import { reportingDb } from "@/lib/reporting-db";
@@ -64,6 +65,7 @@ export async function trackInterview(
       where existing.user_id=excluded.user_id`;
     await recordScoringThreshold(record, activityAt ?? null);
   });
+  await observeBossFinish(record);
 }
 
 export async function trackCurrentInterview(

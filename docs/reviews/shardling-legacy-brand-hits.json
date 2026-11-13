@@ -1536,9 +1536,15 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "src/lib/test-interview-access.test.ts",
+    "line": 35,
+    "text": "vi.stubEnv(\"INTELIPREP_ALLOW_TEST_INTERVIEWS\", \"1\");",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "src/lib/test-interview-access.ts",
-    "line": 11,
-    "text": "process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS === \"1\"",
+    "line": 12,
+    "text": "process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS === \"1\")",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
   {
@@ -2059,19 +2065,19 @@
   },
   {
     "path": "tests/setup.ts",
-    "line": 22,
+    "line": 31,
     "text": "process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS = \"1\";",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/setup.ts",
-    "line": 32,
+    "line": 41,
     "text": "inteliprepRequestCounters?: Map<string, unknown>;",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/setup.ts",
-    "line": 34,
+    "line": 43,
     "text": "state.inteliprepRequestCounters?.clear();",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },

@@ -1,4 +1,5 @@
 import "server-only";
+import { refundBossForFailure } from "@/lib/boss-lifecycle";
 import { randomUUID } from "node:crypto";
 import {
   APIError,
@@ -36,6 +37,7 @@ export type FailureInput = {
   category: string;
   referenceId?: string;
   source?: "server" | "browser_report";
+  terminal?: boolean;
 };
 export async function recordFailure(
   input: FailureInput,
@@ -53,6 +55,7 @@ export async function recordFailure(
       await sql`update interview_admin.interviews set feedback_status = case when feedback_status='generated' then 'generated' else 'failed' end,
         feedback_failed_at=coalesce(feedback_failed_at,now()) where id=${context.interviewId} and user_id=${context.userId ?? null}`;
   });
+  await refundBossForFailure(input, context);
 }
 export function captureLoggedFailure(
   event: { event: string; route?: string; requestId?: string },
@@ -80,6 +83,9 @@ export function captureLoggedFailure(
       {
         operation,
         category,
+        terminal:
+          event.event === "chat_stream_failure" ||
+          (event.event === "api_failure" && context.route === "/api/chat"),
         referenceId:
           operation === "ai_response" || operation === "feedback"
             ? context.failureReferenceId
