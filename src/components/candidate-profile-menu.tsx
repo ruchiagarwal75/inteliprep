@@ -133,6 +133,13 @@ export function CandidateProfileMenu({
                     </Link>
                     <Link
                       className="profile-menu-link"
+                      href="/play/welcome?replay=1"
+                      onClick={() => setOpen(false)}
+                    >
+                      Replay intro
+                    </Link>
+                    <Link
+                      className="profile-menu-link"
                       href="/mock/history#practice-history"
                       onClick={() => setOpen(false)}
                     >

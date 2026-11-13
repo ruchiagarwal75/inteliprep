@@ -8,9 +8,12 @@ import { PixelSprite } from "@/components/play/pixel-sprite";
 import { PIXEL_ART } from "@/components/play/pixel-art";
 import { TopicIcon } from "@/components/play/topic-icon";
 import styles from "@/components/play/play.module.css";
+import { redirect } from "next/navigation";
+import { welcomeRequired } from "@/lib/play/welcome-store";
 export const dynamic = "force-dynamic";
 export default async function PlayPage() {
   const userId = await playAccountId();
+  if (await welcomeRequired(userId)) redirect("/play/welcome");
   let snapshot: Awaited<ReturnType<typeof playerSnapshot>> | undefined;
   try {
     snapshot = await playerSnapshot(userId);
