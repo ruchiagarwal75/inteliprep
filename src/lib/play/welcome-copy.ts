@@ -5,11 +5,11 @@ export const WELCOME_PANELS = [
     beats: [
       {
         speaker: "SHARDLING",
-        line: "Hi! I'm a Shardling. I'll be your companion.",
+        line: "Hi! I’m a Shardling, a tiny piece of big AI systems.",
       },
       {
         speaker: "SHARDLING",
-        line: "Let's get you ready for AI system design interviews.",
+        line: "Welcome to our world!",
       },
     ],
   },
@@ -54,7 +54,7 @@ export const WELCOME_PANELS = [
       },
       {
         speaker: "SHARDLING",
-        line: "Topic 0 starts with the basics. Let's go!",
+        line: "Head to Play and choose your first topic.",
       },
     ],
   },

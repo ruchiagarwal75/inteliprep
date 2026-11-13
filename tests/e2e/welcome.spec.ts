@@ -38,7 +38,7 @@ async function toEnd(page: Page) {
   await toPanel(page, 4);
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Start Topic 0", exact: true }),
+    page.getByRole("button", { name: "Go to Play", exact: true }),
   ).toBeVisible();
 }
 async function snapshot(page: Page, account: string) {
@@ -114,9 +114,7 @@ for (const [theme, width, account] of [
       ).toBe("rgb(23, 20, 58)");
     }
     await shot(page, `panel-4-ready-${theme}-${width}`);
-    await page
-      .getByRole("button", { name: "Look around first", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Go to Play", exact: true }).click();
     await page.waitForURL(/\/play$/);
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.reload();
@@ -181,30 +179,35 @@ for (const panel of [1, 2, 3, 4])
       data.events.filter((e: { event: string }) => e.event === "intro_skipped"),
     ).toEqual([{ event: "intro_skipped", panel, count: 1 }]);
   });
-test("Start Topic 0 opens Learn and records its first real view once", async ({
+test("Go to Play completes the intro without starting a topic", async ({
   page,
   context,
 }) => {
   await open(page, context, "welcomeStart");
   const before = await modelCalls(page);
   await toEnd(page);
-  await page
-    .getByRole("button", { name: "Start Topic 0", exact: true })
-    .click();
-  await page.waitForURL(/\/play\/rag\/topics\/0\?intro=/);
+  await page.getByRole("button", { name: "Go to Play", exact: true }).click();
+  await page.waitForURL(/\/play$/);
   await expect(
-    page.getByRole("heading", { name: "Topic 0 · RAG basics", exact: true }),
+    page.getByRole("heading", {
+      name: "Level up for the AI engineer interview.",
+      exact: true,
+    }),
   ).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.reload();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const data = await snapshot(page, "welcomeStart");
   expect(data.state[0].welcome_seen_at).toBeTruthy();
+  expect(data.runs[0].outcome).toBe("completed");
+  expect(
+    data.events.filter((e: { event: string }) => e.event === "intro_completed"),
+  ).toEqual([{ event: "intro_completed", panel: 4, count: 1 }]);
   expect(
     data.events.filter(
       (e: { event: string }) => e.event === "first_topic_started_from_intro",
     ),
-  ).toEqual([
-    { event: "first_topic_started_from_intro", panel: null, count: 1 },
-  ]);
+  ).toHaveLength(0);
   expect(await modelCalls(page)).toBe(before);
 });
 test("keyboard reveals before advancing, traps focus, goes back and respects reduced motion", async ({
@@ -222,7 +225,7 @@ test("keyboard reveals before advancing, traps focus, goes back and respects red
   await expect(page.getByLabel("Panel 1 of 4", { exact: true })).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByText("Let's get you ready for AI system design interviews.", {
+    page.getByText("Welcome to our world!", {
       exact: true,
     }),
   ).toHaveCount(1);

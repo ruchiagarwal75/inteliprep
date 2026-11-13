@@ -66,7 +66,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
         chars: 0,
       });
   }
-  async function finish(action: "skip" | "complete", topic = false) {
+  async function finish(action: "skip" | "complete") {
     if (lock.current) return;
     if (action === "complete" && !done) {
       next();
@@ -82,9 +82,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
         body: JSON.stringify({ runId, action, panel: cursor.panel + 1 }),
       });
       if (!response.ok) throw Error("save");
-      window.location.replace(
-        topic ? `/play/rag/topics/0?intro=${runId}` : "/play",
-      );
+      window.location.replace("/play");
     } catch {
       lock.current = false;
       setBusy(false);
@@ -173,22 +171,13 @@ export function WelcomeIntro({ runId }: { runId: string }) {
             Back
           </button>
           {last ? (
-            <div className={styles.final}>
-              <button
-                className="practice-primary"
-                disabled={busy}
-                onClick={() => void finish("complete", true)}
-              >
-                Start Topic 0
-              </button>
-              <button
-                className={styles.look}
-                disabled={busy}
-                onClick={() => void finish("complete")}
-              >
-                Look around first
-              </button>
-            </div>
+            <button
+              className="practice-primary"
+              disabled={busy}
+              onClick={() => void finish("complete")}
+            >
+              Go to Play
+            </button>
           ) : (
             <button className="practice-primary" disabled={busy} onClick={next}>
               Next
