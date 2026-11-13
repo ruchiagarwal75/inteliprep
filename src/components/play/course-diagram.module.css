@@ -96,3 +96,19 @@
   stroke: var(--pixel-violet);
   stroke-width: 2;
 }
+
+.good {
+  fill: none;
+  stroke: var(--pixel-good-text);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.figure .badText {
+  fill: var(--pixel-bad-text);
+}
+.keyLine {
+  fill: none;
+  stroke: var(--game-world-gold-text);
+  stroke-width: 2;
+}

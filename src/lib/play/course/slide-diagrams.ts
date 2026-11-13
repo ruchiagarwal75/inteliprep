@@ -16,5 +16,17 @@ export const COURSE_DIAGRAMS = [
   "rrf-ranks",
   "multi-query",
   "retrieval-funnel",
+  "encoder-comparison",
+  "two-stage-pipeline",
+  "recall-curve",
+  "mmr-diversity",
+  "prompt-anatomy",
+  "lost-middle",
+  "injection-data",
+  "cached-prefix",
+  "model-router",
+  "citation-check",
+  "faithfulness-check",
+  "streaming-timeline",
 ] as const;
 export type CourseDiagramKind = (typeof COURSE_DIAGRAMS)[number];

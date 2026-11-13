@@ -31,3 +31,19 @@ It reads the Topic 6 chest from a new snapshot and retries opening it, proving o
 ledger award. Unanswered notebook entries expose no question or grading fields.
 Item 2 passes all 1,961 tests and the production build, including both private
 browser-chunk scans. No data migration or user progress reset is needed.
+
+## 3. Twelve vector diagrams
+
+Added the four authored illustrations per topic. Each uses native Inter labels,
+2px lines, square boxes, existing violet/gold theme tokens, a landscape layout
+and a separate portrait layout below 600px. Both SVGs have titles and the figure
+has a descriptive alternative. The two curves are drawn SVG paths, with no chart
+library. Existing teaching illustrations remain unchanged.
+
+The diagram browser test visits all 36 slides in both themes at 1440 x 669 and
+375 x 812: 144 views. All 48 diagram states fit, have labels of at least 13px,
+keep text inside the SVG, and stay at or below 200px tall on desktop. It records
+no page errors, overflow or model calls. The phone timeline keeps its short
+retrieval and re-ranking labels on one line; the attention curve label stays
+clear of the curve. Final Item 3 checks pass: 1,974 tests, the production build,
+both private browser-chunk scans and the real-browser diagram test.

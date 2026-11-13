@@ -29,6 +29,18 @@ it("attaches all nine revised retrieval diagrams and preserves primer and ingest
     [3, 5, "rrf-ranks"],
     [3, 7, "multi-query"],
     [3, 9, "retrieval-funnel"],
+    [4, 2, "encoder-comparison"],
+    [4, 3, "two-stage-pipeline"],
+    [4, 6, "recall-curve"],
+    [4, 8, "mmr-diversity"],
+    [5, 1, "prompt-anatomy"],
+    [5, 3, "lost-middle"],
+    [5, 9, "injection-data"],
+    [5, 10, "cached-prefix"],
+    [6, 2, "model-router"],
+    [6, 5, "citation-check"],
+    [6, 6, "faithfulness-check"],
+    [6, 8, "streaming-timeline"],
   ]);
   expect(
     ragCourse.every((topic) =>

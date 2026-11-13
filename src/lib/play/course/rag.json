@@ -1729,7 +1729,8 @@
             "kind": "paragraph",
             "text": "The catch: nothing can be precomputed. It's one model call per query-chunk pair. That's why cross-encoders re-rank 100 candidates, not 10 million."
           }
-        ]
+        ],
+        "diagram": "encoder-comparison"
       },
       {
         "title": "The two-stage pipeline",
@@ -1746,7 +1747,8 @@
             "kind": "paragraph",
             "text": "Retrieval is tuned for recall: is the right chunk somewhere in the top 100? Re-ranking is tuned for precision at the top: is it in the top 5?"
           }
-        ]
+        ],
+        "diagram": "two-stage-pipeline"
       },
       {
         "title": "Kinds of re-rankers",
@@ -1800,7 +1802,8 @@
             "kind": "paragraph",
             "text": "Pick N with data. First-stage recall@N is the ceiling for the re-ranker. If recall@50 is 95% and recall@100 is 96%, re-rank 50."
           }
-        ]
+        ],
+        "diagram": "recall-curve"
       },
       {
         "title": "Scores and \"no good answer\"",
@@ -1837,7 +1840,8 @@
               "**Dedupe at ingestion** first (Topic 1), so fewer copies reach search at all."
             ]
           }
-        ]
+        ],
+        "diagram": "mmr-diversity"
       },
       {
         "title": "Business rules on top",
@@ -2160,7 +2164,8 @@
             "kind": "paragraph",
             "text": "All four compete for the same token budget."
           }
-        ]
+        ],
+        "diagram": "prompt-anatomy"
       },
       {
         "title": "The token budget",
@@ -2206,7 +2211,8 @@
               "Sending fewer, better chunks helps more than clever ordering."
             ]
           }
-        ]
+        ],
+        "diagram": "lost-middle"
       },
       {
         "title": "Formatting chunks",
@@ -2335,7 +2341,8 @@
             "kind": "paragraph",
             "text": "Topic 9 goes deeper."
           }
-        ]
+        ],
+        "diagram": "injection-data"
       },
       {
         "title": "Prompt caching",
@@ -2356,7 +2363,8 @@
             "kind": "paragraph",
             "text": "In RAG, the retrieved context changes on every question, so caching mostly saves on the fixed part at the start."
           }
-        ]
+        ],
+        "diagram": "cached-prefix"
       },
       {
         "title": "Treat prompts like code",
@@ -2647,7 +2655,8 @@
             "kind": "paragraph",
             "text": "A common pattern: a router sends easy questions to a small, fast model and hard ones to a large model. Test both on your own question set."
           }
-        ]
+        ],
+        "diagram": "model-router"
       },
       {
         "title": "Sampling settings",
@@ -2704,7 +2713,8 @@
             "kind": "paragraph",
             "text": "A citation that points to the wrong document is worse than none. It creates false trust."
           }
-        ]
+        ],
+        "diagram": "citation-check"
       },
       {
         "title": "Checking faithfulness",
@@ -2725,7 +2735,8 @@
             "kind": "paragraph",
             "text": "Run every check on your question set, and the costly ones on a sample in production. When a check fails, regenerate, remove the claim, or say you're not sure."
           }
-        ]
+        ],
+        "diagram": "faithfulness-check"
       },
       {
         "title": "Structured output",
@@ -2767,7 +2778,8 @@
             "kind": "paragraph",
             "text": "Stream tokens to the UI, show sources early, and keep prompts short. Long prompts slow the first token."
           }
-        ]
+        ],
+        "diagram": "streaming-timeline"
       },
       {
         "title": "Saying \"I don't know\" well",

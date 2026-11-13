@@ -55,6 +55,26 @@ const course = [
       level,
       slideCount: 12,
       questionCount: 10,
+      diagrams: {
+        4: {
+          2: "encoder-comparison",
+          3: "two-stage-pipeline",
+          6: "recall-curve",
+          8: "mmr-diversity",
+        },
+        5: {
+          1: "prompt-anatomy",
+          3: "lost-middle",
+          9: "injection-data",
+          10: "cached-prefix",
+        },
+        6: {
+          2: "model-router",
+          5: "citation-check",
+          6: "faithfulness-check",
+          8: "streaming-timeline",
+        },
+      }[level],
     }),
   ),
 ];
