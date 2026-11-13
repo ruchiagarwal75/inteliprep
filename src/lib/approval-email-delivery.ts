@@ -35,7 +35,7 @@ export async function deliverApprovalEmail(
       returning n.id,n.email,n.sender,n.subject,n.body`;
     if (!claimed) {
       const [row] = await sql<ApprovalEmailRecord[]>`
-        select n.id,n.status,n.first_attempt_at::text as "firstAttemptAt",n.claimed_at::text as "claimedAt",n.reference_id as "referenceId"
+        select n.id,n.status,n.first_attempt_at::text as "firstAttemptAt",n.claimed_at::text as "claimedAt",n.reference_id as "referenceId",n.failure_category as "failureCategory"
         from interview_admin.beta_approval_emails n join interview_admin.beta_invites i
           on i.email=n.email and i.updated_at=n.approval_updated_at and i.approved where n.id=${id}`;
       return row ? approvalEmailState(row) : null;
@@ -50,7 +50,13 @@ export async function deliverApprovalEmail(
       await sql`update interview_admin.beta_approval_emails set status='sent',sent_at=clock_timestamp(),provider_id=${providerId},failure_category=null
         where id=${id} and reference_id=${referenceId}`;
       logServerEvent({ event: "approval_email_sent", requestId: referenceId });
-      return { id, status: "sent", canRetry: false, referenceId };
+      return {
+        id,
+        status: "sent",
+        canRetry: false,
+        referenceId,
+        failureCategory: null,
+      };
     } catch (cause) {
       const category =
         cause instanceof ApprovalEmailError
@@ -69,7 +75,13 @@ export async function deliverApprovalEmail(
       // The approval already committed. An email outage never revokes access.
       await sql`update interview_admin.beta_approval_emails set status='failed',failure_category=${category}
         where id=${id} and reference_id=${referenceId} and status<>'sent'`;
-      return { id, status: "failed", canRetry: true, referenceId };
+      return {
+        id,
+        status: "failed",
+        canRetry: true,
+        referenceId,
+        failureCategory: category,
+      };
     }
   } catch (cause) {
     logServerEvent(
@@ -80,6 +92,12 @@ export async function deliverApprovalEmail(
       },
       cause,
     );
-    return { id, status: "unknown", canRetry: false, referenceId };
+    return {
+      id,
+      status: "unknown",
+      canRetry: false,
+      referenceId,
+      failureCategory: "notification_storage",
+    };
   }
 }

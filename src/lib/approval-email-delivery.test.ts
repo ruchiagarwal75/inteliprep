@@ -69,6 +69,7 @@ it("does not send twice when another request owns the claim or a send already su
       firstAttemptAt: new Date().toISOString(),
       claimedAt: null,
       referenceId: null,
+      failureCategory: null,
     },
   ]);
   expect(await deliverApprovalEmail(claimed.id)).toMatchObject({
@@ -76,6 +77,22 @@ it("does not send twice when another request owns the claim or a send already su
     canRetry: false,
   });
   expect(harness.send).not.toHaveBeenCalled();
+});
+
+it("persists a domain verification failure and returns it to the admin", async () => {
+  harness.sql.mockResolvedValueOnce([claimed]).mockResolvedValueOnce([]);
+  harness.send.mockRejectedValueOnce(
+    new ApprovalEmailError("sender_domain_unverified", 403),
+  );
+  expect(await deliverApprovalEmail(claimed.id)).toMatchObject({
+    status: "failed",
+    canRetry: true,
+    failureCategory: "sender_domain_unverified",
+  });
+  expect(harness.sql.mock.calls[1].slice(1)).toContain(
+    "sender_domain_unverified",
+  );
+  expect(JSON.stringify(harness.log.mock.calls)).not.toContain(claimed.email);
 });
 
 it("does not send a revoked or superseded approval", async () => {

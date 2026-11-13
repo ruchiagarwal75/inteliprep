@@ -45,7 +45,7 @@ export async function adminInvites(query: ReturnType<typeof adminInviteQuery>) {
       (BetaInvite & { emailRecord: ApprovalEmailRecord | null })[]
     >`select i.email,i.approved,i.created_at::text as "createdAt",i.updated_at::text as "updatedAt",
         case when n.id is null then null else jsonb_build_object('id',n.id,'status',n.status,
-          'firstAttemptAt',n.first_attempt_at::text,'claimedAt',n.claimed_at::text,'referenceId',n.reference_id) end as "emailRecord"
+          'firstAttemptAt',n.first_attempt_at::text,'claimedAt',n.claimed_at::text,'referenceId',n.reference_id,'failureCategory',n.failure_category) end as "emailRecord"
       from interview_admin.beta_invites i left join interview_admin.beta_approval_emails n
         on n.email=i.email and n.approval_updated_at=i.updated_at and i.approved
       where position(${query.search.toLowerCase()} in i.email)>0

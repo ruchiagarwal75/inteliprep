@@ -1,4 +1,7 @@
-import type { ApprovalEmailState } from "@/lib/approval-email-state";
+import {
+  approvalEmailFailureMessage,
+  type ApprovalEmailState,
+} from "@/lib/approval-email-state";
 
 export function AdminApprovalEmail({
   notification,
@@ -23,6 +26,11 @@ export function AdminApprovalEmail({
   return (
     <div className="space-y-2">
       <p>{labels[notification.status]}</p>
+      {notification.status === "failed" && (
+        <p role="alert" className="text-sm">
+          {approvalEmailFailureMessage(notification.failureCategory)}
+        </p>
+      )}
       {notification.canRetry && (
         <button
           type="button"

@@ -7,7 +7,10 @@ import { useRouter } from "next/navigation";
 import type { adminInvites } from "@/lib/admin-invites";
 import { AdminPendingAccounts } from "@/components/admin-pending-accounts";
 import { AdminInvitationsTable } from "@/components/admin-invitations-table";
-import type { ApprovalEmailState } from "@/lib/approval-email-state";
+import {
+  approvalEmailFailureMessage,
+  type ApprovalEmailState,
+} from "@/lib/approval-email-state";
 
 export function AdminInvitesPanel({
   data,
@@ -62,11 +65,13 @@ export function AdminInvitesPanel({
         prefix +
           (result.notification?.status === "sent"
             ? "Approval email sent to the email provider."
-            : result.notification
-              ? "Email delivery is not confirmed. Check its status below; access remains approved."
-              : retry
-                ? "No current approval email is available to send."
-                : ""),
+            : result.notification?.status === "failed"
+              ? `Access remains approved. ${approvalEmailFailureMessage(result.notification.failureCategory)}`
+              : result.notification
+                ? "Email delivery is not confirmed. Check its status below; access remains approved."
+                : retry
+                  ? "No current approval email is available to send."
+                  : ""),
       );
       if ("approved" in input && input.approved) setEmail("");
       router.refresh();

@@ -13,6 +13,7 @@ const row: ApprovalEmailRecord = {
   firstAttemptAt: null,
   claimedAt: null,
   referenceId: null,
+  failureCategory: null,
 };
 it("allows pending or failed sends, but never an accepted email", () => {
   expect(approvalEmailState(row, now).canRetry).toBe(true);

@@ -47,7 +47,7 @@ it.each([
   [503, "provider_unavailable"],
   [422, "provider_request"],
 ])(
-  "classifies %s without consuming or exposing its error body",
+  "classifies %s without exposing its error body",
   async (status, category) => {
     vi.stubEnv("RESEND_API_KEY", "private-key");
     const response = new Response("private-recipient private-key", {
@@ -61,9 +61,55 @@ it.each([
       category,
       message: "Approval email could not be confirmed.",
     });
-    expect(read).not.toHaveBeenCalled();
+    expect(read).toHaveBeenCalledTimes(status === 403 ? 1 : 0);
   },
 );
+
+it("distinguishes an unverified sending domain without exposing provider details", async () => {
+  vi.stubEnv("RESEND_API_KEY", "private-key");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      Response.json(
+        {
+          name: "validation_error",
+          message:
+            "The shardling.com domain is not verified. Please, add and verify your domain. private-recipient private-key",
+        },
+        { status: 403 },
+      ),
+    ),
+  );
+  await expect(
+    sendApprovalEmail("id", approvalEmailPayload("person@example.test")),
+  ).rejects.toMatchObject({
+    category: "sender_domain_unverified",
+    status: 403,
+    message: "Approval email could not be confirmed.",
+  });
+});
+
+it("keeps unrelated permission errors distinct from domain verification", async () => {
+  vi.stubEnv("RESEND_API_KEY", "private-key");
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      Response.json(
+        {
+          name: "restricted_api_key",
+          message: "private-key private-recipient",
+        },
+        { status: 403 },
+      ),
+    ),
+  );
+  await expect(
+    sendApprovalEmail("id", approvalEmailPayload("person@example.test")),
+  ).rejects.toMatchObject({
+    category: "provider_authentication",
+    message: "Approval email could not be confirmed.",
+  });
+});
 
 it("treats a lost response as unconfirmed and keeps credentials out of errors", async () => {
   vi.stubEnv("RESEND_API_KEY", "private-key");

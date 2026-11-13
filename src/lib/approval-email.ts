@@ -1,6 +1,7 @@
 import { BRAND } from "@/lib/brand";
 import "server-only";
 import { z } from "zod";
+import type { ApprovalEmailFailureCategory } from "./approval-email-state";
 
 export type ApprovalEmailPayload = {
   from: string;
@@ -20,7 +21,7 @@ export function approvalEmailPayload(email: string): ApprovalEmailPayload {
 
 export class ApprovalEmailError extends Error {
   constructor(
-    public readonly category: string,
+    public readonly category: ApprovalEmailFailureCategory,
     public readonly status?: number,
   ) {
     super("Approval email could not be confirmed.");
@@ -51,7 +52,21 @@ export async function sendApprovalEmail(
     throw new ApprovalEmailError("network_or_timeout");
   }
   if (!response.ok) {
-    // Never read/log provider error bodies, which can include recipients or keys.
+    // Parse only the documented domain error; never retain or expose raw details.
+    if (response.status === 403) {
+      const error = z
+        .object({
+          name: z.literal("validation_error"),
+          message: z.string().max(2000),
+        })
+        .safeParse(await response.json().catch(() => null));
+      if (
+        error.success &&
+        error.data.message.toLowerCase().includes(BRAND.domain) &&
+        /domain is not verified/iu.test(error.data.message)
+      )
+        throw new ApprovalEmailError("sender_domain_unverified", 403);
+    }
     throw new ApprovalEmailError(
       response.status === 401 || response.status === 403
         ? "provider_authentication"

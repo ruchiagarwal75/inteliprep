@@ -76,6 +76,21 @@ The key is server-only. The verified sender is `hello@shardling.com`; no mailbox
 or Supabase Auth SMTP change is required for these outgoing notifications.
 Sending does not change the Google OAuth test-user list.
 
+For Namecheap DNS, open Domain List, Manage, Advanced DNS. Copy the required
+sending records from Resend, including the DKIM TXT record and the return-path
+SPF TXT and MX records. Use only the host prefix in Namecheap, such as
+`resend._domainkey` or `send`, because Namecheap appends the domain. The MX record
+requires Mail Settings to use Custom MX; preserve any existing mail-provider
+records. Keep the website's A and CNAME records. Save, then verify the domain in
+Resend. No incoming-email setup is needed for approval notifications.
+
+Run `node scripts/check-approval-email-dns.mjs` to inspect the default sending
+records without sending email or reading credentials. Compare the output with
+Resend's exact records; a DNS result alone does not prove Resend verification.
+The Access page now distinguishes an unverified sender domain from an invalid
+or restricted API key. It keeps that failure category across refreshes and
+shows fixed repair guidance without exposing provider response bodies.
+
 Run `npm run db:admin` before deploying this version. The additive
 `20261109011503_beta_approval_emails.sql` migration creates a private outbox.
 Approval and its notification record commit in one transaction. Only an actual
