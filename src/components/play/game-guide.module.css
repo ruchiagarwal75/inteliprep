@@ -103,3 +103,21 @@
   background: var(--pixel-panel);
   clip-path: inherit;
 }
+
+.guide[data-bubble="speech"] .bubble {
+  position: relative;
+  border: none;
+  clip-path: none;
+  background: var(--game-world-gold-soft);
+  margin: 0;
+}
+.guide[data-bubble="speech"] .bubble::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+}

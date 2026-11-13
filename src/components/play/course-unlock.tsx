@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { GameGuide } from "./game-guide";
@@ -17,23 +18,19 @@ export function CourseUnlock({
   const scene = useRef<HTMLDivElement>(null);
   const showing = useRef(false);
   useEffect(() => {
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const center = (selector: string) =>
+      scene.current?.querySelector(selector)?.scrollIntoView({
+        block: "center",
+        behavior: reduced ? "instant" : "smooth",
+      });
     const centerCurrent = () => {
       let active = true;
       const align = () => {
-        if (!active) return;
-        scene.current
-          ?.querySelector('[aria-current="step"] [data-course-node]')
-          ?.scrollIntoView({
-            block: "center",
-            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "instant"
-              : "smooth",
-          });
+        if (active) center('[aria-current="step"] [data-course-node]');
       };
       const frame = requestAnimationFrame(() => {
         align();
-        // The current node's arrival animation moves it by 4px. Recenter once
-        // it settles, rather than capturing a temporary transformed position.
         for (const animation of scene.current
           ?.querySelector('[aria-current="step"] [data-course-node]')
           ?.getAnimations() ?? [])
@@ -56,16 +53,12 @@ export function CourseUnlock({
       } catch {}
       showing.current = true;
       setVisible(true);
+      if (reduced) center('[data-topic-level="1"] [data-course-node]');
     });
     const pan = window.setTimeout(() => {
-      if (
-        showing.current &&
-        !matchMedia("(prefers-reduced-motion: reduce)").matches
-      )
-        scene.current
-          ?.querySelector('[data-topic-level="1"]')
-          ?.scrollIntoView({ block: "center", behavior: "smooth" });
-    }, 2400);
+      if (showing.current && !reduced)
+        center('[data-topic-level="1"] [data-course-node]');
+    }, 700);
     const end = window.setTimeout(() => {
       showing.current = false;
       setVisible(false);
@@ -77,6 +70,10 @@ export function CourseUnlock({
       clearTimeout(end);
     };
   }, [armed, userId]);
+  const dismiss = () => {
+    showing.current = false;
+    setVisible(false);
+  };
   return (
     <div
       ref={scene}
@@ -89,20 +86,22 @@ export function CourseUnlock({
           role="status"
           aria-label="World unlocked"
         >
-          <div>
-            <h2 data-game-label>World unlocked</h2>
-            <GameGuide size="small" pose="cheer" message="Let's go deeper" />
+          <h2 data-game-label>World unlocked</h2>
+          <p>9 topics open up. Next: Ingestion and chunking.</p>
+          <GameGuide
+            size="small"
+            pose="cheer"
+            message="Let's go deeper"
+            bubble="speech"
+          />
+          <div className={styles.actions}>
+            <Link className="practice-primary" href="/play/rag/topics/1">
+              Start Topic 1
+            </Link>
+            <button type="button" className="practice-link" onClick={dismiss}>
+              Later
+            </button>
           </div>
-          <button
-            type="button"
-            className="practice-secondary"
-            onClick={() => {
-              showing.current = false;
-              setVisible(false);
-            }}
-          >
-            Keep going
-          </button>
         </section>
       )}
       {children}

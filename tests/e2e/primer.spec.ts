@@ -155,7 +155,7 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   await page.screenshot({
     path: "artifacts/rag-primer/world-unlocked-1440.png",
   });
-  await unlock.getByRole("button", { name: "Keep going", exact: true }).click();
+  await unlock.getByRole("button", { name: "Later", exact: true }).click();
   await expect(unlock).toHaveCount(0);
   await expect(
     topics.nth(1).getByRole("link", { name: "Learn", exact: true }),

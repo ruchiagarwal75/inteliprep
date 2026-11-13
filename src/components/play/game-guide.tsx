@@ -14,8 +14,10 @@ export function GameGuide({
   message,
   pose = "idle",
   size = "small",
+  bubble = "framed",
 }: {
   message?: string;
+  bubble?: "framed" | "speech";
   size?: "small" | "large";
   pose?: "idle" | "cheer" | "encourage" | "thinking" | "celebrate";
 }) {
@@ -27,6 +29,7 @@ export function GameGuide({
       className={styles.guide}
       data-pose={pose}
       data-size={size}
+      data-bubble={bubble}
       data-paused={paused || undefined}
       aria-label="Practice guide"
     >

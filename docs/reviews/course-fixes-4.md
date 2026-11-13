@@ -62,3 +62,17 @@ unmount.
 `course-fixes-4-path.spec.ts` checks the circle's center within 2px of the viewport
 center in both themes, both sizes and both motion settings. Screenshots:
 `path-{light,dark}-{1440,375}.png`.
+
+## 5. World-unlock moment
+
+The scene is a brief pixel-edged notice with the supplied nine-topic copy, a filled
+Start Topic 1 link and a Later text action. The guide's message has a tail and no
+button border. The connector uses the XP sprite gold, the Topic 1 node pulses
+once, and the circle scrolls into view. Reduced motion uses no pulse, stroke
+animation or smooth pan. The once-per-account cosmetic marker and server pass
+check remain in place. This does not make unfinished topic content playable.
+
+`course-fixes-4-unlock.spec.ts` checks both actions, refresh dismissal, gold color,
+speech-bubble styling, a single pulse, centering, reduced motion and no horizontal
+overflow in both themes and target sizes. The existing primer story still checks
+the real quiz-to-unlock flow. Screenshots: `unlock-{light,dark}-{1440,375}.png`.
