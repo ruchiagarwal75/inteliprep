@@ -1,33 +1,62 @@
 import Link from "next/link";
 import type { ProblemSummary } from "@/lib/interview-selection";
-import { RAG_BOSS } from "@/lib/mock-access-public";
-import { ProInterestButton } from "./pro-interest-button";
+import { isMockAvailable, RAG_BOSS } from "@/lib/mock-access-public";
+import type { RagBossState } from "@/lib/rag-boss-public";
+import { BossNode } from "./play/boss-node";
 import { PixelSprite } from "./play/pixel-sprite";
 import { PIXEL_ART } from "./play/pixel-art";
 import styles from "./play/play.module.css";
 import locks from "./locked-mocks.module.css";
-export function LockedMocks({
+
+export function MockCatalog({
   problems,
-  interested,
+  boss,
 }: {
   problems: ProblemSummary[];
-  interested: boolean;
+  boss: RagBossState;
 }) {
+  const rag = problems.find((problem) => isMockAvailable(problem.problemId));
   return (
     <>
       <h1>Mock interviews</h1>
-      <p>
-        Your RAG World includes one free boss attempt. Other mocks need Pro.
-      </p>
+      <p>The RAG interview is open for beta. More mocks are coming soon.</p>
       <Link className="practice-link" href="/mock/history">
         Saved mock interviews
       </Link>
+      {rag && (
+        <section data-available-problem={rag.problemId}>
+          {boss.plan === "free" ? (
+            <BossNode boss={boss} standalone />
+          ) : (
+            <div className={styles.topic}>
+              <div>
+                <h2>{rag.title}</h2>
+                <p>{rag.summary}</p>
+              </div>
+              <Link
+                className="practice-primary"
+                href={`/interview/new?problem=${RAG_BOSS.problemId}`}
+              >
+                Choose mock
+              </Link>
+            </div>
+          )}
+        </section>
+      )}
       {(["genai", "core"] as const).map((track) => (
-        <section className={styles.intro} key={track}>
+        <section
+          className={styles.intro}
+          id={track === "core" ? "fundamentals" : "ai-mocks"}
+          key={track}
+        >
           <h2>{track === "core" ? "Fundamentals" : "AI / ML system design"}</h2>
           <ul className={styles.topicList}>
             {problems
-              .filter((problem) => problem.track === track)
+              .filter(
+                (problem) =>
+                  problem.track === track &&
+                  !isMockAvailable(problem.problemId),
+              )
               .map((problem) => (
                 <li
                   key={problem.problemId}
@@ -41,17 +70,14 @@ export function LockedMocks({
                         width="16"
                         height="16"
                       />
-                      Pro
+                      Coming soon
                     </span>
                     <h3>{problem.title}</h3>
                     <p>{problem.summary}</p>
-                    {problem.problemId === RAG_BOSS.problemId && (
-                      <Link className="practice-link" href={RAG_BOSS.href}>
-                        Free once as the RAG World boss
-                      </Link>
-                    )}
                   </div>
-                  <ProInterestButton interested={interested} />
+                  <button className="practice-secondary" disabled>
+                    Locked
+                  </button>
                 </li>
               ))}
           </ul>

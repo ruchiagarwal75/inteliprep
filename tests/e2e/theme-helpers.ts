@@ -96,9 +96,9 @@ export async function boardState(page: Page) {
 // Public UI fixture only. The real end/freeze requests still run against isolated stub infrastructure.
 export function scoredResult(endedAt: string, quote: string) {
   return scorecardSchema.parse({
-    problemId: "single-server-scaling",
+    problemId: "enterprise-rag-assistant",
     level: "mid",
-    problemTitle: "Scale a single server",
+    problemTitle: "Design an enterprise RAG assistant",
     endedAt,
     summary:
       "You identified the database bottleneck and explained how to check whether the change improves latency.",
@@ -111,11 +111,13 @@ export function scoredResult(endedAt: string, quote: string) {
       note: "This feedback is grounded in your design and explanation.",
     },
     areas: [
-      "Requirements and goals",
-      "Find the bottleneck",
-      "Core design",
-      "Scaling and reliability",
-      "Tradeoffs",
+      "Requirements and estimation",
+      "Ingestion and retrieval",
+      "Grounded answers and citations",
+      "Freshness and reliability",
+      "Cost, operations and evolution",
+      "Evaluation and quality",
+      "Safety and security",
     ].map((area, i) => ({
       area,
       score: i === 3 ? 2 : 3,

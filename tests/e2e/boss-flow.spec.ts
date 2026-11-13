@@ -6,7 +6,7 @@ test("one real Free creation, refresh/resume and ending without any model call",
   context,
 }) => {
   test.setTimeout(120000);
-  await bossView(page, context, "bossFlow", "light", 1440);
+  await bossView(page, context, "bossFlow", "light", 1440, "/mock");
   const before = await modelCalls(page);
   let starts = 0;
   page.on("request", (request) => {

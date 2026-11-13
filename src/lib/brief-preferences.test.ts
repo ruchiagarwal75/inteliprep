@@ -50,6 +50,23 @@ it("falls back safely for new browsers, invalid preferences and unavailable old 
     briefDefaults(problems, undefined, undefined, "unknown", "made-up"),
   ).toMatchObject({ problemId: "single-server-scaling", level: "mid" });
 });
+it("uses the available RAG problem when a saved track or suggestion is locked for beta", () => {
+  const rag = {
+    ...problems[0],
+    problemId: "enterprise-rag-assistant",
+    track: "genai" as const,
+  };
+  expect(
+    briefDefaults(
+      [rag],
+      savedFixture(),
+      undefined,
+      "senior",
+      "url-shortener",
+      "core",
+    ),
+  ).toMatchObject({ problemId: rag.problemId, level: "senior" });
+});
 it("keeps the readiness prompt's chosen interview level", () => {
   expect(
     briefDefaults(

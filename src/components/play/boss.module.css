@@ -18,6 +18,12 @@
   bottom: 100%;
   left: calc(50% - 4px);
 }
+.node.standalone {
+  margin-block: 24px;
+}
+.node.standalone::before {
+  display: none;
+}
 .node h2 {
   --pixel-label-size: 16px;
   line-height: 1.7;

@@ -5,12 +5,18 @@ import { InterviewerSprite, BOSS_LINES } from "./interviewer-sprite";
 import { BossStart } from "./boss-start";
 import { ProInterestButton } from "@/components/pro-interest-button";
 import styles from "./boss.module.css";
-export function BossNode({ boss }: { boss: RagBossState }) {
+export function BossNode({
+  boss,
+  standalone = false,
+}: {
+  boss: RagBossState;
+  standalone?: boolean;
+}) {
   const result = "result" in boss ? boss.result : null;
   return (
     <section
       id="rag-boss"
-      className={styles.node}
+      className={`${styles.node}${standalone ? ` ${styles.standalone}` : ""}`}
       data-boss-state={boss.state}
       aria-labelledby="rag-boss-title"
     >

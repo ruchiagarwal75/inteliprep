@@ -3,7 +3,7 @@ import { z } from "zod";
 import { currentCandidateId } from "@/lib/candidate-context";
 import { ApiRequestError } from "@/lib/api-request";
 import { storedMockAccess } from "@/lib/mock-access-store";
-import { RAG_BOSS } from "@/lib/mock-access-public";
+import { isMockAvailable, RAG_BOSS } from "@/lib/mock-access-public";
 import { withPlayer } from "@/lib/play/database";
 import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
 import type {
@@ -17,10 +17,13 @@ type Selection = z.infer<typeof interviewStartRequestSchema> & {
 export class MockStartAccessError extends Error {
   readonly status = 403;
   constructor(
-    public readonly code: "pro_required" | "boss_locked" | "free_attempt_used",
+    public readonly code:
+      "pro_required" | "boss_locked" | "free_attempt_used" | "mock_unavailable",
   ) {
     super(
       {
+        mock_unavailable:
+          "This mock is coming soon. Only the RAG interview is available during beta.",
         pro_required:
           "Mock interviews are part of Pro. Your free RAG boss attempt is available on the RAG path.",
         boss_locked: "Pass Topic 9 to unlock the RAG boss.",
@@ -41,6 +44,8 @@ export async function withMockStartAccess<
 ): Promise<T> {
   const userId = currentCandidateId();
   if (!userId) throw new ApiRequestError("Sign in to start an interview.", 401);
+  if (!isMockAvailable(input.problemId))
+    throw new MockStartAccessError("mock_unavailable");
   return withPlayer(userId, async (sql) => {
     const access = await storedMockAccess(sql, userId);
     const [previous] = await sql<

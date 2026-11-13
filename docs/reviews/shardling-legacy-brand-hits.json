@@ -97,43 +97,43 @@
   },
   {
     "path": "docs/admin.md",
-    "line": 121,
+    "line": 136,
     "text": "`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 231,
+    "line": 246,
     "text": "`INTELIPREP_ADMIN_DB_TEST=1 npm test -- tests/admin-database.test.ts` runs an opt-in",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 263,
+    "line": 278,
     "text": "A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 284,
+    "line": 299,
     "text": "`localStorage.setItem(\"mockmeai:exclude-analytics\", \"1\")` before navigating to app",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 340,
+    "line": 355,
     "text": "`mockmeai_reporting` and its restricted grants/policies.",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 344,
+    "line": 359,
     "text": "`postgres.<project-ref>` to `mockmeai_reporting.<project-ref>`. It refuses to",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 406,
+    "line": 421,
     "text": "- Alternatively, open the IntelliPrep project in Supabase, open SQL Editor,",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -283,31 +283,31 @@
   },
   {
     "path": "docs/deployment.md",
-    "line": 33,
+    "line": 45,
     "text": "The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 53,
+    "line": 65,
     "text": "1. Connect the Vercel account and import `ruchiagarwal75/inteliprep`. Use the Next.js",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 72,
+    "line": 84,
     "text": "`INTELIPREP_ENV=production` in Production only, use the intended Auth and database",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 90,
+    "line": 102,
     "text": "| `INTELIPREP_ENV` | Leave blank locally, or use `beta` to exercise shared safeguards. Set `production` in Vercel Production to opt in to this release |",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/deployment.md",
-    "line": 212,
+    "line": 224,
     "text": "INTELIPREP_TEST_MODEL_503_ONCE=1 npm run dev",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -1039,7 +1039,7 @@
   },
   {
     "path": "src/lib/approval-email.ts",
-    "line": 44,
+    "line": 45,
     "text": "\"Idempotency-Key\": `mockmeai-approval/${notificationId}`,",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
@@ -2037,12 +2037,6 @@
     "path": "tests/e2e/theme-preference.spec.ts",
     "line": 40,
     "text": "localStorage.setItem(\"mockmeai:theme\", \"dark\");",
-    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
-  },
-  {
-    "path": "tests/e2e/tracks.spec.ts",
-    "line": 11,
-    "text": "localStorage.setItem(\"mockmeai:show-mascot\", \"false\"),",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {

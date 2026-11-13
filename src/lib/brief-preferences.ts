@@ -34,7 +34,8 @@ export function briefDefaults(
     : (parseProblemTrack(requestedTrack) ??
       parseProblemTrack(storedTrack) ??
       problemTrack(previous));
-  const choices = problemsInTrack(problems, track);
+  const inTrack = problemsInTrack(problems, track);
+  const choices = inTrack.length ? inTrack : problems;
   const suggested =
     latest?.scorecard?.nextPractice.problemId ??
     (summary?.hasEnded && lastProblem

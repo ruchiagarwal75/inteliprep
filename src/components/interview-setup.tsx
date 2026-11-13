@@ -88,14 +88,16 @@ export function InterviewSetup({
             onStart();
           }}
         >
-          <ProblemTrackToggle
-            value={problemTrack(selected)}
-            disabled={disabled || isStarting}
-            onChange={(track) => {
-              const first = problemsInTrack(problems, track)[0];
-              if (first) onChoice({ ...choice, problemId: first.problemId });
-            }}
-          />
+          {new Set(problems.map(problemTrack)).size > 1 && (
+            <ProblemTrackToggle
+              value={problemTrack(selected)}
+              disabled={disabled || isStarting}
+              onChange={(track) => {
+                const first = problemsInTrack(problems, track)[0];
+                if (first) onChoice({ ...choice, problemId: first.problemId });
+              }}
+            />
+          )}
           <label
             htmlFor="interview-problem"
             className="flex min-w-48 flex-1 flex-col gap-1 text-xs"

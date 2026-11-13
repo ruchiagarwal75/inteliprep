@@ -17,6 +17,7 @@ import {
   returnFreeBossAttempt,
 } from "@/lib/boss-lifecycle";
 import { withPlayer } from "@/lib/play/database";
+import { problemBriefs } from "@/lib/problems";
 let db: Awaited<ReturnType<typeof startPlayPostgres>>,
   runtime: ReturnType<typeof postgres>;
 vi.mock("@/lib/reporting-db", () => ({
@@ -57,7 +58,9 @@ it("blocks every non-boss selection for Free and checks Topic 9 on the server", 
   ]) {
     const response = await post({ ...boss, ...change });
     expect(response.status).toBe(403);
-    expect((await response.json()).code).toBe("pro_required");
+    expect((await response.json()).code).toBe(
+      change.problemId ? "mock_unavailable" : "pro_required",
+    );
   }
   const locked = await post(boss);
   expect(locked.status).toBe(403);
@@ -174,7 +177,7 @@ it("permits Pro/admin starts and reads a changed plan on the very next request",
     expect(
       (
         await post({
-          problemId: "url-shortener",
+          problemId: "enterprise-rag-assistant",
           level: "senior",
           requestId: crypto.randomUUID(),
         })
@@ -182,11 +185,13 @@ it("permits Pro/admin starts and reads a changed plan on the very next request",
     ).toBe(200);
   await db.operator`update practice_game.mock_access set plan='free' where user_id=${other}`;
   expect(
-    (await post({ problemId: "url-shortener", level: "senior" })).status,
+    (await post({ problemId: "enterprise-rag-assistant", level: "senior" }))
+      .status,
   ).toBe(403);
   vi.stubEnv("ADMIN_USER_ID", other);
   expect(
-    (await post({ problemId: "url-shortener", level: "staff" })).status,
+    (await post({ problemId: "enterprise-rag-assistant", level: "staff" }))
+      .status,
   ).toBe(200);
 });
 it("does not use the free attempt if session publication fails", async () => {
@@ -209,4 +214,26 @@ it("does not use the free attempt if session publication fails", async () => {
     ),
   ).rejects.toThrow("Publication failed");
   expect((await mockAccess(other)).freeBossUsedAt).toBeNull();
+});
+
+it("keeps all other questions locked for Free, Pro and admin, without creating sessions", async () => {
+  vi.mocked(requireCandidateIdentity).mockResolvedValue(other);
+  const locked = problemBriefs().filter(
+    (problem) => problem.problemId !== "enterprise-rag-assistant",
+  );
+  const before =
+    await db.operator`select count(*)::int as count from practice_game.boss_attempts`;
+  for (const plan of ["free", "pro", "admin"] as const) {
+    vi.stubEnv("ADMIN_USER_ID", plan === "admin" ? other : "");
+    const storedPlan = plan === "admin" ? "free" : plan;
+    await db.operator`update practice_game.mock_access set plan=${storedPlan} where user_id=${other}`;
+    for (const { problemId } of locked) {
+      const response = await post({ problemId, level: "mid" });
+      expect(response.status).toBe(403);
+      expect((await response.json()).code).toBe("mock_unavailable");
+    }
+  }
+  expect(
+    await db.operator`select count(*)::int as count from practice_game.boss_attempts`,
+  ).toEqual(before);
 });

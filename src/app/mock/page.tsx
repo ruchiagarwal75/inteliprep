@@ -1,58 +1,15 @@
-import Link from "next/link";
 import { playAccountId } from "@/lib/play/access";
 import { problemBriefs } from "@/lib/problems";
 import { PlayShell } from "@/components/play/play-shell";
-import styles from "@/components/play/play.module.css";
-import { mockAccess } from "@/lib/mock-access-store";
-import { LockedMocks } from "@/components/locked-mocks";
+import { ragBossState } from "@/lib/rag-boss-state";
+import { MockCatalog } from "@/components/locked-mocks";
 export const dynamic = "force-dynamic";
 export default async function MockPage() {
-  const userId = await playAccountId(),
-    problems = problemBriefs();
-  const access = await mockAccess(userId);
-  if (access.plan === "free")
-    return (
-      <PlayShell userId={userId} active="mock">
-        <LockedMocks
-          problems={problems}
-          interested={Boolean(access.proInterestAt)}
-        />
-      </PlayShell>
-    );
+  const userId = await playAccountId();
+  const boss = await ragBossState(userId);
   return (
     <PlayShell userId={userId} active="mock">
-      <h1>Mock interviews</h1>
-      <p>Use a full interview to test your design and reasoning.</p>
-      <Link className="practice-link" href="/mock/history">
-        Saved mock interviews
-      </Link>
-      {(["genai", "core"] as const).map((track) => (
-        <section
-          className={styles.intro}
-          id={track === "core" ? "fundamentals" : "ai-mocks"}
-          key={track}
-        >
-          <h2>{track === "core" ? "Fundamentals" : "AI / ML system design"}</h2>
-          <ul className={styles.topicList}>
-            {problems
-              .filter((p) => p.track === track)
-              .map((p) => (
-                <li key={p.problemId} className={styles.topic}>
-                  <div>
-                    <h3>{p.title}</h3>
-                    <p>{p.summary}</p>
-                  </div>
-                  <Link
-                    className="practice-secondary"
-                    href={`/interview/new?problem=${p.problemId}`}
-                  >
-                    Choose mock
-                  </Link>
-                </li>
-              ))}
-          </ul>
-        </section>
-      ))}
+      <MockCatalog problems={problemBriefs()} boss={boss} />
     </PlayShell>
   );
 }

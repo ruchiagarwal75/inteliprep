@@ -17,3 +17,8 @@ export const RAG_BOSS = {
   href: "/play/rag#rag-boss",
   promptHref: "/play/rag?from=play#rag-boss",
 } as const;
+
+/** Beta catalog availability is separate from a player's plan or boss unlock. */
+export function isMockAvailable(problemId: string): boolean {
+  return problemId === RAG_BOSS.problemId;
+}

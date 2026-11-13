@@ -20,32 +20,11 @@ test("GenAI group preserves private facts and runs the normal interview flow", a
     page
       .getByRole("combobox", { name: "Problem", exact: true })
       .locator("option"),
-  ).toHaveCount(8);
-  await page
-    .getByRole("radio", { name: "AI / ML system design", exact: true })
-    .check();
+  ).toHaveCount(1);
   await expect(
-    page
-      .getByRole("combobox", { name: "Problem", exact: true })
-      .locator("option"),
-  ).toHaveCount(
-    (await (await page.request.get("/api/problems")).json()).problems.filter(
-      (p: { track: string }) => p.track === "genai",
-    ).length,
-  );
+    page.getByRole("combobox", { name: "Problem", exact: true }),
+  ).toHaveValue("enterprise-rag-assistant");
   await page.getByLabel("Difficulty").selectOption("senior");
-  for (const problemId of [
-    "ai-chat-assistant",
-    "tool-using-ai-agent",
-    "enterprise-rag-assistant",
-  ]) {
-    await page
-      .getByRole("combobox", { name: "Problem", exact: true })
-      .selectOption(problemId);
-    await expect(
-      page.getByRole("combobox", { name: "Problem", exact: true }),
-    ).toHaveValue(problemId);
-  }
   expect(await page.locator("body").innerText()).not.toMatch(
     /5M documents|50M chunks|150 GB|Permissions checked only after generation/,
   );

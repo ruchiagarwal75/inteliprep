@@ -272,7 +272,7 @@ for (const durationMinutes of [45, 60]) {
     expect(stats.modelCalls).toBeGreaterThan(0);
     const denied = await context.request.post("/api/interview/start", {
       data: {
-        problemId: "single-server-scaling",
+        problemId: "enterprise-rag-assistant",
         level: "mid",
         durationMinutes: 1,
       },
@@ -393,7 +393,7 @@ test("database approval and revocation take effect with the same signed-in sessi
   }
   const response = await context.request.post("/api/interview/start", {
     headers: { origin: "http://localhost:3100" },
-    data: { problemId: "single-server-scaling", level: "mid" },
+    data: { problemId: "enterprise-rag-assistant", level: "mid" },
   });
   expect(response.status()).toBe(403);
   expect((await response.json()).code).toBe("INVITE_REQUIRED");
@@ -469,7 +469,7 @@ test("uninvited and signed-out users cannot start, and policies are linked", asy
   expect(
     (
       await anonymous.post("/api/interview/start", {
-        data: { problemId: "single-server-scaling", level: "mid" },
+        data: { problemId: "enterprise-rag-assistant", level: "mid" },
       })
     ).status(),
   ).toBe(401);
@@ -482,7 +482,7 @@ test("uninvited and signed-out users cannot start, and policies are linked", asy
   expect(
     (
       await context.request.post("/api/interview/start", {
-        data: { problemId: "single-server-scaling", level: "mid" },
+        data: { problemId: "enterprise-rag-assistant", level: "mid" },
       })
     ).status(),
   ).toBe(403);
@@ -712,7 +712,7 @@ test("the brief remembers level and defaults to the suggested next problem", asy
   await page.goto("/interview/new");
   await page
     .getByRole("combobox", { name: "Problem", exact: true })
-    .selectOption("url-shortener");
+    .selectOption("enterprise-rag-assistant");
   await page
     .getByRole("combobox", { name: "Difficulty", exact: true })
     .selectOption("senior");
@@ -739,7 +739,7 @@ test("the brief remembers level and defaults to the suggested next problem", asy
     }),
     () => {},
   );
-  const result = interviewEndResponseSchema.parse(decoded.body);
+  interviewEndResponseSchema.parse(decoded.body);
   await expect(
     page.getByRole("heading", { name: "Too short to score", exact: true }),
   ).toBeVisible();
@@ -750,7 +750,7 @@ test("the brief remembers level and defaults to the suggested next problem", asy
   ).toHaveValue("senior");
   await expect(
     page.getByRole("combobox", { name: "Problem", exact: true }),
-  ).toHaveValue(result.scorecard.nextPractice.problemId);
+  ).toHaveValue("enterprise-rag-assistant");
 });
 
 test("an explained design can return from drawing and finish without a new walkthrough", async ({

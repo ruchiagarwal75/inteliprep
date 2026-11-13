@@ -3,7 +3,8 @@ import { bossView, bossShot } from "./boss-browser-helpers";
 import { bossAccounts } from "./boss-fixture.mjs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-test("Free catalogs, Pro interest and admin plan changes use persisted access", async ({
+
+test("beta locks stay in place for Free, Pro and admin while RAG keeps its unlock", async ({
   page,
   context,
   browser,
@@ -11,57 +12,50 @@ test("Free catalogs, Pro interest and admin plan changes use persisted access", 
   test.setTimeout(180000);
   const before = await modelCalls(page);
   for (const theme of ["light", "dark"] as const)
-    for (const width of [1440, 375]) {
+    for (const width of [1440, 375])
       for (const path of ["/mock", "/interview/new"]) {
         await bossView(page, context, "bossNotify", theme, width, path);
-        await expect(page.locator("[data-locked-problem]")).toHaveCount(13);
+        await expect(page.locator("[data-locked-problem]")).toHaveCount(12);
+        await expect(page.locator("[data-available-problem]")).toHaveCount(1);
+        await expect(page.locator("#rag-boss")).toHaveAttribute(
+          "data-boss-state",
+          "ready",
+        );
         await expect(
-          page.getByRole("link", {
-            name: "Free once as the RAG World boss",
-            exact: true,
-          }),
-        ).toHaveAttribute("href", "/play/rag#rag-boss");
+          page
+            .locator("#rag-boss")
+            .getByRole("button", { name: "Start boss", exact: true }),
+        ).toBeEnabled();
+        for (const button of await page
+          .locator("[data-locked-problem] button")
+          .all())
+          await expect(button).toBeDisabled();
         await bossShot(
           page,
           `locked-${path === "/mock" ? "mock" : "brief"}-${theme}-${width}`,
         );
-        await page
-          .getByRole("button", { name: "Choose mock", exact: true })
-          .first()
-          .click();
-        const dialog = page.getByRole("dialog", {
-          name: "Mock interviews are part of Pro",
-          exact: true,
-        });
-        await expect(dialog).toContainText("Pro isn't for sale yet.");
-        await bossShot(page, `pro-modal-${theme}-${width}`);
-        await page.keyboard.press("Escape");
       }
-    }
-  await page
-    .getByRole("button", { name: "Choose mock", exact: true })
-    .first()
-    .click();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Notify me", exact: true })
-    .click();
-  await expect(page.getByRole("dialog").getByRole("status")).toHaveText(
-    "You're on the list.",
+  await bossView(page, context, "bossLocked", "light", 1440, "/mock");
+  await expect(page.locator("#rag-boss")).toHaveAttribute(
+    "data-boss-state",
+    "locked",
   );
-  const denied = await context.request.post(
-    `/api/admin/users/${bossAccounts.bossNotify.id}/plan`,
-    {
-      headers: { origin: "http://localhost:3100" },
-      data: { action: "plan", plan: "pro" },
-    },
+  await expect(page.locator("#rag-boss")).toContainText(
+    "Pass Topic 9 to unlock",
   );
-  expect(denied.status()).toBe(403);
+  await expect(
+    page.getByRole("button", { name: "Start boss", exact: true }),
+  ).toHaveCount(0);
+  const lockedResponse = await context.request.post("/api/interview/start", {
+    headers: { origin: "http://localhost:3100" },
+    data: { problemId: "url-shortener", level: "mid" },
+  });
+  expect(lockedResponse.status()).toBe(403);
+  expect((await lockedResponse.json()).code).toBe("mock_unavailable");
   const adminContext = await browser.newContext({ ignoreHTTPSErrors: true });
   try {
     await signIn(adminContext, "admin");
     const admin = await adminContext.newPage();
-    await admin.setViewportSize({ width: 1440, height: 669 });
     await admin.goto(
       `/admin/users/${bossAccounts.bossNotify.id}?includeExcluded=1`,
     );
@@ -69,19 +63,24 @@ test("Free catalogs, Pro interest and admin plan changes use persisted access", 
       name: "Mock access",
       exact: true,
     });
-    await expect(access).not.toContainText("Not requested");
-    await bossShot(admin, "admin-mock-access-light-1440");
     await access.getByRole("button", { name: "Pro", exact: true }).click();
     await expect(access).toContainText("Plan: Pro");
-    await page.keyboard.press("Escape");
-    await page.reload();
+    await bossView(page, context, "bossNotify", "light", 1440, "/mock");
+    await expect(page.locator("[data-locked-problem]")).toHaveCount(12);
+    await page.getByRole("link", { name: "Choose mock", exact: true }).click();
     await expect(
-      page.getByRole("heading", { name: "Your practice brief", exact: true }),
-    ).toBeVisible();
+      page.getByRole("combobox", { name: "Problem", exact: true }),
+    ).toHaveValue("enterprise-rag-assistant");
+    for (const client of [context, adminContext]) {
+      const denied = await client.request.post("/api/interview/start", {
+        headers: { origin: "http://localhost:3100" },
+        data: { problemId: "url-shortener", level: "mid" },
+      });
+      expect(denied.status()).toBe(403);
+      expect((await denied.json()).code).toBe("mock_unavailable");
+    }
     await access.getByRole("button", { name: "Free", exact: true }).click();
     await expect(access).toContainText("Plan: Free");
-    await page.reload();
-    await expect(page.locator("[data-locked-problem]")).toHaveCount(13);
   } finally {
     await adminContext.close();
   }

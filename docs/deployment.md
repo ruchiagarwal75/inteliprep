@@ -28,6 +28,18 @@ Production releases must come from the Git integration on `main`. Do not use
 `vercel --prod`, a file-upload deployment, or promotion of a Preview deployment.
 A Preview may have different environment settings and is not a Production build.
 
+### Beta launch catalog
+
+Only the enterprise RAG mock accepts new starts during beta. The shared
+`isMockAvailable` policy controls the Mock catalog, brief and server start guard.
+Other questions show "Coming soon" and return `403 / mock_unavailable`, including
+for Pro and admin accounts. Existing interviews and history remain accessible.
+
+Free users keep the RAG boss rule: pass Topic 9, then use one free Mid-level,
+45-minute attempt. The same boss action is available from Mock and the RAG path;
+both share the server-owned unlock and attempt record. Pro users can choose the
+RAG level and duration in the brief. No other question can be started.
+
 ### GitHub releases
 
 The existing Vercel project connects to `ruchiagarwal75/inteliprep`. Push reviewed

@@ -55,7 +55,7 @@ it("denies signed-out, non-admin, cross-origin and invalid plan writes", async (
 it("applies an admin plan change on the next real start request", async () => {
   expect((await change({ action: "plan", plan: "pro" })).status).toBe(200);
   const selection = {
-    problemId: "url-shortener",
+    problemId: "enterprise-rag-assistant",
     level: "mid",
     requestId: crypto.randomUUID(),
   };
