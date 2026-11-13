@@ -27,40 +27,37 @@ function Shards({ portrait }: { portrait: boolean }) {
       />
       {[1, 2, 3, 4].map((n) => {
         const x = portrait ? 90 : 250 + (n - 1) * 100,
-          y = portrait ? 170 + (n - 1) * 100 : 62,
+          y = portrait ? 170 + (n - 1) * 100 : 44,
           w = portrait ? 160 : 86;
         return (
           <g key={n}>
             <Arrow
               d={
                 portrait
-                  ? `M100 100H25V${y + 24}h65`
-                  : `M210 96h20V30h${x + w / 2 - 230}v32`
+                  ? `M100 100H25V${y + 20}h65`
+                  : `M210 96h20V20H${x + w / 2}v24`
               }
               x={portrait ? 90 : x + w / 2}
-              y={portrait ? y + 24 : y}
+              y={portrait ? y + 20 : y}
               angle={portrait ? 0 : 90}
             />
             <rect
+              data-diagram-box
               className={styles.replica}
               x={x + 8}
-              y={y - 8}
+              y={y + 40}
               width={w}
-              height={60}
+              height={40}
             />
-            <Box x={x} y={y} width={w} height={46} labels={[`Shard ${n}`]} />
-            <text
-              x={x + w / 2}
-              y={y + (portrait ? 72 : 73)}
-              textAnchor="middle"
-            >
+            <text x={x + 8 + w / 2} y={y + 65} textAnchor="middle">
               Replica
             </text>
+            <Box x={x} y={y} width={w} height={40} labels={[`Shard ${n}`]} />
             <Arrow
               d={
                 portrait
-                  ? `M250 ${y + 24}h36V622h-36`
-                  : `M${x + w / 2} 108v8H${x + 8}v26H445v8`
+                  ? `M250 ${y + 20}h36V622h-36`
+                  : `M${x + w} ${y + 20}h10V142H445v8`
               }
               x={portrait ? 250 : 445}
               y={portrait ? 622 : 150}
@@ -103,26 +100,44 @@ function Degrade({ portrait }: { portrait: boolean }) {
       {stages.map(({ name, cause }, i) => {
         const x = portrait ? 8 + i * 18 : 8 + i * 138,
           y = portrait ? 10 + i * 100 : 10 + i * 30,
-          w = portrait ? 220 : 112;
+          w = portrait ? 220 : 112,
+          labels =
+            !portrait && i === 2
+              ? ["Keyword", "only"]
+              : !portrait && i === 3
+                ? ["Backup", "model"]
+                : [name],
+          height = labels.length > 1 ? 64 : 44,
+          captions =
+            !portrait && i === 2
+              ? ["Vector search", "slow"]
+              : !portrait && i === 4
+                ? ["Everything", "down"]
+                : [cause],
+          previousHeight = !portrait && [3, 4].includes(i) ? 64 : 44;
         return (
           <g key={name}>
             {i > 0 && (
               <>
-                <text
-                  x={x + w / 2 - (!portrait && i === 4 ? 8 : 0)}
-                  y={y - 10}
-                  textAnchor="middle"
-                >
-                  {cause}
-                </text>
+                {captions.map((caption, line) => (
+                  <text
+                    data-step-label
+                    key={caption}
+                    x={x + w / 2}
+                    y={y - 16 - (captions.length - 1 - line) * 22}
+                    textAnchor="middle"
+                  >
+                    {caption}
+                  </text>
+                ))}
                 <Arrow
                   d={
                     portrait
-                      ? `M${x - 18 + w} ${y - 66}h26v88h-8`
-                      : `M${x - 26} ${y - 8}h13v30h13`
+                      ? `M${x - 18 + w} ${y - 78}h26V${y + 22}h-8`
+                      : `M${x - 26} ${y - 30 + previousHeight / 2}h13V${y + height / 2}h13`
                   }
                   x={portrait ? x + w : x}
-                  y={y + 22}
+                  y={y + height / 2}
                   angle={portrait ? 180 : 0}
                 />
               </>
@@ -131,14 +146,9 @@ function Degrade({ portrait }: { portrait: boolean }) {
               x={x}
               y={y}
               width={w}
-              height={44}
-              labels={
-                name === "Keyword only" && !portrait
-                  ? ["Keyword", "only"]
-                  : name === "Backup model" && !portrait
-                    ? ["Backup", "model"]
-                    : [name]
-              }
+              height={height}
+              labels={labels}
+              lineHeight={22}
               notice={i === 0}
             />
           </g>

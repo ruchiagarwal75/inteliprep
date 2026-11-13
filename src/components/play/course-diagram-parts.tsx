@@ -6,6 +6,7 @@ export function DiagramBox({
   height = 40,
   labels,
   notice = false,
+  lineHeight = 20,
 }: {
   x: number;
   y: number;
@@ -13,10 +14,12 @@ export function DiagramBox({
   height?: number;
   labels: readonly string[];
   notice?: boolean;
+  lineHeight?: number;
 }) {
   return (
     <g>
       <rect
+        data-diagram-box
         className={notice ? styles.notice : styles.node}
         x={x}
         y={y}
@@ -28,7 +31,9 @@ export function DiagramBox({
           key={label}
           textAnchor="middle"
           x={x + width / 2}
-          y={y + height / 2 + 5 + (index - (labels.length - 1) / 2) * 20}
+          y={
+            y + height / 2 + 5 + (index - (labels.length - 1) / 2) * lineHeight
+          }
         >
           {label}
         </text>

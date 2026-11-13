@@ -37,7 +37,9 @@ function Serving({ portrait }: { portrait: boolean }) {
             />
           </g>
         ))}
-        <Arrow d="M240 420h66V60h-66" x={240} y={60} angle={180} />
+        <g data-serving-connection="return">
+          <Arrow d="M80 420H14V60h66" x={80} y={60} />
+        </g>
         <text x={160} y={476} textAnchor="middle">
           Streamed answer
         </text>
@@ -54,8 +56,11 @@ function Serving({ portrait }: { portrait: boolean }) {
           width={92}
           height={60}
           labels={["Ingestion", "workers"]}
+          lineHeight={22}
         />
-        <Arrow d="M266 540V280h-26" x={240} y={280} angle={180} />
+        <g data-serving-connection="ingestion">
+          <Arrow d="M266 540V314h-46v-14" x={220} y={300} angle={-90} />
+        </g>
       </>
     );
   return (
@@ -72,9 +77,13 @@ function Serving({ portrait }: { portrait: boolean }) {
       <Box x={350} y={30} width={118} labels={["Indexes"]} notice />
       <Arrow d="M409 70v24" x={409} y={94} angle={90} />
       <Box x={350} y={94} width={118} labels={["Re-ranker"]} />
-      <Arrow d="M468 114h66V80h24" x={558} y={80} />
+      <g data-serving-connection="generation">
+        <Arrow d="M468 114h66V80h24" x={558} y={80} />
+      </g>
       <Box x={558} y={60} width={110} labels={["LLM"]} />
-      <Arrow d="M612 60V8H78v44" x={78} y={52} angle={90} />
+      <g data-serving-connection="return">
+        <Arrow d="M612 60V8H78v44" x={78} y={52} angle={90} />
+      </g>
       <text x={400} y={24} textAnchor="middle">
         Streamed answer
       </text>
@@ -92,7 +101,9 @@ function Serving({ portrait }: { portrait: boolean }) {
         height={36}
         labels={["Ingestion workers"]}
       />
-      <Arrow d="M455 164h57V50h-44" x={468} y={50} angle={180} />
+      <g data-serving-connection="ingestion">
+        <Arrow d="M300 146V106h30V84h36V70" x={366} y={70} angle={-90} />
+      </g>
     </>
   );
 }

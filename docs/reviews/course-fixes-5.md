@@ -76,3 +76,24 @@ empty variants at both themes and widths, checking the link's position and gap.
 The cases use separate fixture accounts to respect real request quotas. Item 4
 passes check (2,001 tests), build and both private-content scans.
 Screenshots: `wrong-answer-{theme}-{width}.png` under `artifacts/course-fixes-5/`.
+
+## 5. Diagram polish
+
+The rollout gates use larger diamonds and two centered lines. Degradation labels
+have separate space above the steps; longer labels wrap with an explicit line
+height. Each shard has a separate offset replica box. The ingestion route enters
+the bottom of Indexes, clear of generation and return lines in both layouts.
+The remaining course diagrams keep their existing spacing defaults.
+
+The new rendered-SVG check compares every text box with other text and sampled
+shape borders, enforces eight-pixel clearance for step labels, and checks the
+serving routes for crossings. All 16 diagram/theme/size states pass, with readable
+Inter labels and the existing desktop height cap. Screenshots were inspected in
+both layouts. Item 5 passes check (2,001 tests), build and private-content scans.
+
+Screenshots under `artifacts/course-fixes-5/`:
+
+- `T9-S11-{theme}-{width}.png`
+- `T8-S9-{theme}-{width}.png`
+- `T8-S5-{theme}-{width}.png`
+- `T8-S2-{theme}-{width}.png`

@@ -90,55 +90,48 @@ function Rollout({ portrait }: { portrait: boolean }) {
   return (
     <>
       {["1%", "10%", "50%", "100%"].map((label, i) => {
-        const x = portrait ? 120 : 8 + i * 198,
-          y = portrait ? 12 + i * 162 : 50;
+        const x = portrait ? 120 : 8 + i * 204,
+          y = portrait ? 12 + i * 162 : 46,
+          cx = portrait ? 160 : 138 + i * 204,
+          cy = portrait ? y + 103 : 68;
         return (
           <g key={label}>
             <Box
               x={x}
               y={y}
-              width={portrait ? 80 : 70}
+              width={portrait ? 80 : 56}
               height={44}
               labels={[label]}
             />
             {i < 3 && (
               <>
                 <Arrow
-                  d={portrait ? `M160 ${y + 44}v19` : `M${x + 70} 72h24`}
-                  x={portrait ? 160 : x + 94}
-                  y={portrait ? y + 63 : 72}
+                  d={portrait ? `M160 ${y + 44}v9` : `M${x + 56} 68h12`}
+                  x={portrait ? 160 : cx - 62}
+                  y={portrait ? cy - 50 : 68}
                   angle={portrait ? 90 : 0}
                 />
                 <path
+                  data-diagram-box
                   className={styles.notice}
-                  d="M0-40 40 0 0 40-40 0Z"
-                  transform={`translate(${portrait ? 160 : x + 134} ${portrait ? y + 103 : 72})`}
+                  d={`M0-50 ${portrait ? 68 : 62} 0 0 50-${portrait ? 68 : 62} 0Z`}
+                  transform={`translate(${cx} ${cy})`}
                 />
-                <text
-                  x={portrait ? 160 : x + 134}
-                  y={portrait ? y + 100 : 68}
-                  textAnchor="middle"
-                >
+                <text x={cx} y={cy - 3} textAnchor="middle">
                   Metrics
                 </text>
-                <text
-                  x={portrait ? 160 : x + 134}
-                  y={portrait ? y + 122 : 90}
-                  textAnchor="middle"
-                >
+                <text x={cx} y={cy + 19} textAnchor="middle">
                   OK?
                 </text>
                 <Arrow
-                  d={portrait ? `M160 ${y + 143}v19` : `M${x + 174} 72h24`}
-                  x={portrait ? 160 : x + 198}
-                  y={portrait ? y + 162 : 72}
+                  d={portrait ? `M160 ${cy + 50}v9` : `M${cx + 62} 68h12`}
+                  x={portrait ? 160 : x + 204}
+                  y={portrait ? y + 162 : 68}
                   angle={portrait ? 90 : 0}
                 />
                 <Arrow
                   d={
-                    portrait
-                      ? `M200 ${y + 103}h90V602h-30`
-                      : `M${x + 134} 112v18H340v16`
+                    portrait ? `M228 ${cy}h62V602h-30` : `M${cx} 118v12H340v16`
                   }
                   x={portrait ? 260 : 340}
                   y={portrait ? 602 : 146}
