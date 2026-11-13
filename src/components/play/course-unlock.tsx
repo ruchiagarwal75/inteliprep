@@ -17,10 +17,38 @@ export function CourseUnlock({
   const scene = useRef<HTMLDivElement>(null);
   const showing = useRef(false);
   useEffect(() => {
-    if (!armed) return;
+    const centerCurrent = () => {
+      let active = true;
+      const align = () => {
+        if (!active) return;
+        scene.current
+          ?.querySelector('[aria-current="step"] [data-course-node]')
+          ?.scrollIntoView({
+            block: "center",
+            behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? "instant"
+              : "smooth",
+          });
+      };
+      const frame = requestAnimationFrame(() => {
+        align();
+        // The current node's arrival animation moves it by 4px. Recenter once
+        // it settles, rather than capturing a temporary transformed position.
+        for (const animation of scene.current
+          ?.querySelector('[aria-current="step"] [data-course-node]')
+          ?.getAnimations() ?? [])
+          void animation.finished.then(align, () => {});
+      });
+      void document.fonts.ready.then(align);
+      return () => {
+        active = false;
+        cancelAnimationFrame(frame);
+      };
+    };
+    if (!armed) return centerCurrent();
     const key = `mockmeai:primer-unlocked:${userId}`;
     try {
-      if (localStorage.getItem(key)) return;
+      if (localStorage.getItem(key)) return centerCurrent();
     } catch {}
     const frame = requestAnimationFrame(() => {
       try {

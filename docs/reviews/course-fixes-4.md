@@ -50,3 +50,15 @@ The mapping unit tests cover every question. The browser reference test covers a
 four topics in both themes and widths; the existing review and overlay tests check
 choice retention, retry, timer pause, scrolling, focus and Escape. Screenshots:
 `reference-T{0,1}-{light,dark}-{1440,375}.png`.
+
+## 4. Center the current topic
+
+The path previously scrolled only during the primer-unlock scene. Ordinary visits
+now center the current topic's circle on load, including after font loading. The
+motion is smooth by default and instant under reduced motion. A previously seen
+unlock query also takes the ordinary centering path. Pending work is canceled on
+unmount.
+
+`course-fixes-4-path.spec.ts` checks the circle's center within 2px of the viewport
+center in both themes, both sizes and both motion settings. Screenshots:
+`path-{light,dark}-{1440,375}.png`.
