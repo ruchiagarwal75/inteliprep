@@ -2,11 +2,11 @@
   position: relative;
 }
 .notice {
-  position: fixed;
+  position: relative;
   z-index: 12;
-  top: 16px;
-  left: 24px;
-  width: min(420px, calc(100vw - 32px));
+  width: min(420px, 100%);
+  margin: 0 auto 32px;
+  scroll-margin-top: 16px;
   padding: 20px 24px;
   background: var(--pixel-panel);
   color: var(--pixel-text);
@@ -73,7 +73,6 @@
 }
 @media (max-width: 600px) {
   .notice {
-    left: 16px;
     padding: 16px;
   }
 }

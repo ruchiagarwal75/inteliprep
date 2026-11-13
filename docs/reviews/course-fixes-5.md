@@ -30,3 +30,18 @@ Screenshots: `artifacts/course-fixes-5/learn-T{0,1}-S{1,2,6,9}-{theme}-{width}.p
 
 Item 1 passes `npm run check` (1,996 tests), `npm run build` and both private-content
 browser-chunk scans.
+
+## 2. Unlock card placement
+
+The card now takes space in the document, centered above the path. A fixed overlay
+could still intersect captions even when moved to the horizontal center. The
+flow layout prevents overlap at either width. It scrolls into view when shown;
+Topic 1 pans into view after dismissal or the existing 6.5-second timeout.
+The primary action, one-time account marker, gold connector, node pulse and
+reduced-motion behavior remain.
+
+All eight width/theme/motion browser cases pass. A geometry check compares the
+card against every path node, caption and action, with no intersections.
+Dismiss/reload and Start Topic 1 work. Item 2 passes check (1,996 tests), build
+and both private-content scans. Screenshots: `unlock-{theme}-{width}.png` under
+`artifacts/course-fixes-5/`.

@@ -135,7 +135,7 @@ export function CoursePath({
                   <PixelSprite art={PIXEL_ART.lock} width="32" height="32" />
                 </div>
               )}
-              <div className={styles.caption}>
+              <div className={styles.caption} data-course-caption>
                 <span data-game-label>
                   {node.available ? `Topic ${node.level}` : "Soon"}
                 </span>

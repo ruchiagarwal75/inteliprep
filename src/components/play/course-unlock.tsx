@@ -1,6 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
 import { GameGuide } from "./game-guide";
 import styles from "./course-unlock.module.css";
@@ -16,7 +22,24 @@ export function CourseUnlock({
   const { userId } = useCandidateAccount();
   const [visible, setVisible] = useState(false);
   const scene = useRef<HTMLDivElement>(null);
-  const showing = useRef(false);
+  const previouslyVisible = useRef(false);
+  useLayoutEffect(() => {
+    if (visible) {
+      scene.current
+        ?.querySelector('[aria-label="World unlocked"]')
+        ?.scrollIntoView({ block: "start", behavior: "instant" });
+    } else if (previouslyVisible.current) {
+      scene.current
+        ?.querySelector('[data-topic-level="1"] [data-course-node]')
+        ?.scrollIntoView({
+          block: "center",
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "instant"
+            : "smooth",
+        });
+    }
+    previouslyVisible.current = visible;
+  }, [visible]);
   useEffect(() => {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const center = (selector: string) =>
@@ -51,27 +74,17 @@ export function CourseUnlock({
       try {
         localStorage.setItem(key, "1");
       } catch {}
-      showing.current = true;
       setVisible(true);
-      if (reduced) center('[data-topic-level="1"] [data-course-node]');
     });
-    const pan = window.setTimeout(() => {
-      if (showing.current && !reduced)
-        center('[data-topic-level="1"] [data-course-node]');
-    }, 700);
     const end = window.setTimeout(() => {
-      showing.current = false;
       setVisible(false);
     }, 6500);
     return () => {
-      showing.current = false;
       cancelAnimationFrame(frame);
-      clearTimeout(pan);
       clearTimeout(end);
     };
   }, [armed, userId]);
   const dismiss = () => {
-    showing.current = false;
     setVisible(false);
   };
   return (

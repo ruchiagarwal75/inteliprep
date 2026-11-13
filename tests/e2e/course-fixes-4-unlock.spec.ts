@@ -37,14 +37,24 @@ for (const theme of ["light", "dark"] as const)
           "9 topics open up. Next: Ingestion and chunking.",
         );
         const node = page.locator('[data-topic-level="1"] [data-course-node]');
-        await expect
-          .poll(async () =>
-            node.evaluate((n) => {
-              const r = n.getBoundingClientRect();
-              return Math.abs(r.top + r.height / 2 - innerHeight / 2);
-            }),
-          )
-          .toBeLessThan(2);
+        await expect(notice).toBeInViewport({ ratio: 1 });
+        const overlap = await notice.evaluate((card) => {
+          const a = card.getBoundingClientRect();
+          return Array.from(
+            document.querySelectorAll(
+              "[data-course-node],[data-course-caption],[data-topic-level] button,[data-topic-level] a",
+            ),
+          ).some((node) => {
+            const b = node.getBoundingClientRect();
+            return (
+              a.left < b.right &&
+              a.right > b.left &&
+              a.top < b.bottom &&
+              a.bottom > b.top
+            );
+          });
+        });
+        expect(overlap).toBe(false);
         const connector = page.locator("[data-primer-connector]").first();
         expect(
           await connector.evaluate((n) => getComputedStyle(n).stroke),
@@ -70,10 +80,10 @@ for (const theme of ["light", "dark"] as const)
         } else {
           await expect(node).not.toHaveCSS("animation-name", "none");
         }
-        mkdirSync("artifacts/course-fixes-4", { recursive: true });
+        mkdirSync("artifacts/course-fixes-5", { recursive: true });
         if (!reduce)
           await page.screenshot({
-            path: `artifacts/course-fixes-4/unlock-${theme}-${width}.png`,
+            path: `artifacts/course-fixes-5/unlock-${theme}-${width}.png`,
           });
         expect(
           await page.evaluate(
@@ -85,6 +95,14 @@ for (const theme of ["light", "dark"] as const)
             .getByRole("button", { name: "Later", exact: true })
             .click();
           await expect(notice).toHaveCount(0);
+          await expect
+            .poll(async () =>
+              node.evaluate((n) => {
+                const r = n.getBoundingClientRect();
+                return Math.abs(r.top + r.height / 2 - innerHeight / 2);
+              }),
+            )
+            .toBeLessThan(2);
           await page.reload();
           await expect(notice).toHaveCount(0);
         } else {
