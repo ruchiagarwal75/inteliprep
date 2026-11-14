@@ -1399,6 +1399,12 @@
   },
   {
     "path": "src/lib/play/database.ts",
+    "line": 12,
+    "text": "await sql`select set_config('mockmeai.user_id',${userId},true)`;",
+    "reason": "Existing per-player database setting required by the unchanged RLS policy, now also used in read-only transactions. Preserve account isolation."
+  },
+  {
+    "path": "src/lib/play/database.ts",
     "line": 21,
     "text": "await sql`select set_config('mockmeai.user_id',${userId},true),pg_advisory_xact_lock(hashtext('mockmeai-play'),hashtext(${userId}))`;",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."

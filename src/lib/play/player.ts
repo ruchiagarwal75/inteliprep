@@ -1,12 +1,11 @@
-import { dailyGoal } from "./daily-goal";
-import { ageReadiness } from "./readiness-store";
-import { refreshStreak } from "./streak-store";
 import "server-only";
+import { streakChange } from "./streak-policy";
+import { currentReadiness } from "./readiness-policy";
 import { playerXpLevel } from "./game-rules";
 import { playerXpLevelSchema } from "./public";
 import { cache } from "react";
 import { z } from "zod";
-import { ensurePlayer, withPlayer } from "./database";
+import { ensurePlayer, withPlayer, readPlayer } from "./database";
 const stateSchema = z.object({
   xpLevel: playerXpLevelSchema.optional(),
   dailyGoal: z.boolean().optional(),
@@ -47,25 +46,52 @@ const stateSchema = z.object({
   reviews: z.array(z.object({ topic: z.string(), count: z.number().int() })),
 });
 export type PlayerSnapshot = z.infer<typeof stateSchema>;
-async function readPlayerSnapshot(userId: string) {
-  return withPlayer(userId, async (sql) => {
-    await ensurePlayer(sql, userId);
-    await refreshStreak(sql, userId);
-    await ageReadiness(sql, userId);
+const storedStreakSchema = z.object({
+  current: z.number().int().nonnegative(),
+  longest: z.number().int().nonnegative(),
+  freezesAvailable: z.number().int().min(0).max(2),
+  lastActiveDate: z.string().nullable(),
+  lastResolvedDate: z.string().nullable(),
+});
+/** Page reads project time-dependent values without writing earned progress. */
+export async function readPlayerSnapshot(userId: string, now = new Date()) {
+  return readPlayer(userId, async (sql) => {
     const [row] = await sql`select jsonb_build_object(
-   'points',(select coalesce(sum(delta),0) from practice_game.points_ledger),
-   'streak',s.current,'freezes',s.freezes_available,'level',p.chosen_level,'timeZone',p.time_zone,'zoneSet',p.zone_set,
-   'levels',(select coalesce(jsonb_agg(to_jsonb(l)-'user_id'),'[]'::jsonb) from practice_game.level_progress l),
-   'readiness',(select coalesce(jsonb_agg(to_jsonb(r)-'user_id'),'[]'::jsonb) from practice_game.topic_readiness r),
-   'chests',(select coalesce(jsonb_agg(to_jsonb(c)-'user_id'),'[]'::jsonb) from practice_game.chest_opens c),
-   'badges',(select coalesce(jsonb_agg(to_jsonb(b)-'user_id'),'[]'::jsonb) from practice_game.badges b),
-   'reviews',(select coalesce(jsonb_agg(q),'[]'::jsonb) from (select topic,count(*)::integer as count from practice_game.review_queue where due_at<=now() group by topic)q)
-  ) as state from practice_game.player_profiles p join practice_game.streaks s using(user_id) where p.user_id=${userId}`;
-    return stateSchema.parse({
-      ...row?.state,
-      xpLevel: playerXpLevel(Number(row?.state?.points ?? 0)),
-      dailyGoal: await dailyGoal(sql, userId),
-    });
+   'points',(select coalesce(sum(delta),0) from practice_game.points_ledger where user_id=${userId}),
+   'streak',coalesce(s.current,0),'freezes',coalesce(s.freezes_available,0),'level',coalesce(p.chosen_level,'senior'),'timeZone',coalesce(p.time_zone,'UTC'),'zoneSet',coalesce(p.zone_set,false),
+   'levels',(select coalesce(jsonb_agg(to_jsonb(l)-'user_id'),'[]'::jsonb) from practice_game.level_progress l where user_id=${userId}),
+   'readiness',(select coalesce(jsonb_agg(to_jsonb(r)-'user_id'),'[]'::jsonb) from practice_game.topic_readiness r where user_id=${userId}),
+   'chests',(select coalesce(jsonb_agg(to_jsonb(c)-'user_id'),'[]'::jsonb) from practice_game.chest_opens c where user_id=${userId}),
+   'badges',(select coalesce(jsonb_agg(to_jsonb(b)-'user_id'),'[]'::jsonb) from practice_game.badges b where user_id=${userId}),
+   'reviews',(select coalesce(jsonb_agg(q),'[]'::jsonb) from (select topic,count(*)::integer as count from practice_game.review_queue where user_id=${userId} and due_at<=${now} group by topic)q),
+   'dailyGoal',exists(select 1 from practice_game.play_sessions g where g.user_id=${userId} and g.completed_at>=${now}::timestamptz-interval '48 hours' and (g.completed_at at time zone coalesce(p.time_zone,'UTC'))::date=(${now}::timestamptz at time zone coalesce(p.time_zone,'UTC'))::date)
+  ) as state,
+  jsonb_build_object('current',coalesce(s.current,0),'longest',coalesce(s.longest,0),'freezesAvailable',coalesce(s.freezes_available,0),'lastActiveDate',s.last_active_date::text,'lastResolvedDate',s.last_resolved_date::text) as streak
+  from (select ${userId}::uuid as user_id) u left join practice_game.player_profiles p using(user_id) left join practice_game.streaks s using(user_id)`;
+    const state = stateSchema.parse(row?.state);
+    const streak = streakChange(
+      storedStreakSchema.parse(row?.streak),
+      now,
+      state.timeZone,
+      false,
+    ).state;
+    return {
+      ...state,
+      streak: streak.current,
+      freezes: streak.freezesAvailable,
+      xpLevel: playerXpLevel(state.points),
+      readiness: state.readiness.map((entry) => ({
+        ...entry,
+        state: currentReadiness(
+          {
+            state: entry.state,
+            verifiedLevel: entry.verified_level,
+            lastActivityAt: entry.last_activity_at,
+          },
+          now,
+        ),
+      })),
+    } satisfies PlayerSnapshot;
   });
 }
 export const profileInputSchema = z
@@ -96,4 +122,6 @@ export async function updatePlayer(
   return playerSnapshot(userId);
 }
 
-export const playerSnapshot = cache(readPlayerSnapshot);
+export const playerSnapshot = cache((userId: string) =>
+  readPlayerSnapshot(userId),
+);

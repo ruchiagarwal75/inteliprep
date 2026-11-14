@@ -3,6 +3,16 @@ import { recordRoundTime } from "./round-timing";
 import type { TransactionSql } from "postgres";
 import { reportingDb } from "@/lib/reporting-db";
 export type PlayTransaction = TransactionSql;
+/** A single snapshot query needs RLS scope, but no write lock or mutable state. */
+export function readPlayer<T>(
+  userId: string,
+  work: (sql: PlayTransaction) => Promise<T>,
+) {
+  return reportingDb().begin("read only", async (sql) => {
+    await sql`select set_config('mockmeai.user_id',${userId},true)`;
+    return work(sql);
+  });
+}
 /** Every statement shares the same connection, verified owner and per-player lock. */
 export async function withPlayer<T>(
   userId: string,
