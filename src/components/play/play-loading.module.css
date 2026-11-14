@@ -1,0 +1,52 @@
+.content {
+  min-height: 360px;
+}
+.copy,
+.hud span,
+.icon,
+.lines span {
+  display: block;
+  background: var(--border);
+}
+.copy {
+  width: min(75%, 420px);
+  height: 14px;
+  margin-block: 16px 28px;
+}
+.cards {
+  display: grid;
+  gap: 16px;
+}
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+}
+.icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+.lines {
+  display: grid;
+  gap: 12px;
+  width: min(70%, 360px);
+}
+.lines span {
+  height: 12px;
+}
+.lines span:last-child {
+  width: 65%;
+}
+.hud {
+  display: flex;
+  gap: 12px;
+  padding-block: 12px;
+}
+.hud span {
+  width: 64px;
+  height: 16px;
+}
