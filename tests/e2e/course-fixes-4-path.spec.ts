@@ -27,7 +27,7 @@ test("returning players land with the current node circle centered, including re
         await page.emulateMedia({
           reducedMotion: reduce ? "reduce" : "no-preference",
         });
-        await page.goto("/play/rag?view=path");
+        await page.goto("/play/rag");
         if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
           await page
             .getByRole("button", {

@@ -24,7 +24,7 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   });
   const before = await modelCalls(page);
   mkdirSync("artifacts/rag-primer", { recursive: true });
-  await page.goto("/play/rag?primer=1&unlocked=1&view=path");
+  await page.goto("/play/rag?primer=1&unlocked=1");
   await expect(
     page.getByRole("status", { name: "World unlocked", exact: true }),
   ).toHaveCount(0);
@@ -160,7 +160,6 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   });
   await unlock.getByRole("button", { name: "Later", exact: true }).click();
   await expect(unlock).toHaveCount(0);
-  await page.getByRole("link", { name: "Detailed path", exact: true }).click();
   await expect(
     topics.nth(1).getByRole("link", { name: "Learn", exact: true }),
   ).toBeVisible();
@@ -178,7 +177,7 @@ test("a returning player can keep Topic 1 and take the optional primer later", a
   context,
 }) => {
   await signIn(context, "primerLegacy");
-  await page.goto("/play/rag?view=path");
+  await page.goto("/play/rag");
   const topics = page
     .getByRole("list", { name: "RAG course topics" })
     .locator(":scope > li");

@@ -19,6 +19,14 @@ for (const theme of ["light", "dark"] as const)
       page.on("pageerror", (error) => errors.push(error.message));
       const before = await modelCalls(page);
       await page.goto("/play/rag");
+      await expect(
+        page.getByRole("list", { name: "RAG course topics", exact: true }),
+      ).toBeVisible();
+      await expect(page.locator("[data-course-map]")).toHaveCount(0);
+      await page
+        .getByRole("link", { name: "Map overview", exact: true })
+        .click();
+      await expect(page).toHaveURL(/view=map/);
       const map = page.locator("[data-course-map]");
       await expect(map).toBeVisible();
       await expect(page.locator("[data-map-topic]")).toHaveCount(10);

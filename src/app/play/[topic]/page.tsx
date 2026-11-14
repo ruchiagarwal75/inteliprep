@@ -35,7 +35,7 @@ export default async function TopicPage({
       boss={boss}
       started={started}
       primerUnlock={primerUnlock}
-      view={query.view === "path" ? "path" : "map"}
+      view={query.view === "map" ? "map" : "path"}
     />
   );
 }

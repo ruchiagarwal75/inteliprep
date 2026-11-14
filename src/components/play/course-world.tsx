@@ -16,7 +16,7 @@ export function CourseWorld({
   boss,
   started = [],
   primerUnlock = false,
-  view = "map",
+  view = "path",
 }: {
   snapshot: PlayerSnapshot;
   boss: RagBossState;

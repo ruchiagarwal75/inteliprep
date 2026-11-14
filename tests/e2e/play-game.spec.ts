@@ -21,7 +21,7 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     await transport;
     await route.continue();
   });
-  await page.goto("/play/rag?view=path");
+  await page.goto("/play/rag");
   await expect(page.getByLabel("0 / 30 stars", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: /^Topic 2:/u })).toHaveCount(0);
   const node = page.getByRole("link", { name: /^Topic 1:/u });
@@ -44,7 +44,6 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     ).toBeVisible();
     await page.getByRole("link", { name: "Continue", exact: true }).click();
   }
-  await page.getByRole("link", { name: "Detailed path", exact: true }).click();
   await expect(page.getByLabel("9 / 30 stars", { exact: true })).toBeVisible();
   await expect(
     page.getByLabel("3 of 10 topics passed", { exact: true }),

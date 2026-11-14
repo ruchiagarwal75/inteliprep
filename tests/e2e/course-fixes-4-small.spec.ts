@@ -16,7 +16,7 @@ test("the world copy and path buttons distinguish the current topic from practic
       { width: 375, height: 812 },
     ]) {
       await page.setViewportSize(size);
-      await page.goto("/play/rag?view=path");
+      await page.goto("/play/rag");
       if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
