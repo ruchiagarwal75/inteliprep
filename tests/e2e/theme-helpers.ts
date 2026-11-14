@@ -3,6 +3,8 @@ import { mkdirSync } from "node:fs";
 import { scorecardSchema } from "../../src/lib/scorecard";
 export const screenshotFolder = "artifacts/light-theme";
 export async function setTheme(page: Page, theme: "light" | "dark") {
+  // The streamed loading header is replaced before the workspace is ready.
+  await expect(page.locator("main[aria-busy='true']")).toHaveCount(0);
   if ((await page.locator("html").getAttribute("data-theme")) !== theme)
     await page
       .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })

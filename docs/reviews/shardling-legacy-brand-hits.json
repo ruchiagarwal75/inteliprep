@@ -2017,7 +2017,7 @@
   },
   {
     "path": "tests/e2e/theme-helpers.ts",
-    "line": 62,
+    "line": 64,
     "text": "\"inteliprep:account:dddddddd-dddd-4ddd-8ddd-dddddddddddd\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
