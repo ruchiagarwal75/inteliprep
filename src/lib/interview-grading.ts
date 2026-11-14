@@ -1,6 +1,7 @@
 import type { GradingProgressListener } from "@/lib/grading-progress";
 import { observedModelRequest } from "@/lib/observed-model-request";
 import "server-only";
+import { AiBudgetError } from "@/lib/ai-budget-config";
 import { APIError, APIConnectionTimeoutError } from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { InterviewLevel } from "@/lib/interview-selection";
@@ -244,7 +245,12 @@ export async function gradeInterview(
         attempt: attempt + 1,
         kind: gradingFailureKind(cause),
       });
-      if (signal?.aborted || cause instanceof APIError || attempt >= 1)
+      if (
+        signal?.aborted ||
+        cause instanceof AiBudgetError ||
+        cause instanceof APIError ||
+        attempt >= 1
+      )
         throw cause;
       correction =
         "\n\nThe previous assessment failed validation. Re-check every rubric index and use only IDs from candidate_quotes or diagram_elements. Unassessed areas must have null scores and empty evidence; every numeric score and finding needs evidence.";

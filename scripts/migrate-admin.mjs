@@ -142,6 +142,15 @@ try {
         "utf8",
       ),
     );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261114014509_shared_ai_budget.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
     const legacy = [
       ...new Set(
         (process.env.MOCKMEAI_INVITED_EMAILS ?? "")

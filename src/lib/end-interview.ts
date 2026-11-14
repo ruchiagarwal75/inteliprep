@@ -1,4 +1,7 @@
 import "server-only";
+import { AiBudgetError } from "@/lib/ai-budget-config";
+import { releaseMockBudget } from "@/lib/mock-budget";
+import { deferReporting } from "@/lib/reporting-write";
 import type { GradingProgressListener } from "@/lib/grading-progress";
 import { APIError } from "openai";
 import type { InterviewEndRequest } from "@/lib/interview-end";
@@ -69,6 +72,7 @@ export async function endInterview(
     );
     signal?.throwIfAborted();
     lease.complete(scorecard);
+    deferReporting(() => releaseMockBudget(request.sessionId));
     logServerEvent({
       event: "grading_complete",
       route: "/api/interview/end",
@@ -88,12 +92,14 @@ export async function endInterview(
     );
     if (cause instanceof BetaUnavailableError) throw cause;
     const detail =
-      cause instanceof APIError &&
-      (cause.status === 401 || cause.status === 403)
-        ? "The grading service needs its server credentials checked. Your saved evidence is intact; retry after the server configuration is corrected."
-        : cause instanceof APIError && cause.status === 429
-          ? "The grading service is busy or has reached its usage limit. Your evidence is saved; retry later."
-          : undefined;
+      cause instanceof AiBudgetError
+        ? cause.message
+        : cause instanceof APIError &&
+            (cause.status === 401 || cause.status === 403)
+          ? "The grading service needs its server credentials checked. Your saved evidence is intact; retry after the server configuration is corrected."
+          : cause instanceof APIError && cause.status === 429
+            ? "The grading service is busy or has reached its usage limit. Your evidence is saved; retry later."
+            : undefined;
     throw new InterviewGradingError(detail);
   } finally {
     lease.release();

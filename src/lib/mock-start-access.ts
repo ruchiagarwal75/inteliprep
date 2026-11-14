@@ -1,4 +1,5 @@
 import "server-only";
+import { reserveMockBudget, bindMockBudget } from "@/lib/mock-budget";
 import { z } from "zod";
 import { currentCandidateId } from "@/lib/candidate-context";
 import { ApiRequestError } from "@/lib/api-request";
@@ -71,7 +72,14 @@ export async function withMockStartAccess<
         "The RAG boss uses Mid level and 45 minutes.",
         400,
       );
+    const budget = await reserveMockBudget(sql, userId, input.requestId);
     const result = await create();
+    await bindMockBudget(
+      sql,
+      budget,
+      result.interview.sessionId,
+      result.interview.timing?.deadlineAt,
+    );
     if (boss) {
       const timing = result.interview.timing;
       if (!timing) throw new Error("Missing boss timing");

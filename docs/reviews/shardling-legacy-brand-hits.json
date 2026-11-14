@@ -667,7 +667,7 @@
   },
   {
     "path": "scripts/migrate-admin.mjs",
-    "line": 147,
+    "line": 156,
     "text": "(process.env.MOCKMEAI_INVITED_EMAILS ?? \"\")",
     "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
   },
@@ -1024,6 +1024,18 @@
     "line": 13,
     "text": "await sql`select set_config('mockmeai.admin_read','true',true)`;",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
+  },
+  {
+    "path": "src/lib/ai-budget.test.ts",
+    "line": 31,
+    "text": ".unsafe(`create schema interview_admin; grant usage on schema interview_admin to mockmeai_reporting;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/lib/ai-budget.test.ts",
+    "line": 33,
+    "text": "grant select on interview_admin.ai_calls to mockmeai_reporting;",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "src/lib/app-viewer.ts",
@@ -1899,6 +1911,24 @@
     "path": "supabase/migrations/20261114014037_beta_notifications.sql",
     "line": 39,
     "text": "create policy reporting_service on interview_admin.account_onboarding to mockmeai_reporting using(true) with check(true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014509_shared_ai_budget.sql",
+    "line": 28,
+    "text": "grant select,insert,update on interview_admin.ai_budget_days,interview_admin.ai_budget_reservations to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014509_shared_ai_budget.sql",
+    "line": 30,
+    "text": "create policy reporting_service on interview_admin.ai_budget_days to mockmeai_reporting using(true) with check(true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014509_shared_ai_budget.sql",
+    "line": 32,
+    "text": "create policy reporting_service on interview_admin.ai_budget_reservations to mockmeai_reporting using(true) with check(true);",
     "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
   },
   {

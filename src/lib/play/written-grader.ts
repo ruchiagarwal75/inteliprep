@@ -1,6 +1,6 @@
 import { PlayGradingError } from "./grading-error";
 import { needsAiGrade } from "./grading-policy";
-import { checkDailyAiSpend } from "./spend";
+import { AiBudgetError } from "@/lib/ai-budget-config";
 import "server-only";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
@@ -44,11 +44,10 @@ export async function gradeWrittenAnswer(
       text: { format: zodTextFormat(verdictSchema, "practice_drill_grade") },
     }),
     { signal, timeout: 30000, maxRetries: 0 },
-  )
-    .catch((cause: unknown) => {
-      throw new PlayGradingError("provider", cause);
-    })
-    .finally(checkDailyAiSpend);
+  ).catch((cause: unknown) => {
+    if (cause instanceof AiBudgetError) throw cause;
+    throw new PlayGradingError("provider", cause);
+  });
   if (response.status !== "completed")
     throw new PlayGradingError("incomplete_output");
   const decoded = (() => {

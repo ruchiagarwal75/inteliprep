@@ -1,3 +1,5 @@
+import { releaseMockBudget } from "@/lib/mock-budget";
+import { deferReporting } from "@/lib/reporting-write";
 import { z } from "zod";
 import { readJsonBody, withApiRequest } from "@/lib/api-request";
 import { currentCandidateId } from "@/lib/candidate-context";
@@ -21,6 +23,7 @@ export const POST = withApiRequest(
       return Response.json({ error: "Sign in required" }, { status: 401 });
     setInterviewReference(input.data.sessionId);
     const result = await explicitlyExitInterview(input.data.sessionId, userId);
+    if (result) deferReporting(() => releaseMockBudget(input.data.sessionId));
     return result
       ? Response.json(result)
       : Response.json(

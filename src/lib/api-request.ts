@@ -1,4 +1,6 @@
 import "server-only";
+import { observeBudgetLimit } from "@/lib/ai-budget";
+import { AiBudgetError } from "@/lib/ai-budget-config";
 import { randomUUID } from "node:crypto";
 import { setReportingUser } from "@/lib/reporting-context";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
@@ -126,6 +128,8 @@ export function withApiRequest(
           : await run();
       } catch (cause) {
         failure = cause;
+        if (cause instanceof AiBudgetError && cause.status === 429)
+          observeBudgetLimit();
         const authError =
           cause instanceof CandidateAuthError && cause.status === 401
             ? CANDIDATE_AUTH_REQUIRED
@@ -133,6 +137,7 @@ export function withApiRequest(
               ? CANDIDATE_ACCOUNT_CHANGED
               : undefined;
         const status =
+          cause instanceof AiBudgetError ||
           cause instanceof ApiRequestError ||
           cause instanceof CandidateAuthError ||
           cause instanceof CandidateInviteError ||
@@ -144,6 +149,9 @@ export function withApiRequest(
         response = Response.json(
           {
             code:
+              (cause instanceof AiBudgetError
+                ? "AI_BUDGET_UNAVAILABLE"
+                : undefined) ??
               authError ??
               (cause instanceof CandidateInviteError
                 ? "INVITE_REQUIRED"
@@ -156,9 +164,12 @@ export function withApiRequest(
           },
           {
             status,
-            headers: authError
-              ? { [CANDIDATE_AUTH_ERROR_HEADER]: authError }
-              : undefined,
+            headers:
+              cause instanceof AiBudgetError
+                ? { "Retry-After": String(cause.retryAfter) }
+                : authError
+                  ? { [CANDIDATE_AUTH_ERROR_HEADER]: authError }
+                  : undefined,
           },
         );
       }

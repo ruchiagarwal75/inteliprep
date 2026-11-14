@@ -4,7 +4,15 @@ import { observedModelRequest } from "@/lib/observed-model-request";
 import { withReportingContext } from "@/lib/reporting-context";
 import { recordAiCall } from "@/lib/reporting-ai";
 import { recordFailure } from "@/lib/reporting-failures";
-const { create } = vi.hoisted(() => ({ create: vi.fn() }));
+import { AiBudgetError } from "@/lib/ai-budget-config";
+const { create, reserve } = vi.hoisted(() => ({
+  create: vi.fn(),
+  reserve: vi.fn(),
+}));
+vi.mock("@/lib/ai-budget", () => ({
+  reserveModelBudget: reserve,
+  settleModelBudget: vi.fn(),
+}));
 vi.mock("@/lib/openai-client", () => ({
   createOpenAIClient: () => ({ responses: { create } }),
 }));
@@ -31,7 +39,10 @@ const response = {
   usage,
   output_text: "reply",
 };
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllEnvs();
+});
 describe("per-attempt model observability", () => {
   it("records only metadata and usage, without copying prompts or answers", async () => {
     create.mockResolvedValueOnce(response);
@@ -132,4 +143,17 @@ describe("per-attempt model observability", () => {
       vi.mocked(recordAiCall).mock.calls.at(-1)?.[0].usage,
     ).toBeUndefined();
   });
+});
+
+it("refuses paid work before contacting the provider when the Production cap is hit", async () => {
+  vi.stubEnv("VERCEL_ENV", "production");
+  reserve.mockRejectedValueOnce(new AiBudgetError());
+  await expect(
+    observedModelRequest("reply", {
+      model: "gpt-6.1-sol",
+      input: "private answer",
+      max_output_tokens: 4096,
+    }),
+  ).rejects.toBeInstanceOf(AiBudgetError);
+  expect(create).not.toHaveBeenCalled();
 });

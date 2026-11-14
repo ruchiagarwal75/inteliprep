@@ -20,6 +20,11 @@ import { recordFailure, failureCategory } from "@/lib/reporting-failures";
 import { logServerEvent } from "@/lib/server-events";
 import { cacheableInterviewerRequest } from "@/lib/interviewer-cache";
 
+import { reserveModelBudget, settleModelBudget } from "@/lib/ai-budget";
+import { modelCostReservation } from "@/lib/ai-budget-estimate";
+import { estimatedAiCost, tokenUsage } from "@/lib/reporting-cost";
+import { reportingEnvironment } from "@/lib/admin-config";
+
 type Operation =
   "reply" | "assessment" | "question_review" | "feedback" | "drill";
 export function observedModelRequest(
@@ -37,12 +42,26 @@ export async function observedModelRequest(
   params: ResponseCreateParamsStreaming | ResponseCreateParamsNonStreaming,
   options?: RequestOptions,
 ): Promise<Response | AsyncIterable<ResponseStreamEvent>> {
+  const id = randomUUID();
+  const metered = reportingEnvironment() === "production";
+  if (metered)
+    params = {
+      ...params,
+      max_output_tokens: params.max_output_tokens ?? 16_384,
+    };
+  const budget = metered
+    ? await reserveModelBudget(
+        id,
+        modelCostReservation(params),
+        operation === "feedback",
+      )
+    : undefined;
   const context = reportingContext();
   const started = Date.now();
   if (context) context.failureReferenceId = undefined;
   const call: AiObservation | undefined = context
     ? {
-        id: randomUUID(),
+        id,
         context: { ...context },
         operation,
         model: params.model ?? "unknown",
@@ -67,6 +86,14 @@ export async function observedModelRequest(
       cachedTokens: response?.usage?.input_tokens_details?.cached_tokens,
       reasoningTokens: response?.usage?.output_tokens_details?.reasoning_tokens,
     });
+    await settleModelBudget(
+      budget,
+      estimatedAiCost(
+        response?.model ?? params.model ?? "unknown",
+        tokenUsage(response?.usage ?? errorUsage),
+        process.env.AI_MODEL_RATES_USD_PER_MILLION,
+      ),
+    );
     if (!call) return;
     await recordAiCall({
       ...call,
@@ -145,7 +172,6 @@ export async function observedModelRequest(
       }
     })();
   } catch (cause) {
-    if (!call) throw cause;
     const body = z
       .object({
         usage: z.unknown().optional(),

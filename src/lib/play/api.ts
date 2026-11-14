@@ -1,6 +1,7 @@
 import { roundGuardComplete, withRoundTiming } from "./round-timing";
 import { PlayGradingError, playFailureDetails } from "./grading-error";
 import "server-only";
+import { AiBudgetError } from "@/lib/ai-budget-config";
 import { ApiRequestError, withApiRequest } from "@/lib/api-request";
 import { currentCandidateId } from "@/lib/candidate-context";
 import { logServerEvent } from "@/lib/server-events";
@@ -18,7 +19,9 @@ export function playEndpoint(
       return await handler(request, userId);
     } catch (cause) {
       const known =
-          cause instanceof PlayError || cause instanceof ApiRequestError,
+          cause instanceof AiBudgetError ||
+          cause instanceof PlayError ||
+          cause instanceof ApiRequestError,
         status = known ? cause.status : 503;
       if (!known) {
         const details = playFailureDetails(cause);
@@ -43,7 +46,8 @@ export function playEndpoint(
         {
           status,
           headers:
-            cause instanceof PlayError && cause.retryAfter
+            (cause instanceof PlayError || cause instanceof AiBudgetError) &&
+            cause.retryAfter
               ? { "Retry-After": String(cause.retryAfter) }
               : undefined,
         },

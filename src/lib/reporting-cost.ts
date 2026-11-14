@@ -35,15 +35,9 @@ export function tokenUsage(value: unknown): TokenUsage | null {
     cacheWriteTokens: result.data.input_tokens_details.cache_write_tokens,
   };
 }
-/** No inferred tokens or zero-cost stand-ins for missing usage/pricing. Rates are USD / million. */
-export function estimatedAiCost(
-  model: string,
-  usage: TokenUsage | null,
-  configuredRates?: string,
-) {
-  if (!usage) return null;
+export function aiModelRate(model: string, configuredRates?: string) {
   try {
-    const rates = z.record(z.string(), rateSchema).parse(
+    return z.record(z.string(), rateSchema).parse(
       JSON.parse(
         configuredRates ??
           JSON.stringify({
@@ -70,8 +64,20 @@ export function estimatedAiCost(
             "gpt-4o-2024-11-20": { input: 2.5, cached: 1.25, output: 10 },
           }),
       ),
-    );
-    const rate = rates[model];
+    )[model];
+  } catch {
+    return undefined;
+  }
+}
+/** No inferred tokens or zero-cost stand-ins for missing usage/pricing. Rates are USD / million. */
+export function estimatedAiCost(
+  model: string,
+  usage: TokenUsage | null,
+  configuredRates?: string,
+) {
+  if (!usage) return null;
+  try {
+    const rate = aiModelRate(model, configuredRates);
     if (!rate) return null;
     const writes = usage.cacheWriteTokens ?? 0;
     if (writes && rate.cacheWrite === undefined) return null;
