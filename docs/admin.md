@@ -77,14 +77,16 @@ or Supabase Auth SMTP change is required for these outgoing notifications.
 Sending does not change the Google OAuth test-user list.
 
 For Namecheap DNS, open Domain List, Manage, Advanced DNS. Copy the required
-sending records from Resend, including the DKIM TXT record and the return-path
-SPF TXT and MX records. Use only the host prefix in Namecheap, such as
-`resend._domainkey` or `send`, because Namecheap appends the domain. The MX record
-requires Mail Settings to use Custom MX; preserve any existing mail-provider
-records. Keep the website's A and CNAME records. Save, then verify the domain in
-Resend. No incoming-email setup is needed for approval notifications.
+sending records from Resend. This domain uses Resend Forge: DKIM is a TXT record
+at `resend._domainkey`, and sending uses CNAME records at `rsend` pointing to
+`rsend.forge.rmta.net` and `send` pointing to `send.forge.rmta.net`. Add these in
+Host Records, with TTL Automatic. Namecheap appends the domain, so enter only
+the host prefix. This configuration does not require adding MX or changing
+Mail Settings. Keep existing website and mail-provider records. Save, then
+verify the domain in Resend. Add the recommended `_dmarc` TXT record shown by
+Resend if the domain does not already have a DMARC policy.
 
-Run `node scripts/check-approval-email-dns.mjs` to inspect the default sending
+Run `node scripts/check-approval-email-dns.mjs` to inspect the Forge sending
 records without sending email or reading credentials. Compare the output with
 Resend's exact records; a DNS result alone does not prove Resend verification.
 The Access page now distinguishes an unverified sender domain from an invalid

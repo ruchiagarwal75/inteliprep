@@ -1,11 +1,11 @@
-import { resolveMx, resolveTxt } from "node:dns/promises";
+import { resolveCname, resolveTxt } from "node:dns/promises";
 import { BRAND } from "../src/lib/brand.ts";
 
-// Read-only checks for the default Resend sending setup. No email or credentials.
+// Read-only checks for this domain's Resend Forge setup. No email or credentials.
 const checks = [
   ["DKIM", `resend._domainkey.${BRAND.domain}`, resolveTxt],
-  ["SPF", `send.${BRAND.domain}`, resolveTxt],
-  ["Return-path MX", `send.${BRAND.domain}`, resolveMx],
+  ["Forge routing", `rsend.${BRAND.domain}`, resolveCname],
+  ["Forge sending", `send.${BRAND.domain}`, resolveCname],
 ];
 let missing = false;
 for (const [record, host, resolve] of checks) {
