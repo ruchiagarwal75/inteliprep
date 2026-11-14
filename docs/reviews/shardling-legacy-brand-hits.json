@@ -97,43 +97,43 @@
   },
   {
     "path": "docs/admin.md",
-    "line": 136,
+    "line": 138,
     "text": "`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 246,
+    "line": 248,
     "text": "`INTELIPREP_ADMIN_DB_TEST=1 npm test -- tests/admin-database.test.ts` runs an opt-in",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 278,
+    "line": 280,
     "text": "A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 299,
+    "line": 301,
     "text": "`localStorage.setItem(\"mockmeai:exclude-analytics\", \"1\")` before navigating to app",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 355,
+    "line": 357,
     "text": "`mockmeai_reporting` and its restricted grants/policies.",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 359,
+    "line": 361,
     "text": "`postgres.<project-ref>` to `mockmeai_reporting.<project-ref>`. It refuses to",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 421,
+    "line": 423,
     "text": "- Alternatively, open the IntelliPrep project in Supabase, open SQL Editor,",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -667,7 +667,7 @@
   },
   {
     "path": "scripts/migrate-admin.mjs",
-    "line": 138,
+    "line": 147,
     "text": "(process.env.MOCKMEAI_INVITED_EMAILS ?? \"\")",
     "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
   },
@@ -1374,6 +1374,12 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "src/lib/notifications.test.ts",
+    "line": 27,
+    "text": "grant usage on schema interview_admin to mockmeai_reporting;`);",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "src/lib/play/api.test.ts",
     "line": 29,
     "text": "new Request(\"https://mockmeai.test/api/play/submit\", { method: \"POST\" }),",
@@ -1869,6 +1875,30 @@
     "path": "supabase/migrations/20261113215525_play_welcome_events.sql",
     "line": 12,
     "text": "create policy server_admin_events on practice_game.play_events for select to mockmeai_reporting using(current_setting('mockmeai.admin_read',true)='true');",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014037_beta_notifications.sql",
+    "line": 25,
+    "text": "grant select,insert,update on interview_admin.notifications to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014037_beta_notifications.sql",
+    "line": 27,
+    "text": "create policy reporting_service on interview_admin.notifications to mockmeai_reporting using(true) with check(true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014037_beta_notifications.sql",
+    "line": 37,
+    "text": "grant select,insert,update on interview_admin.account_onboarding to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261114014037_beta_notifications.sql",
+    "line": 39,
+    "text": "create policy reporting_service on interview_admin.account_onboarding to mockmeai_reporting using(true) with check(true);",
     "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
   },
   {
