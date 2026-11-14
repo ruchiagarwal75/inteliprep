@@ -34,6 +34,10 @@ test("polished diagram labels clear each other and shape borders in both layouts
       }
       await page.evaluate(() => document.fonts.ready);
       for (const { kind, name } of diagrams) {
+        await page.goto(
+          `/play/rag/notebook?topic=${name.startsWith("T9") ? 9 : 8}`,
+        );
+        await page.evaluate(() => document.fonts.ready);
         const figure = page.locator(`[data-course-diagram="${kind}"]`),
           svg = figure.locator("svg:visible");
         await figure.scrollIntoViewIfNeeded();

@@ -83,7 +83,9 @@ it("opens the last three topics in order, preserves rewards and persists the fin
   expect(awards.count).toBe(1);
 });
 it("makes slides for all ten topics available in the notebook without leaking unanswered solutions", async () => {
-  const notebook = await courseNotebook(other);
+  const notebook = await Promise.all(
+    Array.from({ length: 10 }, (_, level) => courseNotebook(other, level)),
+  );
   expect(notebook).toHaveLength(10);
   expect(notebook.every((t) => t.slides.length > 0)).toBe(true);
   for (const topic of notebook.filter((t) => t.level >= 7)) {

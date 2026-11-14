@@ -2,9 +2,7 @@
   min-height: 360px;
 }
 .copy,
-.hud span,
-.icon,
-.lines span {
+.hud span {
   display: block;
   background: var(--border);
 }
@@ -25,21 +23,21 @@
   background: var(--surface);
   border: 2px solid var(--border);
 }
-.icon {
+.card::before {
+  content: "";
+  background: var(--border);
   width: 40px;
   height: 40px;
   flex-shrink: 0;
 }
-.lines {
-  display: grid;
-  gap: 12px;
+.card::after {
+  content: "";
+  display: block;
   width: min(70%, 360px);
-}
-.lines span {
-  height: 12px;
-}
-.lines span:last-child {
-  width: 65%;
+  height: 36px;
+  background:
+    linear-gradient(var(--border), var(--border)) 0 0 / 100% 12px no-repeat,
+    linear-gradient(var(--border), var(--border)) 0 24px / 65% 12px no-repeat;
 }
 .hud {
   display: flex;

@@ -138,7 +138,14 @@ export function RoundSummaryCard({ summary }: { summary: RoundSummary }) {
             </Link>
           )}
           {course && (
-            <Link className="practice-secondary" href="/play/rag/notebook">
+            <Link
+              className="practice-secondary"
+              href={
+                summary.level === null
+                  ? "/play/rag/notebook"
+                  : `/play/rag/notebook?topic=${summary.level}`
+              }
+            >
               Notebook
             </Link>
           )}

@@ -70,3 +70,45 @@
     font-size: 12px;
   }
 }
+
+.notebook nav ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+.notebook nav ol a {
+  display: block;
+  padding: 8px 12px;
+  border: 2px solid var(--pixel-line);
+  background: var(--pixel-card);
+  color: var(--pixel-text);
+  text-decoration: none;
+}
+.notebook nav ol a[aria-current="page"] {
+  border-color: var(--pixel-violet);
+  background: var(--pixel-violet-soft);
+  color: var(--pixel-violet-text);
+}
+.paging {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.picker {
+  margin-block: 24px;
+  border: 2px solid var(--pixel-line);
+  padding: 12px 16px;
+}
+.picker summary {
+  cursor: pointer;
+  font-weight: 650;
+}
+.picker summary span {
+  display: block;
+  margin-top: 4px;
+  color: var(--pixel-violet-text);
+  font-weight: 400;
+}
+.picker nav {
+  margin-bottom: 0;
+}

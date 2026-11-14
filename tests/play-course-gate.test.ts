@@ -27,7 +27,7 @@ it("page and notebook reads cannot unlock a fresh account's quiz", async () => {
       complete: false,
       seenThrough: -1,
     });
-    await courseNotebook(user);
+    await courseNotebook(user, 1);
     await expect(start()).rejects.toMatchObject({ status: 403 });
   }
   expect(

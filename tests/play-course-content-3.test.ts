@@ -83,8 +83,8 @@ it("unlocks Topics 4 to 6 in order and preserves the existing ten-question rewar
   const [awards] =
     await db.operator`select count(*)::integer as count from practice_game.points_ledger where user_id=${user} and reason='chest' and ref_id='rag-course:6'`;
   expect(awards.count).toBe(1);
-  const notebook = (await courseNotebook(other)).filter(
-    (t) => t.level >= 4 && t.level <= 6,
+  const notebook = await Promise.all(
+    [4, 5, 6].map((level) => courseNotebook(other, level)),
   );
   expect(notebook.map((t) => [t.slides.length, t.questions.length])).toEqual([
     [12, 10],

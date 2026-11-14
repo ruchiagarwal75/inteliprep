@@ -53,15 +53,8 @@ const subscribe = (changed: () => void) => {
 const hidden = () => document.hidden;
 const server = () => false;
 const pixels = (art: ReturnType<typeof compileSprite>) =>
-  art.runs.map((run, i) => (
-    <rect
-      key={i}
-      x={run.x}
-      y={run.y}
-      width={run.width}
-      height="1"
-      fill={run.color}
-    />
+  art.paths.map((path) => (
+    <path key={path.color} d={path.d} fill={path.color} />
   ));
 export function InterviewerSprite({
   pose = "idle",

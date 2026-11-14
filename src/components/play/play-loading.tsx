@@ -23,13 +23,7 @@ export function PlayLoading({
       <div className={styles.copy} aria-hidden="true" />
       <div className={styles.cards} aria-hidden="true">
         {[0, 1, 2].map((i) => (
-          <div className={styles.card} key={i}>
-            <span className={styles.icon} />
-            <span className={styles.lines}>
-              <span />
-              <span />
-            </span>
-          </div>
+          <div className={styles.card} key={i} />
         ))}
       </div>
     </section>

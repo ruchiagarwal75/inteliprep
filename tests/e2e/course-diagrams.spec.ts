@@ -59,7 +59,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         });
         await page.setViewportSize({ width, height: 900 });
       }
-      await page.goto("/play/rag/notebook");
+
       for (const kind of [
         "pipeline",
         "overlap",
@@ -75,6 +75,23 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         "multi-query",
         "retrieval-funnel",
       ]) {
+        const level = [
+          "pipeline",
+          "overlap",
+          "split-table",
+          "small-to-big",
+        ].includes(kind)
+          ? 1
+          : [
+                "vector-angle",
+                "bi-encoder",
+                "hnsw-layers",
+                "ivf-clusters",
+                "filter-timing",
+              ].includes(kind)
+            ? 2
+            : 3;
+        await page.goto(`/play/rag/notebook?topic=${level}`);
         const diagram = page.locator(`[data-course-diagram="${kind}"]`);
         await expectReadableDiagram(diagram);
         await diagram.screenshot({
@@ -86,6 +103,7 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
 });
 
 async function expectReadableDiagram(diagram: Locator) {
+  await expect(diagram).toBeVisible();
   await expect(diagram).toHaveAttribute("role", "img");
   await expect(diagram).toHaveAttribute("aria-label", /.{30,}/u);
   const visible = await diagram.locator("svg").evaluateAll((svgs) =>

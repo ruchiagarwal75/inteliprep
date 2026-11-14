@@ -20,15 +20,8 @@ export function PixelSprite({
       aria-hidden={label ? undefined : true}
       data-pixel-sprite
     >
-      {art.runs.map((run, i) => (
-        <rect
-          key={i}
-          x={run.x}
-          y={run.y}
-          width={run.width}
-          height="1"
-          fill={run.color}
-        />
+      {art.paths.map((path) => (
+        <path key={path.color} d={path.d} fill={path.color} />
       ))}
     </svg>
   );

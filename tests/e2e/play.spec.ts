@@ -120,7 +120,15 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   await captureCourse(page, "topic-complete");
   await page.getByRole("link", { name: "Notebook", exact: true }).click();
   await expect(page.locator('[data-answered="true"]')).toHaveCount(7);
-  await expect(page.locator('[data-answered="false"]')).toHaveCount(88);
+  await expect(page.locator('[data-answered="false"]')).toHaveCount(0);
+  await page.locator("[data-topic-picker] > summary").click();
+  await page
+    .getByRole("navigation", { name: "Notebook topics" })
+    .getByRole("link", {
+      name: "2. Embeddings and the vector store",
+      exact: true,
+    })
+    .click();
   await expect(page.locator('[data-notebook-question="T2-Q1"]')).toHaveText(
     "Fast searchTry it first",
   );

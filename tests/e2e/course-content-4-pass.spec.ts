@@ -25,8 +25,8 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
     await queue;
     await route.continue();
   });
-  await page.goto("/play/rag/notebook");
   for (const level of [7, 8, 9]) {
+    await page.goto(`/play/rag/notebook?topic=${level}`);
     const questions = page.locator(`[data-notebook-question^="T${level}-Q"]`);
     await expect(questions).toHaveCount(10);
     await expect(questions.first()).toContainText("Try it first");
@@ -186,13 +186,14 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
     path: "artifacts/course-content-4/all-topics-cleared.png",
     fullPage: true,
   });
-  await page.goto("/play/rag/notebook");
-  for (const level of [7, 8, 9])
+  for (const level of [7, 8, 9]) {
+    await page.goto(`/play/rag/notebook?topic=${level}`);
     await expect(
       page.locator(
         `[data-notebook-question^="T${level}-Q"][data-answered="true"]`,
       ),
     ).toHaveCount(10);
+  }
   expect(errors).toEqual([]);
   expect(await modelCalls(page)).toBe(before);
 });

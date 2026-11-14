@@ -151,18 +151,18 @@ it("allows the quiz immediately on a revisit and halves replay XP", async () => 
 });
 
 it("the notebook shows all slides but only the owner's answered questions and solutions", async () => {
-  const mine = (await courseNotebook(user)).filter((row) => row.level > 0),
-    theirs = (await courseNotebook(other)).filter((row) => row.level > 0);
-  expect(mine.map((row) => row.level)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  expect(mine[0].slides).toHaveLength(13);
-  expect(theirs[0].slides).toHaveLength(13);
-  expect(mine[0].questions.every((q) => q.answered)).toBe(true);
-  const answered = mine[0].questions[4];
+  const mine = await courseNotebook(user, 1),
+    theirs = await courseNotebook(other, 1);
+  expect(mine.level).toBe(1);
+  expect(mine.slides).toHaveLength(13);
+  expect(theirs.slides).toHaveLength(13);
+  expect(mine.questions.every((q) => q.answered)).toBe(true);
+  const answered = mine.questions[4];
   if (!answered.answered) throw Error("Expected saved answer");
   expect(answered.correct).toBe(false);
   expect(answered.expected).toBe("20M");
   expect(answered.why).toContain("4,000 / 400 = 10");
-  for (const group of [mine[1], ...theirs])
+  for (const group of [await courseNotebook(user, 2), theirs])
     for (const question of group.questions) {
       expect(question.answered).toBe(false);
       expect(Object.keys(question).sort()).toEqual([
