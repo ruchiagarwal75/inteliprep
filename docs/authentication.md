@@ -130,22 +130,25 @@ References: [Supabase Google sign-in](https://supabase.com/docs/guides/auth/soci
 [redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
 
 
-## Private-beta invitations
+## Account access
 
-Sign in as the configured admin, open `/admin/access`, enter an exact Google
-account email and choose **Approve access**. Changes apply on the next protected
-request without redeploying. Use **Revoke** to withdraw access. No invitation email
-is sent automatically. The database stores normalized exact emails, without domain
-or wildcard matches. The configured `ADMIN_USER_ID` always has access through
-verified Auth, never editable profile metadata. Every candidate API checks current
-database membership before interview/model work. Uninvited accounts see
-`/not-invited` and can sign out to switch accounts. A database outage returns
-unavailable, never permission to practice or an app-login-expired marker.
-Run `npm run db:admin` before deploying. It imports a legacy local
-`MOCKMEAI_INVITED_EMAILS` list without overriding any existing row, including
-revocations. Runtime checks do not read that variable. See [admin access](admin.md).
-Google may still create an Auth account during OAuth; the account alone does not
-grant app access. Vercel deployment protection remains a separate outer gate.
+Verified Google accounts can enter automatically. `/admin/access` lists automatic
+accounts plus explicit access overrides. Use **Revoke** or **Restore** without a
+redeploy. An existing revoked row stays revoked after sign-in. The configured
+`ADMIN_USER_ID` keeps independently verified admin access. Editable profile
+metadata never grants access.
+
+Every protected request calls the existing own-email, SECURITY INVOKER
+`is_beta_invited()` RPC. Its legacy name is preserved, but absence now means
+active access. Revoked accounts see `/not-invited`. A database outage returns
+unavailable, never permission or an app-login-expired marker. Old saved sessions
+and invitations are not removed.
+
+The first successful app sign-in queues one welcome and one owner notification.
+Returning sign-ins and refreshes do not create new emails. See
+[open beta operations](open-beta-operations.md). Google OAuth Audience settings
+and Vercel Preview protection are separate controls. Production custom domains
+must stay public, while Preview URLs can remain protected.
 
 ## Google console rebrand checklist (operator action)
 
@@ -170,16 +173,16 @@ Do not create or replace the client, secret or callback during a branding change
 6. Under **Clients**, edit the existing Web application client. Include
    `https://shardling.com` in Authorized JavaScript origins. Preserve the redirect
    URI `https://bjqjocrfsiprlvnitfuo.supabase.co/auth/v1/callback` exactly.
-7. Under **Audience**, keep External and Testing during private beta, with the
-   intended test accounts. The Google test list and the app invitation list are
-   separate controls. Keep Data Access limited to openid/email/profile.
+7. Under **Audience**, use External. For open signup, publish the app to
+   Production instead of relying on a test-user list. Keep Data Access limited to
+   openid/email/profile. This console setting is not changed by a code deploy.
 8. Save. If Google requires branding verification, submit the updated branding.
    Google controls when the new name/logo appears. Before a public production
    verification, reviewers must be able to reach the homepage and policy links;
    coordinate that with the deliberate end of deployment-level beta protection.
 9. Test a fresh Google sign-in, confirm the displayed branding and return to
-   Shardling, and verify an invited account can start while an uninvited account
-   sees the invitation notice.
+   Shardling, and verify a new Google account can enter while an explicitly
+   revoked account sees the restricted-access notice.
 
 Reference: [Google's OAuth branding settings](https://support.google.com/cloud/answer/15549049).
 

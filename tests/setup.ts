@@ -1,6 +1,9 @@
 import { beforeEach, vi } from "vitest";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 
+// Transactional email is a boundary, just like Auth. Dedicated outbox tests
+// unmock it and use isolated Postgres plus a stubbed sender.
+vi.mock("@/lib/account-onboarding", () => ({ observeAccountAccess: vi.fn() }));
 const testCandidate = "11111111-1111-4111-8111-111111111111";
 // Legacy engine tests use an entitled fixture. Access policy tests unmock this
 // adapter and run the real SQL policy against isolated Postgres.

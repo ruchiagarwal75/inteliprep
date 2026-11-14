@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.hoisted(() => vi.resetModules());
 vi.unmock("@/lib/candidate-auth");
+const observe = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/account-onboarding", () => ({ observeAccountAccess: observe }));
 const claims = vi.hoisted(() => vi.fn());
 const getUser = vi.hoisted(() => vi.fn());
 const rpc = vi.hoisted(() => vi.fn());
@@ -21,6 +23,7 @@ afterEach(() => {
   getUser.mockReset();
   claims.mockReset();
   rpc.mockReset();
+  observe.mockClear();
   vi.unstubAllEnvs();
 });
 describe("verified candidate identity", () => {
@@ -136,4 +139,20 @@ it("revalidates lifecycle boundaries online and distinguishes rejected sessions 
   await expect(
     requireCandidateIdentity({ revalidateUser: true }),
   ).rejects.toMatchObject({ status: 503 });
+});
+
+it("observes onboarding only after the account access check succeeds", async () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  claims.mockResolvedValue({
+    data: { claims: { sub: id, email: "new@example.test" } },
+    error: null,
+  });
+  rpc.mockResolvedValueOnce({ data: false, error: null });
+  await expect(requireCandidateIdentity()).rejects.toMatchObject({
+    status: 403,
+  });
+  expect(observe).not.toHaveBeenCalled();
+  rpc.mockResolvedValueOnce({ data: true, error: null });
+  expect(await requireCandidateIdentity()).toBe(id);
+  expect(observe).toHaveBeenCalledWith(id, "new@example.test");
 });

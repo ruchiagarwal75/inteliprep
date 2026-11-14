@@ -7,7 +7,7 @@ export default function PrivacyPage() {
     <LegalPage title="Privacy policy">
       <p>
         {BRAND.name} provides AI system design interview practice. This policy
-        describes the data used to run the private beta.
+        describes the data used to run the beta.
       </p>
       <h2>Your account and browser history</h2>
       <p>
@@ -35,10 +35,16 @@ export default function PrivacyPage() {
         interviews and can be withdrawn without deleting your saved history.
       </p>
       <p>
-        When access is approved, we send your email address and an approval
+        When access is restored, we send your email address and an access
         notification to Resend for email delivery. Our private database keeps
         the notification, delivery-attempt status and a debugging reference.
         These emails do not include interview answers or drawings.
+      </p>
+      <p>
+        On your first successful sign-in, we send a welcome email and notify the
+        app owner of your account email and signup time. Resend delivers these
+        account emails. The owner also receives shared AI budget alerts. These
+        emails never contain your practice answers or drawings.
       </p>
       <h2>Interview processing</h2>
       <p>

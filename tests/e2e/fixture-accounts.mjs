@@ -140,6 +140,10 @@ export const fixtureAccounts = {
     id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     email: "genai@example.invalid",
   },
+  openBeta: {
+    id: "f1234567-1111-4111-8111-000000000001",
+    email: "open-beta-qa@example.invalid",
+  },
   admin: {
     id: "99999999-9999-4999-8999-999999999999",
     email: "owner@example.invalid",

@@ -1,3 +1,5 @@
+import { adminAiBudget } from "@/lib/admin-ai-budget";
+import { AdminAiBudgetPanel } from "@/components/admin-ai-budget-panel";
 import { adminVisitors } from "@/lib/admin-visitors";
 import { AdminVisitorsPanel } from "@/components/admin-visitors-panel";
 import { adminPageAccess } from "@/lib/admin-page-access";
@@ -29,13 +31,22 @@ export default async function AdminPage({
       </p>
     );
   }
-  const [overview, users, visitors] = await Promise.allSettled([
+  const [overview, users, visitors, budget] = await Promise.allSettled([
     adminOverview(query.includeExcluded),
     adminUsers(query),
     adminVisitors(query.includeExcluded),
+    adminAiBudget(),
   ]);
   return (
     <div className="space-y-8">
+      {budget.status === "fulfilled" ? (
+        <AdminAiBudgetPanel data={budget.value} />
+      ) : (
+        <p role="alert">
+          AI budget data unavailable. Check the budget migration and connection;
+          this does not mean zero spending.
+        </p>
+      )}
       <form action="/admin" className="flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2">
           <input

@@ -51,7 +51,7 @@ workflow result and the intended deployment's Ready status for the same commit.
 
 Before sharing a release, verify the custom domain points to the Ready Production
 deployment whose `githubCommitRef` is `main` and whose SHA matches `origin/main`.
-Signed-out candidate APIs must return 401 and uninvited accounts must remain
+Signed-out candidate APIs must return 401 and explicitly revoked accounts must remain
 blocked. Preview access may still require Vercel Authentication. A successful
 health check does not make a model request.
 
@@ -260,7 +260,7 @@ health check needs authorized access without removing deployment protection.
 ## Release smoke test
 
 1. Confirm Production is publicly reachable, candidate APIs require sign-in, and
-   uninvited accounts are blocked. Check Vercel protection separately on Preview.
+   explicitly revoked accounts are blocked. Check Vercel protection separately on Preview.
 2. Open `/api/health`: expect 200 with `status: "ok"`. Detailed configuration and
    shared-store checks stay in server logs. Provider billing/model access is separate.
 3. With a separate Pro/admin QA account, start a 45-minute scaling interview, ask a clarification, draw and explain,

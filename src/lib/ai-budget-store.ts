@@ -6,13 +6,17 @@ import { spendNotification } from "@/lib/notification-templates";
 
 export async function lockBudgetDay(sql: TransactionSql, day: string) {
   await sql`insert into interview_admin.ai_budget_days(day) values(${day}) on conflict do nothing`;
+  await sql`select day from interview_admin.ai_budget_days where day=${day} for update`;
+  await sql`update interview_admin.ai_budget_reservations set held_usd=0,protected_usd=0,settled=true where day=${day} and kind='mock' and not settled and expires_at<=now()`;
+  return readBudgetTotals(sql, day);
+}
+export async function readBudgetTotals(sql: TransactionSql, day: string) {
   const [row] = await sql<
     { spent: string; uncertain: string }[]
-  >`select spent_usd::text as spent,uncertain_usd::text as uncertain from interview_admin.ai_budget_days where day=${day} for update`;
-  await sql`update interview_admin.ai_budget_reservations set held_usd=0,protected_usd=0,settled=true where day=${day} and kind='mock' and not settled and expires_at<=now()`;
+  >`select spent_usd::text as spent,uncertain_usd::text as uncertain from interview_admin.ai_budget_days where day=${day}`;
   const [held] = await sql<
     { amount: string }[]
-  >`select coalesce(sum(held_usd),0)::text as amount from interview_admin.ai_budget_reservations where day=${day} and not settled`;
+  >`select coalesce(sum(held_usd),0)::text as amount from interview_admin.ai_budget_reservations where day=${day} and not settled and (kind='call' or expires_at>now())`;
   // Also reconcile older deployments and late-arriving usage on every decision.
   // A metered call keeps its reservation row, so its reporting row is never counted twice.
   const [legacy] = await sql<
@@ -23,8 +27,8 @@ export async function lockBudgetDay(sql: TransactionSql, day: string) {
       and c.started_at>=${day + "T00:00:00Z"}::timestamptz and c.started_at<${day + "T00:00:00Z"}::timestamptz+interval '1 day'
       and not exists(select 1 from interview_admin.ai_budget_reservations r where r.id=c.id)`;
   return {
-    spent: Number(row.spent) + Number(legacy.spent),
-    uncertain: Number(row.uncertain) + Number(legacy.uncertain),
+    spent: Number(row?.spent ?? 0) + Number(legacy.spent),
+    uncertain: Number(row?.uncertain ?? 0) + Number(legacy.uncertain),
     held: Number(held.amount),
   };
 }

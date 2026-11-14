@@ -68,6 +68,7 @@ export async function startReportingFixture(key, cert) {
       "20261109230144_short_interview_scoring.sql",
       "20261109231409_beta_funnel.sql",
       "20261108050628_beta_invitations.sql",
+      "20261109011503_beta_approval_emails.sql",
       "20261110072257_google_only_beta_invitations.sql",
       "20261111221816_play_game.sql",
       "20261112041345_play_stars_replays.sql",
@@ -83,12 +84,19 @@ export async function startReportingFixture(key, cert) {
       "20261113200924_play_mock_access.sql",
       "20261113213647_play_welcome.sql",
       "20261113215525_play_welcome_events.sql",
+      "20261114014037_beta_notifications.sql",
+      "20261114014509_shared_ai_budget.sql",
+      "20261114015629_open_beta_access.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
       );
     for (const [name, account] of Object.entries(fixtureAccounts))
-      await operator`insert into interview_admin.beta_invites(email,approved) values (${account.email},${name !== "uninvited"})`;
+      if (name !== "openBeta")
+        await operator`insert into interview_admin.beta_invites(email,approved) values (${account.email},${name !== "uninvited"})`;
+    await operator`insert into interview_admin.notifications(id,environment,event_key,kind,recipient,sender,subject,body,status,failure_category)
+      values(${randomUUID()},'test','qa-welcome','welcome','open-beta-qa@example.invalid','test@example.invalid','[test] Welcome','Private QA message body','sent',null),
+      (${randomUUID()},'test','qa-alert','new_user','owner@example.invalid','test@example.invalid','[test] Signup','Private QA message body','failed','configuration')`;
     await operator.unsafe(
       "alter role mockmeai_reporting password 'ci-only-reporting-fixture'",
     );

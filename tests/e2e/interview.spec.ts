@@ -369,14 +369,17 @@ test("admin sees answered and skipped feedback; menu feedback stays independent"
   expect(included.total).toBe(1);
   expect(included.entries[0].source).toBe("menu");
 });
-test("database approval and revocation take effect with the same signed-in session", async ({
+test("database restore and revocation take effect with the same signed-in session", async ({
   page,
   context,
 }) => {
   await signIn(context, "uninvited");
   await page.goto("/interview/new");
   await expect(
-    page.getByRole("heading", { name: "You're not invited yet", exact: true }),
+    page.getByRole("heading", {
+      name: "Account access is restricted",
+      exact: true,
+    }),
   ).toBeVisible();
   try {
     await context.request.post(fixture + "/fixture/invitation", {
@@ -400,7 +403,10 @@ test("database approval and revocation take effect with the same signed-in sessi
   expect(response.headers()["x-interview-auth-error"]).toBeUndefined();
   await page.goto("/interview/new");
   await expect(
-    page.getByRole("heading", { name: "You're not invited yet", exact: true }),
+    page.getByRole("heading", {
+      name: "Account access is restricted",
+      exact: true,
+    }),
   ).toBeVisible();
 });
 test("empty interview feedback is skippable while its scorecard is still generating", async ({
@@ -458,7 +464,7 @@ test("empty interview feedback is skippable while its scorecard is still generat
     ),
   ).toBeVisible();
 });
-test("uninvited and signed-out users cannot start, and policies are linked", async ({
+test("revoked and signed-out users cannot start, and policies are linked", async ({
   page,
   context,
   playwright,
@@ -477,7 +483,10 @@ test("uninvited and signed-out users cannot start, and policies are linked", asy
   await signIn(context, "uninvited");
   await page.goto("/interview/new");
   await expect(
-    page.getByRole("heading", { name: "You're not invited yet", exact: true }),
+    page.getByRole("heading", {
+      name: "Account access is restricted",
+      exact: true,
+    }),
   ).toBeVisible();
   expect(
     (
@@ -836,7 +845,7 @@ test("an invited email from a non-Google provider is denied by the real invitati
     await page.goto("/interview/new");
     await expect(page).toHaveURL(/not-invited/u);
     await expect(
-      page.getByRole("heading", { name: "You're not invited yet" }),
+      page.getByRole("heading", { name: "Account access is restricted" }),
     ).toBeVisible();
     const denied = await context.request.post("/api/interview/start", {
       data: {},

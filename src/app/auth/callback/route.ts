@@ -1,3 +1,4 @@
+import { observeAccountAccess } from "@/lib/account-onboarding";
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { supabaseServer } from "@/lib/supabase-server";
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
       if (success && data?.user) {
         try {
           await requireCandidateInvite(data.user.id, data.user.email, client);
+          observeAccountAccess(data.user.id, data.user.email);
         } catch (failure) {
           if (!(failure instanceof CandidateInviteError)) throw failure;
           invited = false;

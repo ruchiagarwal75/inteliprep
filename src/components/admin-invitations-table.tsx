@@ -16,22 +16,16 @@ export function AdminInvitationsTable({
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
-        <caption className="sr-only">
-          Google email invitations and current beta access
-        </caption>
+        <caption className="sr-only">Google account access overrides</caption>
         <thead>
           <tr>
-            {[
-              "Email",
-              "Access",
-              "Updated (UTC)",
-              "Approval email",
-              "Action",
-            ].map((label) => (
-              <th scope="col" className="border-b p-3" key={label}>
-                {label}
-              </th>
-            ))}
+            {["Email", "Access", "Updated (UTC)", "Access email", "Action"].map(
+              (label) => (
+                <th scope="col" className="border-b p-3" key={label}>
+                  {label}
+                </th>
+              ),
+            )}
           </tr>
         </thead>
         <tbody>
@@ -39,7 +33,7 @@ export function AdminInvitationsTable({
             <tr key={invite.email}>
               <td className="border-b p-3">{invite.email}</td>
               <td className="border-b p-3">
-                {invite.approved ? "Approved" : "Revoked"}
+                {invite.approved ? "Active" : "Revoked"}
               </td>
               <td className="border-b p-3">
                 <AdminTime value={invite.updatedAt} />
@@ -57,10 +51,10 @@ export function AdminInvitationsTable({
                   type="button"
                   disabled={busy}
                   className="practice-secondary"
-                  aria-label={`${invite.approved ? "Revoke" : "Approve"} access for ${invite.email}`}
+                  aria-label={`${invite.approved ? "Revoke" : "Restore"} access for ${invite.email}`}
                   onClick={() => onChange(invite.email, !invite.approved)}
                 >
-                  {invite.approved ? "Revoke" : "Approve"}
+                  {invite.approved ? "Revoke" : "Restore"}
                 </button>
               </td>
             </tr>

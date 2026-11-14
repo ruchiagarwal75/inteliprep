@@ -146,7 +146,7 @@ it("leaves non-Production isolated and fails closed if its ledger is unavailable
   });
   await expect(
     reserveModelBudget(randomUUID(), 1, false),
-  ).rejects.toMatchObject({ status: 503 });
+  ).rejects.toMatchObject({ status: 503, retryAfter: 30 });
 });
 it("prices images conservatively without billing their base64 as text", () => {
   const base = {

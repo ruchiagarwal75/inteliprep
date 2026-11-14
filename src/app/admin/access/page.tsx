@@ -1,3 +1,5 @@
+import { adminNotifications } from "@/lib/admin-notifications";
+import { AdminNotificationsPanel } from "@/components/admin-notifications-panel";
 import Link from "next/link";
 import { adminPageAccess } from "@/lib/admin-page-access";
 import { adminInvites, adminInviteQuery } from "@/lib/admin-invites";
@@ -32,10 +34,25 @@ export default async function AdminAccessPage({
   } catch {
     return (
       <p role="alert">
-        Invitations are unavailable. Check the database connection and
+        Access records are unavailable. Check the database connection and
         invitation migration, then refresh.
       </p>
     );
   }
-  return <AdminInvitesPanel data={data} search={query.search} />;
+  const notifications = await adminNotifications()
+    .then((rows) => ({ rows }))
+    .catch(() => null);
+  return (
+    <div className="space-y-8">
+      <AdminInvitesPanel data={data} search={query.search} />
+      {notifications ? (
+        <AdminNotificationsPanel rows={notifications.rows} />
+      ) : (
+        <p role="alert">
+          Email status is unavailable. Check the notification migration and
+          connection.
+        </p>
+      )}
+    </div>
+  );
 }

@@ -328,11 +328,13 @@ without modifying the editor, its viewport, or its saved scene.
 
 `usesSharedStore()` selects Redis-backed coordination on deployed instances,
 including Production. It does not describe audience or invitation policy.
-Private-beta access lives in `interview_admin.beta_invites`, managed by the owner
-at `/admin/access`. Candidates use an own-email RLS-protected SECURITY INVOKER RPC;
-the admin remains independently authorized by verified `ADMIN_USER_ID`. The old
-`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database
-membership fails closed. New Auth records alone never grant interview access.
+Account overrides live in `interview_admin.beta_invites`, managed at `/admin/access`.
+Verified Google accounts have automatic access unless explicitly revoked. Missing
+rows are active; database errors fail closed. Candidates use the existing own-email
+RLS-protected SECURITY INVOKER RPC. The admin remains independently authorized by
+verified `ADMIN_USER_ID`. The old `MOCKMEAI_INVITED_EMAILS` is a migration input only.
+Preserve the legacy table/RPC names and explicit revocations. See
+`docs/open-beta-operations.md` for budget holds and transactional email rules.
 
 Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and
 `inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;

@@ -46,29 +46,23 @@ and strict email/boolean validation. Reporting APIs remain GET-only. The
 `interview_admin` schema is not exposed through the Data API. Reporting tables
 have RLS and no browser table grants; the invitation exception is described below.
 
-## Approving beta users
+## Account access
 
-1. Sign in with the configured admin account and open `/admin/access`.
-2. Newly registered accounts appear under **Awaiting approval**, newest first.
-   Click **Approve** beside the account. The entry moves into Invitations as
-   approved. Alternatively, enter a Google email under **Invite by email** before
-   the person signs in. A new approval sends a notification from
-   `Shardling <hello@shardling.com>` through Resend.
-3. They can refresh or sign in. **Revoke** withdraws access on their next protected
-   request without deleting their account or saved interviews.
+New Google accounts have access automatically. Open `/admin/access` to see new
+registered accounts under **Automatic access**. **Revoke** blocks their next
+protected request. **Restore** re-enables a revoked account. The configured admin
+always has access independently of this table.
 
-The private `interview_admin.beta_invites` table stores one normalized email per
-row, approval state, server timestamps and the admin who last changed that state.
-Retries preserve the original creation time and do not create duplicate rows.
-The configured admin always has access independently of the table.
+`interview_admin.beta_invites` keeps its original name for compatibility. An
+explicit `approved=false` row means revoked. A missing row means active; it is
+never inserted or overwritten by sign-in. Existing approved accounts and saved
+interviews are preserved. Search covers automatic accounts and access overrides,
+with independent pagination. A database outage still fails closed.
 
-The pending list reads the existing registered-account projection; it does not
-create duplicate signup records. Accounts with an existing invitation, including
-an explicit revocation, do not reappear as pending. The configured admin is excluded
-because their access is automatic. Search covers both lists, which have separate
-pagination controls. Existing approvals, accounts and saved interviews remain intact.
+See [open beta operations](open-beta-operations.md) for the shared AI budget and
+automatic welcome, first-signin and spending emails.
 
-### Approval emails
+### Access-restored emails
 
 Verify `shardling.com` in Resend and add a **sending-only** `RESEND_API_KEY` to
 `.env.local` for local work and Vercel **Production** for the deployed app.
@@ -96,7 +90,7 @@ shows fixed repair guidance without exposing provider response bodies.
 Run `npm run db:admin` before deploying this version. The additive
 `20261109011503_beta_approval_emails.sql` migration creates a private outbox.
 Approval and its notification record commit in one transaction. Only an actual
-transition to approved queues an email. A repeated Approve request, refresh,
+transition to approved queues an email. A repeated Restore request, refresh,
 revocation or page read does not create another notification. Existing approved
 accounts remain unchanged and are not automatically emailed. Re-approval after
 revocation creates a new approval notification.
@@ -106,7 +100,7 @@ provider** means Resend accepted the request, not proof of inbox delivery. Check
 Resend for delivery/bounce details. Failed/pending sends offer **Retry email**;
 the access grant stays valid. Retry accepts only a notification UUID and uses
 fresh owner authentication, same-origin checks and the stored recipient/template.
-No public send-email endpoint is added.
+No public send-email endpoint is added. Automatic account/spending notifications have a separate private outbox.
 
 The outbox freezes sender, recipient, subject and body so retries submit exactly
 the same request with an idempotency key tied to the notification UUID. A 30-second
@@ -127,7 +121,7 @@ stub sending, and the opt-in live database test rolls back its fixtures without
 sending email.
 
 Candidates call the no-argument `is_beta_invited()` RPC with their existing Auth
-session. This SECURITY INVOKER function returns only their own membership boolean.
+session. This SECURITY INVOKER function returns only their own access boolean. Missing rows are active; explicit revocations are blocked.
 Authenticated roles have schema USAGE and SELECT on only the invitation email and
 approval columns, restricted by an own-verified-JWT-email RLS policy. They cannot
 read another email, audit metadata or reporting tables, or insert/update invitations.

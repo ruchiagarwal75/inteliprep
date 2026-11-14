@@ -1,5 +1,8 @@
 # AI System Design Interviewer: Phase 1 Tech Spec
 
+Account access, shared AI budget and transactional email operations are documented in
+[open beta operations](open-beta-operations.md).
+
 The new Play beta and its boundary with the existing Mock engine are specified in
 [Play beta design](play-design.md). The path, rewards and lesson UI follow
 [Play game redesign](play-game-design.md). The interview behavior below remains the Mock

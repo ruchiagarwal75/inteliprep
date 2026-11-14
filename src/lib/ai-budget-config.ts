@@ -16,6 +16,7 @@ export class AiBudgetError extends Error {
     );
   }
   get retryAfter() {
+    if (this.status === 503) return 30;
     const now = new Date();
     return Math.max(
       1,

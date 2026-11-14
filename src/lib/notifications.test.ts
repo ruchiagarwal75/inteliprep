@@ -1,9 +1,11 @@
+vi.unmock("@/lib/account-onboarding");
 import { beforeAll, afterAll, beforeEach, expect, it, vi } from "vitest";
 import { readFile } from "node:fs/promises";
 import {
   startPlayPostgres,
   PLAY_TEST_USER,
 } from "../../tests/fixtures/play-postgres";
+import { PLAY_OTHER_USER } from "../../tests/fixtures/play-postgres";
 import { onboardAccount } from "./account-onboarding";
 import { deliverNotification } from "./notifications";
 import { ApprovalEmailError } from "./approval-email";
@@ -24,7 +26,7 @@ beforeAll(async () => {
     create table interview_admin.reporting_state(singleton boolean primary key default true,started_at timestamptz default now()); insert into interview_admin.reporting_state default values;
     create view interview_admin.registered_users as select id,email from auth.users;
     create table interview_admin.beta_invites(email text primary key,approved boolean);
-    grant usage on schema interview_admin to mockmeai_reporting;`);
+    grant usage on schema interview_admin to mockmeai_reporting; grant select on interview_admin.beta_invites to mockmeai_reporting;`);
   await pg.operator.unsafe(
     await readFile(
       "supabase/migrations/20261114014037_beta_notifications.sql",
@@ -41,7 +43,7 @@ beforeEach(async () => {
   vi.stubEnv("VERCEL_ENV", "production");
   vi.stubEnv("ADMIN_USER_ID", "");
   vi.stubEnv("ADMIN_TEST_USER_IDS", "");
-  await pg.operator`truncate interview_admin.notifications,interview_admin.account_onboarding`;
+  await pg.operator`truncate interview_admin.notifications,interview_admin.account_onboarding,interview_admin.beta_invites`;
   h.send.mockReset().mockResolvedValue("provider-id");
 });
 it("queues exactly one welcome and one owner alert under concurrent logins", async () => {
@@ -100,4 +102,33 @@ it("keeps the outbox private from browser roles", async () => {
       return tx`select * from interview_admin.notifications`;
     }),
   ).rejects.toThrow();
+});
+
+it("does not welcome a revoked account", async () => {
+  await pg.operator`insert into interview_admin.beta_invites(email,approved) values('revoked@example.test',false)`;
+  await onboardAccount(PLAY_TEST_USER, "revoked@example.test");
+  expect(
+    await pg.operator`select * from interview_admin.notifications`,
+  ).toHaveLength(0);
+});
+it("baselines established approved accounts only once, without backfill mail", async () => {
+  await pg.operator`update auth.users set email='established@example.test' where id=${PLAY_TEST_USER}`;
+  await pg.operator`insert into interview_admin.beta_invites(email,approved) values('established@example.test',true)`;
+  await pg.operator`update interview_admin.reporting_state set onboarding_baselined_at=null`;
+  const migration = await readFile(
+    "supabase/migrations/20261114014037_beta_notifications.sql",
+    "utf8",
+  );
+  await pg.operator.unsafe(migration);
+  await onboardAccount(PLAY_TEST_USER, "established@example.test");
+  expect(
+    await pg.operator`select * from interview_admin.notifications`,
+  ).toHaveLength(0);
+  await pg.operator`update auth.users set email='fresh@example.test' where id=${PLAY_OTHER_USER}`;
+  await pg.operator`insert into interview_admin.beta_invites(email,approved) values('fresh@example.test',true)`;
+  await pg.operator.unsafe(migration);
+  await onboardAccount(PLAY_OTHER_USER, "fresh@example.test");
+  expect(
+    await pg.operator`select * from interview_admin.notifications`,
+  ).toHaveLength(2);
 });

@@ -59,18 +59,18 @@ export function AdminInvitesPanel({
       };
       const prefix =
         "email" in input
-          ? `${input.approved ? "Approved" : "Revoked"} access for ${input.email.trim().toLowerCase()}. `
+          ? `${input.approved ? "Restored" : "Revoked"} access for ${input.email.trim().toLowerCase()}. `
           : "";
       setNotice(
         prefix +
           (result.notification?.status === "sent"
-            ? "Approval email sent to the email provider."
+            ? "Access email sent to the email provider."
             : result.notification?.status === "failed"
-              ? `Access remains approved. ${approvalEmailFailureMessage(result.notification.failureCategory)}`
+              ? `Access stays active. ${approvalEmailFailureMessage(result.notification.failureCategory)}`
               : result.notification
-                ? "Email delivery is not confirmed. Check its status below; access remains approved."
+                ? "Email delivery is not confirmed. Check its status below; access stays active."
                 : retry
-                  ? "No current approval email is available to send."
+                  ? "No current access email is available to send."
                   : ""),
       );
       if ("approved" in input && input.approved) setEmail("");
@@ -97,13 +97,13 @@ export function AdminInvitesPanel({
     <section className="space-y-5" aria-label="Beta access">
       <h2 className="text-xl font-semibold">Beta access</h2>
       <p>
-        Approve a Google account email before or after the person signs in.
-        Changes apply to their next protected request without a redeploy. Your
-        configured admin account always has access.
+        New Google accounts can start practicing without approval. Revoke or
+        restore access here. Changes apply to their next protected request
+        without a redeploy. Your configured admin account always has access.
       </p>
       <form action="/admin/access" className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
-          Search accounts and invitations
+          Search accounts
           <input
             name="search"
             defaultValue={search}
@@ -127,10 +127,10 @@ export function AdminInvitesPanel({
         search={search}
         invitePage={data.page}
         busy={busy}
-        onApprove={(address) => void change(address, true)}
+        onRevoke={(address) => void change(address, false)}
         onRefresh={() => router.refresh()}
       />
-      <h3 className="text-lg font-semibold">Invite by email</h3>
+      <h3 className="text-lg font-semibold">Restore access by email</h3>
       <form onSubmit={approve} className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
           Google account email
@@ -146,17 +146,17 @@ export function AdminInvitesPanel({
           />
         </label>
         <button type="submit" disabled={busy} className="practice-primary">
-          {busy ? "Saving…" : "Approve access"}
+          {busy ? "Saving…" : "Restore access"}
         </button>
       </form>
       <p className="text-sm">
-        New approvals send an email from hello@{BRAND.domain}. If delivery
-        fails, access stays approved and you can retry the email below. Existing
-        approvals are not emailed automatically.
+        Restoring access sends an email from hello@{BRAND.domain}. If delivery
+        fails, access stays active. New users receive a welcome separately on
+        their first successful sign-in.
       </p>
-      <h3 className="text-lg font-semibold">Invitations</h3>
+      <h3 className="text-lg font-semibold">Access overrides</h3>
       <p>
-        {data.total} {data.total === 1 ? "invitation" : "invitations"} matching
+        {data.total} {data.total === 1 ? "override" : "overrides"} matching
         these filters
       </p>
       <AdminInvitationsTable
@@ -165,8 +165,11 @@ export function AdminInvitesPanel({
         onChange={(address, approved) => void change(address, approved)}
         onRetry={(notificationId) => void submit({ notificationId })}
       />
-      {!data.invites.length && <p>No invitations match these filters.</p>}
-      <nav aria-label="Invitation pages" className="flex items-center gap-4">
+      {!data.invites.length && <p>No overrides match these filters.</p>}
+      <nav
+        aria-label="Access override pages"
+        className="flex items-center gap-4"
+      >
         {data.page > 1 && (
           <Link className="underline" href={pageUrl(data.page - 1)}>
             Previous

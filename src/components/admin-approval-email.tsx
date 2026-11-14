@@ -20,7 +20,7 @@ export function AdminApprovalEmail({
     pending: "Waiting to send",
     sending: "Sending. Refresh to check.",
     sent: "Sent to email provider",
-    failed: "Email failed. Access is approved.",
+    failed: "Email failed. Access is active.",
     unknown: "Delivery unconfirmed. Check Resend before resending.",
   };
   return (
@@ -37,7 +37,7 @@ export function AdminApprovalEmail({
           className="practice-secondary"
           disabled={busy}
           onClick={() => onRetry(notification.id)}
-          aria-label={`Retry approval email ${notification.id}`}
+          aria-label={`Retry access email ${notification.id}`}
         >
           Retry email
         </button>

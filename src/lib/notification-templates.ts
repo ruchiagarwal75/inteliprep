@@ -1,4 +1,5 @@
 import "server-only";
+import { AI_BUDGET } from "@/lib/ai-budget-config";
 import { BRAND } from "@/lib/brand";
 import type { ApprovalEmailPayload } from "@/lib/approval-email";
 
@@ -37,8 +38,8 @@ export function spendNotification(
     to: [OWNER_NOTIFICATION_EMAIL],
     subject:
       kind === "spend_warning"
-        ? `${BRAND.name}: $5 daily AI warning`
+        ? `${BRAND.name}: $${AI_BUDGET.warningUsd} daily AI warning`
         : `${BRAND.name}: daily AI budget allocated`,
-    text: `${kind === "spend_warning" ? "Estimated AI spending has reached the $5 warning." : "The $25 shared daily AI budget has been spent or reserved. New paid work may pause until budget is available."}\n\nProduction, ${day} (UTC)\nEstimated spend: $${spent.toFixed(2)}\nReserved for calls and ongoing mocks: $${reserved.toFixed(2)}\n\nUnknown usage stays reserved, so these are conservative estimates, not a provider invoice. The budget resets at midnight UTC.\n\n${BRAND.url}/admin`,
+    text: `${kind === "spend_warning" ? `Estimated AI spending has reached the $${AI_BUDGET.warningUsd} warning.` : `The $${AI_BUDGET.capUsd} shared daily AI budget has been spent or reserved. New paid work may pause until budget is available.`}\n\nProduction, ${day} (UTC)\nEstimated spend: $${spent.toFixed(2)}\nReserved for calls and ongoing mocks: $${reserved.toFixed(2)}\n\nUnknown usage stays reserved, so these are conservative estimates, not a provider invoice. The budget resets at midnight UTC.\n\n${BRAND.url}/admin`,
   };
 }

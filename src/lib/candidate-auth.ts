@@ -1,4 +1,5 @@
 import "server-only";
+import { observeAccountAccess } from "@/lib/account-onboarding";
 import { supabaseServer } from "@/lib/supabase-server";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { observeSignedIn } from "@/lib/beta-funnel-tracking";
@@ -45,8 +46,10 @@ export async function candidateIdentity(options?: {
       if (fresh.user?.id !== verified || fresh.user.is_anonymous) return;
     }
     if (verified) observeSignedIn(verified, data?.claims.session_id);
-    if (verified && options?.requireInvite)
+    if (verified && options?.requireInvite) {
       await requireCandidateInvite(verified, data?.claims.email, client);
+      observeAccountAccess(verified, data?.claims.email);
+    }
     return verified;
   } catch (cause) {
     if (

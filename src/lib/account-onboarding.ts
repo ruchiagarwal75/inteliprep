@@ -1,8 +1,10 @@
 import "server-only";
+import { after } from "next/server";
+import { randomUUID } from "node:crypto";
+import { logServerEvent } from "@/lib/server-events";
 import { z } from "zod";
 import { excludedUserIds, reportingEnvironment } from "@/lib/admin-config";
-import { reportingDb } from "@/lib/reporting-db";
-import { deferReporting } from "@/lib/reporting-write";
+import { reportingConfigured, reportingDb } from "@/lib/reporting-db";
 import { queueNotification, drainNotifications } from "@/lib/notifications";
 import {
   welcomeNotification,
@@ -21,7 +23,8 @@ export async function onboardAccount(userId: string, email: string) {
     const [fresh] = await tx<
       { at: string }[]
     >`insert into interview_admin.account_onboarding(user_id,environment)
-      values(${userId},'production') on conflict do nothing returning first_access_at::text as at`;
+      select ${userId}::uuid,'production' where not exists(select 1 from interview_admin.beta_invites where email=${email} and not approved)
+      on conflict do nothing returning first_access_at::text as at`;
     if (!fresh) return;
     await queueNotification(
       tx,
@@ -40,8 +43,26 @@ export async function onboardAccount(userId: string, email: string) {
 export function observeAccountAccess(userId: string, email: unknown) {
   const parsed = z.email().max(254).safeParse(email);
   if (!parsed.success || reportingEnvironment() !== "production") return;
-  deferReporting(async () => {
-    await onboardAccount(userId, parsed.data.trim().toLowerCase());
-    await drainNotifications();
-  });
+  if (!reportingConfigured()) return;
+  // Account notifications must not inherit an unrelated reporting backoff.
+  const work = async () => {
+    try {
+      await onboardAccount(userId, parsed.data.trim().toLowerCase());
+      await drainNotifications();
+    } catch (cause) {
+      logServerEvent(
+        {
+          event: "notification_failure",
+          requestId: randomUUID(),
+          kind: "notification_storage",
+        },
+        cause,
+      );
+    }
+  };
+  try {
+    after(work);
+  } catch {
+    void work();
+  }
 }

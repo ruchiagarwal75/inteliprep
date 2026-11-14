@@ -9,7 +9,7 @@ export class CandidateInviteError extends Error {
   readonly status = 403;
   constructor() {
     super(
-      `You're not invited to the ${BRAND.name} private beta yet. Please contact the person who invited you.`,
+      `Access to ${BRAND.name} has been restricted for this account. Please contact the app owner.`,
     );
   }
 }

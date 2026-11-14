@@ -67,7 +67,7 @@ const env = {
   SUPABASE_CONNECTION_STRING: "",
   SUPABASE_REPORTING_CONNECTION_STRING: reporting.connection,
   SUPABASE_REPORTING_CA_FILE: cert,
-  RESEND_API_KEY: "",
+  RESEND_API_KEY: "", // Never inherit a real sending key from .env.local.
   VISITOR_IP_HASH_SECRET: "",
   VERCEL: "",
   VERCEL_ENV: "test",

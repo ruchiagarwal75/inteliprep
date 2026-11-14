@@ -10,7 +10,7 @@ export function AdminPendingAccounts({
   search,
   invitePage,
   busy,
-  onApprove,
+  onRevoke,
   onRefresh,
 }: {
   accounts: PendingBetaAccount[];
@@ -20,15 +20,15 @@ export function AdminPendingAccounts({
   search: string;
   invitePage: number;
   busy: boolean;
-  onApprove: (email: string) => void;
+  onRevoke: (email: string) => void;
   onRefresh: () => void;
 }) {
   const pageUrl = (next: number) =>
     `/admin/access?${new URLSearchParams({ search, page: String(invitePage), pendingPage: String(next) })}`;
   return (
-    <section className="space-y-3" aria-label="Accounts awaiting approval">
+    <section className="space-y-3" aria-label="Accounts with automatic access">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold">Awaiting approval ({total})</h3>
+        <h3 className="text-lg font-semibold">Automatic access ({total})</h3>
         <button
           type="button"
           className="practice-secondary"
@@ -39,15 +39,16 @@ export function AdminPendingAccounts({
         </button>
       </div>
       <p className="text-sm">
-        Registered accounts with no access decision yet, newest first.
+        Google accounts get access automatically. These accounts have no
+        override, newest first.
       </p>
       {!accounts.length ? (
-        <p>No accounts awaiting approval match these filters.</p>
+        <p>No accounts with automatic access match these filters.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <caption className="sr-only">
-              Registered accounts awaiting beta approval
+              Registered accounts with automatic access
             </caption>
             <thead>
               <tr>
@@ -77,10 +78,10 @@ export function AdminPendingAccounts({
                       type="button"
                       className="practice-secondary"
                       disabled={busy}
-                      aria-label={`Approve access for ${account.email}`}
-                      onClick={() => onApprove(account.email)}
+                      aria-label={`Revoke access for ${account.email}`}
+                      onClick={() => onRevoke(account.email)}
                     >
-                      Approve
+                      Revoke
                     </button>
                   </td>
                 </tr>
@@ -89,7 +90,7 @@ export function AdminPendingAccounts({
           </table>
         </div>
       )}
-      <nav className="flex gap-4" aria-label="Pending account pages">
+      <nav className="flex gap-4" aria-label="Automatic access account pages">
         {page > 1 && (
           <Link className="underline" href={pageUrl(page - 1)}>
             Previous

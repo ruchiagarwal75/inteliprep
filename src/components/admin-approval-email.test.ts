@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
 import { AdminApprovalEmail } from "./admin-approval-email";
 
-it("explains the unverified brand domain while preserving approved access and retry", () => {
+it("explains the unverified brand domain while preserving active access and retry", () => {
   const html = renderToStaticMarkup(
     createElement(AdminApprovalEmail, {
       approved: true,
@@ -18,7 +18,7 @@ it("explains the unverified brand domain while preserving approved access and re
       },
     }),
   );
-  expect(html).toContain("Access is approved.");
+  expect(html).toContain("Access is active.");
   expect(html).toContain("Verify shardling.com in Resend");
   expect(html).toContain("Retry email");
   expect(html).toContain('role="alert"');

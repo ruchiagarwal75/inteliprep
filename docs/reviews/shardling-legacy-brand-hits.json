@@ -31,25 +31,25 @@
   },
   {
     "path": "CLAUDE.md",
-    "line": 334,
-    "text": "`MOCKMEAI_INVITED_EMAILS` is a migration input only. Missing/unavailable database",
+    "line": 335,
+    "text": "verified `ADMIN_USER_ID`. The old `MOCKMEAI_INVITED_EMAILS` is a migration input only.",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "CLAUDE.md",
-    "line": 337,
+    "line": 339,
     "text": "Keep existing `INTELIPREP_*` configuration names, `inteliprep-auth` cookies and",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "CLAUDE.md",
-    "line": 338,
+    "line": 340,
     "text": "`inteliprep:v1` Redis prefixes. They are persisted compatibility identifiers;",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "CLAUDE.md",
-    "line": 350,
+    "line": 352,
     "text": "`/api/monitoring/viewer` or set `mockmeai:exclude-analytics=1` in that browser's",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -97,43 +97,43 @@
   },
   {
     "path": "docs/admin.md",
-    "line": 138,
+    "line": 132,
     "text": "`MOCKMEAI_INVITED_EMAILS` list with `ON CONFLICT DO NOTHING`; existing rows, including",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 248,
+    "line": 242,
     "text": "`INTELIPREP_ADMIN_DB_TEST=1 npm test -- tests/admin-database.test.ts` runs an opt-in",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 280,
+    "line": 274,
     "text": "A random browser UUID lives under `mockmeai:app-viewer:v1` in localStorage. Only its",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 301,
+    "line": 295,
     "text": "`localStorage.setItem(\"mockmeai:exclude-analytics\", \"1\")` before navigating to app",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 357,
+    "line": 351,
     "text": "`mockmeai_reporting` and its restricted grants/policies.",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 361,
+    "line": 355,
     "text": "`postgres.<project-ref>` to `mockmeai_reporting.<project-ref>`. It refuses to",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/admin.md",
-    "line": 423,
+    "line": 417,
     "text": "- Alternatively, open the IntelliPrep project in Supabase, open SQL Editor,",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -163,43 +163,37 @@
   },
   {
     "path": "docs/authentication.md",
-    "line": 145,
-    "text": "`MOCKMEAI_INVITED_EMAILS` list without overriding any existing row, including",
-    "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
-  },
-  {
-    "path": "docs/authentication.md",
-    "line": 194,
+    "line": 197,
     "text": "Operator checklist: Supabase Dashboard, IntelliPrep, Authentication, Sign In /",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/authentication.md",
-    "line": 211,
+    "line": 214,
     "text": "old unassigned `inteliprep` database are retained. An account-scoped local",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/authentication.md",
-    "line": 221,
+    "line": 224,
     "text": "1. Open the [IntelliPrep Supabase project's URL Configuration](https://supabase.com/dashboard/project/bjqjocrfsiprlvnitfuo/auth/url-configuration).",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/authentication.md",
-    "line": 227,
+    "line": 230,
     "text": "https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/auth/callback",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/authentication.md",
-    "line": 231,
+    "line": 234,
     "text": "5. Start a fresh sign-in from the [stable beta preview](https://inteliprep-git-beta-ruchiagarwal75s-projects.vercel.app/sign-in).",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/authentication.md",
-    "line": 250,
+    "line": 253,
     "text": "mockmeai.com is not owned. Never allowlist it anywhere.",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -565,37 +559,37 @@
   },
   {
     "path": "docs/spec.md",
-    "line": 394,
+    "line": 397,
     "text": "The `inteliprep:account:<userId>` IndexedDB database stores each account’s versioned",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/spec.md",
-    "line": 395,
+    "line": 398,
     "text": "interview records and active session pointer. The legacy anonymous `inteliprep`",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/spec.md",
-    "line": 818,
+    "line": 821,
     "text": "Vercel deployments (or local `INTELIPREP_ENV=beta`) require model credentials,",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/spec.md",
-    "line": 891,
+    "line": 894,
     "text": "Local development can set `INTELIPREP_TEST_MODEL_503_ONCE=1` to inject a 503 before",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/spec.md",
-    "line": 1036,
+    "line": 1039,
     "text": "INTELIPREP_DEV_START_LIMITS=on, while deployed limits always apply. The Brief puts",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
   {
     "path": "docs/spec.md",
-    "line": 1260,
+    "line": 1263,
     "text": "the preference in `mockmeai-theme` (cookie) and `mockmeai:theme` (localStorage), with",
     "reason": "Operator documentation for unchanged project names, repository/preview URLs, storage identifiers or historical artifact paths."
   },
@@ -667,7 +661,7 @@
   },
   {
     "path": "scripts/migrate-admin.mjs",
-    "line": 156,
+    "line": 165,
     "text": "(process.env.MOCKMEAI_INVITED_EMAILS ?? \"\")",
     "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
   },
@@ -1147,7 +1141,7 @@
   },
   {
     "path": "src/lib/candidate-auth.test.ts",
-    "line": 30,
+    "line": 33,
     "text": "name: \"inteliprep-auth\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -1387,8 +1381,8 @@
   },
   {
     "path": "src/lib/notifications.test.ts",
-    "line": 27,
-    "text": "grant usage on schema interview_admin to mockmeai_reporting;`);",
+    "line": 29,
+    "text": "grant usage on schema interview_admin to mockmeai_reporting; grant select on interview_admin.beta_invites to mockmeai_reporting;`);",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
@@ -2041,19 +2035,25 @@
   },
   {
     "path": "tests/e2e/interview.spec.ts",
-    "line": 908,
+    "line": 917,
     "text": "\"inteliprep:account:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "tests/e2e/open-beta.spec.ts",
+    "line": 12,
+    "text": "name: \"inteliprep-auth\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 93,
+    "line": 100,
     "text": "\"alter role mockmeai_reporting password 'ci-only-reporting-fixture'\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 159,
+    "line": 166,
     "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2071,7 +2071,7 @@
   },
   {
     "path": "tests/e2e/server.mjs",
-    "line": 74,
+    "line": 75,
     "text": "INTELIPREP_ENV: \"\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2173,19 +2173,19 @@
   },
   {
     "path": "tests/setup.ts",
-    "line": 31,
+    "line": 34,
     "text": "process.env.INTELIPREP_ALLOW_TEST_INTERVIEWS = \"1\";",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/setup.ts",
-    "line": 41,
+    "line": 44,
     "text": "inteliprepRequestCounters?: Map<string, unknown>;",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/setup.ts",
-    "line": 43,
+    "line": 46,
     "text": "state.inteliprepRequestCounters?.clear();",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
