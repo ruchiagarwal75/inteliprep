@@ -128,8 +128,6 @@
   opacity: 1;
 }
 .checkDock {
-  position: sticky;
-  bottom: 0;
   padding-block: 16px;
   background: var(--pixel-card);
   display: flex;
@@ -148,6 +146,17 @@
 }
 .card[data-result] {
   min-height: 0;
+}
+@media (min-width: 900px) and (max-height: 760px) {
+  .form .option {
+    padding-block: 8px;
+  }
+  .legend {
+    margin-bottom: 0;
+  }
+  .checkDock {
+    padding-block: 8px;
+  }
 }
 [data-wrong] .card {
   animation: wrong 240ms steps(2, end);

@@ -10,6 +10,8 @@ import {
 } from "./play-helpers";
 import { roundViewSchema } from "../../src/lib/play/public";
 test.use({ actionTimeout: 15000 });
+// This traversal persists progress. A fresh worker cannot replay it from question 0.
+test.describe.configure({ retries: 0 });
 test("all course questions keep one-line options above Check at short desktop size", async ({
   page,
   context,
@@ -46,10 +48,12 @@ test("all course questions keep one-line options above Check at short desktop si
             })
             .click();
         for (const size of [
+          { width: 1440, height: 640 },
           { width: 1440, height: 669 },
           { width: 375, height: 812 },
         ]) {
           await page.setViewportSize(size);
+          await page.evaluate(() => document.fonts.ready);
           await page.evaluate(() => window.scrollTo(0, 0));
           await expect(page.locator("[data-drill-card] h1")).toHaveCSS(
             "font-size",
