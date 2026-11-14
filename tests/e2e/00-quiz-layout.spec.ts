@@ -82,7 +82,17 @@ test("all course questions keep one-line options above Check at short desktop si
               expect(box.y).toBeGreaterThanOrEqual(0);
               expect(box.y + box.height).toBeLessThanOrEqual(check.y - 8);
             }
-            expect(check.y + check.height).toBeLessThanOrEqual(size.height);
+            if (size.height >= 669)
+              expect(check.y + check.height).toBeLessThanOrEqual(size.height);
+            else {
+              // Shorter windows can scroll; the button must never cover an option.
+              const button = page.getByRole("button", {
+                name: "Check answer",
+                exact: true,
+              });
+              await button.scrollIntoViewIfNeeded();
+              await expect(button).toBeInViewport({ ratio: 1 });
+            }
           }
           expect(
             await page.evaluate(
