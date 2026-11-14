@@ -1,9 +1,9 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
 import { THEME_COOKIE } from "../../src/lib/theme-preference";
-
 const routes = [
   { from: "/progress", to: "/play" },
   { from: "/play", to: "/play/rag" },
@@ -12,7 +12,6 @@ const routes = [
   { from: "/play", to: "/mock" },
   { from: "/mock", to: "/progress" },
 ];
-
 for (const theme of ["light", "dark"])
   for (const width of [1440, 375])
     test(`page frames appear before slow content: ${theme}, ${width}`, async ({
@@ -29,13 +28,16 @@ for (const theme of ["light", "dark"])
       const before = await modelCalls(page);
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
-      const samples: { route: string; frameMs: number }[] = [];
+      const samples: {
+        route: string;
+        frameMs: number;
+      }[] = [];
       for (const { from, to } of routes) {
         await page.goto(from);
-        await expect(page.locator("[data-page-loading]:visible")).toHaveCount(
-          0,
-        );
-        const link = page.locator(`a[href="${to}"]:visible`).first();
+        await expect(
+          rendered(page.locator("[data-page-loading]:visible")),
+        ).toHaveCount(0);
+        const link = rendered(page.locator(`a[href="${to}"]:visible`)).first();
         await link.scrollIntoViewIfNeeded();
         // Allow Next to prefetch the dynamic route's loading boundary.
         await page.waitForTimeout(1200);
@@ -78,10 +80,12 @@ for (const theme of ["light", "dark"])
         });
         await link.click();
         await expect(
-          page.locator("[data-page-loading]:visible").first(),
+          rendered(page.locator("[data-page-loading]:visible")).first(),
         ).toBeVisible();
         const ms = Number(
-          await page.locator("html").getAttribute("data-navigation-frame-ms"),
+          await rendered(page.locator("html")).getAttribute(
+            "data-navigation-frame-ms",
+          ),
         );
         expect(ms).toBeGreaterThan(0);
         expect(ms).toBeLessThan(100);
@@ -94,9 +98,9 @@ for (const theme of ["light", "dark"])
         await expect(page).toHaveURL(
           new RegExp(to.replaceAll("/", "\\/") + "$"),
         );
-        await expect(page.locator("[data-page-loading]:visible")).toHaveCount(
-          0,
-        );
+        await expect(
+          rendered(page.locator("[data-page-loading]:visible")),
+        ).toHaveCount(0);
         expect(
           await page.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth,

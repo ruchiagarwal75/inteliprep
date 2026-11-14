@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { bossView, bossShot } from "./boss-browser-helpers";
 import { modelCalls } from "./course-evidence";
@@ -22,7 +23,7 @@ for (const [account, theme, width] of [
     await notice.getByRole("button", { name: "Done", exact: true }).click();
     await expect(notice).toHaveCount(0);
     await page.reload();
-    await expect(page.locator("#rag-boss")).toHaveAttribute(
+    await expect(rendered(page.locator("#rag-boss"))).toHaveAttribute(
       "data-boss-state",
       "defeated",
     );

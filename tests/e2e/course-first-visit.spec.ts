@@ -1,7 +1,7 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { captureCourse, modelCalls } from "./course-evidence";
-
 test("a separate fresh account must see all slides once, then can revisit its quiz", async ({
   page,
   context,
@@ -11,7 +11,7 @@ test("a separate fresh account must see all slides once, then can revisit its qu
   for (let visit = 0; visit < 2; visit++) {
     await page.goto("/play/rag/topics/1");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText("1 / 13");
     await expect(
       page.getByRole("button", { name: "Start quiz", exact: true }),
@@ -31,7 +31,7 @@ test("a separate fresh account must see all slides once, then can revisit its qu
   for (let slide = 2; slide <= 13; slide++) {
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText(`${slide} / 13`);
     if (slide < 13)
       await expect(
@@ -47,21 +47,20 @@ test("a separate fresh account must see all slides once, then can revisit its qu
   ).toBeVisible();
   await page.goto("/play/rag/topics/1");
   await expect(
-    page.getByLabel("Slide counter").filter({ visible: true }),
+    rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
   ).toHaveText("1 / 13");
   await expect(
     page.getByRole("button", { name: "Start quiz", exact: true }),
   ).toBeVisible();
   expect(await modelCalls(page)).toBe(before);
 });
-
 test("the HUD includes retired XP without resetting the streak", async ({
   page,
   context,
 }) => {
   await signIn(context, "courseRestored");
   await page.goto("/play/rag");
-  const hud = page.getByLabel("Your progress", { exact: true });
+  const hud = rendered(page.getByLabel("Your progress", { exact: true }));
   await expect(hud.getByText("387 XP", { exact: true })).toBeVisible();
   await expect(hud.getByText("LV 3", { exact: true })).toBeVisible();
   await expect(

@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -29,7 +30,13 @@ test("all 48 early course slides use a fixed focus shell and an internally scrol
     ]) {
       await page.setViewportSize(size);
       let dock:
-        { x: number; y: number; width: number; height: number } | undefined;
+        | {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+          }
+        | undefined;
       for (const [level, total] of [
         [0, 10],
         [1, 13],
@@ -37,7 +44,10 @@ test("all 48 early course slides use a fixed focus shell and an internally scrol
         [3, 12],
       ]) {
         await page.goto(`/play/rag/topics/${level}`);
-        if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
+        if (
+          (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+          theme
+        ) {
           await page
             .getByRole("button", {
               name: `Switch to ${theme} mode`,
@@ -49,10 +59,12 @@ test("all 48 early course slides use a fixed focus shell and an internally scrol
         await page.evaluate(() => document.fonts.ready);
         for (let n = 1; n <= total; n++) {
           await expect(
-            page.getByLabel("Slide counter").filter({ visible: true }),
+            rendered(page.getByLabel("Slide counter")).filter({
+              visible: true,
+            }),
           ).toHaveText(`${n} / ${total}`);
           visited++;
-          const header = page.locator("[data-learn-header]"),
+          const header = rendered(page.locator("[data-learn-header]")),
             frame = page.getByRole("region", {
               name: "Slides reader",
               exact: true,
@@ -63,12 +75,14 @@ test("all 48 early course slides use a fixed focus shell and an internally scrol
           await expect(
             header.getByRole("button", { name: "Start quiz", exact: true }),
           ).toBeInViewport({ ratio: 1 });
-          await expect(page.locator(".practice-nav")).not.toBeVisible();
           await expect(
-            page.getByLabel("Your progress", { exact: true }),
+            rendered(page.locator(".practice-nav")),
           ).not.toBeVisible();
-          const primary = page.locator(
-              "[data-slide-controls] .practice-primary",
+          await expect(
+            rendered(page.getByLabel("Your progress", { exact: true })),
+          ).not.toBeVisible();
+          const primary = rendered(
+              page.locator("[data-slide-controls] .practice-primary"),
             ),
             box = await primary.boundingBox();
           if (!box) throw Error("Missing fixed slide control");

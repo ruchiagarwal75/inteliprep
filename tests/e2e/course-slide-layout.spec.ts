@@ -1,8 +1,8 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-
 test("Learn slides remain readable in short windows with card scrolling", async ({
   page,
   context,
@@ -59,9 +59,9 @@ test("Learn slides remain readable in short windows with card scrolling", async 
       const box = await controls.boundingBox();
       expect(box).not.toBeNull();
       expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(height);
-      expect(await page.locator("article h2").textContent()).not.toMatch(
-        /\.$/u,
-      );
+      expect(
+        await rendered(page.locator("article h2")).textContent(),
+      ).not.toMatch(/\.$/u);
       if (slide === 2) {
         await expect(body.locator("ul li")).toHaveCount(6);
         expect(await body.locator("strong").count()).toBeGreaterThan(0);
@@ -69,9 +69,9 @@ test("Learn slides remain readable in short windows with card scrolling", async 
       if (slide === 13) await expect(body.locator("ol li")).toHaveCount(5);
       if (slide === 1 || slide === 6) {
         if (slide === 1) {
-          await page
-            .locator("article")
-            .evaluate((node) => node.scrollIntoView({ block: "start" }));
+          await rendered(page.locator("article")).evaluate((node) =>
+            node.scrollIntoView({ block: "start" }),
+          );
           for (const paragraph of await body.locator("p").all())
             await expect(paragraph).toBeInViewport({ ratio: 1 });
         }

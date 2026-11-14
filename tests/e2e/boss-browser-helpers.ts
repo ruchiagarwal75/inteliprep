@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, type BrowserContext, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -20,7 +21,10 @@ export async function bossView(
   await page.setViewportSize({ width, height: width === 1440 ? 669 : 812 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(path);
-  await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+  await expect(rendered(page.locator("html"))).toHaveAttribute(
+    "data-theme",
+    theme,
+  );
   await page.evaluate(() => document.fonts.ready);
 }
 export async function bossShot(page: Page, name: string) {

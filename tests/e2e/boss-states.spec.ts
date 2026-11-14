@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { modelCalls } from "./course-evidence";
 import { bossView, bossShot } from "./boss-browser-helpers";
@@ -25,7 +26,7 @@ for (const theme of ["light", "dark"] as const)
         page.on("pageerror", (error) => errors.push(error.message));
         try {
           await bossView(page, context, account, theme, width);
-          const boss = page.locator("#rag-boss");
+          const boss = rendered(page.locator("#rag-boss"));
           await expect(boss).toHaveAttribute("data-boss-state", state);
           await expect(boss.getByText(text, { exact: true })).toBeVisible();
           if (state === "defeated") {

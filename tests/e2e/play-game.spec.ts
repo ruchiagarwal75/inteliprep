@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { openPlayLevel, finishPlayRound, dismissLevelUp } from "./play-helpers";
@@ -23,13 +24,18 @@ test("three course topics unlock in order, preserve stars and celebrate a single
   });
   await page.goto("/play/rag");
   await expect(
-    page.getByLabel("0 / 30 stars", { exact: true }).filter({ visible: true }),
+    rendered(page.getByLabel("0 / 30 stars", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /^Topic 2:/u })).toHaveCount(0);
   const node = page.getByRole("link", { name: /^Topic 1:/u });
   await expect(node).toHaveCSS("width", "96px");
   for (const theme of ["dark", "light"] as const) {
-    if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+    if (
+      (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+      theme
+    )
       await page
         .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
         .click();
@@ -47,12 +53,14 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     await page.getByRole("link", { name: "Continue", exact: true }).click();
   }
   await expect(
-    page.getByLabel("9 / 30 stars", { exact: true }).filter({ visible: true }),
+    rendered(page.getByLabel("9 / 30 stars", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await expect(
-    page
-      .getByLabel("3 of 10 topics passed", { exact: true })
-      .filter({ visible: true }),
+    rendered(page.getByLabel("3 of 10 topics passed", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Topic 4: Re-ranking", exact: true }),
@@ -67,13 +75,17 @@ test("three course topics unlock in order, preserve stars and celebrate a single
     .click();
   const chestResponse = await response;
   expect(chestResponse.status()).toBe(200);
-  const prize: { xp: number; totals: { points: number } } =
-    await chestResponse.json();
-  await expect(page.locator("[data-chest-prize]")).toBeVisible();
-  await expect(page.locator("[data-chest-prize] strong")).toHaveText(
+  const prize: {
+    xp: number;
+    totals: {
+      points: number;
+    };
+  } = await chestResponse.json();
+  await expect(rendered(page.locator("[data-chest-prize]"))).toBeVisible();
+  await expect(rendered(page.locator("[data-chest-prize] strong"))).toHaveText(
     `+${prize.xp} XP`,
   );
-  await expect(page.locator("[data-chest-prize]")).toHaveCount(0, {
+  await expect(rendered(page.locator("[data-chest-prize]"))).toHaveCount(0, {
     timeout: 4000,
   });
   await dismissLevelUp(page);
@@ -91,13 +103,19 @@ test("three course topics unlock in order, preserve stars and celebrate a single
   await openPlayLevel(page, 1);
   await finishPlayRound(page);
   // Five concepts at 5 XP, two math answers at 7 XP, and 2 + 5 combo XP.
-  await expect(page.getByLabel("46 XP earned", { exact: true })).toBeVisible();
-  await expect(page.getByText(/Includes.*first-try pass/u)).toHaveCount(0);
+  await expect(
+    rendered(page.getByLabel("46 XP earned", { exact: true })),
+  ).toBeVisible();
+  await expect(
+    rendered(page.getByText(/Includes.*first-try pass/u)),
+  ).toHaveCount(0);
   await page.getByRole("link", { name: "Open Progress", exact: true }).click();
-  await expect(page.getByText("Needs practice", { exact: true })).toBeVisible();
-  await expect(page.getByText("Practice ready", { exact: true })).toHaveCount(
-    0,
-  );
+  await expect(
+    rendered(page.getByText("Needs practice", { exact: true })),
+  ).toBeVisible();
+  await expect(
+    rendered(page.getByText("Practice ready", { exact: true })),
+  ).toHaveCount(0);
   expect(await modelCalls(page)).toBe(before);
 });
 test("choice checks show a disabled pending button and retry a network failure without a model", async ({
@@ -126,7 +144,9 @@ test("choice checks show a disabled pending button and retry a network failure w
     page.getByRole("button", { name: "Checking...", exact: true }),
   ).toBeDisabled();
   release();
-  await expect(page.getByLabel("Drill result", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("Drill result", { exact: true })),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("radio").first().check();
   await page.route("**/api/play/submit", (route) => route.abort(), {
@@ -136,6 +156,8 @@ test("choice checks show a disabled pending button and retry a network failure w
   await page
     .getByRole("button", { name: "Retry grading", exact: true })
     .click();
-  await expect(page.getByLabel("Drill result", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("Drill result", { exact: true })),
+  ).toBeVisible();
   expect(await modelCalls(page)).toBe(before);
 });

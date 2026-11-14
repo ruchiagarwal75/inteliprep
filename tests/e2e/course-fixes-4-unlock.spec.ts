@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -28,7 +29,10 @@ for (const theme of ["light", "dark"] as const)
         });
         // The real toggle and reload set both persistence stores before the one-time scene.
         await page.goto("/play/rag");
-        if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+        if (
+          (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+          theme
+        )
           await page
             .getByRole("button", {
               name: `Switch to ${theme} mode`,
@@ -45,9 +49,9 @@ for (const theme of ["light", "dark"] as const)
         await expect(notice).toContainText(
           "9 topics open up. Next: Ingestion and chunking.",
         );
-        const node = page
-          .locator('[data-topic-level="1"] [data-course-node]')
-          .filter({ visible: true });
+        const node = rendered(
+          page.locator('[data-topic-level="1"] [data-course-node]'),
+        ).filter({ visible: true });
         await expect(node).toHaveCount(1);
         await expect(notice).toBeInViewport({ ratio: 1 });
         const overlap = await notice.evaluate((card) => {
@@ -67,9 +71,9 @@ for (const theme of ["light", "dark"] as const)
           });
         });
         expect(overlap).toBe(false);
-        const connector = page
-          .locator("[data-primer-connector]")
-          .filter({ visible: true });
+        const connector = rendered(
+          page.locator("[data-primer-connector]"),
+        ).filter({ visible: true });
         await expect(connector).toHaveCount(1);
         expect(
           await connector.evaluate((n) => getComputedStyle(n).stroke),
@@ -110,7 +114,7 @@ for (const theme of ["light", "dark"] as const)
             .getByRole("button", { name: "Later", exact: true })
             .click();
           await expect(notice).toHaveCount(0);
-          await expect(page.locator("html")).toHaveAttribute(
+          await expect(rendered(page.locator("html"))).toHaveAttribute(
             "data-last-path-scroll",
             reduce ? "instant" : "smooth",
           );
@@ -130,7 +134,9 @@ for (const theme of ["light", "dark"] as const)
             .click();
           await expect(page).toHaveURL(/\/play\/rag\/topics\/1$/);
           await expect(
-            page.getByLabel("Slide counter").filter({ visible: true }),
+            rendered(page.getByLabel("Slide counter")).filter({
+              visible: true,
+            }),
           ).toHaveText("1 / 13");
         }
         expect(await modelCalls(page)).toBe(before);

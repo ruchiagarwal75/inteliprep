@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -26,7 +27,10 @@ test("polished diagram labels clear each other and shape borders in both layouts
     ]) {
       await page.setViewportSize(size);
       await page.goto("/play/rag/notebook");
-      if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
+      if (
+        (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+        theme
+      ) {
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
           .click();
@@ -38,7 +42,9 @@ test("polished diagram labels clear each other and shape borders in both layouts
           `/play/rag/notebook?topic=${name.startsWith("T9") ? 9 : 8}`,
         );
         await page.evaluate(() => document.fonts.ready);
-        const figure = page.locator(`[data-course-diagram="${kind}"]`),
+        const figure = rendered(
+            page.locator(`[data-course-diagram="${kind}"]`),
+          ),
           svg = figure.locator("svg:visible");
         await figure.scrollIntoViewIfNeeded();
         await expect(svg).toHaveAttribute(

@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import {
@@ -23,7 +24,7 @@ test("failed quizzes retry without a first-try bonus, and keyboard choice contro
     page.getByRole("heading", { name: "Keep practicing", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("0 of 7. Get 6 to pass.", { exact: true }),
+    rendered(page.getByText("0 of 7. Get 6 to pass.", { exact: true })),
   ).toBeVisible();
   await page.getByRole("button", { name: "Try again", exact: true }).click();
   await expect(
@@ -45,7 +46,7 @@ test("failed quizzes retry without a first-try bonus, and keyboard choice contro
   });
   await page.keyboard.press("Enter");
   await expect(
-    page.getByLabel("Drill result", { exact: true }),
+    rendered(page.getByLabel("Drill result", { exact: true })),
   ).toHaveAttribute("data-correct", "true");
   expect(submissions).toBe(1);
   await expect(
@@ -60,13 +61,21 @@ test("failed quizzes retry without a first-try bonus, and keyboard choice contro
   await expect(
     page.getByRole("heading", { name: "Topic passed", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("95 XP earned", { exact: true })).toBeVisible();
-  await expect(page.getByText(/Includes.*first-try pass/u)).toHaveCount(0);
+  await expect(
+    rendered(page.getByLabel("95 XP earned", { exact: true })),
+  ).toBeVisible();
+  await expect(
+    rendered(page.getByText(/Includes.*first-try pass/u)),
+  ).toHaveCount(0);
   await page.getByRole("link", { name: "Continue", exact: true }).click();
   await expect(
-    page.getByLabel("Daily goal: 1 of 1 rounds complete", { exact: true }),
+    rendered(
+      page.getByLabel("Daily goal: 1 of 1 rounds complete", { exact: true }),
+    ),
   ).toBeVisible();
-  await expect(page.getByLabel("1-day streak", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("1-day streak", { exact: true })),
+  ).toBeVisible();
   const retired = await page.request.post("/api/play/round", {
     headers: { Origin: "http://localhost:3100" },
     data: {

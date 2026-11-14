@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -29,7 +30,7 @@ test("a fresh player reads and passes both ten-question topics, reviewing the ma
     await page.goto(`/play/rag/topics/${level}`);
     for (let number = 1; number <= slides; number++) {
       await expect(
-        page.getByLabel("Slide counter").filter({ visible: true }),
+        rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
       ).toHaveText(`${number} / ${slides}`);
       if (number < slides)
         await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -56,7 +57,7 @@ test("a fresh player reads and passes both ten-question topics, reviewing the ma
         .click();
       expect((await checked).status()).toBe(200);
       await dismissLevelUp(page);
-      const result = page.getByLabel("Drill result", { exact: true });
+      const result = rendered(page.getByLabel("Drill result", { exact: true }));
       await expect(result).toBeVisible();
       await dismissLevelUp(page);
       if (index === 0) {
@@ -96,10 +97,13 @@ test("a fresh player reads and passes both ten-question topics, reviewing the ma
       page.getByRole("heading", { name: "Topic passed", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText("8 of 10 correct", { exact: true }),
+      rendered(page.getByText("8 of 10 correct", { exact: true })),
     ).toBeVisible();
     for (const theme of ["light", "dark"] as const) {
-      if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+      if (
+        (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+        theme
+      )
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
           .click();

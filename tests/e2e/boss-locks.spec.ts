@@ -1,9 +1,9 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { bossView, bossShot } from "./boss-browser-helpers";
 import { bossAccounts } from "./boss-fixture.mjs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-
 test("beta locks stay in place for Free, Pro and admin while RAG keeps its unlock", async ({
   page,
   context,
@@ -15,20 +15,25 @@ test("beta locks stay in place for Free, Pro and admin while RAG keeps its unloc
     for (const width of [1440, 375])
       for (const path of ["/mock", "/interview/new"]) {
         await bossView(page, context, "bossNotify", theme, width, path);
-        await expect(page.locator("[data-locked-problem]")).toHaveCount(12);
-        await expect(page.locator("[data-available-problem]")).toHaveCount(1);
-        await expect(page.locator("#rag-boss")).toHaveAttribute(
+        await expect(
+          rendered(page.locator("[data-locked-problem]")),
+        ).toHaveCount(12);
+        await expect(
+          rendered(page.locator("[data-available-problem]")),
+        ).toHaveCount(1);
+        await expect(rendered(page.locator("#rag-boss"))).toHaveAttribute(
           "data-boss-state",
           "ready",
         );
         await expect(
-          page
-            .locator("#rag-boss")
-            .getByRole("button", { name: "Start boss", exact: true }),
+          rendered(page.locator("#rag-boss")).getByRole("button", {
+            name: "Start boss",
+            exact: true,
+          }),
         ).toBeEnabled();
-        for (const button of await page
-          .locator("[data-locked-problem] button")
-          .all())
+        for (const button of await rendered(
+          page.locator("[data-locked-problem] button"),
+        ).all())
           await expect(button).toBeDisabled();
         await bossShot(
           page,
@@ -36,11 +41,11 @@ test("beta locks stay in place for Free, Pro and admin while RAG keeps its unloc
         );
       }
   await bossView(page, context, "bossLocked", "light", 1440, "/mock");
-  await expect(page.locator("#rag-boss")).toHaveAttribute(
+  await expect(rendered(page.locator("#rag-boss"))).toHaveAttribute(
     "data-boss-state",
     "locked",
   );
-  await expect(page.locator("#rag-boss")).toContainText(
+  await expect(rendered(page.locator("#rag-boss"))).toContainText(
     "Pass Topic 9 to unlock",
   );
   await expect(
@@ -66,7 +71,9 @@ test("beta locks stay in place for Free, Pro and admin while RAG keeps its unloc
     await access.getByRole("button", { name: "Pro", exact: true }).click();
     await expect(access).toContainText("Plan: Pro");
     await bossView(page, context, "bossNotify", "light", 1440, "/mock");
-    await expect(page.locator("[data-locked-problem]")).toHaveCount(12);
+    await expect(rendered(page.locator("[data-locked-problem]"))).toHaveCount(
+      12,
+    );
     await page.getByRole("link", { name: "Choose mock", exact: true }).click();
     await expect(
       page.getByRole("combobox", { name: "Problem", exact: true }),

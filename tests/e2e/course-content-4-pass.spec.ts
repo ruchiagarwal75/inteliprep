@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -27,22 +28,26 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
   });
   for (const level of [7, 8, 9]) {
     await page.goto(`/play/rag/notebook?topic=${level}`);
-    const questions = page.locator(`[data-notebook-question^="T${level}-Q"]`);
+    const questions = rendered(
+      page.locator(`[data-notebook-question^="T${level}-Q"]`),
+    );
     await expect(questions).toHaveCount(10);
     await expect(questions.first()).toContainText("Try it first");
     await expect(questions.first()).toHaveAttribute("data-answered", "false");
   }
   await page.goto("/play/rag");
   await expect(
-    page
-      .getByLabel("0 of 10 topics passed", { exact: true })
-      .filter({ visible: true }),
+    rendered(page.getByLabel("0 of 10 topics passed", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("0 / 30 stars", { exact: true }).filter({ visible: true }),
+    rendered(page.getByLabel("0 / 30 stars", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("Topic 4: Re-ranking, locked", { exact: true }),
+    rendered(page.getByLabel("Topic 4: Re-ranking, locked", { exact: true })),
   ).toBeVisible();
   const levels = [
     { level: 0, slides: 10, total: 8 },
@@ -57,7 +62,7 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
     await page.goto(`/play/rag/topics/${level}`);
     for (let n = 1; n <= slides; n++) {
       await expect(
-        page.getByLabel("Slide counter").filter({ visible: true }),
+        rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
       ).toHaveText(`${n} / ${slides}`);
       if (n < slides)
         await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -85,7 +90,7 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
         .click();
       expect((await checked).status()).toBe(200);
       await dismissLevelUp(page);
-      const result = page.getByLabel("Drill result", { exact: true });
+      const result = rendered(page.getByLabel("Drill result", { exact: true }));
       await expect(result).toHaveAttribute("data-correct", String(correct));
       await dismissLevelUp(page);
       if (index === 0) {
@@ -130,9 +135,11 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
       page.getByRole("heading", { name: "Topic passed", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByText(`${total === 10 ? 8 : total - 1} of ${total} correct`, {
-        exact: true,
-      }),
+      rendered(
+        page.getByText(`${total === 10 ? 8 : total - 1} of ${total} correct`, {
+          exact: true,
+        }),
+      ),
     ).toBeVisible();
     if (level >= 7)
       await page.screenshot({
@@ -141,7 +148,9 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
       });
     await page.getByRole("link", { name: "Continue", exact: true }).click();
     await expect(
-      page.getByLabel(`${level + 1} of 10 topics passed`, { exact: true }),
+      rendered(
+        page.getByLabel(`${level + 1} of 10 topics passed`, { exact: true }),
+      ),
     ).toBeVisible();
     if (level < 9)
       await expect(
@@ -161,7 +170,7 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
         .click();
       const prize = chestResultSchema.parse(await (await response).json());
       await page.reload();
-      const node = page.locator(`[data-topic-level="${level}"]`);
+      const node = rendered(page.locator(`[data-topic-level="${level}"]`));
       await expect(
         node.getByRole("button", {
           name: `Chest opened: +${prize.xp} XP`,
@@ -182,12 +191,16 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
     }
   }
   await expect(
-    page.getByLabel("10 / 30 stars", { exact: true }).filter({ visible: true }),
+    rendered(page.getByLabel("10 / 30 stars", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await expect(
-    page.getByText("10 of 10 cleared", { exact: true }),
+    rendered(page.getByText("10 of 10 cleared", { exact: true })),
   ).toBeVisible();
-  await expect(page.getByText("Soon", { exact: true })).toHaveCount(0);
+  await expect(rendered(page.getByText("Soon", { exact: true }))).toHaveCount(
+    0,
+  );
   await page.screenshot({
     path: "artifacts/course-content-4/all-topics-cleared.png",
     fullPage: true,
@@ -195,8 +208,10 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
   for (const level of [7, 8, 9]) {
     await page.goto(`/play/rag/notebook?topic=${level}`);
     await expect(
-      page.locator(
-        `[data-notebook-question^="T${level}-Q"][data-answered="true"]`,
+      rendered(
+        page.locator(
+          `[data-notebook-question^="T${level}-Q"][data-answered="true"]`,
+        ),
       ),
     ).toHaveCount(10);
   }

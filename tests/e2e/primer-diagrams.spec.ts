@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -15,11 +16,14 @@ test("primer slides and vector diagrams read clearly in both themes at short des
   await page.goto("/play/rag/topics/0");
   for (let slide = 1; slide <= 10; slide++) {
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText(`${slide} / 10`);
     const body = page.getByRole("region", { name: "Slide content" });
     for (const theme of ["light", "dark"] as const) {
-      if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+      if (
+        (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+        theme
+      )
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
           .click();

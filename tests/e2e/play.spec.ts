@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { playView, fillPlayAnswer, dismissLevelUp } from "./play-helpers";
@@ -20,7 +21,9 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
       .getByRole("list", { name: "RAG course topics" })
       .locator(":scope > li"),
   ).toHaveCount(10);
-  await expect(page.getByText("Soon", { exact: true })).toHaveCount(0);
+  await expect(rendered(page.getByText("Soon", { exact: true }))).toHaveCount(
+    0,
+  );
   await expect(
     page.getByRole("button", { name: /^Open chest after Topic/u }),
   ).toHaveCount(3);
@@ -40,7 +43,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
     .getByRole("link", { name: "Topic 1: Ingestion and chunking", exact: true })
     .click();
   await expect(
-    page.getByLabel("Slide counter").filter({ visible: true }),
+    rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
   ).toHaveText("1 / 13");
   await expect(
     page.getByRole("button", { name: "Start quiz", exact: true }),
@@ -49,7 +52,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   for (let i = 2; i <= 13; i++) {
     await page.keyboard.press("ArrowRight");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText(`${i} / 13`);
     if (i === 6) await captureCourse(page, "slide-overlap");
     if (i === 8) await captureCourse(page, "slide-split-table");
@@ -79,7 +82,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
     );
     await expect(page.getByRole("radio")).toHaveCount(4);
     await expect(
-      page.locator("textarea,input[type=number],input[type=text]"),
+      rendered(page.locator("textarea,input[type=number],input[type=text]")),
     ).toHaveCount(0);
     if (i === 4) {
       expect(q.courseKind).toBe("math");
@@ -93,7 +96,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
       .getByRole("button", { name: "Check answer", exact: true })
       .click();
     await dismissLevelUp(page);
-    const sheet = page.getByLabel("Drill result", { exact: true });
+    const sheet = rendered(page.getByLabel("Drill result", { exact: true }));
     await expect(sheet).toHaveAttribute("data-correct", String(i !== 4));
     await expect(sheet.locator("details")).toHaveAttribute("open", "");
     await expect(sheet.getByText("Answer:", { exact: true })).toBeVisible();
@@ -114,7 +117,9 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   await expect(
     page.getByRole("heading", { name: "Topic passed", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("6 of 7 correct", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByText("6 of 7 correct", { exact: true })),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Review slides", exact: true }),
   ).toBeVisible();
@@ -123,9 +128,11 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   ).toBeVisible();
   await captureCourse(page, "topic-complete");
   await page.getByRole("link", { name: "Notebook", exact: true }).click();
-  await expect(page.locator('[data-answered="true"]')).toHaveCount(7);
-  await expect(page.locator('[data-answered="false"]')).toHaveCount(0);
-  await page.locator("[data-topic-picker] > summary").click();
+  await expect(rendered(page.locator('[data-answered="true"]'))).toHaveCount(7);
+  await expect(rendered(page.locator('[data-answered="false"]'))).toHaveCount(
+    0,
+  );
+  await rendered(page.locator("[data-topic-picker] > summary")).click();
   await page
     .getByRole("navigation", { name: "Notebook topics" })
     .getByRole("link", {
@@ -133,9 +140,9 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
       exact: true,
     })
     .click();
-  await expect(page.locator('[data-notebook-question="T2-Q1"]')).toHaveText(
-    "Fast searchTry it first",
-  );
+  await expect(
+    rendered(page.locator('[data-notebook-question="T2-Q1"]')),
+  ).toHaveText("Fast searchTry it first");
   await captureCourse(page, "notebook");
   const foreign = await browser.newContext();
   try {

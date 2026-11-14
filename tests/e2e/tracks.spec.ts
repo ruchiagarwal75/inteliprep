@@ -1,8 +1,8 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-
 test("beta keeps both catalog groups visible but offers only the RAG mock", async ({
   page,
   context,
@@ -19,11 +19,15 @@ test("beta keeps both catalog groups visible but offers only the RAG mock", asyn
     await expect(
       page.getByRole("heading", { name: "Fundamentals", exact: true }),
     ).toBeVisible();
-    await expect(page.locator("[data-locked-problem]")).toHaveCount(12);
-    await expect(page.locator("[data-available-problem]")).toHaveCount(1);
-    for (const button of await page
-      .locator("[data-locked-problem] button")
-      .all())
+    await expect(rendered(page.locator("[data-locked-problem]"))).toHaveCount(
+      12,
+    );
+    await expect(
+      rendered(page.locator("[data-available-problem]")),
+    ).toHaveCount(1);
+    for (const button of await rendered(
+      page.locator("[data-locked-problem] button"),
+    ).all())
       await expect(button).toBeDisabled();
     await expect(
       page.getByRole("link", { name: "Choose mock", exact: true }),

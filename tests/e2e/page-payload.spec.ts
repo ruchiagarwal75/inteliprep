@@ -1,9 +1,9 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
 import { THEME_COOKIE } from "../../src/lib/theme-preference";
-
 for (const theme of ["light", "dark"])
   for (const width of [1440, 375])
     test(`page payloads stay small: ${theme}, ${width}`, async ({
@@ -60,22 +60,26 @@ for (const theme of ["light", "dark"])
           await expect(
             page.getByRole("list", { name: "RAG course topics", exact: true }),
           ).toBeVisible();
-          await expect(page.locator("[data-course-map]")).toHaveCount(0);
+          await expect(rendered(page.locator("[data-course-map]"))).toHaveCount(
+            0,
+          );
         }
         if (route.includes("/notebook")) {
           expect(bytes).toBeLessThan(100000);
           const level = new URL(route, "http://localhost").searchParams.get(
             "topic",
           );
-          await expect(page.locator("section[id^=topic-]")).toHaveCount(1);
-          await expect(page.locator(`#topic-${level}`)).toBeVisible();
-          await page.locator("[data-topic-picker] > summary").click();
+          await expect(
+            rendered(page.locator("section[id^=topic-]")),
+          ).toHaveCount(1);
+          await expect(rendered(page.locator(`#topic-${level}`))).toBeVisible();
+          await rendered(page.locator("[data-topic-picker] > summary")).click();
           await expect(
             page
               .getByRole("navigation", { name: "Notebook topics", exact: true })
               .getByRole("link"),
           ).toHaveCount(10);
-          await page.locator("[data-topic-picker] > summary").click();
+          await rendered(page.locator("[data-topic-picker] > summary")).click();
           expect(
             await page.evaluate(
               () => document.documentElement.scrollWidth <= innerWidth,

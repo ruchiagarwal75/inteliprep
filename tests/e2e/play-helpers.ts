@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { roundViewSchema } from "../../src/lib/play/public";
@@ -25,7 +26,7 @@ export async function capturePlay(
   await page.setViewportSize({ width: 1440, height: 900 });
 }
 export async function dismissLevelUp(page: Page) {
-  const modal = page.locator("dialog").filter({
+  const modal = rendered(page.locator("dialog")).filter({
     has: page.getByRole("heading", { name: "Level up!", exact: true }),
   });
   if (await modal.count()) {
@@ -43,7 +44,9 @@ export async function openPlayLevel(page: Page, level: number) {
       break;
     }
     // Next can retain a hidden streamed tree while the visible lesson is ready.
-    const counter = page.getByLabel("Slide counter").filter({ visible: true });
+    const counter = rendered(page.getByLabel("Slide counter")).filter({
+      visible: true,
+    });
     await expect(counter).toHaveCount(1);
     const previous = await counter.textContent();
     await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -89,14 +92,16 @@ export async function fillPlayAnswer(
   else if (q.type === "spot_flaw")
     await page.getByRole("radio").nth(Number(answer.option)).check();
   else if (q.type === "pick_probe")
-    await page
-      .getByLabel("Your follow-up question", { exact: true })
-      .fill(answer.text);
+    await rendered(
+      page.getByLabel("Your follow-up question", { exact: true }),
+    ).fill(answer.text);
   else {
-    await page.getByLabel("Your call", { exact: true }).fill(answer.decision);
-    await page
-      .getByLabel("Your reason, in 1 to 3 sentences", { exact: true })
-      .fill(answer.reason);
+    await rendered(page.getByLabel("Your call", { exact: true })).fill(
+      answer.decision,
+    );
+    await rendered(
+      page.getByLabel("Your reason, in 1 to 3 sentences", { exact: true }),
+    ).fill(answer.reason);
   }
   return answer;
 }
@@ -127,7 +132,7 @@ export async function finishPlayRound(
       expect((await checked).status()).toBe(200);
       await dismissLevelUp(page);
       await expect(
-        page.getByLabel("Drill result", { exact: true }),
+        rendered(page.getByLabel("Drill result", { exact: true })),
       ).toHaveAttribute("data-correct", String(correct));
       await dismissLevelUp(page);
       if (shot) {

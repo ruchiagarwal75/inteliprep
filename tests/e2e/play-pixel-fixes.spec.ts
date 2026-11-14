@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { openPlayLevel, playView, fillPlayAnswer } from "./play-helpers";
@@ -53,9 +54,13 @@ test("course timing pauses when hidden and stale resumes preserve submitted answ
   });
   await hide;
   await page.clock.runFor(50);
-  const frozen = await page.getByLabel("Time on this drill").textContent();
+  const frozen = await rendered(
+    page.getByLabel("Time on this drill"),
+  ).textContent();
   await page.clock.runFor(30000);
-  await expect(page.getByLabel("Time on this drill")).toHaveText(frozen ?? "");
+  await expect(rendered(page.getByLabel("Time on this drill"))).toHaveText(
+    frozen ?? "",
+  );
   const show = page.waitForResponse(
     (r) =>
       r.url().endsWith("/api/play/activity") &&
@@ -91,7 +96,7 @@ test("course timing pauses when hidden and stale resumes preserve submitted answ
   expect(updated.outcomes).toEqual(outcomes);
   await fillPlayAnswer(page, updated);
   await page.getByRole("button", { name: "Check answer", exact: true }).click();
-  const sheet = page.getByLabel("Drill result", { exact: true });
+  const sheet = rendered(page.getByLabel("Drill result", { exact: true }));
   await expect(sheet).toHaveAttribute("data-correct", "true");
   await expect(
     sheet.getByRole("button", { name: "Continue", exact: true }),

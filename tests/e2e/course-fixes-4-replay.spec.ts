@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -31,7 +32,7 @@ test("a replay shows half-XP answers and combos on its result", async ({
       .click();
     expect((await response).status()).toBe(200);
     await dismissLevelUp(page);
-    const result = page.getByLabel("Drill result", { exact: true });
+    const result = rendered(page.getByLabel("Drill result", { exact: true }));
     await expect(result).toBeVisible();
     if (i === 2) await expect(result).toContainText("3 in a row! +2 XP");
     if (i === 4) await expect(result).toContainText("5 in a row! +5 XP");
@@ -53,12 +54,17 @@ test("a replay shows half-XP answers and combos on its result", async ({
         .click();
   }
   await expect(
-    page.getByText("Replay: half XP.", { exact: true }),
+    rendered(page.getByText("Replay: half XP.", { exact: true })),
   ).toBeVisible();
-  await expect(page.getByLabel("44 XP earned", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("44 XP earned", { exact: true })),
+  ).toBeVisible();
   mkdirSync("artifacts/course-fixes-4", { recursive: true });
   for (const theme of ["light", "dark"] as const) {
-    if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+    if (
+      (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+      theme
+    )
       await page
         .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
         .click();

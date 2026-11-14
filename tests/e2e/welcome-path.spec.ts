@@ -1,8 +1,8 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-
 for (const theme of ["light", "dark"] as const)
   for (const width of [1440, 375])
     test(`learning trail has readable stops: ${theme}, ${width}`, async ({
@@ -26,13 +26,13 @@ for (const theme of ["light", "dark"] as const)
         for (
           let n = 0;
           n < 20 &&
-          !(await page
-            .getByLabel(`Panel ${panel} of 4`, { exact: true })
-            .count());
+          !(await rendered(
+            page.getByLabel(`Panel ${panel} of 4`, { exact: true }),
+          ).count());
           n++
         )
           await page.getByRole("button", { name: "Next", exact: true }).click();
-        const map = page.locator(`[data-learning-path="${layout}"]`);
+        const map = rendered(page.locator(`[data-learning-path="${layout}"]`));
         await expect(map).toBeVisible();
         await expect(
           page.getByRole("dialog").locator("[data-world]"),

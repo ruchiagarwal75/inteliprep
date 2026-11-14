@@ -1,7 +1,7 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-
 test("slides move instantly while ordered saves and the quiz gate wait in the background", async ({
   page,
   context,
@@ -22,7 +22,9 @@ test("slides move instantly while ordered saves and the quiz gate wait in the ba
       starts++;
   });
   await page.route("**/api/play/slides", async (route) => {
-    const data: { index: number } = route.request().postDataJSON();
+    const data: {
+      index: number;
+    } = route.request().postDataJSON();
     saved.push(data.index);
     if (data.index === 0) await pending;
     await route.continue();
@@ -30,7 +32,7 @@ test("slides move instantly while ordered saves and the quiz gate wait in the ba
   try {
     await page.goto("/play/rag/topics/1");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText("1 / 13");
     await expect(
       page.getByRole("button", { name: "Start quiz", exact: true }),
@@ -38,7 +40,7 @@ test("slides move instantly while ordered saves and the quiz gate wait in the ba
     for (let press = 0; press < 3; press++)
       await page.keyboard.press("ArrowRight");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText("4 / 13");
     expect(saved).toEqual([0]);
     await expect(
@@ -46,17 +48,17 @@ test("slides move instantly while ordered saves and the quiz gate wait in the ba
     ).toBeEnabled();
     await page.keyboard.press("ArrowLeft");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText("3 / 13");
     await page.keyboard.press("Enter");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText("4 / 13");
     await page.keyboard.press("ArrowRight");
     for (let slide = 6; slide <= 13; slide++)
       await page.keyboard.press("ArrowRight");
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText("13 / 13");
     await page
       .getByRole("button", { name: "Start quiz", exact: true })

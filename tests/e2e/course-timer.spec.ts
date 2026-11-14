@@ -1,9 +1,9 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { openPlayLevel, playView, fillPlayAnswer } from "./play-helpers";
 import { modelCalls } from "./course-evidence";
-
 test("an eight-second slide pause freezes display and server time despite a slow heartbeat", async ({
   page,
   context,
@@ -24,7 +24,9 @@ test("an eight-second slide pause freezes display and server time despite a slow
   });
   let delayed = false;
   await page.route("**/api/play/activity", async (route) => {
-    const input: { visible: boolean } = route.request().postDataJSON();
+    const input: {
+      visible: boolean;
+    } = route.request().postDataJSON();
     if (input.visible && !delayed) {
       delayed = true;
       const response = await route.fetch();
@@ -41,7 +43,9 @@ test("an eight-second slide pause freezes display and server time despite a slow
     await openPlayLevel(page, 1);
     await waiting;
     await page.waitForTimeout(3000);
-    const timer = page.getByLabel("Time on this drill", { exact: true });
+    const timer = rendered(
+      page.getByLabel("Time on this drill", { exact: true }),
+    );
     const elapsed = async () =>
       (await timer.textContent())?.match(/^\d+:\d+/u)?.[0] ?? "";
     await page.screenshot({ path: "artifacts/rag-course-3/timer-before.png" });
@@ -62,7 +66,9 @@ test("an eight-second slide pause freezes display and server time despite a slow
     release();
     await page.waitForTimeout(4000);
     expect(await elapsed()).toBe(frozen);
-    const paused: { elapsedMs: number } = await (await stopped).json();
+    const paused: {
+      elapsedMs: number;
+    } = await (await stopped).json();
     const [minutes, seconds] = frozen.split(":").map(Number);
     expect(paused.elapsedMs).toBeLessThan(
       (minutes * 60 + seconds) * 1000 + 1500,
@@ -81,9 +87,11 @@ test("an eight-second slide pause freezes display and server time despite a slow
     await page
       .getByRole("button", { name: "Check answer", exact: true })
       .click();
-    const saved: { result: { timeMs: number } } = await (
-      await submitted
-    ).json();
+    const saved: {
+      result: {
+        timeMs: number;
+      };
+    } = await (await submitted).json();
     expect(saved.result.timeMs).toBeLessThan(paused.elapsedMs + 4000);
     expect(await modelCalls(page)).toBe(before);
   } finally {

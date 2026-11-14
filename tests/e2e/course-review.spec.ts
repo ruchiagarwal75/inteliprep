@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import {
@@ -46,12 +47,12 @@ test("a quiz can review slides at its question reference without losing a choice
     overlay.getByLabel("Slide counter").filter({ visible: true }),
   ).toHaveText("6 / 13");
   expect((await paused).status()).toBe(200);
-  const time = await page
-    .getByLabel("Time on this drill", { exact: true })
-    .textContent();
+  const time = await rendered(
+    page.getByLabel("Time on this drill", { exact: true }),
+  ).textContent();
   await page.waitForTimeout(2100);
   await expect(
-    page.getByLabel("Time on this drill", { exact: true }),
+    rendered(page.getByLabel("Time on this drill", { exact: true })),
   ).toHaveText(time ?? "");
   await overlay.getByRole("button", { name: "Back", exact: true }).click();
   await expect(
@@ -76,10 +77,9 @@ test("a quiz can review slides at its question reference without losing a choice
       .click();
     await dismissLevelUp(page);
     await expect(
-      page.getByLabel("Drill result", { exact: true }),
+      rendered(page.getByLabel("Drill result", { exact: true })),
     ).toBeVisible();
-    await page
-      .getByLabel("Drill result", { exact: true })
+    await rendered(page.getByLabel("Drill result", { exact: true }))
       .getByRole("button", { name: "Continue", exact: true })
       .click();
   }
@@ -91,14 +91,14 @@ test("a quiz can review slides at its question reference without losing a choice
   ).toBeVisible();
   await captureReview("result-review-slides");
   await page.getByRole("link", { name: "Back to topics", exact: true }).click();
-  await page.locator('[data-topic-review="1"] summary').click();
+  await rendered(page.locator('[data-topic-review="1"] summary')).click();
   await expect(
-    page
-      .locator('[data-topic-review="1"]')
-      .getByRole("link", { name: "Review slides", exact: true }),
+    rendered(page.locator('[data-topic-review="1"]')).getByRole("link", {
+      name: "Review slides",
+      exact: true,
+    }),
   ).toBeVisible();
   expect(await modelCalls(page)).toBe(before);
-
   async function captureReview(name: string) {
     for (const width of [1440, 375]) {
       await page.setViewportSize({ width, height: 900 });

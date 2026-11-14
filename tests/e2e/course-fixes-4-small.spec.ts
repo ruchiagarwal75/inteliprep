@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -17,7 +18,10 @@ test("the world copy and path buttons distinguish the current topic from practic
     ]) {
       await page.setViewportSize(size);
       await page.goto("/play/rag");
-      if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
+      if (
+        (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+        theme
+      ) {
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
           .click();
@@ -31,15 +35,17 @@ test("the world copy and path buttons distinguish the current topic from practic
       const topics = page.getByRole("list", { name: "RAG course topics" });
       await expect(topics.locator(".practice-primary")).toHaveCount(1);
       await expect(
-        page
-          .locator('[aria-current="step"]')
-          .getByRole("link", { name: "Learn", exact: true }),
+        rendered(page.locator('[aria-current="step"]')).getByRole("link", {
+          name: "Learn",
+          exact: true,
+        }),
       ).toHaveClass(/practice-primary/u);
       for (const level of [0, 1])
         await expect(
-          page
-            .locator(`[data-topic-level="${level}"]`)
-            .getByRole("link", { name: "Practice again", exact: true }),
+          rendered(page.locator(`[data-topic-level="${level}"]`)).getByRole(
+            "link",
+            { name: "Practice again", exact: true },
+          ),
         ).toHaveClass(/practice-secondary/u);
       await page.screenshot({
         path: `artifacts/course-fixes-4/path-final-${theme}-${size.width}.png`,

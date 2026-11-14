@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -28,7 +29,10 @@ test("returning players land with the current node circle centered, including re
           reducedMotion: reduce ? "reduce" : "no-preference",
         });
         await page.goto("/play/rag");
-        if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
+        if (
+          (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+          theme
+        ) {
           await page
             .getByRole("button", {
               name: `Switch to ${theme} mode`,
@@ -37,12 +41,14 @@ test("returning players land with the current node circle centered, including re
             .click();
           await page.reload();
         }
-        const current = page
-          .locator('[aria-current="step"] [data-course-node]')
-          .filter({ visible: true });
+        const current = rendered(
+          page.locator('[aria-current="step"] [data-course-node]'),
+        ).filter({ visible: true });
         await expect(current).toHaveCount(1);
         await expect(
-          page.locator('[data-topic-level="2"]').filter({ visible: true }),
+          rendered(page.locator('[data-topic-level="2"]')).filter({
+            visible: true,
+          }),
         ).toHaveAttribute("aria-current", "step");
         await expect
           .poll(
@@ -54,7 +60,7 @@ test("returning players land with the current node circle centered, including re
             { timeout: 3000 },
           )
           .toBeLessThan(2);
-        await expect(page.locator("html")).not.toHaveAttribute(
+        await expect(rendered(page.locator("html"))).not.toHaveAttribute(
           "data-initial-smooth",
           "true",
         );

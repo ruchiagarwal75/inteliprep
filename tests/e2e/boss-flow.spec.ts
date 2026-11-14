@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { bossView, bossShot } from "./boss-browser-helpers";
 import { modelCalls } from "./course-evidence";
@@ -16,8 +17,7 @@ test("one real Free creation, refresh/resume and ending without any model call",
     )
       starts++;
   });
-  await page
-    .locator("#rag-boss")
+  await rendered(page.locator("#rag-boss"))
     .getByRole("button", { name: "Start boss", exact: true })
     .click();
   const pending = page.waitForResponse(
@@ -38,13 +38,15 @@ test("one real Free creation, refresh/resume and ending without any model call",
   expect(response.status()).toBe(200);
   const opened = await response.json();
   await page.waitForURL(new RegExp(`/interview/${opened.sessionId}$`));
-  await expect(page.locator(".excalidraw canvas").first()).toBeVisible();
+  await expect(
+    rendered(page.locator(".excalidraw canvas")).first(),
+  ).toBeVisible();
   await page.reload();
   await expect(
     page.getByRole("button", { name: "End interview", exact: true }),
   ).toBeEnabled();
   await page.goto("/play/rag#rag-boss");
-  await expect(page.locator("#rag-boss")).toHaveAttribute(
+  await expect(rendered(page.locator("#rag-boss"))).toHaveAttribute(
     "data-boss-state",
     "in_progress",
   );
@@ -63,7 +65,7 @@ test("one real Free creation, refresh/resume and ending without any model call",
   ).toBeVisible();
   await bossShot(page, "empty-boss-result-light-1440");
   await page.goto("/play/rag#rag-boss");
-  await expect(page.locator("#rag-boss")).toHaveAttribute(
+  await expect(rendered(page.locator("#rag-boss"))).toHaveAttribute(
     "data-boss-state",
     "used",
   );

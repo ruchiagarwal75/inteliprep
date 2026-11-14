@@ -1,10 +1,10 @@
+import { rendered } from "./rendered";
 import { roundViewSchema } from "../../src/lib/play/public";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
 import { playView, fillPlayAnswer, dismissLevelUp } from "./play-helpers";
-
 test("new players learn Topic 0, pass its eight-question quiz and unlock the world without AI", async ({
   page,
   context,
@@ -43,7 +43,7 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   await page.goto("/play/rag/topics/0");
   for (let slide = 1; slide <= 10; slide++) {
     await expect(
-      page.getByLabel("Slide counter").filter({ visible: true }),
+      rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
     ).toHaveText(`${slide} / 10`);
     const body = page.getByRole("region", { name: "Slide content" });
     expect(
@@ -81,7 +81,7 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
       .click();
     expect((await checked).status()).toBe(200);
     await dismissLevelUp(page);
-    const result = page.getByLabel("Drill result", { exact: true });
+    const result = rendered(page.getByLabel("Drill result", { exact: true }));
     await expect(result).toBeVisible();
     await dismissLevelUp(page);
     if (index < 7) {
@@ -108,13 +108,15 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   await expect(
     page.getByRole("heading", { name: "Topic passed", exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("6 of 8 correct", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByText("6 of 8 correct", { exact: true })),
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "RAG Rookie", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("105 XP earned", { exact: true })).toHaveText(
-    "105 XP",
-  );
+  await expect(
+    rendered(page.getByLabel("105 XP earned", { exact: true })),
+  ).toHaveText("105 XP");
   await page.screenshot({
     path: "artifacts/rag-primer/result-1440.png",
     fullPage: true,
@@ -126,7 +128,7 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   });
   await expect(unlock).toBeVisible();
   await expect(unlock).toContainText("Let's go deeper");
-  const connector = page.locator("[data-primer-connector]").first();
+  const connector = rendered(page.locator("[data-primer-connector]")).first();
   await expect(connector).not.toHaveCSS("animation-name", "none");
   const initial = await connector.evaluate((node) =>
     parseFloat(getComputedStyle(node).strokeDashoffset),
@@ -139,10 +141,9 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
     )
     .toBeLessThan(initial);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator("[data-primer-connector]").first()).toHaveCSS(
-    "animation-name",
-    "none",
-  );
+  await expect(
+    rendered(page.locator("[data-primer-connector]")).first(),
+  ).toHaveCSS("animation-name", "none");
   await page.setViewportSize({ width: 1440, height: 1400 });
   await page.evaluate(() => window.scrollTo(0, 0));
   const heading = await unlock
@@ -155,7 +156,7 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
     throw Error("Missing unlock heading or speech bubble");
   expect(bubble.y).toBeGreaterThanOrEqual(heading.y + heading.height + 8);
   await expect(
-    page.locator('[aria-label="Practice guide"]:visible'),
+    rendered(page.locator('[aria-label="Practice guide"]:visible')),
   ).toHaveCount(1);
   await page.screenshot({
     path: "artifacts/rag-primer/world-unlocked-1440.png",
@@ -166,18 +167,19 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
     topics.nth(1).getByRole("link", { name: "Learn", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByLabel("1 / 30 stars", { exact: true }).filter({ visible: true }),
+    rendered(page.getByLabel("1 / 30 stars", { exact: true })).filter({
+      visible: true,
+    }),
   ).toBeVisible();
   await page.reload();
   await expect(unlock).toHaveCount(0);
   await page.goto("/play/rag/topics/1");
   await expect(
-    page.getByLabel("Slide counter").filter({ visible: true }),
+    rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
   ).toHaveText("1 / 13");
   expect(await modelCalls(page)).toBe(before);
   expect(errors).toEqual([]);
 });
-
 test("a returning player can keep Topic 1 and take the optional primer later", async ({
   page,
   context,
@@ -191,10 +193,10 @@ test("a returning player can keep Topic 1 and take the optional primer later", a
   await expect(topics.nth(1)).toHaveAttribute("aria-current", "step");
   await page.goto("/play/rag/topics/1");
   await expect(
-    page.getByLabel("Slide counter").filter({ visible: true }),
+    rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
   ).toHaveText("1 / 13");
   await page.goto("/play/rag/topics/0");
   await expect(
-    page.getByLabel("Slide counter").filter({ visible: true }),
+    rendered(page.getByLabel("Slide counter")).filter({ visible: true }),
   ).toHaveText("1 / 10");
 });

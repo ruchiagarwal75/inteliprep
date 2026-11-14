@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test, type Page, type BrowserContext } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -28,7 +29,11 @@ async function open(
 }
 async function toPanel(page: Page, panel: number) {
   for (let n = 0; n < 12; n++) {
-    if (await page.getByLabel(`Panel ${panel} of 4`, { exact: true }).count())
+    if (
+      await rendered(
+        page.getByLabel(`Panel ${panel} of 4`, { exact: true }),
+      ).count()
+    )
       return;
     await page.getByRole("button", { name: "Next", exact: true }).click();
   }
@@ -99,7 +104,7 @@ for (const [theme, width, account] of [
         if (beatIndex > 0)
           await page.getByRole("button", { name: "Next", exact: true }).click();
         await expect(
-          page.getByText(beat.speaker, { exact: true }),
+          rendered(page.getByText(beat.speaker, { exact: true })),
         ).toBeVisible();
         await expect(
           page.getByRole("dialog").locator('[aria-live="polite"]'),
@@ -222,18 +227,26 @@ test("keyboard reveals before advancing, traps focus, goes back and respects red
   await expect(
     page.getByRole("button", { name: "Continue dialogue", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("Panel 1 of 4", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("Panel 1 of 4", { exact: true })),
+  ).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByText("Welcome to our world!", {
-      exact: true,
-    }),
+    rendered(
+      page.getByText("Welcome to our world!", {
+        exact: true,
+      }),
+    ),
   ).toHaveCount(1);
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByLabel("Panel 2 of 4", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("Panel 2 of 4", { exact: true })),
+  ).toBeVisible();
   await page.keyboard.press("ArrowLeft");
-  await expect(page.getByLabel("Panel 1 of 4", { exact: true })).toBeVisible();
+  await expect(
+    rendered(page.getByLabel("Panel 1 of 4", { exact: true })),
+  ).toBeVisible();
   for (let n = 0; n < 12; n++) {
     await page.keyboard.press("Tab");
     expect(
@@ -267,17 +280,23 @@ test("existing progress skips automatic welcome and Replay intro is explicit", a
   await page.emulateMedia({ reducedMotion: "reduce" });
   await toPanel(page, 2);
   await expect(
-    page.getByText("Our first world is RAG.", { exact: true }),
+    rendered(page.getByText("Our first world is RAG.", { exact: true })),
   ).toBeVisible();
-  await expect(page.locator('[data-pixel-pose="cheer"]')).toBeVisible();
-  await expect(page.locator('[data-boss-pose="idle"]')).toHaveCount(0);
+  await expect(
+    rendered(page.locator('[data-pixel-pose="cheer"]')),
+  ).toBeVisible();
+  await expect(rendered(page.locator('[data-boss-pose="idle"]'))).toHaveCount(
+    0,
+  );
   await toPanel(page, 3);
   await expect(
-    page.getByText("After training, you'll meet the Interviewer.", {
-      exact: true,
-    }),
+    rendered(
+      page.getByText("After training, you'll meet the Interviewer.", {
+        exact: true,
+      }),
+    ),
   ).toBeVisible();
-  await expect(page.locator('[data-boss-pose="idle"]')).toBeVisible();
+  await expect(rendered(page.locator('[data-boss-pose="idle"]'))).toBeVisible();
   await page.getByRole("button", { name: "Skip", exact: true }).click();
   await page.waitForURL(/\/play$/);
   const data = await snapshot(page, "welcomeExisting");

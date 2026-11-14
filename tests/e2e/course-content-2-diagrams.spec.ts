@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -33,7 +34,10 @@ test("every revised lesson and diagram fits both themes and target sizes", async
       await page.setViewportSize(size);
       for (const { level, total, slides } of illustrations) {
         await page.goto(`/play/rag/topics/${level}`);
-        if ((await page.locator("html").getAttribute("data-theme")) !== theme) {
+        if (
+          (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+          theme
+        ) {
           await page
             .getByRole("button", {
               name: `Switch to ${theme} mode`,
@@ -44,7 +48,9 @@ test("every revised lesson and diagram fits both themes and target sizes", async
         }
         for (let number = 1; number <= total; number++) {
           await expect(
-            page.getByLabel("Slide counter").filter({ visible: true }),
+            rendered(page.getByLabel("Slide counter")).filter({
+              visible: true,
+            }),
           ).toHaveText(`${number} / ${total}`);
           expect(
             await page.evaluate(
@@ -52,7 +58,7 @@ test("every revised lesson and diagram fits both themes and target sizes", async
             ),
           ).toBe(true);
           if (slides.includes(number)) {
-            const figure = page.locator("[data-course-diagram]");
+            const figure = rendered(page.locator("[data-course-diagram]"));
             await expect(figure).toHaveCount(1);
             await expect(figure).toHaveAttribute("role", "img");
             await expect(figure).toHaveAttribute("aria-label", /.{30,}/u);

@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
@@ -56,7 +57,7 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
       .click();
     expect((await checked).status()).toBe(200);
     await dismissLevelUp(page);
-    const result = page.getByLabel("Drill result", { exact: true });
+    const result = rendered(page.getByLabel("Drill result", { exact: true }));
     await expect(result).toHaveAttribute("data-correct", "false");
     await result
       .getByRole("button", { name: `See slide ${expected}`, exact: true })
@@ -68,7 +69,10 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
       await overlay
         .getByRole("button", { name: "Close slides", exact: true })
         .click();
-      if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+      if (
+        (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+        theme
+      )
         await page
           .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
           .click();

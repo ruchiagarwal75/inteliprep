@@ -1,3 +1,4 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import {
@@ -51,7 +52,10 @@ for (const { account, theme, ...size } of cases)
     });
     await page.setViewportSize(size);
     await openPlayLevel(page, 1);
-    if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+    if (
+      (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+      theme
+    )
       await page
         .getByRole("button", { name: `Switch to ${theme} mode`, exact: true })
         .click();

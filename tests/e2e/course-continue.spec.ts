@@ -1,8 +1,8 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { openPlayLevel, playView, fillPlayAnswer } from "./play-helpers";
 import { modelCalls } from "./course-evidence";
-
 test("Enter continues from feedback and the final answer, including after a level-up dialog", async ({
   page,
   context,
@@ -14,7 +14,7 @@ test("Enter continues from feedback and the final answer, including after a leve
   for (let index = 0; index < 7; index++) {
     await fillPlayAnswer(page, await playView(page));
     await page.keyboard.press("Enter");
-    const sheet = page.getByLabel("Drill result", { exact: true });
+    const sheet = rendered(page.getByLabel("Drill result", { exact: true }));
     await expect(sheet).toBeVisible();
     if (index === 0) {
       const why = sheet.locator("summary");

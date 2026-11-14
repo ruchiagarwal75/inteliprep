@@ -1,8 +1,8 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import type { Locator } from "@playwright/test";
 import { signIn } from "./fixture-auth";
 import { mkdirSync } from "node:fs";
-
 test("vector slide diagrams use readable Inter labels in both themes and widths", async ({
   page,
   context,
@@ -25,7 +25,10 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         await document.fonts.ready;
       });
       // Use the normal toggle if a remembered preference from an earlier test differs.
-      if ((await page.locator("html").getAttribute("data-theme")) !== theme)
+      if (
+        (await rendered(page.locator("html")).getAttribute("data-theme")) !==
+        theme
+      )
         await page
           .getByRole("button", {
             name:
@@ -45,7 +48,9 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
           await page.getByRole("button", { name: "Next", exact: true }).click();
           current++;
         }
-        const diagram = page.locator(`[data-course-diagram="${kind}"]`);
+        const diagram = rendered(
+          page.locator(`[data-course-diagram="${kind}"]`),
+        );
         await expectReadableDiagram(diagram);
         expect(
           await page.evaluate(
@@ -59,7 +64,6 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
         });
         await page.setViewportSize({ width, height: 900 });
       }
-
       for (const kind of [
         "pipeline",
         "overlap",
@@ -92,7 +96,9 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
             ? 2
             : 3;
         await page.goto(`/play/rag/notebook?topic=${level}`);
-        const diagram = page.locator(`[data-course-diagram="${kind}"]`);
+        const diagram = rendered(
+          page.locator(`[data-course-diagram="${kind}"]`),
+        );
         await expectReadableDiagram(diagram);
         await diagram.screenshot({
           path: `artifacts/rag-course-2/vector-${kind}-${theme}-${width}.png`,
@@ -101,7 +107,6 @@ test("vector slide diagrams use readable Inter labels in both themes and widths"
     }
   }
 });
-
 async function expectReadableDiagram(diagram: Locator) {
   await expect(diagram).toBeVisible();
   await expect(diagram).toHaveAttribute("role", "img");

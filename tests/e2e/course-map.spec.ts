@@ -1,8 +1,8 @@
+import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-
 for (const theme of ["light", "dark"] as const)
   for (const width of [1440, 375])
     test(`whole course map fits and remains usable: ${theme}, ${width}`, async ({
@@ -22,15 +22,15 @@ for (const theme of ["light", "dark"] as const)
       await expect(
         page.getByRole("list", { name: "RAG course topics", exact: true }),
       ).toBeVisible();
-      await expect(page.locator("[data-course-map]")).toHaveCount(0);
+      await expect(rendered(page.locator("[data-course-map]"))).toHaveCount(0);
       await page
         .getByRole("link", { name: "Map overview", exact: true })
         .click();
       await expect(page).toHaveURL(/view=map/);
-      const map = page.locator("[data-course-map]");
+      const map = rendered(page.locator("[data-course-map]"));
       await expect(map).toBeVisible();
-      await expect(page.locator("[data-map-topic]")).toHaveCount(10);
-      await expect(page.locator("[data-map-boss]")).toHaveCount(1);
+      await expect(rendered(page.locator("[data-map-topic]"))).toHaveCount(10);
+      await expect(rendered(page.locator("[data-map-boss]"))).toHaveCount(1);
       for (const stop of await map.locator("li").all())
         await expect(stop).toBeInViewport({ ratio: 1 });
       expect(
@@ -52,7 +52,7 @@ for (const theme of ["light", "dark"] as const)
           exact: true,
         })
         .click();
-      const selection = page.locator("#course-map-selection");
+      const selection = rendered(page.locator("#course-map-selection"));
       await expect(selection).toContainText("Pass Topic 8 to unlock.");
       await expect(
         selection.getByRole("link", { name: "Learn", exact: true }),
@@ -90,7 +90,7 @@ for (const theme of ["light", "dark"] as const)
           exact: true,
         })
         .click();
-      await expect(page.locator("#rag-boss")).toBeInViewport();
+      await expect(rendered(page.locator("#rag-boss"))).toBeInViewport();
       expect(await modelCalls(page)).toBe(before);
       expect(errors).toEqual([]);
     });
