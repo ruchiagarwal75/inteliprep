@@ -42,7 +42,9 @@ export async function openPlayLevel(page: Page, level: number) {
       await quiz.first().click();
       break;
     }
-    const counter = page.getByLabel("Slide counter");
+    // Next can retain a hidden streamed tree while the visible lesson is ready.
+    const counter = page.getByLabel("Slide counter").filter({ visible: true });
+    await expect(counter).toHaveCount(1);
     const previous = await counter.textContent();
     await page.getByRole("button", { name: "Next", exact: true }).click();
     await expect(counter).not.toHaveText(previous ?? "");

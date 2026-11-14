@@ -48,9 +48,9 @@ test("all 48 early course slides use a fixed focus shell and an internally scrol
         }
         await page.evaluate(() => document.fonts.ready);
         for (let n = 1; n <= total; n++) {
-          await expect(page.getByLabel("Slide counter")).toHaveText(
-            `${n} / ${total}`,
-          );
+          await expect(
+            page.getByLabel("Slide counter").filter({ visible: true }),
+          ).toHaveText(`${n} / ${total}`);
           visited++;
           const header = page.locator("[data-learn-header]"),
             frame = page.getByRole("region", {

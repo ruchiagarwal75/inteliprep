@@ -37,13 +37,13 @@ test("returning players land with the current node circle centered, including re
             .click();
           await page.reload();
         }
-        const current = page.locator(
-          '[aria-current="step"] [data-course-node]',
-        );
-        await expect(page.locator('[data-topic-level="2"]')).toHaveAttribute(
-          "aria-current",
-          "step",
-        );
+        const current = page
+          .locator('[aria-current="step"] [data-course-node]')
+          .filter({ visible: true });
+        await expect(current).toHaveCount(1);
+        await expect(
+          page.locator('[data-topic-level="2"]').filter({ visible: true }),
+        ).toHaveAttribute("aria-current", "step");
         await expect
           .poll(
             async () =>

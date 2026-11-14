@@ -43,9 +43,9 @@ test("every revised lesson and diagram fits both themes and target sizes", async
           await page.reload();
         }
         for (let number = 1; number <= total; number++) {
-          await expect(page.getByLabel("Slide counter")).toHaveText(
-            `${number} / ${total}`,
-          );
+          await expect(
+            page.getByLabel("Slide counter").filter({ visible: true }),
+          ).toHaveText(`${number} / ${total}`);
           expect(
             await page.evaluate(
               () => document.documentElement.scrollWidth <= innerWidth,

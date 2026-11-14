@@ -34,9 +34,13 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
   }
   await page.goto("/play/rag");
   await expect(
-    page.getByLabel("0 of 10 topics passed", { exact: true }),
+    page
+      .getByLabel("0 of 10 topics passed", { exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("0 / 30 stars", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("0 / 30 stars", { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
   await expect(
     page.getByLabel("Topic 4: Re-ranking, locked", { exact: true }),
   ).toBeVisible();
@@ -52,9 +56,9 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
   for (const { level, slides, total } of levels) {
     await page.goto(`/play/rag/topics/${level}`);
     for (let n = 1; n <= slides; n++) {
-      await expect(page.getByLabel("Slide counter")).toHaveText(
-        `${n} / ${slides}`,
-      );
+      await expect(
+        page.getByLabel("Slide counter").filter({ visible: true }),
+      ).toHaveText(`${n} / ${slides}`);
       if (n < slides)
         await page.getByRole("button", { name: "Next", exact: true }).click();
     }
@@ -94,9 +98,9 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
           name: `Topic ${level} slides`,
           exact: true,
         });
-        await expect(overlay.getByLabel("Slide counter")).toHaveText(
-          `${reference} / ${slides}`,
-        );
+        await expect(
+          overlay.getByLabel("Slide counter").filter({ visible: true }),
+        ).toHaveText(`${reference} / ${slides}`);
         await overlay
           .getByRole("button", { name: "Close slides", exact: true })
           .click();
@@ -177,7 +181,9 @@ test("a fresh fixture passes all ten topics, reviews each mistake and opens all 
       });
     }
   }
-  await expect(page.getByLabel("10 / 30 stars", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("10 / 30 stars", { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
   await expect(
     page.getByText("10 of 10 cleared", { exact: true }),
   ).toBeVisible();

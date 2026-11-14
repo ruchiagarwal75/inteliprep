@@ -28,9 +28,9 @@ test("a fresh player reads and passes both ten-question topics, reviewing the ma
   ]) {
     await page.goto(`/play/rag/topics/${level}`);
     for (let number = 1; number <= slides; number++) {
-      await expect(page.getByLabel("Slide counter")).toHaveText(
-        `${number} / ${slides}`,
-      );
+      await expect(
+        page.getByLabel("Slide counter").filter({ visible: true }),
+      ).toHaveText(`${number} / ${slides}`);
       if (number < slides)
         await page.getByRole("button", { name: "Next", exact: true }).click();
     }
@@ -67,9 +67,9 @@ test("a fresh player reads and passes both ten-question topics, reviewing the ma
           name: `Topic ${level} slides`,
           exact: true,
         });
-        await expect(overlay.getByLabel("Slide counter")).toHaveText(
-          `${reference} / ${slides}`,
-        );
+        await expect(
+          overlay.getByLabel("Slide counter").filter({ visible: true }),
+        ).toHaveText(`${reference} / ${slides}`);
         await overlay
           .getByRole("button", { name: "Close slides", exact: true })
           .click();

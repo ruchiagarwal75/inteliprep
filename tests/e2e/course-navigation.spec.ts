@@ -29,25 +29,35 @@ test("slides move instantly while ordered saves and the quiz gate wait in the ba
   });
   try {
     await page.goto("/play/rag/topics/1");
-    await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText("1 / 13");
     await expect(
       page.getByRole("button", { name: "Start quiz", exact: true }),
     ).toHaveCount(0);
     for (let press = 0; press < 3; press++)
       await page.keyboard.press("ArrowRight");
-    await expect(page.getByLabel("Slide counter")).toHaveText("4 / 13");
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText("4 / 13");
     expect(saved).toEqual([0]);
     await expect(
       page.getByRole("button", { name: "Next", exact: true }),
     ).toBeEnabled();
     await page.keyboard.press("ArrowLeft");
-    await expect(page.getByLabel("Slide counter")).toHaveText("3 / 13");
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText("3 / 13");
     await page.keyboard.press("Enter");
-    await expect(page.getByLabel("Slide counter")).toHaveText("4 / 13");
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText("4 / 13");
     await page.keyboard.press("ArrowRight");
     for (let slide = 6; slide <= 13; slide++)
       await page.keyboard.press("ArrowRight");
-    await expect(page.getByLabel("Slide counter")).toHaveText("13 / 13");
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText("13 / 13");
     await page
       .getByRole("button", { name: "Start quiz", exact: true })
       .last()

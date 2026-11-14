@@ -45,9 +45,9 @@ test("all thirty-six new slides and twelve diagrams fit both themes and target s
           await page.reload();
         }
         for (let number = 1; number <= total; number++) {
-          await expect(page.getByLabel("Slide counter")).toHaveText(
-            `${number} / ${total}`,
-          );
+          await expect(
+            page.getByLabel("Slide counter").filter({ visible: true }),
+          ).toHaveText(`${number} / ${total}`);
           visited++;
           expect(
             await page.evaluate(

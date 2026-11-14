@@ -45,7 +45,10 @@ for (const theme of ["light", "dark"] as const)
         await expect(notice).toContainText(
           "9 topics open up. Next: Ingestion and chunking.",
         );
-        const node = page.locator('[data-topic-level="1"] [data-course-node]');
+        const node = page
+          .locator('[data-topic-level="1"] [data-course-node]')
+          .filter({ visible: true });
+        await expect(node).toHaveCount(1);
         await expect(notice).toBeInViewport({ ratio: 1 });
         const overlap = await notice.evaluate((card) => {
           const a = card.getBoundingClientRect();
@@ -64,7 +67,10 @@ for (const theme of ["light", "dark"] as const)
           });
         });
         expect(overlap).toBe(false);
-        const connector = page.locator("[data-primer-connector]").first();
+        const connector = page
+          .locator("[data-primer-connector]")
+          .filter({ visible: true });
+        await expect(connector).toHaveCount(1);
         expect(
           await connector.evaluate((n) => getComputedStyle(n).stroke),
         ).toBe(
@@ -123,7 +129,9 @@ for (const theme of ["light", "dark"] as const)
             .getByRole("link", { name: "Start Topic 1", exact: true })
             .click();
           await expect(page).toHaveURL(/\/play\/rag\/topics\/1$/);
-          await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
+          await expect(
+            page.getByLabel("Slide counter").filter({ visible: true }),
+          ).toHaveText("1 / 13");
         }
         expect(await modelCalls(page)).toBe(before);
       });

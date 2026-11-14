@@ -34,9 +34,13 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
   }
   await page.goto("/play/rag");
   await expect(
-    page.getByLabel("0 of 10 topics passed", { exact: true }),
+    page
+      .getByLabel("0 of 10 topics passed", { exact: true })
+      .filter({ visible: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("0 / 30 stars", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("0 / 30 stars", { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
   await expect(
     page.getByLabel("Topic 4: Re-ranking, locked", { exact: true }),
   ).toBeVisible();
@@ -52,9 +56,9 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
   for (const { level, slides, total } of levels) {
     await page.goto(`/play/rag/topics/${level}`);
     for (let n = 1; n <= slides; n++) {
-      await expect(page.getByLabel("Slide counter")).toHaveText(
-        `${n} / ${slides}`,
-      );
+      await expect(
+        page.getByLabel("Slide counter").filter({ visible: true }),
+      ).toHaveText(`${n} / ${slides}`);
       if (n < slides)
         await page.getByRole("button", { name: "Next", exact: true }).click();
     }
@@ -94,9 +98,9 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
           name: `Topic ${level} slides`,
           exact: true,
         });
-        await expect(overlay.getByLabel("Slide counter")).toHaveText(
-          `${reference} / ${slides}`,
-        );
+        await expect(
+          overlay.getByLabel("Slide counter").filter({ visible: true }),
+        ).toHaveText(`${reference} / ${slides}`);
         await overlay
           .getByRole("button", { name: "Close slides", exact: true })
           .click();
@@ -144,7 +148,9 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
         page.getByRole("link", { name: new RegExp(`^Topic ${level + 1}:`) }),
       ).toBeVisible();
   }
-  await expect(page.getByLabel("7 / 30 stars", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("7 / 30 stars", { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: /^Topic 7: Evaluation/ }),
   ).toBeVisible();

@@ -10,7 +10,9 @@ test("a separate fresh account must see all slides once, then can revisit its qu
   const before = await modelCalls(page);
   for (let visit = 0; visit < 2; visit++) {
     await page.goto("/play/rag/topics/1");
-    await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText("1 / 13");
     await expect(
       page.getByRole("button", { name: "Start quiz", exact: true }),
     ).toHaveCount(0);
@@ -28,7 +30,9 @@ test("a separate fresh account must see all slides once, then can revisit its qu
   }
   for (let slide = 2; slide <= 13; slide++) {
     await page.getByRole("button", { name: "Next", exact: true }).click();
-    await expect(page.getByLabel("Slide counter")).toHaveText(`${slide} / 13`);
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText(`${slide} / 13`);
     if (slide < 13)
       await expect(
         page.getByRole("button", { name: "Start quiz", exact: true }),
@@ -42,7 +46,9 @@ test("a separate fresh account must see all slides once, then can revisit its qu
     page.getByRole("heading", { name: "Big chunks", exact: true }),
   ).toBeVisible();
   await page.goto("/play/rag/topics/1");
-  await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
+  await expect(
+    page.getByLabel("Slide counter").filter({ visible: true }),
+  ).toHaveText("1 / 13");
   await expect(
     page.getByRole("button", { name: "Start quiz", exact: true }),
   ).toBeVisible();

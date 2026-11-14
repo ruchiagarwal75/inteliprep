@@ -42,7 +42,9 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   ).toBeVisible();
   await page.goto("/play/rag/topics/0");
   for (let slide = 1; slide <= 10; slide++) {
-    await expect(page.getByLabel("Slide counter")).toHaveText(`${slide} / 10`);
+    await expect(
+      page.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText(`${slide} / 10`);
     const body = page.getByRole("region", { name: "Slide content" });
     expect(
       await body.evaluate((node) => node.scrollHeight <= node.clientHeight + 1),
@@ -163,11 +165,15 @@ test("new players learn Topic 0, pass its eight-question quiz and unlock the wor
   await expect(
     topics.nth(1).getByRole("link", { name: "Learn", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("1 / 30 stars", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("1 / 30 stars", { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
   await page.reload();
   await expect(unlock).toHaveCount(0);
   await page.goto("/play/rag/topics/1");
-  await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
+  await expect(
+    page.getByLabel("Slide counter").filter({ visible: true }),
+  ).toHaveText("1 / 13");
   expect(await modelCalls(page)).toBe(before);
   expect(errors).toEqual([]);
 });
@@ -184,7 +190,11 @@ test("a returning player can keep Topic 1 and take the optional primer later", a
   await expect(topics.first()).toContainText("Optional");
   await expect(topics.nth(1)).toHaveAttribute("aria-current", "step");
   await page.goto("/play/rag/topics/1");
-  await expect(page.getByLabel("Slide counter")).toHaveText("1 / 13");
+  await expect(
+    page.getByLabel("Slide counter").filter({ visible: true }),
+  ).toHaveText("1 / 13");
   await page.goto("/play/rag/topics/0");
-  await expect(page.getByLabel("Slide counter")).toHaveText("1 / 10");
+  await expect(
+    page.getByLabel("Slide counter").filter({ visible: true }),
+  ).toHaveText("1 / 10");
 });

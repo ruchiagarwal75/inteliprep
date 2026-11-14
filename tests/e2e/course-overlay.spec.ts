@@ -18,7 +18,9 @@ test("the quiz overlay gives the slide the full short-window reader", async ({
     name: "Topic 1 slides",
     exact: true,
   });
-  await expect(overlay.getByLabel("Slide counter")).toHaveText("6 / 13");
+  await expect(
+    overlay.getByLabel("Slide counter").filter({ visible: true }),
+  ).toHaveText("6 / 13");
   for (let next = 0; next < 2; next++)
     await overlay.getByRole("button", { name: "Next", exact: true }).click();
   for (const theme of ["light", "dark"]) {
@@ -30,12 +32,16 @@ test("the quiz overlay gives the slide the full short-window reader", async ({
         .getByRole("button", { name: "Switch to dark mode", exact: true })
         .click();
       await page.getByRole("button", { name: "Slides", exact: true }).click();
-      await expect(overlay.getByLabel("Slide counter")).toHaveText("6 / 13");
+      await expect(
+        overlay.getByLabel("Slide counter").filter({ visible: true }),
+      ).toHaveText("6 / 13");
       for (let next = 0; next < 2; next++)
         await overlay
           .getByRole("button", { name: "Next", exact: true })
           .click();
-      await expect(overlay.getByLabel("Slide counter")).toHaveText("8 / 13");
+      await expect(
+        overlay.getByLabel("Slide counter").filter({ visible: true }),
+      ).toHaveText("8 / 13");
     }
     for (const { width, height } of [
       { width: 1440, height: 669 },

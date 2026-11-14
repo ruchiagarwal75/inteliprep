@@ -32,17 +32,17 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
       name: `Topic ${level} slides`,
       exact: true,
     });
-    await expect(overlay.getByLabel("Slide counter")).toHaveText(
-      `${expected} / ${total}`,
-    );
+    await expect(
+      overlay.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText(`${expected} / ${total}`);
     await overlay.getByRole("button", { name: "Next", exact: true }).click();
     await overlay
       .getByRole("button", { name: "Close slides", exact: true })
       .click();
     await page.getByRole("button", { name: "Slides", exact: true }).click();
-    await expect(overlay.getByLabel("Slide counter")).toHaveText(
-      `${expected} / ${total}`,
-    );
+    await expect(
+      overlay.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText(`${expected} / ${total}`);
     await overlay
       .getByRole("button", { name: "Close slides", exact: true })
       .click();
@@ -61,9 +61,9 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
     await result
       .getByRole("button", { name: `See slide ${expected}`, exact: true })
       .click();
-    await expect(overlay.getByLabel("Slide counter")).toHaveText(
-      `${expected} / ${total}`,
-    );
+    await expect(
+      overlay.getByLabel("Slide counter").filter({ visible: true }),
+    ).toHaveText(`${expected} / ${total}`);
     for (const theme of ["light", "dark"] as const) {
       await overlay
         .getByRole("button", { name: "Close slides", exact: true })
@@ -94,9 +94,9 @@ test("quiz review and wrong answers open the teaching slide, not the previous re
         { width: 375, height: 812 },
       ]) {
         await page.setViewportSize(size);
-        await expect(overlay.getByLabel("Slide counter")).toHaveText(
-          `${expected} / ${total}`,
-        );
+        await expect(
+          overlay.getByLabel("Slide counter").filter({ visible: true }),
+        ).toHaveText(`${expected} / ${total}`);
         if (level < 2)
           await page.screenshot({
             path: `artifacts/course-fixes-4/reference-T${level}-${theme}-${size.width}.png`,
