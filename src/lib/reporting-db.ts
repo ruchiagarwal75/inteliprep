@@ -42,8 +42,8 @@ export function reportingDb() {
     max: 2,
     max_pipeline: 1,
     connect_timeout: 3,
-    idle_timeout: 10,
-    max_lifetime: 60,
+    idle_timeout: 60,
+    max_lifetime: 600,
     connection: {
       application_name: "inteliprep-reporting",
       statement_timeout: 3000,
