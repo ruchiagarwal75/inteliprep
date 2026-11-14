@@ -14,9 +14,11 @@ import styles from "./course-unlock.module.css";
 export function CourseUnlock({
   armed,
   children,
+  view = "path",
 }: {
   armed: boolean;
   children: ReactNode;
+  view?: "map" | "path";
 }) {
   const { userId } = useCandidateAccount();
   const [visible, setVisible] = useState(false);
@@ -29,7 +31,11 @@ export function CourseUnlock({
         ?.scrollIntoView({ block: "start", behavior: "instant" });
     } else if (previouslyVisible.current) {
       scene.current
-        ?.querySelector('[data-topic-level="1"] [data-course-node]')
+        ?.querySelector(
+          view === "map"
+            ? "[data-course-map]"
+            : '[data-topic-level="1"] [data-course-node]',
+        )
         ?.scrollIntoView({
           block: "center",
           behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -38,7 +44,7 @@ export function CourseUnlock({
         });
     }
     previouslyVisible.current = visible;
-  }, [visible]);
+  }, [visible, view]);
   useEffect(() => {
     const center = (selector: string) =>
       scene.current?.querySelector(selector)?.scrollIntoView({
@@ -49,7 +55,10 @@ export function CourseUnlock({
       let active = true;
       const align = () => {
         if (scene.current?.querySelector("[data-world-cleared]")) return;
-        const current = '[aria-current="step"] [data-course-node]';
+        const current =
+          view === "map"
+            ? "[data-course-map]"
+            : '[aria-current="step"] [data-course-node]';
         if (active)
           center(
             window.location.hash === "#rag-boss" ||
@@ -89,7 +98,7 @@ export function CourseUnlock({
       cancelAnimationFrame(frame);
       clearTimeout(end);
     };
-  }, [armed, userId]);
+  }, [armed, userId, view]);
   const dismiss = () => {
     setVisible(false);
   };

@@ -14,7 +14,7 @@ test("RAG course teaches, quizzes and saves an owner-only notebook without model
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const before = await modelCalls(page);
-  await page.goto("/play/rag");
+  await page.goto("/play/rag?view=path");
   await expect(
     page
       .getByRole("list", { name: "RAG course topics" })

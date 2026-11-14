@@ -1,0 +1,186 @@
+.overview {
+  max-width: 760px;
+  margin: 16px auto 0;
+}
+.hint {
+  margin: 0 0 8px;
+  color: var(--pixel-muted);
+  text-align: center;
+  font: 400 14px/1.5 var(--font-play-read);
+}
+.canvas {
+  position: relative;
+  height: 360px;
+  scroll-margin-block: 16px;
+}
+.canvas:focus {
+  outline: none;
+}
+.track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.track path {
+  fill: none;
+  stroke: var(--pixel-line-strong);
+  stroke-width: 3;
+  stroke-dasharray: 3 5;
+  vector-effect: non-scaling-stroke;
+}
+.track .primerConnector {
+  opacity: 0;
+}
+.stops {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, 90px);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.stops li {
+  min-width: 0;
+}
+.stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 84px;
+  padding: 6px 4px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--pixel-text);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--font-play-read);
+}
+.marker,
+.bossMarker {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 2px solid var(--game-world-edge);
+  border-bottom-width: 4px;
+  background: var(--game-world);
+  color: var(--pixel-on-world);
+  font: 400 14px/1 var(--font-play-pixel);
+}
+.bossMarker {
+  border-color: var(--pixel-sprite-gold);
+  background: var(--pixel-panel);
+}
+.stops [data-state="current"] .marker {
+  background: var(--pixel-current);
+  color: var(--pixel-current-text);
+  border-color: var(--pixel-sprite-gold);
+}
+.stops [data-state="locked"] .marker {
+  background: var(--pixel-locked);
+  border-color: var(--pixel-line-strong);
+}
+.stop[aria-pressed="true"] .marker {
+  outline: 2px solid var(--pixel-text);
+  outline-offset: 3px;
+}
+.stop:hover .marker,
+.stop:hover .bossMarker {
+  outline: 2px solid var(--pixel-sprite-gold);
+  outline-offset: 3px;
+}
+.stop:focus-visible {
+  outline: 2px solid var(--pixel-sprite-gold);
+  outline-offset: -2px;
+}
+.label {
+  max-width: 100%;
+  padding-inline: 3px;
+  background: var(--pixel-sky);
+  font: 650 13px/1.25 var(--font-play-read);
+  text-align: center;
+  text-wrap: balance;
+}
+.selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border: 2px solid var(--pixel-line-strong);
+  border-bottom-width: 4px;
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
+}
+.topicDetails {
+  min-width: 0;
+}
+.topicNumber {
+  color: var(--pixel-muted);
+  font: 650 13px/1.4 var(--font-play-read);
+}
+.selection .topicDetails h2 {
+  margin: 6px 0;
+  font: 650 18px/1.3 var(--font-play-read);
+}
+.selection .topicDetails p {
+  margin: 6px 0;
+  color: var(--pixel-muted);
+  font: 400 14px/1.5 var(--font-play-read);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.actions :global(.practice-primary),
+.actions :global(.practice-secondary) {
+  min-height: 44px;
+  padding: 10px 14px;
+}
+.views {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 20px;
+}
+.views a {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 2px solid var(--pixel-line-strong);
+  background: var(--pixel-panel);
+  color: var(--pixel-text);
+  text-decoration: none;
+  font: 650 14px/1.3 var(--font-play-read);
+}
+.views a[aria-current="page"] {
+  background: var(--game-world);
+  border-color: var(--game-world-edge);
+  color: var(--pixel-on-world);
+}
+.views a:focus-visible {
+  outline: 3px solid var(--pixel-sprite-gold);
+  outline-offset: 3px;
+}
+@media (max-width: 599px) {
+  .selection {
+    padding: 16px 12px;
+    gap: 12px;
+  }
+  .selection .topicDetails h2 {
+    font-size: 16px;
+  }
+  .label {
+    font-size: 12px;
+  }
+}

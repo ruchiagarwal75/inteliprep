@@ -85,6 +85,7 @@ test("a quiz can review slides at its question reference without losing a choice
   ).toBeVisible();
   await captureReview("result-review-slides");
   await page.getByRole("link", { name: "Back to topics", exact: true }).click();
+  await page.getByRole("link", { name: "Detailed path", exact: true }).click();
   await page.locator('[data-topic-review="1"] summary').click();
   await expect(
     page

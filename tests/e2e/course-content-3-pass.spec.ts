@@ -32,7 +32,7 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
     await expect(questions.first()).toContainText("Try it first");
     await expect(questions.first()).toHaveAttribute("data-answered", "false");
   }
-  await page.goto("/play/rag");
+  await page.goto("/play/rag?view=path");
   await expect(
     page.getByLabel("0 of 10 topics passed", { exact: true }),
   ).toBeVisible();
@@ -136,6 +136,9 @@ test("a fresh fixture passes Topics 0 to 6, reviews each mistake and opens the T
         fullPage: true,
       });
     await page.getByRole("link", { name: "Continue", exact: true }).click();
+    await page
+      .getByRole("link", { name: "Detailed path", exact: true })
+      .click();
     await expect(
       page.getByLabel(`${level + 1} of 10 topics passed`, { exact: true }),
     ).toBeVisible();

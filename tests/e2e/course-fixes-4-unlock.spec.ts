@@ -27,7 +27,7 @@ for (const theme of ["light", "dark"] as const)
           reducedMotion: reduce ? "reduce" : "no-preference",
         });
         // The real toggle and reload set both persistence stores before the one-time scene.
-        await page.goto("/play/rag");
+        await page.goto("/play/rag?view=path");
         if ((await page.locator("html").getAttribute("data-theme")) !== theme)
           await page
             .getByRole("button", {
@@ -36,7 +36,7 @@ for (const theme of ["light", "dark"] as const)
             })
             .click();
         const before = await modelCalls(page);
-        await page.goto("/play/rag?primer=1&unlocked=1");
+        await page.goto("/play/rag?primer=1&unlocked=1&view=path");
         const notice = page.getByRole("status", {
           name: "World unlocked",
           exact: true,
