@@ -55,7 +55,7 @@
   padding: 6px 4px 0;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: var(--transparent);
   color: var(--pixel-text);
   text-decoration: none;
   cursor: pointer;

@@ -985,7 +985,7 @@
   },
   {
     "path": "src/components/play/course-unlock.tsx",
-    "line": 75,
+    "line": 84,
     "text": "const key = `mockmeai:primer-unlocked:${userId}`;",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
@@ -1998,6 +1998,12 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "tests/e2e/course-map.spec.ts",
+    "line": 14,
+    "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "tests/e2e/fixture-auth.ts",
     "line": 9,
     "text": "name: \"inteliprep-auth\",",
@@ -2047,13 +2053,13 @@
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 100,
+    "line": 101,
     "text": "\"alter role mockmeai_reporting password 'ci-only-reporting-fixture'\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 166,
+    "line": 167,
     "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2071,7 +2077,7 @@
   },
   {
     "path": "tests/e2e/server.mjs",
-    "line": 75,
+    "line": 74,
     "text": "INTELIPREP_ENV: \"\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
