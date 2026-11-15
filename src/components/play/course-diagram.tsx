@@ -33,7 +33,7 @@ const diagrams = {
   },
   "rag-two-paths": {
     art: RagTwoPathsDiagram,
-    alt: "Offline, documents are chunked, embedded and stored in the vector database. Online, a question is embedded, searches that database, then goes through a prompt and LLM to an answer.",
+    alt: "Offline, documents are chunked, embedded and stored in the vector database. Online, a question is embedded, and search retrieves chunks from that database. Those chunks go into the prompt, then the LLM produces an answer.",
   },
   pipeline: {
     art: PipelineDiagram,

@@ -152,7 +152,7 @@ export function RagTwoPathsDiagram() {
             )}
           </g>
         ))}
-        <Arrow d="M281 192V126H613V88" x={613} y={88} angle={-90} />
+        <Arrow d="M613 88V126H281V192" x={281} y={192} angle={90} />
       </svg>
       <svg className={styles.compact} viewBox="0 0 320 510" aria-hidden="true">
         <text x={69} y={24} textAnchor="middle">
@@ -183,7 +183,7 @@ export function RagTwoPathsDiagram() {
             </g>
           )),
         )}
-        <Arrow d="M190 230H160V310H130" x={130} y={310} angle={180} />
+        <Arrow d="M130 310H160V230H190" x={190} y={230} />
       </svg>
     </>
   );
