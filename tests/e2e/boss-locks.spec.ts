@@ -34,7 +34,7 @@ test("beta locks stay in place for Free, Pro and admin while RAG keeps its unloc
         for (const button of await rendered(
           page.locator("[data-locked-problem] button"),
         ).all())
-          await expect(button).toBeDisabled();
+          await expect(button).toBeEnabled();
         await bossShot(
           page,
           `locked-${path === "/mock" ? "mock" : "brief"}-${theme}-${width}`,

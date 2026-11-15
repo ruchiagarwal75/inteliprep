@@ -7,19 +7,27 @@ import { PixelSprite } from "./play/pixel-sprite";
 import { PIXEL_ART } from "./play/pixel-art";
 import styles from "./play/play.module.css";
 import locks from "./locked-mocks.module.css";
+import { MockTrialsProvider } from "./mock-trials-provider";
+import { MockTrialRequest } from "./mock-trial-request";
+import type { MockTrial } from "@/lib/mock-trial-public";
 
 export function MockCatalog({
   problems,
   boss,
+  trials = [],
 }: {
   problems: ProblemSummary[];
   boss: RagBossState;
+  trials?: MockTrial[];
 }) {
   const rag = problems.find((problem) => isMockAvailable(problem.problemId));
   return (
-    <>
+    <MockTrialsProvider initial={trials}>
       <h1>Mock interviews</h1>
-      <p>The RAG interview is open for beta. More mocks are coming soon.</p>
+      <p>
+        Earn your free RAG boss attempt on the learning path, or request a beta
+        trial of a mock below.
+      </p>
       <Link className="practice-link" href="/mock/history">
         Saved mock interviews
       </Link>
@@ -39,6 +47,19 @@ export function MockCatalog({
               >
                 Choose mock
               </Link>
+            </div>
+          )}
+          {boss.plan === "free" && (
+            <div className={styles.topic}>
+              <div>
+                <h3>Extra RAG mock access</h3>
+                <span className={locks.badge}>Planned for Pro</span>
+                <p>
+                  A separate beta trial. Your earned boss attempt stays on the
+                  learning path.
+                </p>
+              </div>
+              <MockTrialRequest problemId={rag.problemId} />
             </div>
           )}
         </section>
@@ -70,19 +91,17 @@ export function MockCatalog({
                         width="16"
                         height="16"
                       />
-                      Coming soon
+                      Planned for Pro
                     </span>
                     <h3>{problem.title}</h3>
                     <p>{problem.summary}</p>
                   </div>
-                  <button className="practice-secondary" disabled>
-                    Locked
-                  </button>
+                  <MockTrialRequest problemId={problem.problemId} />
                 </li>
               ))}
           </ul>
         </section>
       ))}
-    </>
+    </MockTrialsProvider>
   );
 }

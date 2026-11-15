@@ -30,15 +30,23 @@ A Preview may have different environment settings and is not a Production build.
 
 ### Beta launch catalog
 
-Only the enterprise RAG mock accepts new starts during beta. The shared
-`isMockAvailable` policy controls the Mock catalog, brief and server start guard.
-Other questions show "Coming soon" and return `403 / mock_unavailable`, including
-for Pro and admin accounts. Existing interviews and history remain accessible.
+Enterprise RAG is the default beta mock. Other mock cards say "Planned for Pro"
+and offer "Request beta access". They remain locked, including for Pro and admin
+accounts, until the admin grants a trial for that specific account and question.
+Each approval permits one successfully created interview. Retries reuse that
+interview; revocation blocks new starts without affecting saved interviews.
+See [mock beta requests](mock-beta-access.md) for storage and metric definitions.
 
 Free users keep the RAG boss rule: pass Topic 9, then use one free Mid-level,
 45-minute attempt. The same boss action is available from Mock and the RAG path;
 both share the server-owned unlock and attempt record. Pro users can choose the
-RAG level and duration in the brief. No other question can be started.
+RAG level and duration in the brief. An approved separate trial also uses the
+existing level and duration choices. It never consumes the earned boss attempt.
+
+Before releasing this feature, apply
+`supabase/migrations/20261115081547_play_mock_beta_access.sql` with the operator
+database connection. It only adds two private tables and their indexes/policies.
+No environment change or historical data migration is needed.
 
 ### GitHub releases
 

@@ -76,6 +76,11 @@ export default function PrivacyPage() {
         displayed, skipped or closed, to understand how the prompt is used.
       </p>
       <p>
+        We save which mock access cards you view and which beta trials you
+        request, along with approval and trial use, so the admin can manage
+        access and understand interest in future paid features.
+      </p>
+      <p>
         Our private admin database records account signup information, interview
         milestones, elapsed duration and outcome, selected feedback summaries,
         failure reference IDs, model token usage and estimated cost. It does not

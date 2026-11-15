@@ -2,6 +2,9 @@
 
 Account access, shared AI budget and transactional email operations are documented in
 [open beta operations](open-beta-operations.md).
+Per-interview beta trial requests, server-owned grants and the private approval
+queue are documented in [mock beta requests](mock-beta-access.md). These grants
+do not change the earned RAG boss unlock, interview scoring or saved history.
 
 The new Play beta and its boundary with the existing Mock engine are specified in
 [Play beta design](play-design.md). The path, rewards and lesson UI follow

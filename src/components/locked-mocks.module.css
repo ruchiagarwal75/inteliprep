@@ -8,3 +8,18 @@
   color: var(--foreground);
   font: 600 14px/1.4 var(--font-play-read);
 }
+.request {
+  min-width: 0;
+  max-width: 28rem;
+  display: grid;
+  gap: var(--space-2);
+}
+.request p {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.request button,
+.request a {
+  justify-self: start;
+}

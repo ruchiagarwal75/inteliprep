@@ -31,6 +31,9 @@ export default async function AdminLayout({
             <Link className="underline" href="/admin/access">
               Access
             </Link>
+            <Link className="underline" href="/admin/mock-requests">
+              Mock requests
+            </Link>
             <Link className="underline" href="/admin/feedback">
               Feedback
             </Link>

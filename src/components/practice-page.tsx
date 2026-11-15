@@ -11,6 +11,7 @@ import { ragBossState } from "@/lib/rag-boss-state";
 import { MockCatalog } from "@/components/locked-mocks";
 import { isMockAvailable } from "@/lib/mock-access-public";
 import { PlayShell } from "@/components/play/play-shell";
+import { mockTrials } from "@/lib/mock-trial-store";
 export async function PracticePage({
   view,
   sessionId,
@@ -44,12 +45,24 @@ export async function PracticePage({
   }
   if (view === "home") redirect("/play");
   const problems = problemBriefs();
+  let availableProblems = problems;
   if (view === "brief") {
-    const boss = await ragBossState(userId);
-    if (boss.plan === "free")
+    const [boss, trials] = await Promise.all([
+      ragBossState(userId),
+      mockTrials(userId),
+    ]);
+    availableProblems = problems.filter(
+      (problem) =>
+        (boss.plan === "pro" && isMockAvailable(problem.problemId)) ||
+        trials.some(
+          (trial) =>
+            trial.problemId === problem.problemId && trial.state === "approved",
+        ),
+    );
+    if (!availableProblems.length)
       return (
         <PlayShell userId={userId} active="mock">
-          <MockCatalog problems={problems} boss={boss} />
+          <MockCatalog problems={problems} boss={boss} trials={trials} />
         </PlayShell>
       );
   }
@@ -57,11 +70,7 @@ export async function PracticePage({
     <CandidateWorkspace
       key={userId}
       userId={userId}
-      problems={
-        view === "brief"
-          ? problems.filter((problem) => isMockAvailable(problem.problemId))
-          : problems
-      }
+      problems={availableProblems}
       view={view === "history" ? "home" : view}
       sessionId={sessionId}
     />

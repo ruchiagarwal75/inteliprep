@@ -57,6 +57,12 @@ export default async function AdminUserPage({
         {data.user.email ?? "Email unavailable"}
       </h2>
       <AdminMockAccess userId={id} initial={mock.access} />
+      <Link
+        className="underline"
+        href={`/admin/mock-requests?search=${id}&includeExcluded=${query.includeExcluded ? 1 : 0}`}
+      >
+        View this user&apos;s mock beta requests
+      </Link>
       {mock.changes.length > 0 && (
         <details>
           <summary>Mock access changes</summary>

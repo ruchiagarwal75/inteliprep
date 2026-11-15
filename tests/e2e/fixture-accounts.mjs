@@ -2,6 +2,10 @@ import { bossAccounts } from "./boss-fixture.mjs";
 import { welcomeAccounts } from "./welcome-fixture.mjs";
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  mockTrial: {
+    id: "f0550000-0000-4000-8000-000000000001",
+    email: "mock-trial@example.invalid",
+  },
   topicRatingUnanswered: {
     id: "14141414-1414-4414-8414-141414141405",
     email: "rating-view-unanswered@example.invalid",
