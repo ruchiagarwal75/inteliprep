@@ -89,6 +89,7 @@ export async function startReportingFixture(key, cert) {
       "20261114015629_open_beta_access.sql",
       "20261115012705_first_topic_ratings.sql",
       "20261115052442_topic_rating_visibility.sql",
+      "20261115081547_play_mock_beta_access.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
@@ -104,7 +105,11 @@ export async function startReportingFixture(key, cert) {
     );
     // Existing Mock stories stay entitled. New boss stories exercise real Free defaults.
     for (const [name, account] of Object.entries(fixtureAccounts))
-      if (!name.startsWith("boss") && !name.startsWith("welcome"))
+      if (
+        !name.startsWith("boss") &&
+        !name.startsWith("welcome") &&
+        name !== "mockTrial"
+      )
         await operator`insert into practice_game.mock_access(user_id,plan) values(${account.id},'pro') on conflict do nothing`;
     await seedBossFixtures(operator);
     await seedWelcomeFixtures(operator);

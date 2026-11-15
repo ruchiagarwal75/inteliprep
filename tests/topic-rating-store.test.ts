@@ -23,7 +23,7 @@ const first = randomUUID(),
 beforeAll(async () => {
   fixture = await startPlayPostgres();
   await fixture.operator.unsafe(
-    "create schema interview_admin; grant usage on schema interview_admin to mockmeai_reporting",
+    "create schema if not exists interview_admin; grant usage on schema interview_admin to mockmeai_reporting",
   );
   const migration = await readFile(
     "supabase/migrations/20261115012705_first_topic_ratings.sql",

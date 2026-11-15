@@ -7,6 +7,11 @@ import { storedMockAccess } from "@/lib/mock-access-store";
 import { isMockAvailable, RAG_BOSS } from "@/lib/mock-access-public";
 import { withPlayer } from "@/lib/play/database";
 import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
+import {
+  availableMockTrial,
+  consumeMockTrial,
+  replayMockTrial,
+} from "@/lib/mock-trial-start";
 import type {
   InterviewStart,
   interviewStartRequestSchema,
@@ -24,7 +29,7 @@ export class MockStartAccessError extends Error {
     super(
       {
         mock_unavailable:
-          "This mock is coming soon. Only the RAG interview is available during beta.",
+          "Request beta access to this mock on the Mock page. An approved trial unlocks one attempt.",
         pro_required:
           "Mock interviews are part of Pro. Your free RAG boss attempt is available on the RAG path.",
         boss_locked: "Pass Topic 9 to unlock the RAG boss.",
@@ -45,33 +50,44 @@ export async function withMockStartAccess<
 ): Promise<T> {
   const userId = currentCandidateId();
   if (!userId) throw new ApiRequestError("Sign in to start an interview.", 401);
-  if (!isMockAvailable(input.problemId))
-    throw new MockStartAccessError("mock_unavailable");
   return withPlayer(userId, async (sql) => {
     const access = await storedMockAccess(sql, userId);
     const [previous] = await sql<
       { session_id: string }[]
     >`select session_id from practice_game.boss_attempts where user_id=${userId} and request_id=${input.requestId}`;
     if (previous) return create(previous.session_id);
+    const replay = await replayMockTrial(sql, userId, input.requestId);
+    if (replay) return create(replay);
     const boss = input.launch === "rag_boss";
     const fixedSelection =
       input.problemId === RAG_BOSS.problemId &&
       input.level === RAG_BOSS.level &&
       input.durationMinutes === RAG_BOSS.durationMinutes;
-    if (access.plan === "free") {
-      if (!boss || !fixedSelection)
-        throw new MockStartAccessError("pro_required");
+    if (boss && !isMockAvailable(input.problemId))
+      throw new MockStartAccessError("mock_unavailable");
+    if (boss && access.plan === "free" && !fixedSelection)
+      throw new MockStartAccessError("pro_required");
+    if (boss && !fixedSelection)
+      throw new ApiRequestError(
+        "The RAG boss uses Mid level and 45 minutes.",
+        400,
+      );
+    const needsTrial =
+      !boss && (access.plan === "free" || !isMockAvailable(input.problemId));
+    const trial = needsTrial
+      ? await availableMockTrial(sql, userId, input.problemId)
+      : undefined;
+    if (needsTrial && !trial)
+      throw new MockStartAccessError(
+        isMockAvailable(input.problemId) ? "pro_required" : "mock_unavailable",
+      );
+    if (boss && access.plan === "free") {
       const [passed] =
         await sql`select 1 from practice_game.level_progress where user_id=${userId} and topic=${RAG_COURSE_ID} and level=9 and status='passed'`;
       if (!passed) throw new MockStartAccessError("boss_locked");
       if (access.freeBossUsedAt)
         throw new MockStartAccessError("free_attempt_used");
     }
-    if (boss && !fixedSelection)
-      throw new ApiRequestError(
-        "The RAG boss uses Mid level and 45 minutes.",
-        400,
-      );
     const budget = await reserveMockBudget(sql, userId, input.requestId);
     const result = await create();
     await bindMockBudget(
@@ -80,6 +96,8 @@ export async function withMockStartAccess<
       result.interview.sessionId,
       result.interview.timing?.deadlineAt,
     );
+    if (trial)
+      await consumeMockTrial(sql, trial, input.requestId, result.interview);
     if (boss) {
       const timing = result.interview.timing;
       if (!timing) throw new Error("Missing boss timing");

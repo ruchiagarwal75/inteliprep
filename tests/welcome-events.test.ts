@@ -21,7 +21,7 @@ beforeAll(async () => {
   db = await startPlayPostgres();
   runtime = db.runtime;
   await db.operator.unsafe(
-    "create schema interview_admin; create view interview_admin.registered_users as select id,id::text||'@example.invalid' as email from auth.users;grant usage on schema interview_admin to mockmeai_reporting;grant select on interview_admin.registered_users to mockmeai_reporting;",
+    "create schema if not exists interview_admin; create view interview_admin.registered_users as select id,id::text||'@example.invalid' as email from auth.users;grant usage on schema interview_admin to mockmeai_reporting;grant select on interview_admin.registered_users to mockmeai_reporting;",
   );
   verify.mockResolvedValue(other);
 }, 30000);
