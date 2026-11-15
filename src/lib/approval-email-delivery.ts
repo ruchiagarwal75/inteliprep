@@ -15,6 +15,7 @@ type ClaimedEmail = {
   sender: string;
   subject: string;
   body: string;
+  html: string | null;
 };
 
 /** Called only by owner-authorized approval/retry operations. GET never sends. */
@@ -32,7 +33,7 @@ export async function deliverApprovalEmail(
         and n.status in ('pending','failed','sending')
         and (n.status<>'sending' or n.claimed_at<now()-interval '30 seconds')
         and (n.first_attempt_at is null or n.first_attempt_at>now()-interval '23 hours')
-      returning n.id,n.email,n.sender,n.subject,n.body`;
+      returning n.id,n.email,n.sender,n.subject,n.body,n.html`;
     if (!claimed) {
       const [row] = await sql<ApprovalEmailRecord[]>`
         select n.id,n.status,n.first_attempt_at::text as "firstAttemptAt",n.claimed_at::text as "claimedAt",n.reference_id as "referenceId",n.failure_category as "failureCategory"
@@ -46,6 +47,7 @@ export async function deliverApprovalEmail(
         to: [claimed.email],
         subject: claimed.subject,
         text: claimed.body,
+        ...(claimed.html === null ? {} : { html: claimed.html }),
       });
       await sql`update interview_admin.beta_approval_emails set status='sent',sent_at=clock_timestamp(),provider_id=${providerId},failure_category=null
         where id=${id} and reference_id=${referenceId}`;

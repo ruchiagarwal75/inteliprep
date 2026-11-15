@@ -19,6 +19,7 @@ const claimed = {
   sender: "Shardling <hello@shardling.com>",
   subject: "Frozen subject",
   body: "Frozen body",
+  html: null,
 };
 beforeEach(() => {
   vi.resetAllMocks();
@@ -59,6 +60,22 @@ it("keeps a failed provider attempt retryable and logs only category/reference",
     status: 503,
   });
   expect(JSON.stringify(harness.log.mock.calls)).not.toContain(claimed.email);
+});
+
+it("delivers the frozen HTML rather than rebuilding it during a retry", async () => {
+  const html = "<p>Original queued HTML</p>";
+  harness.sql
+    .mockResolvedValueOnce([{ ...claimed, html }])
+    .mockResolvedValueOnce([]);
+  harness.send.mockResolvedValueOnce("provider-id");
+  await deliverApprovalEmail(claimed.id);
+  expect(harness.send).toHaveBeenCalledWith(claimed.id, {
+    from: claimed.sender,
+    to: [claimed.email],
+    subject: claimed.subject,
+    text: claimed.body,
+    html,
+  });
 });
 
 it("does not send twice when another request owns the claim or a send already succeeded", async () => {

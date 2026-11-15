@@ -21,8 +21,8 @@ export async function queueNotification(
   const [row] = await sql<
     { id: string }[]
   >`insert into interview_admin.notifications
-    (id,environment,event_key,kind,recipient,sender,subject,body)
-    values(${randomUUID()},${reportingEnvironment()},${eventKey},${kind},${payload.to[0]},${payload.from},${payload.subject},${payload.text})
+    (id,environment,event_key,kind,recipient,sender,subject,body,html)
+    values(${randomUUID()},${reportingEnvironment()},${eventKey},${kind},${payload.to[0]},${payload.from},${payload.subject},${payload.text},${payload.html ?? null})
     on conflict(environment,event_key) do nothing returning id`;
   return row?.id;
 }
@@ -39,6 +39,7 @@ export async function deliverNotification(id: string) {
       sender: string;
       subject: string;
       body: string;
+      html: string | null;
     }[]
   >`
     update interview_admin.notifications set status='sending',claimed_at=now(),
@@ -46,7 +47,7 @@ export async function deliverNotification(id: string) {
     where id=${id} and environment='production' and status in ('pending','failed','sending')
       and (status<>'sending' or claimed_at<now()-interval '30 seconds')
       and (first_attempt_at is null or first_attempt_at>now()-interval '23 hours')
-    returning id,recipient,sender,subject,body`;
+    returning id,recipient,sender,subject,body,html`;
   if (!row) return;
   try {
     const providerId = await sendApprovalEmail(row.id, {
@@ -54,6 +55,7 @@ export async function deliverNotification(id: string) {
       to: [row.recipient],
       subject: row.subject,
       text: row.body,
+      ...(row.html === null ? {} : { html: row.html }),
     });
     await sql`update interview_admin.notifications set status='sent',sent_at=now(),provider_id=${providerId},failure_category=null where id=${id} and reference_id=${reference}`;
     logServerEvent({ event: "notification_sent", requestId: reference });

@@ -29,10 +29,22 @@ beforeAll(async () => {
     grant usage on schema interview_admin to mockmeai_reporting; grant select on interview_admin.beta_invites to mockmeai_reporting;`);
   await pg.operator.unsafe(
     await readFile(
+      "supabase/migrations/20261109011503_beta_approval_emails.sql",
+      "utf8",
+    ),
+  );
+  await pg.operator.unsafe(
+    await readFile(
       "supabase/migrations/20261114014037_beta_notifications.sql",
       "utf8",
     ),
   );
+  const htmlMigration = await readFile(
+    "supabase/migrations/20261115185104_branded_email_html.sql",
+    "utf8",
+  );
+  await pg.operator.unsafe(htmlMigration);
+  await pg.operator.unsafe(htmlMigration);
   h.db.mockReturnValue(pg.runtime);
 }, 60000);
 afterAll(async () => {
@@ -43,7 +55,7 @@ beforeEach(async () => {
   vi.stubEnv("VERCEL_ENV", "production");
   vi.stubEnv("ADMIN_USER_ID", "");
   vi.stubEnv("ADMIN_TEST_USER_IDS", "");
-  await pg.operator`truncate interview_admin.notifications,interview_admin.account_onboarding,interview_admin.beta_invites`;
+  await pg.operator`truncate interview_admin.notifications,interview_admin.account_onboarding,interview_admin.beta_approval_emails,interview_admin.beta_invites`;
   h.send.mockReset().mockResolvedValue("provider-id");
 });
 it("queues exactly one welcome and one owner alert under concurrent logins", async () => {
@@ -61,6 +73,11 @@ it("queues exactly one welcome and one owner alert under concurrent logins", asy
     "person@example.test",
   );
   expect(h.send).not.toHaveBeenCalled();
+  expect(
+    rows.every((row) =>
+      row.html.includes("/brand/email/shardling-logo-v1.png"),
+    ),
+  ).toBe(true);
 });
 it("does not send in Preview or for excluded accounts", async () => {
   vi.stubEnv("VERCEL_ENV", "preview");
@@ -87,6 +104,19 @@ it("fences delivery, retries with the same stable key, and never resends success
   await deliverNotification(row.id);
   expect(h.send).toHaveBeenCalledTimes(2);
   expect(h.send.mock.calls.every((c) => c[0] === row.id)).toBe(true);
+  expect(h.send.mock.calls[0][1]).toEqual(h.send.mock.calls[1][1]);
+  expect(h.send.mock.calls[0][1].html).toContain(
+    "/brand/email/shardling-logo-v1.png",
+  );
+});
+
+it("keeps legacy plaintext retries unchanged without backfilling HTML", async () => {
+  await onboardAccount(PLAY_TEST_USER, "person@example.test");
+  const [row] =
+    await pg.operator`update interview_admin.notifications set html=null where kind='welcome' returning id,body`;
+  await deliverNotification(row.id);
+  expect(h.send.mock.calls[0][1]).toMatchObject({ text: row.body });
+  expect(h.send.mock.calls[0][1]).not.toHaveProperty("html");
 });
 it("stops retrying after the provider idempotency window", async () => {
   await onboardAccount(PLAY_TEST_USER, "person@example.test");

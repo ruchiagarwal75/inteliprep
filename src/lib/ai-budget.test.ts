@@ -35,7 +35,9 @@ beforeAll(async () => {
     create view interview_admin.registered_users as select id,null::text as email from auth.users;
     create table interview_admin.beta_invites(email text primary key,approved boolean);`);
   for (const file of [
+    "20261109011503_beta_approval_emails.sql",
     "20261114014037_beta_notifications.sql",
+    "20261115185104_branded_email_html.sql",
     "20261114014509_shared_ai_budget.sql",
   ])
     await pg.operator.unsafe(

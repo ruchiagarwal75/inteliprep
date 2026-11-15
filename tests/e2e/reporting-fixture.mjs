@@ -85,6 +85,7 @@ export async function startReportingFixture(key, cert) {
       "20261113213647_play_welcome.sql",
       "20261113215525_play_welcome_events.sql",
       "20261114014037_beta_notifications.sql",
+      "20261115185104_branded_email_html.sql",
       "20261114014509_shared_ai_budget.sql",
       "20261114015629_open_beta_access.sql",
       "20261115012705_first_topic_ratings.sql",

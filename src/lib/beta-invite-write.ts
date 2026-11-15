@@ -28,8 +28,8 @@ export async function writeBetaInvite(
     const id = randomUUID();
     const payload = approvalEmailPayload(email);
     await tx`insert into interview_admin.beta_approval_emails
-      (id,email,approval_updated_at,sender,subject,body)
-      values (${id},${email},${changed.updatedAt},${payload.from},${payload.subject},${payload.text})`;
+      (id,email,approval_updated_at,sender,subject,body,html)
+      values (${id},${email},${changed.updatedAt},${payload.from},${payload.subject},${payload.text},${payload.html ?? null})`;
     return { invite: changed, notificationId: id };
   });
 }

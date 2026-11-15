@@ -2,21 +2,23 @@ import { BRAND } from "@/lib/brand";
 import "server-only";
 import { z } from "zod";
 import type { ApprovalEmailFailureCategory } from "./approval-email-state";
+import { brandEmail } from "@/lib/branded-email";
 
 export type ApprovalEmailPayload = {
   from: string;
   to: string[];
   subject: string;
   text: string;
+  html?: string;
 };
 
 export function approvalEmailPayload(email: string): ApprovalEmailPayload {
-  return {
+  return brandEmail({
     from: `${BRAND.name} <hello@${BRAND.domain}>`,
     to: [z.email().parse(email)],
     subject: `Your ${BRAND.name} access is ready`,
     text: `You're approved to practice on ${BRAND.name}!\n\nVisit ${BRAND.url} and sign in with Google using ${email}.\n\nYou can choose a system design problem, draw your design, and get feedback after your interview.\n\nSee you there,\n${BRAND.name}`,
-  };
+  });
 }
 
 export class ApprovalEmailError extends Error {
