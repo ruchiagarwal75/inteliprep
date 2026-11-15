@@ -13,7 +13,7 @@ it("gives a fresh signed-out browser Home without opening a session", async () =
   const html = renderToStaticMarkup(await PracticePage({ view: "home" }));
   expect(html).toContain("Shardling");
   expect(html).toContain("Start free");
-  expect(html).toContain("Level up for the AI engineer interview.");
+  expect(html).toContain("Level up for the AI engineer role.");
   expect(html).toContain('href="/sign-in"');
   expect(html).not.toContain("Time left");
   expect(html).not.toContain("Stage 1");

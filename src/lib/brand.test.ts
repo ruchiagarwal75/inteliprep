@@ -5,7 +5,7 @@ it("keeps product identity together and derives its URL from the domain", () => 
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
   expect(BRAND.name).toBe("Shardling");
   expect(BRAND.url).toBe(`https://${BRAND.domain}`);
-  expect(BRAND.tagline).toBe("Level up for the AI engineer interview.");
+  expect(BRAND.tagline).toBe("Level up for the AI engineer role.");
   expect(BRAND.pitch).toBe(
     "Train in 5-minute rounds, watch your readiness map fill in, then prove it in a real mock interview.",
   );

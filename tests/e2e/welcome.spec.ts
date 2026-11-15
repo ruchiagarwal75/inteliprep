@@ -169,7 +169,7 @@ for (const panel of [1, 2, 3, 4])
       await other.goto("/play");
       await expect(
         other.getByRole("heading", {
-          name: "Level up for the AI engineer interview.",
+          name: "Level up for the AI engineer role.",
           exact: true,
         }),
       ).toBeVisible();
@@ -195,7 +195,7 @@ test("Go to Play completes the intro without starting a topic", async ({
   await page.waitForURL(/\/play$/);
   await expect(
     page.getByRole("heading", {
-      name: "Level up for the AI engineer interview.",
+      name: "Level up for the AI engineer role.",
       exact: true,
     }),
   ).toBeVisible();

@@ -18,7 +18,7 @@ export const BRAND = {
     return origin.origin;
   },
   title: "Shardling: AI mock system design interviews",
-  tagline: "Level up for the AI engineer interview.",
+  tagline: "Level up for the AI engineer role.",
   pitch:
     "Train in 5-minute rounds, watch your readiness map fill in, then prove it in a real mock interview.",
   description:
