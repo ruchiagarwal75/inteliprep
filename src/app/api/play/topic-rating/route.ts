@@ -36,7 +36,10 @@ export const POST = withApiRequest(
       await readJsonBody(request, 1024),
     );
     if (!input.success)
-      throw new ApiRequestError("Choose between 1 and 5 stars, or skip.", 400);
+      throw new ApiRequestError(
+        "Feedback request wasn't valid. Please try again.",
+        400,
+      );
     return Response.json(await saveTopicRating(owner(), input.data));
   },
 );

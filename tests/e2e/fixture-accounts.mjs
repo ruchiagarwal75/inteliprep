@@ -2,6 +2,14 @@ import { bossAccounts } from "./boss-fixture.mjs";
 import { welcomeAccounts } from "./welcome-fixture.mjs";
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  topicRatingUnanswered: {
+    id: "14141414-1414-4414-8414-141414141405",
+    email: "rating-view-unanswered@example.invalid",
+  },
+  topicRatingEscape: {
+    id: "14141414-1414-4414-8414-141414141406",
+    email: "rating-view-escape@example.invalid",
+  },
   topicRatingLightDesktop: {
     id: "14141414-1414-4414-8414-141414141401",
     email: "topic-rating-light-desktop@example.invalid",

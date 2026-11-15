@@ -172,6 +172,17 @@ try {
         ),
       ),
     );
+    await tx.unsafe(
+      migrationBody(
+        readFileSync(
+          new URL(
+            "../supabase/migrations/20261115052442_topic_rating_visibility.sql",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      ),
+    );
     const legacy = [
       ...new Set(
         (process.env.MOCKMEAI_INVITED_EMAILS ?? "")

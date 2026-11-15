@@ -9,6 +9,7 @@ import {
   type TopicRatingInput,
 } from "@/lib/play/topic-rating-public";
 import styles from "./first-topic-rating.module.css";
+import { useTopicRatingView } from "./use-topic-rating-view";
 
 export function FirstTopicRating({ sessionId }: { sessionId: string }) {
   const { request, userId } = useCandidateAccount();
@@ -22,6 +23,7 @@ export function FirstTopicRating({ sessionId }: { sessionId: string }) {
     mounted = useRef(true),
     dismissed = useRef(false);
   const key = topicRatingKey(userId);
+  useTopicRatingView(phase === "open", sessionId);
   function remember() {
     try {
       localStorage.setItem(key, "handled");
@@ -107,13 +109,13 @@ export function FirstTopicRating({ sessionId }: { sessionId: string }) {
       }
     }
   }
-  function skip() {
+  function dismiss(action: "skip" | "close") {
     remember();
     setPhase("hidden");
     if (dismissed.current || phase === "thanks") return;
     dismissed.current = true;
     locked.current = true;
-    const input: TopicRatingInput = { sessionId, action: "skip" };
+    const input: TopicRatingInput = { sessionId, action };
     // Dismissing never holds up the quiz results, including during a network failure.
     void request("/api/play/topic-rating", {
       method: "POST",
@@ -128,7 +130,7 @@ export function FirstTopicRating({ sessionId }: { sessionId: string }) {
     <InterviewDialog
       open
       title="How was your practice so far?"
-      onClose={skip}
+      onClose={() => dismiss("close")}
       className={styles.dialog}
     >
       {phase === "thanks" ? (
@@ -168,7 +170,11 @@ export function FirstTopicRating({ sessionId }: { sessionId: string }) {
               {error}
             </p>
           )}
-          <button type="button" className="practice-link" onClick={skip}>
+          <button
+            type="button"
+            className="practice-link"
+            onClick={() => dismiss("skip")}
+          >
             Skip
           </button>
         </>

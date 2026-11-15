@@ -59,10 +59,12 @@ it("rejects foreign origins, malformed ratings and oversized bodies", async () =
   ).toBe(413);
   expect(h.save).not.toHaveBeenCalled();
 });
-it("uses the verified owner for both rating and skip", async () => {
+it("uses the verified owner for displays, ratings and both dismissal actions", async () => {
   for (const input of [
     { sessionId, action: "rate", stars: 4 },
     { sessionId, action: "skip" },
+    { sessionId, action: "close" },
+    { sessionId, action: "shown" },
   ]) {
     const response = await POST(request(input));
     expect(response.status).toBe(200);

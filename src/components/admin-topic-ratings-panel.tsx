@@ -20,10 +20,18 @@ export function AdminTopicRatingsPanel({
             {data.average === null
               ? "No ratings yet"
               : `${data.average} / 5 average`}{" "}
-            · {data.rated} rated · {data.skipped} skipped
+            · {data.shown} shown · {data.rated} rated · {data.skipped} skipped ·{" "}
+            {data.closed} closed · {data.unanswered} with no response
           </p>
+          {data.olderDismissals > 0 && (
+            <p>
+              {data.olderDismissals} older dismissals have no recorded reason.
+            </p>
+          )}
           <p className="text-sm">
-            Most recent 20, using the email search and admin/test filters above.
+            Most recent 20, using the email search and admin/test filters above.{" "}
+            Shown means the popup was displayed in a visible tab. Older
+            responses may have no display record.
           </p>
           {data.entries.map((entry) => (
             <article
@@ -46,7 +54,30 @@ export function AdminTopicRatingsPanel({
                   (level) => level.level === entry.level,
                 )?.title ?? `Topic ${entry.level}`}
               </p>
-              <p>{entry.skipped ? "Skipped" : `${entry.stars} / 5 stars`}</p>
+              <p>
+                {entry.outcome === "rated"
+                  ? `${entry.stars} / 5 stars`
+                  : {
+                      skipped: "Skipped",
+                      closed: "Closed with X or Escape",
+                      older_dismissal: "Dismissed, reason not recorded",
+                      unanswered: "Shown, no response recorded",
+                    }[entry.outcome]}
+              </p>
+              <p className="text-sm">
+                Popup shown:{" "}
+                {entry.shownAt ? (
+                  <AdminTime value={entry.shownAt} />
+                ) : (
+                  "Not recorded"
+                )}
+                {entry.respondedAt && (
+                  <>
+                    {" "}
+                    · Response: <AdminTime value={entry.respondedAt} />
+                  </>
+                )}
+              </p>
             </article>
           ))}
         </>

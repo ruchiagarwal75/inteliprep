@@ -6,7 +6,10 @@ export const topicRatingSchema = z.discriminatedUnion("action", [
     action: z.literal("rate"),
     stars: z.number().int().min(1).max(5),
   }),
-  z.strictObject({ sessionId: z.uuid(), action: z.literal("skip") }),
+  z.strictObject({
+    sessionId: z.uuid(),
+    action: z.enum(["shown", "skip", "close"]),
+  }),
 ]);
 export const topicRatingStatusSchema = z.strictObject({
   eligible: z.boolean(),

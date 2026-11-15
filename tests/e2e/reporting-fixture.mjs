@@ -88,6 +88,7 @@ export async function startReportingFixture(key, cert) {
       "20261114014509_shared_ai_budget.sql",
       "20261114015629_open_beta_access.sql",
       "20261115012705_first_topic_ratings.sql",
+      "20261115052442_topic_rating_visibility.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),

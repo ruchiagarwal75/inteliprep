@@ -2278,5 +2278,35 @@
     "line": 24,
     "text": "\"create schema interview_admin; create view interview_admin.registered_users as select id,id::text||'@example.invalid' as email from auth.users;grant usage on schema interview_admin to mockmeai_reporting;grant select on interview_admin.registered_users to mockmeai_reporting;\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "supabase/migrations/20261115052442_topic_rating_visibility.sql",
+    "line": 23,
+    "text": "revoke all on interview_admin.topic_rating_views from public,anon,authenticated,mockmeai_reporting;",
+    "reason": "Existing database role name required by the reporting grants and RLS. Not product copy."
+  },
+  {
+    "path": "supabase/migrations/20261115052442_topic_rating_visibility.sql",
+    "line": 24,
+    "text": "grant select,insert on interview_admin.topic_rating_views to mockmeai_reporting;",
+    "reason": "Existing database role name required by the reporting grants and RLS. Not product copy."
+  },
+  {
+    "path": "supabase/migrations/20261115052442_topic_rating_visibility.sql",
+    "line": 27,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database role name required by the reporting grants and RLS. Not product copy."
+  },
+  {
+    "path": "tests/topic-rating-store.test.ts",
+    "line": 154,
+    "text": "has_table_privilege('mockmeai_reporting',${relation},'UPDATE') as runtime_update,",
+    "reason": "Test of the unchanged internal reporting database role. Not user-facing branding."
+  },
+  {
+    "path": "tests/topic-rating-store.test.ts",
+    "line": 155,
+    "text": "has_table_privilege('mockmeai_reporting',${relation},'DELETE') as runtime_delete`;",
+    "reason": "Test of the unchanged internal reporting database role. Not user-facing branding."
   }
 ]

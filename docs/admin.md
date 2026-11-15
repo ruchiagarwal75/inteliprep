@@ -443,6 +443,29 @@ existing interviews and non-skipped feedback. New-milestone history starts at
 `reporting_state.beta_funnel_since` and is not backfilled. See
 [beta readiness](beta-readiness.md#beta-funnel-definitions) for the exact definitions.
 
+## First topic quiz feedback
+
+The first completed topic quiz can show a 1-to-5-star popup, including Topic 0.
+The Feedback page lists each account's recorded popup display and its outcome:
+rated, skipped, closed with X/Escape, or no response recorded. Display tracking
+starts when a visible tab renders the popup, after any level-up dialog closes.
+Eligibility checks and background tabs do not count as displays.
+
+Apply `20261115052442_topic_rating_visibility.sql` before deploying this version.
+`npm run db:admin` includes it. The additive migration preserves older ratings
+and skips. It adds the private `topic_rating_views` table and an optional
+`dismissal_reason` on responses. Both are server-written, with one display and
+one immutable response per account/environment. Retries cannot inflate counts
+or overwrite the first response. Display recording never dismisses the popup
+or blocks the quiz result. Tracking requests are best-effort; a missing response
+is not treated as a dislike.
+
+Older skips have an unknown dismissal reason and older responses have no recorded
+display time. Do not backfill either. The admin search, environment and exclusion
+filters apply to displays and responses alike. No comments or quiz answers enter
+this tracking. An explicit owner progress reset must also remove that owner's
+`topic_rating_views` and `topic_ratings` rows if they want to see the prompt again.
+
 ## Owner account protection
 
 The admin identity remains one verified Google account. In Google Account,

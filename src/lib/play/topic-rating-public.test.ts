@@ -14,14 +14,16 @@ it.each([0, 6, 1.5, "5", null, undefined])(
     ).toBe(false);
   },
 );
-it("accepts a skip without an answer and rejects smuggled ownership/reward fields", () => {
-  expect(topicRatingSchema.parse({ sessionId, action: "skip" })).toEqual({
-    sessionId,
-    action: "skip",
-  });
-  for (const extra of [{ stars: 5 }, { userId: sessionId }, { points: 100 }])
-    expect(
-      topicRatingSchema.safeParse({ sessionId, action: "skip", ...extra })
-        .success,
-    ).toBe(false);
-});
+it.each(["shown", "skip", "close"])(
+  "accepts %s without an answer and rejects smuggled ownership/reward fields",
+  (action) => {
+    expect(topicRatingSchema.parse({ sessionId, action })).toEqual({
+      sessionId,
+      action,
+    });
+    for (const extra of [{ stars: 5 }, { userId: sessionId }, { points: 100 }])
+      expect(
+        topicRatingSchema.safeParse({ sessionId, action, ...extra }).success,
+      ).toBe(false);
+  },
+);

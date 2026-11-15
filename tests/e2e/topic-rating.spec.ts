@@ -39,12 +39,31 @@ for (const [account, theme, width, stars] of [
         })
       ).status(),
     ).toBe(409);
+    const displayed = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("/api/play/topic-rating") &&
+        r.request().method() === "POST" &&
+        r.request().postDataJSON()?.action === "shown",
+    );
     await finishPlayRound(page, false, account !== "topicRatingDarkDesktop");
     const modal = page.getByRole("dialog", {
       name: "How was your practice so far?",
       exact: true,
     });
     await expect(modal).toBeVisible();
+    expect((await displayed).status()).toBe(200);
+    expect(await (await context.request.get(url)).json()).toEqual({
+      eligible: true,
+    });
+    if (account === "topicRatingLightDesktop")
+      expect(
+        (
+          await context.request.post("/api/play/topic-rating", {
+            headers: { origin: "http://localhost:3100" },
+            data: { sessionId, action: "shown" },
+          })
+        ).status(),
+      ).toBe(200);
     await expect(modal.getByRole("button", { name: /stars?$/ })).toHaveCount(5);
     await expect(modal.getByRole("textbox")).toHaveCount(0);
     await expect(
@@ -85,7 +104,8 @@ for (const [account, theme, width, stars] of [
     const saved = page.waitForResponse(
       (r) =>
         r.url().endsWith("/api/play/topic-rating") &&
-        r.request().method() === "POST",
+        r.request().method() === "POST" &&
+        r.request().postDataJSON()?.action !== "shown",
     );
     if (stars !== null) {
       const choice = modal.getByRole("button", {
@@ -209,8 +229,11 @@ test("admin can read the saved quiz ratings while normal accounts cannot", async
     exact: true,
   });
   await expect(ratings).toContainText("4.0 / 5 average");
-  await expect(ratings).toContainText("2 rated · 2 skipped");
+  await expect(ratings).toContainText(
+    "4 shown · 2 rated · 1 skipped · 1 closed · 0 with no response",
+  );
   await expect(ratings.locator("[data-topic-rating-id]")).toHaveCount(4);
+  await expect(ratings).toContainText("Closed with X or Escape");
   await expect(ratings).toContainText("5 / 5 stars");
   await expect(ratings).toContainText("3 / 5 stars");
   await expect(ratings).toContainText(

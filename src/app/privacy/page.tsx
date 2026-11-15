@@ -72,7 +72,8 @@ export default function PrivacyPage() {
       </p>
       <p>
         Feedback you send is saved with your account and only the {BRAND.name}{" "}
-        admin can see it.
+        admin can see it. We also record when the first-quiz feedback popup is
+        displayed, skipped or closed, to understand how the prompt is used.
       </p>
       <p>
         Our private admin database records account signup information, interview

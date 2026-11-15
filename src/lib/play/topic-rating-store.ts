@@ -37,7 +37,7 @@ export function topicRatingStatus(userId: string, sessionId: string) {
   });
 }
 
-/** One immutable response per account/environment, including skips and retries. */
+/** Display and response records are each counted once per account/environment. */
 export function saveTopicRating(userId: string, input: TopicRatingInput) {
   return withPlayer(userId, async (sql) => {
     const round = await firstQuiz(sql, userId, input.sessionId);
@@ -46,11 +46,20 @@ export function saveTopicRating(userId: string, input: TopicRatingInput) {
         "Finish your first topic quiz before rating it.",
         409,
       );
+    if (input.action === "shown") {
+      await sql`insert into interview_admin.topic_rating_views
+        (id,user_id,session_id,topic,level,environment,is_test)
+        values(${randomUUID()},${userId},${round.id},${round.topic},${round.level},
+          ${reportingEnvironment()},${excludedUserIds().includes(userId)})
+        on conflict(environment,user_id) do nothing`;
+      return { handled: true };
+    }
     await sql`insert into interview_admin.topic_ratings
-      (id,user_id,session_id,topic,level,environment,is_test,stars,skipped)
+      (id,user_id,session_id,topic,level,environment,is_test,stars,skipped,dismissal_reason)
       values(${randomUUID()},${userId},${round.id},${round.topic},${round.level},
         ${reportingEnvironment()},${excludedUserIds().includes(userId)},
-        ${input.action === "rate" ? input.stars : null},${input.action === "skip"})
+        ${input.action === "rate" ? input.stars : null},${input.action !== "rate"},
+        ${input.action === "rate" ? null : input.action})
       on conflict(environment,user_id) do nothing`;
     return { handled: true };
   });
