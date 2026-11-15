@@ -7,11 +7,13 @@ export function InterviewDialog({
   title,
   onClose,
   children,
+  className = "",
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -35,7 +37,7 @@ export function InterviewDialog({
         onClose();
       }}
       onClose={onClose}
-      className="interview-dialog backdrop:bg-backdrop m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain p-5"
+      className={`interview-dialog backdrop:bg-backdrop m-auto max-h-[85dvh] w-[min(44rem,92vw)] overflow-y-auto overscroll-contain p-5 ${className}`}
       aria-label={title}
     >
       <div className="mb-4 flex items-center justify-between gap-3">

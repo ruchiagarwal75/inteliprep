@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { AdminTime } from "@/components/admin-format";
 import { AdminPracticeFeedbackDetail } from "@/components/admin-practice-feedback-detail";
 import type { adminPracticeFeedback } from "@/lib/admin-practice-feedback";
@@ -13,10 +14,12 @@ export function AdminFeedbackPanel({
   data,
   search,
   includeExcluded,
+  topicRatings,
 }: {
   data: Awaited<ReturnType<typeof adminPracticeFeedback>>;
   search: string;
   includeExcluded: boolean;
+  topicRatings?: ReactNode;
 }) {
   const pageUrl = (page: number) =>
     `/admin/feedback?${new URLSearchParams({ search, page: String(page), includeExcluded: includeExcluded ? "1" : "0" })}`;
@@ -52,6 +55,7 @@ export function AdminFeedbackPanel({
         </label>
         <button className="rounded border px-4 py-2">Apply filters</button>
       </form>
+      {topicRatings}
       <section
         aria-label="Feedback totals"
         className="space-y-3 rounded-lg border p-4"
@@ -82,7 +86,9 @@ export function AdminFeedbackPanel({
           ))}
         </dl>
       </section>
-      {!data.entries.length && <p>No feedback matches these filters.</p>}
+      {!data.entries.length && (
+        <p>No interview or menu feedback matches these filters.</p>
+      )}
       {data.entries.map((entry) => (
         <article className="space-y-3 rounded-lg border p-4" key={entry.id}>
           <header className="space-y-1">

@@ -1,0 +1,50 @@
+.dialog[open] {
+  width: min(360px, calc(100vw - var(--space-4)));
+  color: var(--foreground);
+  background: var(--surface);
+  border: 2px solid var(--border-strong);
+  text-align: center;
+}
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-block: var(--space-3);
+}
+.stars button {
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding: 0;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+}
+.stars svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.stars button:hover,
+.stars button[data-selected] {
+  color: var(--game-gold);
+}
+.stars button:hover svg,
+.stars button[data-selected] svg {
+  fill: currentColor;
+}
+.stars button:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+.stars button:disabled {
+  cursor: wait;
+}
+.thanks {
+  padding-block: var(--space-3);
+}
+.error {
+  color: var(--danger);
+}

@@ -3,6 +3,8 @@ import { adminPageAccess } from "@/lib/admin-page-access";
 import { adminQuery } from "@/lib/admin-query";
 import { adminPracticeFeedback } from "@/lib/admin-practice-feedback";
 import { AdminFeedbackPanel } from "@/components/admin-feedback-panel";
+import { adminTopicRatings } from "@/lib/admin-topic-ratings";
+import { AdminTopicRatingsPanel } from "@/components/admin-topic-ratings-panel";
 
 export default async function AdminFeedbackPage({
   searchParams,
@@ -38,11 +40,13 @@ export default async function AdminFeedbackPage({
       </p>
     );
   }
+  const ratings = await adminTopicRatings(query).catch(() => null);
   return (
     <AdminFeedbackPanel
       data={data}
       search={query.search}
       includeExcluded={query.includeExcluded}
+      topicRatings={<AdminTopicRatingsPanel data={ratings} />}
     />
   );
 }

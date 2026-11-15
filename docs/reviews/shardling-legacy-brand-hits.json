@@ -655,13 +655,13 @@
   },
   {
     "path": "scripts/migrate-admin.mjs",
-    "line": 29,
+    "line": 30,
     "text": "await tx`select pg_advisory_xact_lock(hashtext('inteliprep_admin_reporting_migration'))`;",
     "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
   },
   {
     "path": "scripts/migrate-admin.mjs",
-    "line": 165,
+    "line": 177,
     "text": "(process.env.MOCKMEAI_INVITED_EMAILS ?? \"\")",
     "reason": "Existing operator/build/schema identifier or documented environment variable. Preserve deployment compatibility."
   },
@@ -837,6 +837,30 @@
     "path": "src/app/api/monitoring/viewer/route.test.ts",
     "line": 24,
     "text": "return new Request(\"https://mockmeai.com/api/monitoring/viewer\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/play/topic-rating/route.test.ts",
+    "line": 13,
+    "text": "function request(body: unknown, origin = \"https://mockmeai.test\") {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/play/topic-rating/route.test.ts",
+    "line": 14,
+    "text": "return new Request(\"https://mockmeai.test/api/play/topic-rating\", {",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/play/topic-rating/route.test.ts",
+    "line": 36,
+    "text": "`https://mockmeai.test/api/play/topic-rating?sessionId=${sessionId}`,",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "src/app/api/play/topic-rating/route.test.ts",
+    "line": 96,
+    "text": "`https://mockmeai.test/api/play/topic-rating?sessionId=${sessionId}`,",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
@@ -1401,11 +1425,11 @@
     "path": "src/lib/play/database.ts",
     "line": 12,
     "text": "await sql`select set_config('mockmeai.user_id',${userId},true)`;",
-    "reason": "Existing per-player database setting required by the unchanged RLS policy, now also used in read-only transactions. Preserve account isolation."
+    "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
   {
     "path": "src/lib/play/database.ts",
-    "line": 21,
+    "line": 31,
     "text": "await sql`select set_config('mockmeai.user_id',${userId},true),pg_advisory_xact_lock(hashtext('mockmeai-play'),hashtext(${userId}))`;",
     "reason": "Stable storage, cookie, cryptographic, event, lock, runtime or diagnostic identifier. Preserve live sessions and data."
   },
@@ -1932,6 +1956,24 @@
     "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
   },
   {
+    "path": "supabase/migrations/20261115012705_first_topic_ratings.sql",
+    "line": 22,
+    "text": "revoke all on interview_admin.topic_ratings from public,anon,authenticated,mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261115012705_first_topic_ratings.sql",
+    "line": 23,
+    "text": "grant select,insert on interview_admin.topic_ratings to mockmeai_reporting;",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
+    "path": "supabase/migrations/20261115012705_first_topic_ratings.sql",
+    "line": 26,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing database roles, settings and applied migrations. Renaming breaks grants, RLS or migration history."
+  },
+  {
     "path": "tests/admin-database.test.ts",
     "line": 45,
     "text": "it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== \"1\")(",
@@ -1945,13 +1987,13 @@
   },
   {
     "path": "tests/e2e/boss-browser-helpers.ts",
-    "line": 18,
+    "line": 19,
     "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/boss-browser-helpers.ts",
-    "line": 128,
+    "line": 132,
     "text": "const request = indexedDB.open(`inteliprep:account:${userId}`);",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2011,7 +2053,7 @@
   },
   {
     "path": "tests/e2e/fixture-auth.ts",
-    "line": 9,
+    "line": 24,
     "text": "name: \"inteliprep-auth\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2059,13 +2101,13 @@
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 101,
+    "line": 102,
     "text": "\"alter role mockmeai_reporting password 'ci-only-reporting-fixture'\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
     "path": "tests/e2e/reporting-fixture.mjs",
-    "line": 167,
+    "line": 168,
     "text": "\"postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres\",",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2112,6 +2154,12 @@
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {
+    "path": "tests/e2e/topic-rating.spec.ts",
+    "line": 22,
+    "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
     "path": "tests/e2e/welcome-path.spec.ts",
     "line": 14,
     "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
@@ -2119,7 +2167,7 @@
   },
   {
     "path": "tests/e2e/welcome.spec.ts",
-    "line": 16,
+    "line": 17,
     "text": "{ name: \"mockmeai-theme\", value: theme, url: \"http://localhost:3100\" },",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
@@ -2199,6 +2247,24 @@
     "path": "tests/setup.ts",
     "line": 46,
     "text": "state.inteliprepRequestCounters?.clear();",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/topic-rating-store.test.ts",
+    "line": 23,
+    "text": "\"create schema interview_admin; grant usage on schema interview_admin to mockmeai_reporting\",",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/topic-rating-store.test.ts",
+    "line": 96,
+    "text": "has_table_privilege('mockmeai_reporting','interview_admin.topic_ratings','UPDATE') as runtime_update,",
+    "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
+  },
+  {
+    "path": "tests/topic-rating-store.test.ts",
+    "line": 97,
+    "text": "has_table_privilege('mockmeai_reporting','interview_admin.topic_ratings','DELETE') as runtime_delete`;",
     "reason": "Test fixture, negative branding assertion, legacy-host compatibility check or persisted identifier. Not user-facing copy."
   },
   {

@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import { migrationBody } from "./migration-sql.mjs";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -158,6 +159,17 @@ try {
           import.meta.url,
         ),
         "utf8",
+      ),
+    );
+    await tx.unsafe(
+      migrationBody(
+        readFileSync(
+          new URL(
+            "../supabase/migrations/20261115012705_first_topic_ratings.sql",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
       ),
     );
     const legacy = [

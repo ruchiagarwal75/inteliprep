@@ -10,6 +10,7 @@ import { peekRound, forgetRound } from "./round-prefetch";
 import { usePlayRewards } from "./play-rewards";
 import { DrillCard } from "./drill-card";
 import { RoundSummaryCard } from "./round-summary";
+import { FirstTopicRating } from "./first-topic-rating";
 type Submission =
   | { kind: "idle" }
   | { kind: "checking"; answer: DrillAnswer }
@@ -204,7 +205,13 @@ export function DrillRunner({
         </Link>
       </section>
     );
-  if (summary) return <RoundSummaryCard summary={summary} />;
+  if (summary)
+    return (
+      <>
+        <RoundSummaryCard summary={summary} />
+        {summary.mode === "level" && <FirstTopicRating sessionId={sessionId} />}
+      </>
+    );
   if (!view)
     return (
       <section className="practice-surface" aria-live="polite">
