@@ -18,15 +18,15 @@ it("passes at 75 percent rounded up for every supported question count", () => {
   }
   expect(coursePassed([true, true, true, true, true])).toBe(false);
 });
-it("awards one star for passing, two for all correct, three when no visible time exceeds 45 seconds", () => {
+it("awards one star for passing, two for all correct, three within five minutes total", () => {
   const all = Array.from({ length: 7 }, () => ({
     correct: true,
-    timeMs: 45000,
+    timeMs: 30000,
   }));
   expect(courseStars(all)).toBe(3);
-  expect(courseStars([{ correct: true, timeMs: 45001 }, ...all.slice(1)])).toBe(
-    2,
-  );
+  expect(
+    courseStars([{ correct: true, timeMs: 120001 }, ...all.slice(1)]),
+  ).toBe(2);
   expect(courseStars([{ correct: false, timeMs: 1000 }, ...all.slice(1)])).toBe(
     1,
   );
@@ -39,12 +39,26 @@ it("awards one star for passing, two for all correct, three when no visible time
   ).toBe(0);
 });
 
-it("keeps the same star and time bands for ten-question quizzes", () => {
-  const outcomes = (n: number, timeMs = 45000) =>
+it("uses a whole-quiz time budget for ten-question quizzes", () => {
+  const outcomes = (n: number, timeMs = 30000) =>
     Array.from({ length: 10 }, (_, i) => ({ correct: i < n, timeMs }));
   expect(courseStars(outcomes(7))).toBe(0);
   expect(courseStars(outcomes(8))).toBe(1);
   expect(courseStars(outcomes(9))).toBe(1);
-  expect(courseStars(outcomes(10, 45001))).toBe(2);
+  expect(courseStars(outcomes(10, 45000))).toBe(2);
   expect(courseStars(outcomes(10))).toBe(3);
+});
+
+it("allows a slower individual answer and includes the exact five-minute boundary", () => {
+  for (const total of [6, 7, 8, 9, 10]) {
+    const rest = Array.from({ length: total - 1 }, () => ({
+      correct: true,
+      timeMs: 10000,
+    }));
+    const first = { correct: true, timeMs: 300000 - rest.length * 10000 };
+    expect(courseStars([first, ...rest])).toBe(3);
+    expect(courseStars([{ ...first, timeMs: first.timeMs + 1 }, ...rest])).toBe(
+      2,
+    );
+  }
 });

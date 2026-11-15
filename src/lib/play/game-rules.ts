@@ -1,5 +1,7 @@
 import "server-only";
 import type { DrillQuestion } from "./public";
+import { RAG_COURSE_ID } from "./course/metadata";
+import { ROUND_STALE_MS } from "./drill-time";
 export const GAME_RULES = {
   parMs: {
     spot_flaw: 45000,
@@ -14,6 +16,16 @@ export type TimedOutcome = {
   type: DrillQuestion["type"];
   timeMs: number;
 };
+/** Course stars use total quiz time, so a slow answer must remain over five minutes. */
+export function maxDrillTimeMs({
+  topic,
+  type,
+}: {
+  topic: string;
+  type: DrillQuestion["type"];
+}) {
+  return topic === RAG_COURSE_ID ? ROUND_STALE_MS : 3 * GAME_RULES.parMs[type];
+}
 export function levelStars(outcomes: TimedOutcome[]) {
   if (outcomes.length !== 5) return 0;
   const correct = outcomes.filter((row) => row.correct).length;

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { CourseLearnHeader } from "./course-learn-header";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCandidateAccount } from "@/components/candidate-account-context";
-import { RAG_COURSE_ID } from "@/lib/play/course/metadata";
+import { RAG_COURSE_ID, COURSE_STAR_HINT } from "@/lib/play/course/metadata";
 import { StartRound } from "./start-round";
 import { CourseSlideSaves } from "./course-slide-saves";
 import { CourseSlideFrame } from "./course-slide-frame";
@@ -137,41 +137,46 @@ export function CourseSlides({
           />
         )}
       </div>
-      <div ref={next} data-slide-controls className={styles.controls}>
-        <button
-          type="button"
-          className={`practice-secondary ${buttons.button}`}
-          disabled={index === 0}
-          onClick={() => move(currentIndex.current - 1)}
-        >
-          Back
-        </button>
-        {last && review ? (
-          <button
-            type="button"
-            className="practice-primary"
-            onClick={review.onClose}
-          >
-            Back to quiz
-          </button>
-        ) : last ? (
-          <StartRound
-            topic={RAG_COURSE_ID}
-            mode="level"
-            level={level}
-            label="Start quiz"
-            beforeStart={() => saves.visit(slides.length - 1)}
-          />
-        ) : (
-          <button
-            type="button"
-            className="practice-primary"
-            onClick={() => move(currentIndex.current + 1)}
-          >
-            Next
-          </button>
+      <footer>
+        {last && !review && (
+          <p className={styles.quizHint}>{COURSE_STAR_HINT}</p>
         )}
-      </div>
+        <div ref={next} data-slide-controls className={styles.controls}>
+          <button
+            type="button"
+            className={`practice-secondary ${buttons.button}`}
+            disabled={index === 0}
+            onClick={() => move(currentIndex.current - 1)}
+          >
+            Back
+          </button>
+          {last && review ? (
+            <button
+              type="button"
+              className="practice-primary"
+              onClick={review.onClose}
+            >
+              Back to quiz
+            </button>
+          ) : last ? (
+            <StartRound
+              topic={RAG_COURSE_ID}
+              mode="level"
+              level={level}
+              label="Start quiz"
+              beforeStart={() => saves.visit(slides.length - 1)}
+            />
+          ) : (
+            <button
+              type="button"
+              className="practice-primary"
+              onClick={() => move(currentIndex.current + 1)}
+            >
+              Next
+            </button>
+          )}
+        </div>
+      </footer>
     </section>
   );
 }

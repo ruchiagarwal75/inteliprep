@@ -1,7 +1,7 @@
 import { summaryDisplay } from "./summary-store";
 import { presentDrillResult } from "./math-presentation";
 import { activeDrillMs } from "./drill-time";
-import { GAME_RULES } from "./game-rules";
+import { maxDrillTimeMs } from "./game-rules";
 import { refreshUnanswered } from "./round-refresh";
 import { playerTotals } from "./totals";
 import { needsAiGrade } from "./grading-policy";
@@ -82,8 +82,7 @@ export async function submitRoundAnswer(
           elapsedMs: attempt.active_elapsed_ms,
           activeSince: attempt.active_since?.getTime() ?? null,
           now: Date.now(),
-          maxTimeMs:
-            3 * GAME_RULES.parMs[attempt.private_variant.definition.type],
+          maxTimeMs: maxDrillTimeMs(attempt.private_variant.definition),
         });
     await sql`update practice_game.drill_attempts set answer=${sql.json(answer)},time_ms=${timeMs},active_elapsed_ms=${timeMs},active_since=null,claim_id=${id},claim_until=${new Date(Date.now() + 45000)} where user_id=${userId} and id=${attemptId}`;
     await sql`update practice_game.play_sessions set last_activity_at=now() where id=${round.id} and user_id=${userId}`;

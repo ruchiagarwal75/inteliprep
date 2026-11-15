@@ -69,6 +69,11 @@
   gap: 16px;
   background: var(--pixel-sky);
 }
+.quizHint {
+  margin: 0 0 8px;
+  color: var(--pixel-muted);
+  font: 400 14px/1.5 var(--font-play-read);
+}
 .controls > :global(.practice-primary),
 .controls > div {
   width: 180px;

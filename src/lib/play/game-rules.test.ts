@@ -5,7 +5,9 @@ import {
   drillXp,
   playerXpLevel,
   nextCombo,
+  maxDrillTimeMs,
 } from "./game-rules";
+import { COURSE_THREE_STAR_MS, RAG_COURSE_ID } from "./course/metadata";
 const five = () =>
   Array.from({ length: 5 }, () => ({
     correct: true,
@@ -35,6 +37,16 @@ it("uses the configured par for each type, with no client timing involved", () =
         five().map((r) => ({ ...r, type, timeMs: GAME_RULES.parMs[type] + 1 })),
       ),
     ).toBe(2);
+  }
+});
+it("keeps slow course answers above the whole-quiz budget without changing other drill caps", () => {
+  for (const type of ["math", "spot_flaw", "tradeoff", "pick_probe"] as const) {
+    expect(maxDrillTimeMs({ topic: RAG_COURSE_ID, type })).toBeGreaterThan(
+      COURSE_THREE_STAR_MS,
+    );
+    expect(maxDrillTimeMs({ topic: "rag", type })).toBe(
+      3 * GAME_RULES.parMs[type],
+    );
   }
 });
 it("halves replay drill XP and never creates fractional ledger entries", () => {

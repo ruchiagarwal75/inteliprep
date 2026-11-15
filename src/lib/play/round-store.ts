@@ -1,6 +1,6 @@
 import { presentDrillResult } from "./math-presentation";
 import { activeDrillMs } from "./drill-time";
-import { GAME_RULES } from "./game-rules";
+import { maxDrillTimeMs } from "./game-rules";
 import { refreshUnanswered } from "./round-refresh";
 import { displayRoundSummary } from "./summary-store";
 import { recordPlayEvent } from "./events";
@@ -103,7 +103,7 @@ export async function roundView(
   }
   if (!attempt.started_at) throw Error("Missing server drill start");
   const now = new Date(),
-    maxTimeMs = 3 * GAME_RULES.parMs[attempt.private_variant.definition.type];
+    maxTimeMs = maxDrillTimeMs(attempt.private_variant.definition);
   const elapsedMs = Math.min(
     attempt.time_ms ??
       activeDrillMs({

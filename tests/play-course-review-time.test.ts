@@ -5,7 +5,7 @@ import {
   PLAY_TEST_USER as user,
 } from "./fixtures/play-postgres";
 import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
-import { startRound, advanceRound } from "@/lib/play/rounds";
+import { startRound, advanceRound, getRound } from "@/lib/play/rounds";
 import { recordDrillActivity } from "@/lib/play/drill-activity";
 import { submitRoundAnswer } from "@/lib/play/submit";
 import { drillAnswerSchema } from "@/lib/play/public";
@@ -123,5 +123,53 @@ it("excludes repeated slide-reading pauses from answer time, stars and XP", asyn
     }
   } finally {
     vi.useRealTimers();
+  }
+});
+
+it("preserves a course answer over five minutes through resume, submit and cached results", async () => {
+  const started = await startRound(user, {
+    topic: "rag-course",
+    mode: "level",
+    level: 1,
+    requestId: crypto.randomUUID(),
+    timeZone: "UTC",
+  });
+  let view = started.view;
+  expect(view.question.maxTimeMs).toBeGreaterThan(300000);
+  for (let index = 0; index < 7; index++) {
+    const id = view.question.attemptId,
+      timeMs = index === 0 ? 300001 : 1000;
+    await fixture.operator`update practice_game.drill_attempts set active_elapsed_ms=${timeMs},active_since=null where id=${id}`;
+    expect((await recordDrillActivity(user, id, 0, false)).elapsedMs).toBe(
+      timeMs,
+    );
+    const resumed = await getRound(user, started.sessionId);
+    expect(resumed.question.elapsedMs).toBe(timeMs);
+    await recordDrillActivity(user, id, 0, false);
+    const [row] =
+      await fixture.operator`select private_variant from practice_game.drill_attempts where id=${id}`;
+    const drill = drillDefinitionSchema.parse(row.private_variant.definition),
+      variant = drillVariantSchema.parse(row.private_variant.variant);
+    if (drill.type !== "spot_flaw") throw Error("Expected course choice");
+    const answer = drillAnswerSchema.parse({
+      type: "spot_flaw",
+      option: String(variant.order.indexOf(drill.correctIndex)),
+    });
+    const saved = await submitRoundAnswer(user, id, answer);
+    expect(saved.result.timeMs).toBeGreaterThanOrEqual(timeMs);
+    if (index === 6) {
+      expect(saved.summary).toMatchObject({
+        stars: 2,
+        passed: true,
+        correct: 7,
+      });
+      expect(saved.summary?.answerTimeMs).toBeGreaterThan(306000);
+      const reopened = await getRound(user, started.sessionId);
+      if (reopened.status !== "graded") throw Error("Expected saved result");
+      expect(reopened.summary).toEqual(saved.summary);
+      expect((await submitRoundAnswer(user, id, answer)).summary).toEqual(
+        saved.summary,
+      );
+    } else view = await advanceRound(user, started.sessionId, id);
   }
 });

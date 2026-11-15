@@ -1,7 +1,7 @@
 import "server-only";
 import { RAG_COURSE_ID } from "./course/metadata";
 import { requireCourseSlides } from "./course/visits";
-import { GAME_RULES } from "./game-rules";
+import { maxDrillTimeMs } from "./game-rules";
 import { roundTimingPath } from "./round-timing";
 import { randomUUID } from "node:crypto";
 import type { StartRoundInput } from "./public";
@@ -136,7 +136,10 @@ export async function startRound(userId: string, input: StartRoundInput) {
           startedAt,
           elapsedMs: 0,
           activityOrder: 0,
-          maxTimeMs: 3 * GAME_RULES.parMs[first.drill_type],
+          maxTimeMs: maxDrillTimeMs({
+            topic: first.topic,
+            type: first.drill_type,
+          }),
           revision: 0,
         },
         attempts.length,

@@ -1,5 +1,8 @@
 /** Public course identity and path labels. No questions or answers live here. */
 export const RAG_COURSE_ID = "rag-course";
+export const COURSE_THREE_STAR_MS = 5 * 60 * 1000;
+export const COURSE_STAR_HINT =
+  "Three stars: every answer correct within 5 minutes total. Reading slides and answer explanations does not count.";
 export const RAG_COURSE_NODES = [
   { level: 0, title: "RAG basics", available: true, minutes: 8 },
   { level: 1, title: "Ingestion and chunking", available: true, minutes: 15 },

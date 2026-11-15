@@ -3,7 +3,7 @@ import { withPlayer } from "./database";
 import { storedAttempt, storedRound } from "./round-store";
 import { refreshUnanswered } from "./round-refresh";
 import { activeDrillMs } from "./drill-time";
-import { GAME_RULES } from "./game-rules";
+import { maxDrillTimeMs } from "./game-rules";
 import { PlayError } from "./errors";
 export async function recordDrillActivity(
   userId: string,
@@ -18,8 +18,7 @@ export async function recordDrillActivity(
       now = new Date();
     const refreshed = await refreshUnanswered(sql, userId, round, now);
     if (refreshed) attempt = await storedAttempt(sql, userId, attemptId);
-    const maxTimeMs =
-      3 * GAME_RULES.parMs[attempt.private_variant.definition.type];
+    const maxTimeMs = maxDrillTimeMs(attempt.private_variant.definition);
     if (attempt.ordinal !== round.active_ordinal)
       throw new PlayError("Open the current drill to continue.", 409);
     if (revision !== attempt.variant_revision)

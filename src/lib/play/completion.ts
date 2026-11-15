@@ -1,7 +1,7 @@
 import { courseQuestionTitle } from "./course/titles";
 import { RAG_COURSE_ID } from "./course/metadata";
 import { coursePassed, courseStars } from "./course/rules";
-import { GAME_RULES } from "./game-rules";
+import { maxDrillTimeMs } from "./game-rules";
 import { levelStars } from "./game-rules";
 import { nextRoundLevel } from "./summary-store";
 import { drillResultSchema } from "./public";
@@ -108,7 +108,11 @@ export async function completeRound(
     replay: round.replay,
     answerTimeMs: attempts.reduce(
       (sum, row) =>
-        sum + Math.min(row.result_json.timeMs, 3 * GAME_RULES.parMs[row.type]),
+        sum +
+        Math.min(
+          row.result_json.timeMs,
+          maxDrillTimeMs({ topic: round.topic, type: row.type }),
+        ),
       0,
     ),
     mode: round.mode,
