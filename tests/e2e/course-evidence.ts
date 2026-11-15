@@ -1,5 +1,13 @@
 import { expect, type Page } from "@playwright/test";
 import { mkdirSync } from "node:fs";
+import { rendered } from "./rendered";
+
+/** Closed optional lessons also contain figures; keep main-slide checks scoped. */
+export function primaryCourseDiagram(page: Page) {
+  return rendered(
+    page.locator('[aria-label="Slide content"] > [data-course-diagram]'),
+  );
+}
 export async function modelCalls(page: Page) {
   const response = await page.request.get(
     "https://127.0.0.1:4444/fixture/stats",

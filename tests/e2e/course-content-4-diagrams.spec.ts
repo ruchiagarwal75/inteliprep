@@ -2,7 +2,7 @@ import { rendered } from "./rendered";
 import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
-import { modelCalls } from "./course-evidence";
+import { modelCalls, primaryCourseDiagram } from "./course-evidence";
 const illustrations = [
   { level: 7, total: 12, slides: [1, 4, 6, 7] },
   { level: 8, total: 12, slides: [2, 3, 5, 9] },
@@ -61,7 +61,7 @@ test("all thirty-six new slides and twelve diagrams fit both themes and target s
             ),
           ).toBe(true);
           if (slides.includes(number)) {
-            const figure = rendered(page.locator("[data-course-diagram]"));
+            const figure = primaryCourseDiagram(page);
             await expect(figure).toHaveCount(1);
             await expect(figure).toHaveAttribute("role", "img");
             await expect(figure).toHaveAttribute("aria-label", /.{30,}/u);
