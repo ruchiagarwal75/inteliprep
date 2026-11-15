@@ -132,12 +132,21 @@ test("all 48 early course slides use a fixed focus shell and an internally scrol
           const last = frame.locator(
             '[aria-label="Slide content"] > :last-child',
           );
-          const lastBox = await last.boundingBox(),
-            readerBox = await frame.boundingBox();
-          if (!lastBox || !readerBox) throw Error("Missing slide text");
-          expect(lastBox.y + lastBox.height).toBeLessThanOrEqual(
-            readerBox.y + readerBox.height + 1,
-          );
+          // Font/stream layout can settle after the first bottom measurement.
+          // Reconcile with the current scroll extent, rather than a stale box.
+          await expect
+            .poll(async () => {
+              await frame.evaluate((node) => {
+                node.scrollTop = node.scrollHeight;
+              });
+              const lastBox = await last.boundingBox(),
+                readerBox = await frame.boundingBox();
+              if (!lastBox || !readerBox) return false;
+              return (
+                lastBox.y + lastBox.height <= readerBox.y + readerBox.height + 1
+              );
+            })
+            .toBe(true);
           expect(
             await page.evaluate(() => ({
               y: scrollY,

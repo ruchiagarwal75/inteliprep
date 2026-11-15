@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
 import { setTheme } from "./theme-helpers";
+import { rendered } from "./rendered";
 
 test("optional depth works with the keyboard and does not change the slide or start a quiz", async ({
   page,
@@ -12,7 +13,7 @@ test("optional depth works with the keyboard and does not change the slide or st
   const calls = await modelCalls(page);
   await page.goto("/play/rag/topics/0");
   await page.getByRole("button", { name: "Next", exact: true }).click();
-  const note = page.locator("[data-course-depth]");
+  const note = rendered(page.locator("[data-course-depth]"));
   await expect(note).not.toHaveAttribute("open");
   const summary = note.locator("summary");
   await summary.focus();
@@ -63,7 +64,7 @@ test("worked examples and vector diagrams are readable in both themes at desktop
           page.getByRole("heading", { name: "RAG notebook", exact: true }),
         ).toBeVisible();
         await setTheme(page, theme);
-        const note = page.locator("[data-course-depth]").filter({
+        const note = rendered(page.locator("[data-course-depth]")).filter({
           has: page.locator(`[data-course-diagram="${sample.kind}"]`),
         });
         await note.locator("summary").click();

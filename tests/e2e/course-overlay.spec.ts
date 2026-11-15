@@ -148,6 +148,11 @@ test("the quiz overlay gives the slide the full short-window reader", async ({
     .getByRole("button", { name: "Close slides", exact: true })
     .focus();
   await page.keyboard.press("Tab");
+  await expect(
+    overlay.getByRole("region", { name: "Slides reader", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(overlay.locator("[data-course-depth] summary")).toBeFocused();
   await page.keyboard.press("Tab");
   const focusedBack = overlay.getByRole("button", {
     name: "Back",
