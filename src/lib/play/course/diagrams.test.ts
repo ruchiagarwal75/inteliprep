@@ -13,6 +13,7 @@ it("attaches all nine revised retrieval diagrams and preserves primer and ingest
       ),
     ),
   ).toEqual([
+    [0, 1, "rag-knowledge-gap"],
     [0, 2, "rag-answer"],
     [0, 7, "rag-models"],
     [0, 8, "rag-two-paths"],

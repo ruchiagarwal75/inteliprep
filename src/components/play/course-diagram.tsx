@@ -1,4 +1,5 @@
 import { RAG_OPERATIONS_DIAGRAMS } from "./course-diagram-operations-registry";
+import { RagKnowledgeGapDiagram } from "./course-diagram-knowledge-gap";
 import { RAG_DEPTH_DIAGRAMS } from "./course-diagram-depth-registry";
 import { RAG_ANSWER_DIAGRAMS } from "./course-diagram-answer-registry";
 import {
@@ -22,6 +23,10 @@ import {
 } from "./course-diagram-primer";
 import styles from "./course-diagram.module.css";
 const diagrams = {
+  "rag-knowledge-gap": {
+    art: RagKnowledgeGapDiagram,
+    alt: "Illustrative example: a question about the refund window reaches an LLM using training alone. It may confidently guess 30 days. The current private policy says 14 days, but it was not provided to the model. Gold highlights the missing evidence.",
+  },
   ...RAG_DEPTH_DIAGRAMS,
   ...RAG_ANSWER_DIAGRAMS,
   ...RAG_OPERATIONS_DIAGRAMS,

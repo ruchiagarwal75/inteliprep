@@ -5,9 +5,11 @@ Audience: mid-level engineers new to RAG. Tone: easy, encouraging, about 8 minut
 ## Slides
 
 ### S1. Why LLMs need help
-A language model answers from its training and the context you give it. It may not know your current refund policy, last week's incident or a customer's private contract.
+A **large language model (LLM)** answers from its training and the context you give it. It may not know your current refund policy, last week's incident or a customer's private contract.
 
-It will often answer anyway, confidently and wrongly. That's called a hallucination.
+It can still answer confidently and wrongly. That's called a hallucination.
+
+Diagram: rag-knowledge-gap
 
 #### Deep dive: What a language model knows, and what it does at question time
 A language model is trained by adjusting many numerical **weights** so it gets better at predicting text. At question time, called **inference**, it uses those weights and the supplied context to produce the next tokens. A token is a piece of text, sometimes a whole word and sometimes part of one.

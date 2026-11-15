@@ -4,7 +4,12 @@ import { parseCourseSlidesMarkdown } from "./parse-slides.mjs";
 /** Compile the supplied primer verbatim, apart from authoring markers. */
 export function parsePrimerMarkdown(
   markdown,
-  diagrams = { 2: "rag-answer", 7: "rag-models", 8: "rag-two-paths" },
+  diagrams = {
+    1: "rag-knowledge-gap",
+    2: "rag-answer",
+    7: "rag-models",
+    8: "rag-two-paths",
+  },
 ) {
   const slides = markdown.split("## Slides\n")[1]?.split("## Questions\n")[0];
   const questions = markdown.split("## Questions\n")[1];

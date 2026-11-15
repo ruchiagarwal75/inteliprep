@@ -1,5 +1,6 @@
 /** Public teaching illustrations. No quiz content or solutions. */
 export const COURSE_DIAGRAMS = [
+  "rag-knowledge-gap",
   "rag-answer",
   "rag-models",
   "rag-two-paths",

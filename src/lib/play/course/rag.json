@@ -8,13 +8,14 @@
         "body": [
           {
             "kind": "paragraph",
-            "text": "A language model answers from its training and the context you give it. It may not know your current refund policy, last week's incident or a customer's private contract."
+            "text": "A **large language model (LLM)** answers from its training and the context you give it. It may not know your current refund policy, last week's incident or a customer's private contract."
           },
           {
             "kind": "paragraph",
-            "text": "It will often answer anyway, confidently and wrongly. That's called a hallucination."
+            "text": "It can still answer confidently and wrongly. That's called a hallucination."
           }
         ],
+        "diagram": "rag-knowledge-gap",
         "deepDive": {
           "title": "What a language model knows, and what it does at question time",
           "body": [

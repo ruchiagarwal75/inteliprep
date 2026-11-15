@@ -12,6 +12,7 @@ it("compiles all supplied primer prose, eight question titles and authored feedb
   const primer = courseTopicSchema.parse(parsePrimerMarkdown(source));
   expect(primer).toEqual(courseTopic(0));
   expect(primer.slides).toHaveLength(10);
+  expect(primer.slides[0].diagram).toBe("rag-knowledge-gap");
   expect(primer.questions.map((q) => q.title)).toEqual([
     "Why RAG",
     "Open book",
