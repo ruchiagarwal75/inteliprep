@@ -45,7 +45,7 @@ export function WelcomeLearningPath({
         )}
         <span className={styles.startNode}>{RAG_COURSE_NODES[0].level}</span>
         <span className={styles.caption} data-learning-caption>
-          {journey ? RAG_COURSE_NODES[0].title : "Learn"}
+          Learn
           {journey && <small>Start here</small>}
         </span>
       </div>

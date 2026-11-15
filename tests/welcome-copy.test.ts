@@ -6,7 +6,7 @@ import { WelcomeScene } from "@/components/play/welcome-scene";
 it("keeps the four panels and every dialogue line within its readable limit", () => {
   expect(WELCOME_PANELS.map((panel) => panel.title)).toEqual([
     "WELCOME, ENGINEER",
-    "YOUR FIRST WORLD",
+    "YOUR TRAINING",
     "MEET THE INTERVIEWER",
     "YOUR QUEST BEGINS",
   ]);

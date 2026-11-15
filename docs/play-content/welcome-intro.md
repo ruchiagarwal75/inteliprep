@@ -30,28 +30,28 @@ Shardling waves.
 "Hi! I’m a Shardling, a tiny piece of big AI systems."
 "Welcome to our world!"
 
-**Panel 2. "YOUR FIRST WORLD"**
-Show the girl guide, the XP badge, three stars and a chest. The Shardling introduces RAG before the guide explains the learning loop.
+**Panel 2. "YOUR TRAINING"**
+Show the girl guide, the XP badge, three stars and a chest. Introduce the worlds and learning loop without naming a specific topic.
 Name tag "SHARDLING":
-"Our first world is RAG."
-"Here, AI finds facts in documents before it answers."
+"Let's get you levelled up for the AI engineer interview."
+"There are worlds for you to conquer here."
 Then name tag "GUIDE":
-"I'll help you learn, then try each idea yourself."
-"Clear topics to earn XP, stars and chests."
+"Clear topics in each world as you learn the concepts."
+"Earn XP, stars and chests as you go."
 
 **Panel 3. "MEET THE INTERVIEWER"**
 Show a pixel learning path that ends at a glowing pixel boss gate (see "Boss gate" below). Keep this scene focused on the Interviewer. Do not show topic icons or coming-soon worlds above the path.
 The boss, "The Interviewer" (idle pose, see "Boss art" below), steps out in front of the gate with a 3-step pixel slide and a lens glint. The Shardling introduces the challenge before the Interviewer speaks.
 Name tag "SHARDLING":
-"After training, you'll meet the Interviewer."
+"After training, you'll meet the boss: the Interviewer."
 "The boss challenge is a mock system design interview."
 Then name tag "THE INTERVIEWER":
 "Show me what you'd build, and why."
 
 **Panel 4. "YOUR QUEST BEGINS"**
-The Shardling stands at the start of the RAG path. Far away at the other end, the boss gate glows, with a tiny version of The Interviewer (idle pose at 1x scale) standing in front of it, arms crossed, glasses glinting.
+The Shardling stands at the start of the learning path. Label the first stop "Learn". Far away at the other end, the boss gate glows, with a tiny version of The Interviewer (idle pose at 1x scale) standing in front of it, arms crossed, glasses glinting.
 The yellow trail has square lesson stops and stepped turns. Topic 0, the practice topics and the boss are marked along the route, rather than a tilted row of dots.
-"First, let's help AI find the right facts."
+"Put what you've learned to the test."
 "Head to Play and choose your first topic."
 Primary button: "Go to Play" (opens Play). Completing the intro does not start a topic.
 

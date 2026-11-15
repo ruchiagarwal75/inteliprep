@@ -63,7 +63,7 @@ for (const theme of ["light", "dark"] as const)
           expect(traveler?.height).toBe(48);
           await expect(
             map.locator("[data-learning-caption]").first(),
-          ).toContainText("RAG basics");
+          ).toContainText("Learn");
           await expect(
             map.locator("[data-learning-caption]").nth(1),
           ).toContainText("Topics 1-9");

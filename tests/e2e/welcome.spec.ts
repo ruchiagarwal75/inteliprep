@@ -280,7 +280,14 @@ test("existing progress skips automatic welcome and Replay intro is explicit", a
   await page.emulateMedia({ reducedMotion: "reduce" });
   await toPanel(page, 2);
   await expect(
-    rendered(page.getByText("Our first world is RAG.", { exact: true })),
+    rendered(
+      page.getByText(
+        "Let's get you levelled up for the AI engineer interview.",
+        {
+          exact: true,
+        },
+      ),
+    ),
   ).toBeVisible();
   await expect(
     rendered(page.locator('[data-pixel-pose="cheer"]')),
@@ -291,7 +298,7 @@ test("existing progress skips automatic welcome and Replay intro is explicit", a
   await toPanel(page, 3);
   await expect(
     rendered(
-      page.getByText("After training, you'll meet the Interviewer.", {
+      page.getByText("After training, you'll meet the boss: the Interviewer.", {
         exact: true,
       }),
     ),

@@ -14,18 +14,21 @@ export const WELCOME_PANELS = [
     ],
   },
   {
-    title: "YOUR FIRST WORLD",
+    title: "YOUR TRAINING",
     beats: [
-      { speaker: "SHARDLING", line: "Our first world is RAG." },
       {
         speaker: "SHARDLING",
-        line: "Here, AI finds facts in documents before it answers.",
+        line: "Let's get you levelled up for the AI engineer interview.",
+      },
+      {
+        speaker: "SHARDLING",
+        line: "There are worlds for you to conquer here.",
       },
       {
         speaker: "GUIDE",
-        line: "I'll help you learn, then try each idea yourself.",
+        line: "Clear topics in each world as you learn the concepts.",
       },
-      { speaker: "GUIDE", line: "Clear topics to earn XP, stars and chests." },
+      { speaker: "GUIDE", line: "Earn XP, stars and chests as you go." },
     ],
   },
   {
@@ -33,7 +36,7 @@ export const WELCOME_PANELS = [
     beats: [
       {
         speaker: "SHARDLING",
-        line: "After training, you'll meet the Interviewer.",
+        line: "After training, you'll meet the boss: the Interviewer.",
       },
       {
         speaker: "SHARDLING",
@@ -50,7 +53,7 @@ export const WELCOME_PANELS = [
     beats: [
       {
         speaker: "SHARDLING",
-        line: "First, let's help AI find the right facts.",
+        line: "Put what you've learned to the test.",
       },
       {
         speaker: "SHARDLING",
