@@ -5,7 +5,7 @@ Audience: mid-level engineers new to RAG. Tone: easy, encouraging, about 8 minut
 ## Slides
 
 ### S1. Why LLMs need help
-LLMs learn from public data up to a cutoff date. Ask about your company's refund policy, last week's incident or a customer's contract, and the model has never seen it.
+A language model answers from its training and the context you give it. It may not know your current refund policy, last week's incident or a customer's private contract.
 
 It will often answer anyway, confidently and wrongly. That's called a hallucination.
 
@@ -15,13 +15,24 @@ It will often answer anyway, confidently and wrongly. That's called a hallucinat
 Think of it as an open-book exam for the model.
 Diagram: Question → Search your docs → Top pieces → LLM → Answer with sources
 
+#### Deep dive: Follow one answer back to its evidence
+Imagine an employee asks whether contractors can expense an office chair. The current handbook has a paragraph that excludes contractors and a different paragraph that explains the employee allowance.
+
+1. Search must return the paragraph about contractors, with its heading and version.
+2. The prompt gives that evidence to the model with a source ID, such as policy-7, section 4.
+3. The answer must preserve the exclusion and cite the paragraph that supports it.
+
+If search returns only the employee allowance, a fluent answer can still be wrong. Check the evidence before changing the prompt. A citation is a pointer you must verify, not proof by itself.
+
+Read more: [The original RAG paper](https://arxiv.org/abs/2005.11401)
+
 ### S3. A tiny example
 A user asks: "Can contractors expense a home office chair?"
 1. Search finds 3 paragraphs from the Expense Policy.
 2. The prompt becomes: instructions + those 3 paragraphs + the question.
 3. The LLM answers: "No. Contractors aren't covered for office furniture (Source: Expense Policy, section 4)."
 
-Nothing was retrained. Update the policy document, and tomorrow's answer changes too.
+Nothing was retrained. Answers can reflect an updated policy once the new version is indexed and retrieved. How quickly that happens depends on your freshness design.
 
 ### S4. When RAG is the right tool
 Use RAG when:
@@ -32,10 +43,18 @@ Use RAG when:
 
 Skip it when the model already knows enough (general coding questions), or when all the data fits easily in one prompt.
 
+#### Deep dive: Choose a knowledge path before choosing a tool
+Consider three requests to the same assistant:
+- "What does our leave policy say?" needs a current, authorized document. Retrieve it.
+- "How many open tickets does my team have?" needs an authorized query over structured records. Searching similar text does not produce a reliable count.
+- "Rewrite this paragraph politely" already includes its evidence. It may not need retrieval.
+
+In an interview, first explain where the answer comes from and how you know the user may see it. Then choose the query path. A vector database is one way to find evidence, not a requirement for every request.
+
 ### S5. RAG vs fine-tuning vs long context
 - **Fine-tuning** teaches a model a style, format or skill. It's a poor way to add facts that change, because you'd retrain every time.
 - **Long context** pastes whole documents into the prompt. Fine for a few files, but slow and expensive for thousands, and details in the middle get missed.
-- **RAG** fetches only the relevant pieces at question time. Fresh, cheaper per question, and easy to trace back to sources.
+- **RAG** selects relevant pieces at question time. It can reduce context size and support citations, but adds retrieval work. Freshness and cost depend on the implementation.
 
 Real systems often combine them.
 
@@ -45,6 +64,13 @@ An embedding is a list of numbers (a vector, often 384 to 3,072 of them) that re
 Texts with similar meaning get vectors that point in similar directions, even with no words in common. "Reset my password" sits close to "I can't log in".
 
 That's what lets search find meaning, not just matching words.
+
+#### Deep dive: Similar meaning is not the same as a supported answer
+"Contractors may expense a chair" and "Contractors may not expense a chair" mention nearly the same things. A retriever may place both near the question, even though one word changes the decision.
+
+Treat similarity as a way to find candidates. Read the conditions, date and source before selecting evidence. The generation step must preserve those conditions.
+
+A useful test set pairs close-but-wrong passages with the right one. For the handbook example, include employees versus contractors, different regions, and the old versus current policy. A high similarity score is not a probability that the answer is correct.
 
 ### S7. Embedding model vs LLM
 Two different models with two different jobs:
@@ -56,8 +82,15 @@ Diagram: two side-by-side cards. Left: "Embedding model: text → [0.12, -0.48, 
 
 ### S8. The two halves of every RAG system
 - **Offline (indexing):** collect documents, split them into chunks, embed each chunk, and store the vectors plus metadata in a vector database. Runs ahead of time and again on every update.
-- **Online (answering):** embed the question, find the nearest chunks, build the prompt, call the LLM, and return the answer with citations. Runs on every question, usually in a second or two.
-Diagram: two lanes. Top lane "Offline": Docs → Chunk → Embed → Vector DB. Bottom lane "Online": Question → Embed → Search (arrow up to Vector DB) → Prompt → LLM → Answer.
+- **Online (answering):** embed the question, find the nearest chunks, build the prompt, call the LLM, and return the answer with citations. Runs on every question. Set and measure a latency target for the full path.
+Diagram: two lanes. Top lane "Offline": Docs → Chunk → Embed → Vector DB. Bottom lane "Online": Question → Embed → Search (retrieved chunks flow from Vector DB to Search) → Prompt → LLM → Answer.
+
+#### Deep dive: Give indexing and answering different promises
+The indexing path can queue a large document and retry a failed embedding job. The answering path has an employee waiting for a response. They need different deadlines and failure behavior.
+
+For an example product, an edit might become searchable within five minutes, while a permission revoke must take effect within one minute. Those are requirements you choose with the interviewer, not built-in properties of RAG.
+
+When answering, search pulls stored chunks from the vector database. The database does not generate the answer. A fresh model cannot compensate for a missing document, a stale index or an incorrect permission decision.
 
 ### S9. Where you've already seen RAG
 - Support bots that answer from help-center articles

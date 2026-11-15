@@ -63,16 +63,19 @@ test("Learn slides remain readable in short windows with card scrolling", async 
         await rendered(page.locator("article h2")).textContent(),
       ).not.toMatch(/\.$/u);
       if (slide === 2) {
-        await expect(body.locator("ul li")).toHaveCount(6);
+        await expect(body.locator("[data-slide-core] ul li")).toHaveCount(6);
         expect(await body.locator("strong").count()).toBeGreaterThan(0);
       }
-      if (slide === 13) await expect(body.locator("ol li")).toHaveCount(5);
+      if (slide === 13)
+        await expect(body.locator("[data-slide-core] ol li")).toHaveCount(5);
       if (slide === 1 || slide === 6) {
         if (slide === 1) {
           await rendered(page.locator("article")).evaluate((node) =>
             node.scrollIntoView({ block: "start" }),
           );
-          for (const paragraph of await body.locator("p").all())
+          for (const paragraph of await body
+            .locator("[data-slide-core] p")
+            .all())
             await expect(paragraph).toBeInViewport({ ratio: 1 });
         }
         if (slide === 6) {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { courseNotebook } from "@/lib/play/course/notebook";
 import { CourseDiagram } from "@/components/play/course-diagram";
 import { SlideBody } from "@/components/play/slide-body";
+import { CourseDeepDive } from "@/components/play/course-deep-dive";
 import styles from "./notebook.module.css";
 export function NotebookTopic({
   topic,
@@ -27,6 +28,7 @@ export function NotebookTopic({
                 <strong>{slide.title}</strong>
                 {slide.diagram && <CourseDiagram kind={slide.diagram} />}
                 <SlideBody blocks={slide.body} />
+                {slide.deepDive && <CourseDeepDive content={slide.deepDive} />}
               </li>
             ))}
           </ol>

@@ -19,6 +19,15 @@ An embedding model turns text into a fixed-length list of numbers, for example 7
 Use the metric the model was trained for. Most text models are used with normalized vectors and cosine or dot product.
 Diagram: a 2D plot with three arrows from the origin. "Refund policy" and "Get my money back" point in almost the same direction, with a small angle between them marked in gold. "Office chair" points far away.
 
+#### Deep dive: Find a relevant passage, then test what it actually says
+A question asks about equipment for contractors. Two results score 0.88 and 0.85. The higher score belongs to an employee-only policy; the lower score belongs to the contractor policy.
+
+Neither score tells you whether an expense is allowed. They describe the retriever's notion of similarity, and their scale depends on the model and scoring method. Preserve the text and its metadata so later stages can make the distinction.
+
+When comparing embedding models, use the same questions and relevance labels. Inspect misses involving exact identifiers, exclusions and domain terms. A larger vector is an expense to justify with measured improvement, not a quality guarantee.
+
+Read more: [BEIR retrieval evaluation benchmark](https://arxiv.org/abs/2104.08663)
+
 ### S3. Bi-encoders: why search is fast
 The query and each document are encoded separately. Document vectors are computed once, at indexing time, and stored.
 
@@ -46,6 +55,15 @@ The index adds more on top, for example the links in an HNSW graph.
 
 Some models let you keep only the first part of each vector (Matryoshka embeddings), for example 256 of 1,024 dimensions, for a small recall cost.
 
+#### Deep dive: Turn raw vector size into a capacity question
+For this worked example, assume 2 million documents, 10 chunks per document, 768 dimensions and float32 storage.
+
+20 million vectors x 768 x 4 bytes = 61.44 billion bytes, or 61.44 GB in decimal units. This is only the vector payload. It excludes the ANN graph, identifiers, text, metadata, replicas and growth headroom.
+
+With two full copies, vectors alone need 122.88 GB across the deployment. Do not invent a universal index-overhead multiplier. Measure the actual index and decide which parts must be in memory. State the precision assumption explicitly before doing the arithmetic.
+
+Diagram: vector-memory-budget
+
 ### S6. Quantization: smaller vectors
 - **float16:** half the memory, almost no recall loss.
 - **int8:** a quarter of the memory, a small recall loss.
@@ -69,6 +87,15 @@ HNSW stacks layers of graphs: a few long links at the top, dense links at the bo
 
 Strengths: high recall at low latency, easy inserts. Weaknesses: the graph lives in memory, and deletes are usually only marked, then cleaned up later.
 Diagram: three stacked layers of dots (3, then 6, then 12 dots) with thin links. A gold path zigzags from a top-layer dot down through each layer to the dot nearest a star labeled "Query".
+
+#### Deep dive: Tune recall and latency together
+HNSW search explores a graph instead of comparing the query with every vector. Searching a wider candidate set can find better neighbors, but consumes more work per request.
+
+For example, measure a search setting at two exploration budgets against exact nearest neighbors on a manageable sample. Suppose recall improves from 92% to 97%, while p95 search latency rises from 18 to 42 ms. The right choice depends on your quality floor and the retrieval latency budget.
+
+Graph construction settings affect memory, build time and recall too. Keep construction and query-time knobs separate when explaining what you can change without rebuilding.
+
+Read more: [HNSW algorithm paper](https://arxiv.org/abs/1603.09320)
 
 ### S9. IVF: search only nearby clusters
 IVF groups vectors into clusters with k-means, for example 4,096 clusters. Each vector goes into the list of its nearest cluster center.
@@ -108,6 +135,13 @@ A safe migration:
 
 Store the model name and version with every vector, so a mismatch is caught early.
 
+#### Deep dive: Migrate the whole retrieval contract
+Suppose the old encoder outputs 768 dimensions and the replacement outputs 1,024. The new query vector cannot be searched against the old document vectors. Matching dimensions alone would not make two different embedding spaces compatible either.
+
+Version the encoder, preprocessing and index together. Backfill a new index while change events update both versions. At cutover, route the query encoder and its matching index as one unit.
+
+Compare the new system on the same held-out questions and permission tests before switching reads. Keep the old pair for rollback. Include a plan for documents edited or deleted while the backfill is running.
+
 ### S13. Interview checklist
 When asked "How would you store and search the vectors?", cover:
 - The embedding model and how you'd test it on your data
@@ -116,7 +150,7 @@ When asked "How would you store and search the vectors?", cover:
 - Filters and permissions inside the search
 - How you'd re-embed when the model changes
 
-Doing the memory math out loud ("10M x 1,024 x 4 bytes is about 41 GB, so int8 gets us to about 10 GB") is a strong Senior signal.
+Showing the memory math ("10M x 1,024 x 4 bytes is about 41 GB, so int8 gets us to about 10 GB") is a strong Senior signal.
 
 ## Questions
 

@@ -40,5 +40,11 @@ export const COURSE_DIAGRAMS = [
   "injection-paths",
   "safety-gates",
   "safe-rollout",
+  "chunk-boundary-case",
+  "vector-memory-budget",
+  "permission-revoke-race",
+  "retrieval-debug-case",
+  "context-budget-case",
+  "eval-case",
 ] as const;
 export type CourseDiagramKind = (typeof COURSE_DIAGRAMS)[number];

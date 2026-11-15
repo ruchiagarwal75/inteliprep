@@ -46,10 +46,49 @@ export function parseCourseSlidesMarkdown(markdown, diagrams = {}) {
       heading.index + heading[0].length,
       headings[index + 1]?.index ?? markdown.length,
     );
+    const markers = [...source.matchAll(/^#### Deep dive: (.+)$/gmu)];
+    if (markers.length > 1) throw Error("A slide has at most one deep dive");
+    const marker = markers[0];
     return {
       title: heading[2].replace(/\.$/u, ""),
-      body: parseSlideBody(source),
+      body: parseSlideBody(marker ? source.slice(0, marker.index) : source),
       ...(diagrams[index + 1] ? { diagram: diagrams[index + 1] } : {}),
+      ...(marker
+        ? {
+            deepDive: parseDeepDive(
+              marker[1],
+              source.slice(marker.index + marker[0].length),
+            ),
+          }
+        : {}),
     };
   });
+}
+
+function parseDeepDive(title, source) {
+  const references = [],
+    lines = [];
+  let diagram;
+  for (const raw of source.split("\n")) {
+    const line = raw.trim();
+    if (line.startsWith("Read more:")) {
+      const link = /^Read more: \[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/u.exec(
+        line,
+      );
+      if (!link) throw Error("Deep dive references need a title and HTTPS URL");
+      references.push({ title: link[1], url: link[2] });
+    } else if (line.startsWith("Diagram:")) {
+      if (diagram) throw Error("A deep dive has at most one diagram");
+      diagram = line.slice("Diagram:".length).trim();
+      if (!diagram) throw Error("A deep dive diagram needs a kind");
+    } else lines.push(raw);
+  }
+  if (references.length > 3)
+    throw Error("A deep dive has at most three references");
+  return {
+    title,
+    body: parseSlideBody(lines.join("\n")),
+    ...(diagram ? { diagram } : {}),
+    ...(references.length ? { references } : {}),
+  };
 }

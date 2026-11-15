@@ -1,6 +1,7 @@
 import type { CourseSlide } from "@/lib/play/course/slides-public";
 import { CourseDiagram } from "./course-diagram";
 import { SlideBody } from "./slide-body";
+import { CourseDeepDive } from "./course-deep-dive";
 import styles from "./course-slide-frame.module.css";
 
 export function CourseSlideFrame({
@@ -33,7 +34,10 @@ export function CourseSlideFrame({
         aria-label="Slide content"
       >
         {slide.diagram && <CourseDiagram kind={slide.diagram} />}
-        <SlideBody blocks={slide.body} />
+        <div data-slide-core>
+          <SlideBody blocks={slide.body} />
+        </div>
+        {slide.deepDive && <CourseDeepDive content={slide.deepDive} />}
       </div>
     </article>
   );

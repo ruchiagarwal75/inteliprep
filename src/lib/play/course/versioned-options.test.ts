@@ -62,7 +62,7 @@ it.each(files)("preserves every question field verbatim in %s", (name) => {
       .slice(1);
     expect(slides).toHaveLength(level === 2 ? 13 : 12);
     slides.forEach((raw, index) => {
-      const lines = raw.split("\n");
+      const lines = raw.split(/^#### Deep dive:/mu)[0].split("\n");
       expect(topic.slides[index].title).toBe(lines[0]);
       const body = lines
         .slice(1)

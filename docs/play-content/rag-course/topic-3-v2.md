@@ -9,7 +9,7 @@ Diagrams: clean vector SVG, Inter, theme colors, square boxes, clear arrows. Lan
 If the right chunk isn't in the top results, the LLM can't use it. Retrieval quality caps answer quality.
 
 Measure retrieval on its own:
-- **Recall@k:** how often a right chunk shows up in the top k.
+- **Recall@k:** the share of relevant chunks found in the top k. Hit rate@k asks whether at least one right chunk was found.
 - **MRR:** how high the first right chunk ranks, on average.
 
 Build a test set of 100 to 200 real questions with their right chunks before you tune anything. Topic 7 goes deeper on evaluation.
@@ -37,12 +37,19 @@ Good at exact terms, codes, names and acronyms. Weak at synonyms. It's cheap, fa
 Learned sparse models such as SPLADE add related words to each chunk, which closes part of the synonym gap.
 
 ### S4. Hybrid search
-Run keyword and dense search in parallel and merge the two lists. Each catches what the other misses, so hybrid usually beats either one alone.
+Run keyword and dense search in parallel and merge the two lists. They can catch different misses. Compare the combined system with each baseline on your own questions.
 
 Two ways to merge:
 - **Score blending:** normalize both scores, then weight them, for example 0.7 dense + 0.3 keyword. Needs tuning, because the scales differ.
 - **Reciprocal Rank Fusion (RRF):** uses ranks only. Simple, robust and a strong default.
 Diagram: Query splits into two boxes, "Keyword (BM25)" and "Dense (vectors)". Each produces a short ranked list. Both lists flow into a gold "Merge (RRF)" box, then "Top results".
+
+#### Deep dive: See why two retrievers can complement each other
+The employee asks, "Does policy EQ-17 cover a desk for temps?" Keyword search can match EQ-17 exactly. Dense search can connect "temps" with "contractors" and "desk" with "office furniture".
+
+Merge the two candidate lists after applying the same trusted access boundary. Deduplicate by stable chunk identity, not by title: two documents can share a title and have different permissions or versions.
+
+Then test whether the combined list improves the error-code and paraphrase slices. Hybrid retrieval adds work and candidates; it earns its place only if those gains justify the latency and operating cost on your data.
 
 ### S5. RRF, step by step
 Each document gets 1 / (k + rank) from every list it appears in. k is often 60.
@@ -52,8 +59,17 @@ With k = 60:
 - **Doc B:** rank 3 in keyword, rank 1 in dense: 1/63 + 1/61 = about 0.0323
 - **Doc C:** rank 2 in keyword only: 1/62 = about 0.0161
 
-Showing up in both lists beats ranking high in just one.
+In this example, support from both lists puts A and B ahead of C. Fusion ranks candidates; it does not prove relevance.
 Diagram: three columns. "Keyword": 1 Doc A, 2 Doc C, 3 Doc B. "Dense": 1 Doc B, 2 Doc A. "RRF": 1 Doc A, 2 Doc B, 3 Doc C, with Doc A and Doc B in gold.
+
+#### Deep dive: Keep fusion scores separate from answer confidence
+With a rank constant of 60, a chunk ranked first in one list and fourth in another receives 1/61 + 1/64, about 0.0320. A chunk ranked second in only one list receives 1/62, about 0.0161.
+
+The first chunk wins this comparison because both retrievers contributed. The number 0.0320 is a fusion score, not a 3.2% confidence or a probability of a correct answer.
+
+The rank constant is also different from the number of chunks returned. Explain which knob you are changing. A highly ranked but unauthorized or superseded chunk must still be excluded regardless of its fusion score.
+
+Read more: [Reciprocal rank fusion formula](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion)
 
 ### S6. Query rewriting
 Users type messy queries. Fix them before you search:
@@ -89,6 +105,13 @@ Too few, and the right chunk sits just past the cutoff. Too many, and you pay fo
 Be careful with fixed score cutoffs. Scores aren't comparable across queries, so a fixed threshold can drop good results.
 Diagram: a funnel with four levels: "1M chunks", "100 candidates" (Retrieve), "10" (Re-rank), "5 in the prompt" in gold.
 
+#### Deep dive: Choose a candidate budget from the misses
+Imagine the right contractor-policy chunk appears at rank 37 before re-ranking. Sending only the first 20 candidates makes it unreachable for the re-ranker. Raising the final prompt size from five to ten does not fix that miss.
+
+Increase the retrieval candidate budget, then check how many additional questions become answerable and what happens to re-ranking latency. Record both the candidate count and the final context-token count: they are separate budgets.
+
+Use per-slice results too. If the extra candidates mostly help exact policy IDs, a keyword change may be more efficient than expanding every request.
+
 ### S10. Routing: search the right place
 Real systems have several sources: docs, tickets, code, a SQL database.
 - A router (rules or a small LLM) picks which sources to search, or whether to search at all.
@@ -104,7 +127,19 @@ When an answer is wrong, check retrieval first:
 3. In the top 100 but not the top 5? It's a ranking problem. Add re-ranking (Topic 4).
 4. In the prompt, but the answer is still wrong? It's a generation problem (Topic 6).
 
-Log the query, the retrieved IDs and their scores for every request, so you can replay failures.
+Trace request IDs, safe evidence references, scores and pipeline versions. Keep raw text only under a restricted debugging and retention policy.
+
+#### Deep dive: Trace the first point where the evidence disappears
+For one failed handbook question, inspect the source version and chunk ID at each boundary.
+
+1. Missing from the index: inspect ingestion or permission policy first.
+2. Indexed but absent from the candidate list: inspect filters, query formulation and recall.
+3. Present at rank 37 but dropped before the prompt: inspect candidate limits and re-ranking.
+4. Present in the prompt but misquoted: inspect generation and claim support.
+
+Change one stage and replay the same case before comparing aggregate metrics. Keep a request ID and versioned evidence references in traces. Restrict and minimize any raw text retained for debugging.
+
+Diagram: retrieval-debug-case
 
 ### S12. Interview checklist
 When asked "How would you retrieve the right context?", cover:

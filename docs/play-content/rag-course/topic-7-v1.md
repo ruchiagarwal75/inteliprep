@@ -40,6 +40,17 @@ When real questions are scarce, an LLM can write them from your chunks: "Write a
 Retrieval metrics need no LLM, so they're fast and cheap to run on every change.
 Diagram: a ranked list of 5 result boxes, numbered 1 to 5. Box 2 is gold and labeled "Right chunk". On the right: "Hit@5: yes" and "Reciprocal rank: 1/2 = 0.5".
 
+#### Deep dive: Use a tiny test set to locate a bottleneck
+Suppose all ten test questions have known answers. The required evidence is indexed for eight. Retrieval finds it for six. Generation produces a supported answer for five of those six.
+
+- End-to-end success is 5/10, or 50%.
+- Retrieval hit rate is 6/10, or 60%, across the full test set.
+- Generation succeeds on 5/6, about 83%, conditional on receiving the evidence.
+
+The conditional generation score is not the end-to-end score. Fix the two ingestion misses and two retrieval misses as well. If questions need several chunks, also measure how many of those required chunks were retrieved, not just whether one was found.
+
+Diagram: eval-case
+
 ### S5. Generation metrics
 - **Faithfulness:** are the answer's claims supported by the retrieved context?
 - **Answer relevance:** does it answer the question that was asked?
@@ -57,6 +68,13 @@ Grading thousands of answers by hand doesn't scale, so teams use an LLM judge.
 - Calibrate: have people label 50 to 100 cases, and check how often the judge agrees before you trust it.
 Diagram: "Question + context + answer" and "Rubric" both feed a gold "Judge LLM" box, which outputs "Score + reason". Beside it, "Human labels" and the judge's scores feed an "Agreement: 90%" box.
 
+#### Deep dive: Check where your judge disagrees with people
+A judge agrees with human labels on 90 of 100 answers. That 90% figure hides what matters: are the ten disagreements mostly unsafe answers labeled acceptable, or useful answers labeled unacceptable?
+
+Review both directions, including short answers, refusals, conflicting sources and prompt injections. Write the evaluation rubric so it names the claim and supporting evidence, rather than rewarding confident phrasing or length.
+
+Keep a held-out human-labeled set and version the judge prompt and model. A changed judge can move the chart even when the application did not change. Do not compare scores produced under different judging rules as if they were one experiment.
+
 ### S7. Regression gates
 Run the eval set on every meaningful change: prompt, model, chunking, embeddings, re-ranker.
 - Track each metric over time, per change.
@@ -64,6 +82,13 @@ Run the eval set on every meaningful change: prompt, model, chunking, embeddings
 - Read the failed cases, not just the averages.
 - Slice by question type: lookups, multi-part, no-answer, recent changes. One average can hide a broken slice.
 Diagram: three pairs of horizontal bars, "Before" and "After". "Recall@10: 92% to 93%" (fine). "Faithfulness: 95% to 91%" in red with a gold stamp "Gate: blocked". "Latency p95: 1.2 s to 1.2 s" (fine).
+
+#### Deep dive: Turn a regression into a concrete release decision
+Run the old and new systems on the same held-out questions. Suppose the new chunker fixes six cases and breaks eight. The overall score falls by two points on a 100-question set, but the paired failures tell you more than the average.
+
+Inspect whether those eight include permission leaks, outdated policies or low-risk wording issues. A privacy regression should block release even if many easy questions improved.
+
+Set quality floors and latency or cost limits before looking at the result. Include sampling uncertainty and human review where labels are ambiguous. A release gate is a product decision backed by evidence, not a universal percentage.
 
 ### S8. Online evaluation
 Offline sets get stale. Watch real traffic too:
@@ -74,11 +99,18 @@ Offline sets get stale. Watch real traffic too:
 
 Feed real failures back into the test set.
 
+#### Deep dive: Do not mistake engagement for correctness
+An employee might click a citation because the answer is useful, because it seems wrong, or because the task requires checking the policy. A copied answer can also be incorrect.
+
+Use these signals to find cases for review, not as automatic ground-truth labels. Collect optional explicit feedback and sample real tasks with the right privacy controls.
+
+In an experiment, choose a task-success measure and guardrails such as unsupported claims, unnecessary refusals and latency. Watch important slices, including new documents and restricted content. Feed confirmed failures into a separate regression set without repeatedly tuning against your held-out evaluation set.
+
 ### S9. Don't fool yourself with noise
 Small test sets give noisy numbers.
 - With 100 questions, each question is 1 point. A 2-point "gain" can be noise.
 - Compare versions on the same questions, and look at which ones flipped.
-- Use temperature 0 for evals, or run each case a few times.
+- Use low temperature to reduce sampling variation, but do not assume deterministic results. Repeat cases when variation could change the release decision.
 - For A/B tests, pick the main metric and the sample size before you start.
 
 ### S10. Cost and latency belong in the report

@@ -38,8 +38,15 @@ Diagram: a timeline. "Doc edited", then "Event", then "Queue", then "Embed", the
 - Prefer change events (webhooks, change data capture) over full re-crawls.
 - Put changes on a queue, so bursts don't overload the embedding service.
 - Make every update idempotent: replaying the same event gives the same result.
-- Upsert by document ID, and remove the old chunks in the same step (Topic 1).
+- Use document and source-version identities. Publish a complete new version, then retire old chunks using the store's actual consistency guarantees (Topic 1).
 - Run a regular reconciliation job to catch missed events.
+
+#### Deep dive: Handle a delayed update after a delete
+An update for policy-7 version 12 sits in a queue. The source deletes the document at version 13. Later, a retried version-12 job completes. A simple upsert could make the deleted content searchable again.
+
+Keep a monotonic source version or a deletion tombstone and reject writes older than the latest accepted event. Make retries idempotent using a stable event or version identity. Reconcile the index with the source to find missed changes.
+
+Track the time until the new state is searchable, not merely when the queue accepted the event. A successful write acknowledgement may precede search visibility in some indexes.
 
 ### S5. Scaling the vector index
 When one machine isn't enough:
@@ -52,18 +59,34 @@ Diagram: "Query" into a "Router", which fans out to 4 shard columns. Each column
 
 ### S6. Caching
 Cache at several layers:
-- **Embedding cache:** the same query text always gets the same vector.
+- **Embedding cache:** reuse a vector only when query text, preprocessing and encoder version match.
 - **Retrieval cache:** the same query and filters give the same results, for a short time.
 - **Answer cache:** exact or close matches, with the user's permissions in the key (Topic 6).
 
 Every cache needs an expiry, and must be cleared or versioned when the index or prompt changes. A stale cache quietly undoes all your freshness work.
 
+#### Deep dive: Make a cache hit pass the current access check
+Two employees ask the same question. One can read a restricted handbook section and the other cannot. A query-only answer cache would reuse the first answer for the second employee.
+
+Scope cached work to a trusted tenant and permission context, with policy versions or an equivalent current authorization check. Also track the document and prompt versions that the cached result depends on. Group names alone can be too broad if document-level exceptions exist.
+
+Test a hit after a revoke and after a policy edit. Expiry is a freshness tool, not a substitute for meeting the promised permission-revocation deadline.
+
+Diagram: permission-revoke-race
+
 ### S7. Latency budgets and p95
 Users feel the slow tail, not the average. Set a budget per step, and track p95 and p99, not just p50.
 
-Example p95 budget: rewrite 250 ms, embed 30, retrieve 60, re-rank 120, build prompt 20, and the LLM's first token 800. That's about 1.3 s to the first word.
+Example p95 budget: rewrite 250 ms, embed 30, retrieve 60, re-rank 120, build prompt 20, and the LLM's first token 800. These stage allowances total about 1.3 s. Measure end-to-end p95 separately; adding stage p95s does not give the p95 of the sum.
 
 Tactics: run keyword and vector search in parallel, put a timeout on every call, and skip optional steps (like query rewriting) when you're running late.
+
+#### Deep dive: A sum of stage p95s is not an end-to-end p95
+Stage budgets help allocate a deadline. They do not automatically describe the percentile of the total request. Slow stages can occur on different requests, and queueing or retries can dominate the tail.
+
+For example, if retrieval has an 80 ms allowance and re-ranking has 120 ms, a request that already spent 180 ms upstream may have to skip optional re-ranking. Pass a remaining deadline, not a fresh full timeout at every hop.
+
+Trace total time to first token and full-answer time separately. Load-test the complete path at expected concurrency and measure its p95 directly. Include cancellations so abandoned requests stop consuming downstream work where possible.
 
 ### S8. Rate limits and capacity
 LLM providers limit requests and tokens per minute.
@@ -72,12 +95,19 @@ LLM providers limit requests and tokens per minute.
 - Spread load across regions or providers for headroom.
 - Protect yourself too: per-user limits stop one user, or one script, from using the whole quota.
 
+#### Deep dive: Capacity is limited by tokens as well as requests
+Assume 12 questions per second at peak and 5,000 total tokens per question for this example. That is 60,000 tokens per second, or 3.6 million per minute, before retries and optional calls.
+
+Check input and output limits separately when the provider enforces them separately. Then allow headroom for bursts, concurrent requests and longer-than-average prompts. A request-per-minute limit alone misses this bottleneck.
+
+Use bounded queues and admission control. When the remaining deadline is too short, reject clearly or degrade optional work instead of building an unbounded backlog. A second provider is useful only if its privacy, quality and failover behavior also meet the requirements.
+
 ### S9. Graceful degradation
 When a part fails, return something useful instead of an error:
 - Re-ranker down: use the first-stage order.
 - Vector search slow: fall back to keyword search only.
 - Main LLM down or rate-limited: switch to a backup model.
-- Everything down: show the top search results as links, with no generated answer.
+- LLM unavailable but authorized search healthy: show source links without generation. If authorization or every search path is down, fail safely with a clear retry message.
 
 Timeouts and circuit breakers stop one slow dependency from stalling every request.
 Diagram: a staircase going down from left to right with 5 steps: gold "Full answer", then "No re-rank" (label "re-ranker down"), "Keyword only" (label "vector search slow"), "Backup model" (label "LLM down"), "Links only" (label "everything down").
@@ -91,7 +121,7 @@ In a B2B product, many customers share one system.
 
 ### S11. Observability
 Trace every request:
-- The query and rewritten query, retrieved chunk IDs and scores, re-rank order, prompt version, model, token counts, latency per step, and the final answer.
+- Request ID, safe evidence references and scores, re-rank order, prompt version, model, token counts and latency per step. Keep raw questions and answers only in a restricted, sampled debugging flow when needed.
 - Dashboards: p95 latency per step, cost per day, index lag, refusal rate and error rate.
 - Alerts: index lag, error spikes and cost spikes.
 

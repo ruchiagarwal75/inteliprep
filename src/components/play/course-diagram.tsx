@@ -1,4 +1,5 @@
 import { RAG_OPERATIONS_DIAGRAMS } from "./course-diagram-operations-registry";
+import { RAG_DEPTH_DIAGRAMS } from "./course-diagram-depth-registry";
 import { RAG_ANSWER_DIAGRAMS } from "./course-diagram-answer-registry";
 import {
   MultiQueryDiagram,
@@ -21,6 +22,7 @@ import {
 } from "./course-diagram-primer";
 import styles from "./course-diagram.module.css";
 const diagrams = {
+  ...RAG_DEPTH_DIAGRAMS,
   ...RAG_ANSWER_DIAGRAMS,
   ...RAG_OPERATIONS_DIAGRAMS,
   "rag-answer": {

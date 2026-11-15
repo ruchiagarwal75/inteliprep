@@ -31,6 +31,7 @@ it("keeps all 13 slide titles and source paragraphs, lists and bold wording", ()
   const sections = source.split(/^## S\d+\. .+\n/mu).slice(1);
   for (const [index, slide] of slides.entries()) {
     const original = sections[index]
+      .split("#### Deep dive: ")[0]
       .split("\n")
       .filter((line) => !line.startsWith("Diagram:"))
       .map((line) => line.replace(/^(?:- |\d+\. )/u, ""))

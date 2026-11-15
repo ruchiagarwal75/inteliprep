@@ -16,22 +16,31 @@ The result: the right chunk moves from 37th into the top 5, and the LLM gets les
 - **Bi-encoder:** the query and the chunk are embedded separately, then the vectors are compared. Fast, precomputed and able to search millions.
 - **Cross-encoder:** the query and the chunk go into the model together, and it outputs one relevance score. It sees word-level details like "not covered" or "before 2024", so it's much more accurate.
 
-The catch: nothing can be precomputed. It's one model call per query-chunk pair. That's why cross-encoders re-rank 100 candidates, not 10 million.
+The query and chunk must be processed together, so each pair needs inference. Batch the pairs to reduce overhead. That is why cross-encoders re-rank a shortlist instead of the full corpus.
 Diagram: two panels. Left, "Bi-encoder": Query into Encoder, giving a vector; Chunk into Encoder, giving a vector; both vectors into "Cosine". Right, "Cross-encoder": one box "Query + Chunk" into a single gold "Encoder", then "Score 0.91".
 
+#### Deep dive: Count pair computations, not network calls
+A cross-encoder must jointly process each query-and-chunk pair. For 80 candidates, that is 80 pair scores. It does not have to mean 80 separate HTTP requests: a service can accept the pairs in one request and run them in batches.
+
+Longer chunks increase the work, and the batch may need splitting to fit memory. Compare end-to-end re-ranking time, including queueing, tokenization and network overhead.
+
+The first-stage retriever still matters. A perfectly ordered shortlist cannot recover a passage that never entered it. This is why capacity and retrieval recall belong in the explanation before selecting a re-ranker.
+
+Read more: [Cross-encoder pair scoring and batching](https://www.sbert.net/examples/cross_encoder/applications/README.html)
+
 ### S3. The two-stage pipeline
-1. **Retrieve:** hybrid search returns the top 100, often in 20 to 50 ms.
+1. **Retrieve:** hybrid search returns a shortlist, such as the top 100. Measure its latency on your corpus.
 2. **Re-rank:** a cross-encoder scores those 100 and sorts them.
 3. **Select:** keep the best 5 to 10 for the prompt.
 
 Retrieval is tuned for recall: is the right chunk somewhere in the top 100? Re-ranking is tuned for precision at the top: is it in the top 5?
-Diagram: a left-to-right row: "1M chunks", then "Retrieve" (label "about 30 ms"), then "100 candidates", then a gold "Re-rank" (label "about 80 ms"), then "Top 5", then "LLM".
+Diagram: an illustrative timing example, not a benchmark, in a left-to-right row: "1M chunks", then "Retrieve" (label "about 30 ms"), then "100 candidates", then a gold "Re-rank" (label "about 80 ms"), then "Top 5", then "LLM".
 
 ### S4. Kinds of re-rankers
 - **Cross-encoder models:** small open models trained for relevance, such as the BGE or MS MARCO re-rankers. You host them.
 - **Hosted re-rank APIs:** send the query and candidates, get scores back (Cohere and Voyage offer these). Easy, but adds a network hop and a price per call.
 - **LLM as re-ranker:** ask an LLM to sort the candidates. Flexible, but the slowest and most expensive.
-- **Late interaction (ColBERT):** one vector per token, matched token by token. Near cross-encoder quality at near bi-encoder speed, but a much bigger index.
+- **Late interaction (ColBERT):** one vector per token, matched token by token. It trades a larger per-token index for richer matching. Measure its quality, latency and storage on your workload.
 
 ### S5. Latency and cost
 Re-ranking cost grows with the number of candidates times the tokens in each pair.
@@ -49,6 +58,13 @@ Set the budget first, for example "re-ranking must finish in 100 ms at p95", the
 Pick N with data. First-stage recall@N is the ceiling for the re-ranker. If recall@50 is 95% and recall@100 is 96%, re-rank 50.
 Diagram: a line chart. X axis "Candidates re-ranked (N)" with ticks 10, 50, 100, 200. Y axis "Recall@N". The line rises steeply, then flattens. The bend at N = 50 is marked with a gold dot labeled "Good N".
 
+#### Deep dive: Read the quality curve with the latency budget
+In an illustrative test, retrieving 40 candidates finds evidence for 180 of 200 answerable questions. Retrieving 80 finds evidence for 188. The extra candidates recover eight questions, but double the number of pairs sent to re-ranking.
+
+Check whether those recovered cases matter, whether the right passage survives into the final context, and whether p95 still meets the budget. An overall gain can hide a regression for a region or document format.
+
+Choose a candidate count from that trade-off, not because "top 100" is conventional. If recall remains low, fix candidate retrieval before buying a larger re-ranker.
+
 ### S7. Scores and "no good answer"
 Re-ranker scores are usually more meaningful than raw vector similarity, so you can act on them:
 - If even the best chunk scores low, say "I couldn't find that" instead of letting the LLM guess.
@@ -56,12 +72,26 @@ Re-ranker scores are usually more meaningful than raw vector similarity, so you 
 
 Tune the cutoff on your own question set, and re-tune it when you change re-ranker models. Scores shift between models.
 
+#### Deep dive: A relevance threshold needs no-answer examples
+Suppose an irrelevant passage receives a re-ranker score of 0.81. Calling that an 81% chance of a correct answer would be a mistake unless you calibrated that interpretation.
+
+Collect answerable and unanswerable questions. For each candidate cutoff, count supported answers you lose and unsupported answers you still allow. Choose a policy with the product's error costs in mind, then check it again when the model or corpus changes.
+
+An uncertain match can lead to a clarification or a useful refusal. A permission failure must lead to denial. They are different reasons for not answering and should have different diagnostics.
+
 ### S8. Diversity: avoid five copies
 If the top 5 are near-duplicates, such as the same policy copied into five wikis, the LLM gets one fact five times and misses the rest.
 - **MMR (Maximal Marginal Relevance):** pick each next result by its relevance minus its similarity to the results already picked.
 - **Cap per document:** keep at most 1 or 2 chunks from each source document.
 - **Dedupe at ingestion** first (Topic 1), so fewer copies reach search at all.
 Diagram: two columns of 5 stacked boxes. Left, "Without MMR": five boxes all labeled "Refund policy (copy)". Right, "With MMR", in gold: "Refund policy", "Refund FAQ", "Billing ticket", "Exceptions page", "Contractor policy".
+
+#### Deep dive: Diversity must preserve the evidence needed to answer
+The top five chunks all repeat the employee allowance. A contractor exception is sixth. Removing duplicates can make room for that exception and produce a better answer.
+
+But a rigid one-chunk-per-document cap can also remove evidence. One policy may need its eligibility paragraph and its exceptions paragraph together. Deduplicate copies, then preserve distinct supporting facts or expand a matching parent section.
+
+Measure whether the final context contains all required evidence for multi-part questions. A varied list of sources is not useful if it drops the one condition that changes the answer.
 
 ### S9. Business rules on top
 Relevance isn't the only signal. The final order often mixes in:

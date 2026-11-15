@@ -19,6 +19,23 @@ export const courseSlideSchema = z.object({
   title: z.string().min(1),
   body: z.array(slideBodyBlockSchema).min(1),
   diagram: z.enum(COURSE_DIAGRAMS).optional(),
+  deepDive: z
+    .object({
+      title: z.string().min(1),
+      body: z.array(slideBodyBlockSchema).min(1),
+      diagram: z.enum(COURSE_DIAGRAMS).optional(),
+      references: z
+        .array(
+          z.object({
+            title: z.string().min(1),
+            url: z.url().refine((url) => url.startsWith("https://")),
+          }),
+        )
+        .min(1)
+        .max(3)
+        .optional(),
+    })
+    .optional(),
 });
 export type CourseSlide = z.infer<typeof courseSlideSchema>;
 export const courseLessonSchema = z.object({

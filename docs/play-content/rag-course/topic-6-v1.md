@@ -49,6 +49,13 @@ Defenses: strict grounding rules, an "I don't know" path, citations, and a faith
 A citation that points to the wrong document is worse than none. It creates false trust.
 Diagram: an answer box with two sentences, each ending in a citation marker, [1] and [2]. Arrows lead to two source cards. Card 1 has a green check and the label "Supports the claim". Card 2 has a red X and the label "Says something else".
 
+#### Deep dive: Check the claim, not just the existence of a link
+The answer says, "Contractors can expense a chair up to 300 units [S2]." Source S2 is real, but only covers employees. The citation resolves correctly and still does not support the answer.
+
+Split the answer into claims and inspect the cited evidence for each one. Check worker type, dates, amounts and exclusions. If support is missing, remove or revise the claim, retrieve missing evidence, or state the limit of the answer.
+
+Track source-ID validity separately from claim support. A perfect link-validity score can coexist with misleading answers. Use high-risk cases to decide whether an automated check needs human review.
+
 ### S6. Checking faithfulness
 From cheap to costly:
 - **Rules:** every sentence needs a citation, and every number in the answer must appear in the context.
@@ -76,22 +83,43 @@ Then tokens stream, for example at 50 per second, so a 300-token answer takes 6 
 Stream tokens to the UI, show sources early, and keep prompts short. Long prompts slow the first token.
 Diagram: a horizontal timeline. Segments: "Rewrite 300 ms", "Retrieve 50", "Re-rank 80", "LLM first token 400". A gold marker at the end of these reads "First word at 830 ms". After it, a long striped segment labeled "Streaming, 6 s".
 
+#### Deep dive: Decide what is safe to stream before validation
+Streaming makes the response feel faster, but text is visible as soon as you send it. A final check cannot take back a secret that already appeared on screen.
+
+Enforce permissions before the model sees evidence. For sensitive outputs, buffer an answer or a meaningful segment until the required checks pass. For lower-risk content, incremental checks may fit the product, but the risk must be explicit.
+
+Also plan for a disconnect: keep a stable request ID, mark the partial answer as incomplete and let the client recover the saved result when available. Blindly retrying generation can create two different answers and a second charge.
+
 ### S9. Saying "I don't know" well
 A good refusal is a feature:
 - Say what's missing: "The policy doesn't cover contractors."
 - Point to the closest sources or the right team.
 - Offer a next step: rephrase, or ask a person.
 
-Track the refusal rate. If it rises, retrieval is probably missing documents. If it's near zero, the model may be guessing.
+Track the refusal rate. A rise can come from retrieval misses, outages or stricter policy. A near-zero rate can hide guessing. Diagnose the reason and check both unnecessary refusals and unsupported answers.
+
+#### Deep dive: Separate missing evidence from a system outage
+"I couldn't find a current contractor policy" is a retrieval outcome. "Search is temporarily unavailable" is an operational failure. "You don't have access" is an authorization outcome.
+
+Use different internal reason codes so the team fixes the right cause. Give the user a safe, useful next step without exposing the existence of restricted documents. Never turn a search outage into a confident answer from model memory.
+
+Evaluate refusals on both answerable and unanswerable questions. A system that refuses every difficult question may appear safe while being unusable. Measure unsupported-answer errors and unnecessary refusals together.
 
 ### S10. Cost control
-Output tokens cost more each than input tokens, but RAG prompts are long, so input usually dominates the bill.
+Cost depends on token counts, model prices and extra calls. Long RAG prompts can make input expensive; long answers or high output prices can make output dominate instead.
 - Trim the context (Topic 5) and cap max output tokens.
 - Cache answers to repeated questions, by exact match or by semantic match with a strict threshold and a short expiry.
 - Route simple questions to a small model.
 - Use cheaper batch pricing for offline jobs when the provider offers it.
 
 Semantic caching risk: similar questions from different users may need different answers. Put the user's role and permissions in the cache key.
+
+#### Deep dive: Estimate cost using the work a request actually triggers
+For a worked example, suppose the answer call uses 6,000 input tokens and 400 output tokens. At hypothetical prices of 1 unit per million input tokens and 5 units per million output tokens, that call costs 0.006 + 0.002 = 0.008 units.
+
+Then add query rewriting, re-ranking, retries and any claim-checking calls. Record usage from failed calls when the provider supplies it; missing usage is unknown, not free.
+
+Use the actual configured model's prices when planning a product. Compare cost per successfully supported answer, not only cost per attempted request. Cheap answers that are wrong or repeatedly retried can cost more overall.
 
 ### S11. Guardrails on the output
 Before showing an answer, check:
