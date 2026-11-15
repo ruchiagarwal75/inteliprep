@@ -12,19 +12,34 @@ A re-ranker reads the query and each candidate together, then scores how well th
 
 The result: the right chunk moves from 37th into the top 5, and the LLM gets less noise.
 
+#### Deep dive: Use the shortlist to distinguish related text from supporting evidence
+Retrieval finds plausible candidates quickly. Re-ranking compares those candidates more carefully with the question. It is useful when several passages share the topic but only one contains the needed rule.
+
+For "Can a contractor claim a chair?", candidates might include employee equipment allowances, office furniture ordering and the contractor furniture exclusion. All are related. The exclusion is the passage that directly supports the answer.
+
+The reranker scores query-passage pairs and reorders a bounded shortlist. It cannot find evidence that first-stage retrieval omitted. Keep retrieval recall and reranker ranking quality as separate measurements.
+
+Compare the top results before and after reranking on labeled queries. Include exact identifiers, negation and exceptions, not just easy paraphrases. Then test whether the final answers actually improve when the new order reaches the context builder.
+
+Reranking adds compute and delay. A simple system may not need a learned reranker if lexical or hybrid search already places the right passages reliably. Add it to solve a measured ranking problem, with a budget and a fallback if the dependency becomes slow.
+
 ### S2. Bi-encoder vs cross-encoder
 - **Bi-encoder:** the query and the chunk are embedded separately, then the vectors are compared. Fast, precomputed and able to search millions.
-- **Cross-encoder:** the query and the chunk go into the model together, and it outputs one relevance score. It sees word-level details like "not covered" or "before 2024", so it's much more accurate.
+- **Cross-encoder:** the query and the chunk go into the model together, and it outputs one relevance score. It sees word-level details like "not covered" or "before 2024", which can improve ranking; verify the gain on your queries.
 
 The query and chunk must be processed together, so each pair needs inference. Batch the pairs to reduce overhead. That is why cross-encoders re-rank a shortlist instead of the full corpus.
 Diagram: two panels. Left, "Bi-encoder": Query into Encoder, giving a vector; Chunk into Encoder, giving a vector; both vectors into "Cosine". Right, "Cross-encoder": one box "Query + Chunk" into a single gold "Encoder", then "Score 0.91".
 
-#### Deep dive: Count pair computations, not network calls
-A cross-encoder must jointly process each query-and-chunk pair. For 80 candidates, that is 80 pair scores. It does not have to mean 80 separate HTTP requests: a service can accept the pairs in one request and run them in batches.
+#### Deep dive: Independent representations versus joint attention
+A bi-encoder embeds the query and passage independently. Search compares the vectors. That allows document embeddings to be prepared once, but the passage representation cannot adapt to a particular question.
 
-Longer chunks increase the work, and the batch may need splitting to fit memory. Compare end-to-end re-ranking time, including queueing, tokenization and network overhead.
+A **cross-encoder** processes the query and passage together. Token interactions can help distinguish "contractors may claim equipment" from "contractors may not claim furniture" when the question is specifically about a chair.
 
-The first-stage retriever still matters. A perfectly ordered shortlist cannot recover a passage that never entered it. This is why capacity and retrieval recall belong in the explanation before selecting a re-ranker.
+For 50 retrieved passages, the cross-encoder evaluates 50 query-passage pairs, often in batches. The cost depends on input lengths, model size, hardware and concurrency. "One batch" does not mean zero cost or identical latency for every load.
+
+Joint scoring can improve ranking, but the benefit is empirical. Test it against the bi-encoder ordering on your actual queries and language slices. Long passages may be truncated, and a scorer can still favor superficial wording.
+
+Keep access checks ahead of any external scorer. Sending forbidden candidate passages to a reranking service is already a disclosure even if they never enter the final prompt. Reranking is part of the data-processing boundary, not merely a harmless sorting step.
 
 Read more: [Cross-encoder pair scoring and batching](https://www.sbert.net/examples/cross_encoder/applications/README.html)
 
@@ -36,34 +51,71 @@ Read more: [Cross-encoder pair scoring and batching](https://www.sbert.net/examp
 Retrieval is tuned for recall: is the right chunk somewhere in the top 100? Re-ranking is tuned for precision at the top: is it in the top 5?
 Diagram: an illustrative timing example, not a benchmark, in a left-to-right row: "1M chunks", then "Retrieve" (label "about 30 ms"), then "100 candidates", then a gold "Re-rank" (label "about 80 ms"), then "Top 5", then "LLM".
 
+#### Deep dive: Set a budget at each stage and preserve the decisive passage
+A two-stage pipeline first retrieves broadly and then ranks a smaller set carefully. Context assembly selects a final evidence set under a token budget. Each stage can lose useful evidence.
+
+An illustrative pipeline might retrieve 60 unique candidates, rerank them and keep enough passages to fit 4,000 evidence tokens. These numbers are choices to test, not universal defaults.
+
+Trace a supporting passage through the funnel. If it ranks 80th in first-stage search, a 60-candidate reranker never sees it. If it ranks first after reranking but is too long, a naive token cutoff may still drop the sentence that matters.
+
+Track evidence recall before and after each cut. Also track duplicate passages, source coverage and the amount of selected text. A multi-part question may need two complementary sources rather than the top three passages from one document.
+
+Bound work per request and preserve a safe fallback. If reranking times out, using the original permitted ranking may be acceptable when tested. It is not acceptable to remove permission filters to meet a latency target.
+
 ### S4. Kinds of re-rankers
 - **Cross-encoder models:** small open models trained for relevance, such as the BGE or MS MARCO re-rankers. You host them.
 - **Hosted re-rank APIs:** send the query and candidates, get scores back (Cohere and Voyage offer these). Easy, but adds a network hop and a price per call.
 - **LLM as re-ranker:** ask an LLM to sort the candidates. Flexible, but the slowest and most expensive.
 - **Late interaction (ColBERT):** one vector per token, matched token by token. It trades a larger per-token index for richer matching. Measure its quality, latency and storage on your workload.
 
+#### Deep dive: Compare scoring mechanisms rather than model names
+A lexical reranker can emphasize exact terms or approved metadata. A cross-encoder scores joint query-passage inputs. A generative model can judge relevance with instructions, but usually has a different latency and output-validation burden.
+
+Some systems use **late interaction**: documents retain several token-level vectors, and query tokens match against them at search time. This preserves finer interactions than one vector per passage while increasing storage and search work.
+
+Choose based on the error you need to fix. Exact policy codes may benefit from lexical signals. Fine distinctions about who qualifies may benefit from joint semantic scoring. Neither approach automatically understands source authority or access rights.
+
+Build a small comparison using the same candidate lists and evidence labels. Measure ranking quality, latency under concurrency and total serving cost. Keep inputs and model versions fixed so the result is reproducible.
+
+If a model emits relevance explanations or structured scores, validate the output. Those explanations are diagnostic text, not evidence that its judgment is correct. Inspect hard negatives where the passage looks related but answers a different question.
+
 ### S5. Latency and cost
 Re-ranking cost grows with the number of candidates times the tokens in each pair.
 - 100 candidates of about 300 tokens each is about 30,000 tokens to score per question.
-- On a GPU, a small re-ranker scores 100 pairs in one batch in tens of milliseconds. A large model, or a CPU, can take hundreds.
+- Measure actual batch latency on your hardware under concurrency. Model size, passage length and queueing affect the result.
 
 Knobs: fewer candidates, shorter chunks, a smaller model, batching all pairs in one call, and caching repeated queries.
 
 Set the budget first, for example "re-ranking must finish in 100 ms at p95", then tune to fit it.
 
+#### Deep dive: Budget input lengths, queueing and inference together
+Reranking latency includes waiting in a queue, preparing query-passage pairs, running the scorer and returning results. Measuring only one isolated model call can miss the tail delays users experience at peak load.
+
+Suppose your illustrative full-answer budget is two seconds and you reserve 150 milliseconds for reranking. That reservation must include queueing and network time. A scorer taking 100 milliseconds alone may exceed it under concurrency.
+
+Long passages increase the work and may exceed the model's input limit. Truncation can remove exceptions. Batching improves throughput in many implementations, but waiting to fill a batch can add delay for individual requests.
+
+Measure p50 and p95 latency with realistic candidate counts, lengths and arrival rates. Compare a smaller shortlist, shorter well-formed chunks or a lighter scorer. Hardware choice should follow the measured workload, not a blanket rule that every reranker needs a GPU.
+
+Set a deadline and define what happens when it is missed. Return a tested lower-cost ranking or a clear temporary failure. Avoid unbounded retries that consume the entire request budget.
+
 ### S6. How many candidates?
 - **Too few (top 10):** the right chunk at 37th never gets a chance.
 - **Too many (top 1,000):** latency and cost explode for a tiny gain.
 
-Pick N with data. First-stage recall@N is the ceiling for the re-ranker. If recall@50 is 95% and recall@100 is 96%, re-rank 50.
+Pick N with data. First-stage recall@N is the ceiling for the re-ranker. If recall@50 is 95% and recall@100 is 96%, compare the extra recall with latency, cost and critical query slices.
 Diagram: a line chart. X axis "Candidates re-ranked (N)" with ticks 10, 50, 100, 200. Y axis "Recall@N". The line rises steeply, then flattens. The bend at N = 50 is marked with a gold dot labeled "Good N".
 
-#### Deep dive: Read the quality curve with the latency budget
-In an illustrative test, retrieving 40 candidates finds evidence for 180 of 200 answerable questions. Retrieving 80 finds evidence for 188. The extra candidates recover eight questions, but double the number of pairs sent to re-ranking.
+#### Deep dive: Find the useful part of the recall curve
+Increasing the candidate count gives a reranker more chances to see the right evidence. It also increases compute. The useful choice depends on where additional candidates stop improving the cases you care about.
 
-Check whether those recovered cases matter, whether the right passage survives into the final context, and whether p95 still meets the budget. An overall gain can hide a regression for a region or document format.
+Plot first-stage evidence recall and final answer quality for several shortlist sizes using the same questions. Add latency and cost to the comparison. A gain from 20 to 50 candidates may be valuable; a tiny average gain from 50 to 200 may hide expensive tail latency.
 
-Choose a candidate count from that trade-off, not because "top 100" is conventional. If recall remains low, fix candidate retrieval before buying a larger re-ranker.
+Inspect slices rather than choosing from one aggregate number. A small overall gain can matter if it recovers critical permission or policy exceptions. Conversely, extra candidates may add mostly duplicate passages from the same document.
+
+The final prompt budget is a separate decision. Reranking 100 candidates does not require sending all 100 to generation. Select supporting, complementary passages and preserve needed context around them.
+
+Choose a configuration that meets the task's quality and service goals. There is no universal candidate count or automatic rule that a one-point recall improvement is too small to matter.
 
 ### S7. Scores and "no good answer"
 Re-ranker scores are usually more meaningful than raw vector similarity, so you can act on them:
@@ -72,12 +124,16 @@ Re-ranker scores are usually more meaningful than raw vector similarity, so you 
 
 Tune the cutoff on your own question set, and re-tune it when you change re-ranker models. Scores shift between models.
 
-#### Deep dive: A relevance threshold needs no-answer examples
-Suppose an irrelevant passage receives a re-ranker score of 0.81. Calling that an 81% chance of a correct answer would be a mistake unless you calibrated that interpretation.
+#### Deep dive: A ranking score is not a reliable yes-or-no answer threshold
+A reranker usually learns to order candidates. Its raw score may not be calibrated as the probability that a passage supports an answer. A highest score exists even when every candidate is irrelevant.
 
-Collect answerable and unanswerable questions. For each candidate cutoff, count supported answers you lose and unsupported answers you still allow. Choose a policy with the product's error costs in mind, then check it again when the model or corpus changes.
+Build examples with no answer in the corpus, as well as partially answerable and fully answerable questions. Label whether the selected passages contain enough evidence. Then evaluate any threshold on those labels.
 
-An uncertain match can lead to a clarification or a useful refusal. A permission failure must lead to denial. They are different reasons for not answering and should have different diagnostics.
+For instance, "Who approved the unreleased policy?" may retrieve related policy drafts without an approval record. A plausible top passage is not permission to invent an approver. The response can say it could not find enough supporting information.
+
+Thresholds depend on the model, corpus and candidate distribution. Recheck them after an embedding or reranker change. If you combine scores from several sources, do not assume the old numeric cutoff retains its meaning.
+
+Consider a second support check after context assembly, because a good candidate may lose decisive text during truncation. A safe no-answer behavior should be based on available evidence and access rules, not only on whether one ranking score exceeds a constant.
 
 ### S8. Diversity: avoid five copies
 If the top 5 are near-duplicates, such as the same policy copied into five wikis, the LLM gets one fact five times and misses the rest.
@@ -86,21 +142,36 @@ If the top 5 are near-duplicates, such as the same policy copied into five wikis
 - **Dedupe at ingestion** first (Topic 1), so fewer copies reach search at all.
 Diagram: two columns of 5 stacked boxes. Left, "Without MMR": five boxes all labeled "Refund policy (copy)". Right, "With MMR", in gold: "Refund policy", "Refund FAQ", "Billing ticket", "Exceptions page", "Contractor policy".
 
-#### Deep dive: Diversity must preserve the evidence needed to answer
-The top five chunks all repeat the employee allowance. A contractor exception is sixth. Removing duplicates can make room for that exception and produce a better answer.
+#### Deep dive: Select complementary evidence without rewarding irrelevance
+Five near-identical chunks can fill the prompt while adding almost no coverage. Diversity selection tries to keep relevant passages that contribute different useful information.
 
-But a rigid one-chunk-per-document cap can also remove evidence. One policy may need its eligibility paragraph and its exceptions paragraph together. Deduplicate copies, then preserve distinct supporting facts or expand a matching parent section.
+**Maximal marginal relevance**, or MMR, balances relevance to the question with redundancy against already selected passages. After choosing the contractor allowance, it may prefer a relevant exclusion over another copy of the allowance.
 
-Measure whether the final context contains all required evidence for multi-part questions. A varied list of sources is not useful if it drops the one condition that changes the answer.
+Novelty alone is not useful. An unrelated calendar page is very different from the allowance but contributes no evidence. Tune relevance and redundancy together, and check answer coverage on multi-part questions.
+
+Deduplicate exact or near-identical chunks by source, version and content. Keep distinctions that matter: two similar paragraphs may apply to different regions or user groups. Aggressive deduplication can erase those exceptions.
+
+Evaluate the selected set rather than only each passage in isolation. Ask whether it covers the claims needed for the answer, preserves authoritative versions and fits the token budget. Diversity is a tool for evidence coverage, not a requirement to mention every source type.
 
 ### S9. Business rules on top
 Relevance isn't the only signal. The final order often mixes in:
-- **Freshness:** newer versions rank higher.
+- **Freshness:** prefer the applicable effective version.
 - **Authority:** the official handbook beats a chat thread.
 - **Personalization:** the user's team, region or product.
 - **Hard rules:** never show drafts; always include the security policy for security questions.
 
-Apply these as a small, explainable layer after the re-ranker, for example: final score = re-rank score + 0.1 x freshness. Keep it simple enough to debug.
+Enforce access and eligibility before context reaches the model. Apply tested preferences among allowed sources, with explicit authority and version rules.
+
+#### Deep dive: Resolve authority and eligibility before adding business preferences
+Business rules can change which sources appear first. Some rules are hard eligibility constraints; others are soft preferences. Mixing them into one arbitrary score makes failures difficult to explain.
+
+Access control is hard: forbidden text is excluded. Source authority may also be a hard rule for a task, such as answering policy questions only from approved policies. Freshness often requires checking effective versions rather than simply favoring the newest timestamp.
+
+A recent employee discussion is not automatically more authoritative than an older policy still in force. If two approved sources conflict, show or resolve the conflict using explicit precedence rules. Do not average their wording into a third policy.
+
+Within eligible evidence, a tested boost may prefer current official material. Tune its effect on relevance using examples where the preferred source is weak or incomplete.
+
+Keep the reason for a promotion visible in safe trace metadata. A reviewer should be able to distinguish semantic relevance, policy authority and freshness. A single unexplained blended score hides which rule selected a wrong passage.
 
 ### S10. Fine-tuning a re-ranker
 Off-the-shelf re-rankers learned from web search data. Your domain (legal clauses, internal jargon, code) may look very different.
@@ -111,6 +182,17 @@ Off-the-shelf re-rankers learned from web search data. Your domain (legal clause
 
 Hard negatives matter most. They teach the fine distinctions that first-stage search can't see.
 
+#### Deep dive: Train on meaningful positives and difficult negatives
+Reranker training uses queries paired with relevant and irrelevant passages. A positive should contain supporting evidence, not merely share the topic. A useful negative looks plausible but fails a specific requirement.
+
+For a contractor chair question, an employee furniture allowance is a hard negative. It shares vocabulary but applies to the wrong audience. An unrelated weather page is an easy negative that teaches little about the real error.
+
+Collect judgments from reviewed retrieval failures and representative queries. Include no-answer cases, languages and source types. If click data supplies labels, account for position bias: users see and click higher-ranked results more often regardless of true relevance.
+
+Split evaluation by document families or time where appropriate. Near-duplicate chunks from the same policy in training and test can exaggerate improvement. Keep a held-out set untouched while selecting the model.
+
+After training, measure ranking quality, downstream answers and serving cost. Improving pairwise classification alone does not prove the final prompt contains complete, current, permitted evidence.
+
 ### S11. Measuring re-ranking
 Compare the top of the list before and after re-ranking, on the same questions:
 - **Hit rate@5:** how often a right chunk is in the top 5.
@@ -118,7 +200,18 @@ Compare the top of the list before and after re-ranking, on the same questions:
 - **nDCG@10:** rewards putting the most relevant chunks first when some are more relevant than others.
 - **Latency p95 and cost** per question.
 
-A re-ranker that adds 150 ms but moves hit rate@5 from 82% to 83% usually isn't worth it.
+Judge added latency against the measured quality gain and the task's impact. Inspect critical slices before choosing.
+
+#### Deep dive: Measure the reranker on fixed candidates, then test the whole answer
+To isolate reranking, compare methods using the same query and candidate lists. Otherwise a retrieval change may receive credit for a ranking improvement it did not cause.
+
+Ranking metrics reward useful passages appearing early. MRR focuses on the first relevant result. NDCG can use graded relevance and discounts lower positions. State the labels and cutoff rather than presenting a metric name without a definition.
+
+Next, run context assembly and generation on the selected passages. A ranking gain may not improve answers if the context builder truncates the key sentence or the generator ignores it. Measure correctness, evidence support and coverage separately.
+
+Report latency and cost under realistic load alongside quality. A slower reranker may be justified for high-impact answers, but it must fit the service budget or use explicit routing.
+
+Inspect regressions by query slice, especially no-answer questions, exact identifiers and sensitive policies. The best average score can still conceal a failure that matters more than the gain. Keep those cases as regression tests for later changes.
 
 ### S12. Interview checklist
 When asked "How would you improve answer quality without changing the LLM?", cover:

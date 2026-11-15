@@ -46,5 +46,9 @@ export const COURSE_DIAGRAMS = [
   "retrieval-debug-case",
   "context-budget-case",
   "eval-case",
+  "embedding-dimensions",
+  "vector-metric-example",
+  "pdf-text-or-ocr",
+  "chunk-strategy-options",
 ] as const;
 export type CourseDiagramKind = (typeof COURSE_DIAGRAMS)[number];

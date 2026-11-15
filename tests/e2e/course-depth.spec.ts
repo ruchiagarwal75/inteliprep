@@ -26,7 +26,7 @@ test("optional depth works with the keyboard and does not change the slide or st
   await expect(note).not.toHaveAttribute("open");
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByLabel("Slide counter")).toHaveText("3 / 10");
-  await expect(page.locator("[data-course-depth]")).toHaveCount(0);
+  await expect(page.locator("[data-course-depth]")).not.toHaveAttribute("open");
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(page.locator("[data-course-depth]")).not.toHaveAttribute("open");
   expect(await modelCalls(page)).toBe(calls);
@@ -43,6 +43,10 @@ test("worked examples and vector diagrams are readable in both themes at desktop
   page.on("pageerror", (error) => errors.push(error.message));
   mkdirSync("artifacts/rag-depth", { recursive: true });
   const cases = [
+    { topic: 2, kind: "embedding-dimensions" },
+    { topic: 2, kind: "vector-metric-example" },
+    { topic: 1, kind: "pdf-text-or-ocr" },
+    { topic: 1, kind: "chunk-strategy-options" },
     { topic: 1, kind: "chunk-boundary-case" },
     { topic: 2, kind: "vector-memory-budget" },
     { topic: 1, kind: "permission-revoke-race" },

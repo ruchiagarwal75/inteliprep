@@ -6,114 +6,239 @@ Diagrams: clean vector SVG, Inter, theme colors, square boxes, clear arrows. Lan
 ## Slides
 
 ### S1. What an embedding really is
-An embedding model turns text into a fixed-length list of numbers, for example 768 or 1,536 of them. Texts with similar meaning land close together.
-- The length is set by the model, whether the input is 5 words or 500.
-- Every model has its own space. A vector from model A can't be compared with one from model B.
-- Retrieval can never be better than the embedding model. If it can't tell two meanings apart, no index can.
+An embedding is a point in a learned vector space. Each number is one **dimension**, or coordinate. 768 dimensions means 768 coordinates; 1,536 means 1,536. Neither number counts words, documents or named concepts.
+
+- **Meaning is distributed:** many coordinates work together to represent learned relationships in text.
+- **Related text can be close:** "claim a chair" may sit near "furniture reimbursement" despite different words.
+- **Dimensions have a cost:** more coordinates need more storage, but do not guarantee better retrieval.
+- **Use compatible encoders:** different models' spaces cannot be mixed, even if their vectors have the same length.
+
+#### Deep dive: Dimensions are coordinates; meaning comes from the whole vector
+A **vector** is an ordered list of numbers. Each position is a **dimension**, like each coordinate in a point on a map. A 2D point has two coordinates, such as [0.2, 0.8]. A 768-dimensional embedding has 768 coordinates. The number 768 is not a token count, document count or number of named topics.
+
+An embedding encoder learns a representation from training examples. Its training objective encourages useful relationships, such as questions being close to passages that answer them. The resulting coordinates represent learned patterns jointly. One coordinate is not simply "finance" and another "employees"; meaning is distributed across many numbers and their relationships.
+
+Use a deliberately tiny illustration. Put "claim a chair" at [0.20, 0.80] and "furniture reimbursement" at [0.25, 0.75]. Put "reset my password" much farther away at [0.85, 0.10]. Nearby points illustrate how different words can express related meaning. These invented coordinates are a teaching example, not outputs from a real model or human-named meaning axes.
+
+Real embeddings need more coordinates to represent many interacting patterns. A model producing 1,536 dimensions uses twice as many coordinates as one producing 768, with corresponding raw-storage cost at the same numeric precision. More dimensions do not automatically mean better retrieval. Training, task fit and the data matter.
+
+A fixed-length output also does not mean unlimited input. The encoder has its own token limit. A short question and a long passage can both produce 768 numbers while preserving different amounts of useful information.
+
+Similarity remains fallible. "Contractors qualify" and "contractors do not qualify" discuss similar ideas but give opposite answers. Measure whether nearest passages support the actual question. Never interpret distance as truth, permission or a probability of correctness.
+
+Diagram: embedding-dimensions
 
 ### S2. Measuring "close"
-- **Cosine similarity:** the angle between two vectors, from -1 to 1. Length doesn't matter.
-- **Dot product:** angle times length. Ranks the same as cosine when vectors are normalized to length 1.
-- **Euclidean (L2) distance:** straight-line distance. For normalized vectors, it also ranks the same as cosine.
+A metric defines how two vectors are "close". Direction means where they point; length means how far they reach.
 
-Use the metric the model was trained for. Most text models are used with normalized vectors and cosine or dot product.
-Diagram: a 2D plot with three arrows from the origin. "Refund policy" and "Get my money back" point in almost the same direction, with a small angle between them marked in gold. "Office chair" points far away.
+- **Cosine similarity:** compares direction while ignoring length. It ranges from -1 to 1; higher means more aligned.
+- **Dot product:** multiplies matching coordinates and adds them. Both direction and length affect it.
+- **Euclidean distance:** straight-line distance between the points. Lower means closer.
 
-#### Deep dive: Find a relevant passage, then test what it actually says
-A question asks about equipment for contractors. Two results score 0.88 and 0.85. The higher score belongs to an employee-only policy; the lower score belongs to the contractor policy.
+**Normalization** rescales vectors to length 1. Then cosine and dot product rank identically; Euclidean distance gives the equivalent reverse distance order.
 
-Neither score tells you whether an expense is allowed. They describe the retriever's notion of similarity, and their scale depends on the model and scoring method. Preserve the text and its metadata so later stages can make the distinction.
+Use the encoder's intended metric. A high score is not proof that a passage supports an answer.
 
-When comparing embedding models, use the same questions and relevance labels. Inspect misses involving exact identifiers, exclusions and domain terms. A larger vector is an expense to justify with measured improvement, not a quality guarantee.
+#### Deep dive: Choose a similarity measure that matches the encoder
+A similarity metric compares two vectors. **Direction** is where a vector points; **length**, also called magnitude, is how far it reaches from zero. Different metrics use these properties differently, so "close" must have a defined meaning.
+
+Use a toy query q = [1, 0] and two passages A = [1, 0] and B = [2, 1]. These invented coordinates show the math, not actual text embeddings.
+
+**Cosine similarity** compares direction and ignores length. It is the dot product divided by the product of the lengths. A points in exactly the query's direction, so its cosine is 1. B points partly sideways, so its cosine is 2 / sqrt(5), about 0.89. Cosine ranks A first. The possible range is -1 to 1, not a probability scale.
+
+**Dot product** multiplies corresponding coordinates and adds them. The query's dot product with A is 1; with B it is 2. It ranks B first because B's greater length outweighs its less-aligned direction. Raw dot product and cosine can therefore disagree.
+
+**Euclidean distance** is straight-line distance between the points. Here A is distance 0 from the query and B is sqrt(2), about 1.41. Smaller distance is better; larger similarity is better.
+
+**Normalization** divides a vector by its length so its new length is 1. For unit-length vectors, dot product equals cosine, and squared Euclidean distance equals 2 minus twice the cosine. They then give equivalent neighbor orderings, with distance reversed.
+
+Use the encoder's intended metric and preprocessing. A high similarity only identifies a promising candidate. It does not show that a passage is current, authorized or supports the answer. Choose any no-answer threshold using labeled questions, not the appearance of a score like 0.89.
+
+Diagram: vector-metric-example
+
+Read more: [Vector metrics and normalization](https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances)
 
 Read more: [BEIR retrieval evaluation benchmark](https://arxiv.org/abs/2104.08663)
 
 ### S3. Bi-encoders: why search is fast
-The query and each document are encoded separately. Document vectors are computed once, at indexing time, and stored.
+A **bi-encoder** has two independent text-to-vector paths: one for the question, one for a passage. They may share a model; "bi" does not require two different models.
 
-At question time you only:
-1. Embed the query (one fast model call).
-2. Compare it with the stored vectors.
+1. During ingestion, encode passages once and store their vectors.
+2. For each question, encode it once and compare with stored vectors.
 
-The catch: the model never reads the query and the document together, so it misses fine details. Topic 4 (re-ranking) fixes that for the top results.
+This is fast because documents need not be encoded again for every search. The output is a matching score, not a written answer. The generative LLM later reads selected passages and writes text.
+
+Independent encodings can miss fine query-passage details. Re-ranking can inspect shortlisted pairs together.
 Diagram: two lanes. Top lane, labeled "Offline": Document, Encoder, Vector index (gold). Bottom lane, labeled "Each question": Query, Encoder, Query vector. Both lanes point into a "Similarity" box, then "Top k".
+
+#### Deep dive: Precompute documents, compare at query time
+A **bi-encoder** is a retrieval architecture with two independent encoding paths: one for the question and one for a document passage. Each path turns text into a vector before the vectors are compared. The two paths may share model weights or use a jointly trained query/document pair. "Bi" does not require two different model products.
+
+The document path runs during ingestion. For a million passages, compute a million vectors and store them in a search index. At question time, encode the new question once and search those stored vectors. You avoid reading and encoding every document again for every question.
+
+That is its job in RAG: represent text for matching. The **generative language model** later reads selected passages and writes the answer token by token. Both can be neural text models and an embedding encoder can use a language-model backbone. The important distinction is the task and output: a searchable vector versus a generated answer.
+
+For "Can contractors claim a chair?", the query encoder produces a vector. Search might return the contractor allowance and furniture exclusion. The answer-writing model receives their actual text and explains the rule with a citation. The vector itself is not the answer or a readable summary.
+
+Independent encoding is efficient but loses some fine query-passage interactions. The document vector was made before anyone asked this particular question. It may blur "employees" versus "contractors" or miss a negation. A cross-encoder can inspect shortlisted query-passage pairs together to improve that ranking.
+
+Keep the intended encoders, versions and normalization paired. A new query model cannot safely search an old index just because both vectors have the same length.
+
+Read more: [Sentence-BERT: independent sentence encoders](https://arxiv.org/abs/1908.10084)
 
 ### S4. Choosing an embedding model
 Judge models on your own data, not only on a public leaderboard like MTEB:
-- **Quality:** recall@k on 100 to 200 real questions with known right chunks.
+- **Quality:** check whether the first k results include supporting passages for real questions.
 - **Domain and language:** legal, code, medical or multilingual text may need a specialized model.
 - **Max input length:** longer chunks get truncated or rejected.
 - **Dimensions:** more dimensions mean more memory and slower search.
 - **Cost and hosting:** an API priced per token, or self-hosted. Some data can't leave your network.
+
+#### Deep dive: Test the encoder on your own retrieval failures
+Start with questions and the passages that would support their answers. Include abbreviations, exact identifiers, long sections, multiple languages and questions with no answer. Keep some examples out of model selection so repeated tuning does not simply memorize the test set.
+
+Compare encoders on evidence retrieval at the shortlist sizes you can afford. Also measure query latency, ingestion throughput, storage size and supported input length. A strong short-passage model may silently truncate the exception at the end of a long chunk.
+
+Use a small failure table. For "Does policy P-204 cover contractors?", record whether the current contractor section appears, its rank and any misleading older version. Inspect misses rather than choosing by one averaged benchmark number.
+
+Version the encoder, tokenizer, normalization and chunking configuration together. Existing vectors remain in the old representation when you change the model. New query vectors cannot safely search them merely because both models output the same number of dimensions.
+
+Before a migration, build a separate index and compare retrieval on the held-out set. A model that improves overall recall but loses a sensitive permission or language slice should not automatically replace the current one.
 
 ### S5. Memory math
 Raw vector memory = number of vectors x dimensions x bytes per number.
 - float32 = 4 bytes, float16 = 2, int8 = 1, binary = 1/8.
 - Example: 10M chunks x 1,024 dimensions x 4 bytes = about 41 GB.
 
-The index adds more on top, for example the links in an HNSW graph.
+A **vector index** is the search structure over the stored vectors. Its links or lookup tables add overhead, along with IDs and metadata.
 
-Some models let you keep only the first part of each vector (Matryoshka embeddings), for example 256 of 1,024 dimensions, for a small recall cost.
+Some models let you keep only the first part of each vector (Matryoshka embeddings), for example 256 of 1,024 dimensions, with a recall cost you must measure.
 
-#### Deep dive: Turn raw vector size into a capacity question
-For this worked example, assume 2 million documents, 10 chunks per document, 768 dimensions and float32 storage.
+#### Deep dive: Count raw vectors, then account for everything around them
+Raw vector storage is **vector count × dimensions × bytes per value**. Keep the units visible so a dimension count does not accidentally become a byte count.
 
-20 million vectors x 768 x 4 bytes = 61.44 billion bytes, or 61.44 GB in decimal units. This is only the vector payload. It excludes the ANN graph, identifiers, text, metadata, replicas and growth headroom.
+For 20 million chunks with 768 float32 values each, each vector uses 768 × 4 = 3,072 bytes. The raw vectors use 61.44 billion bytes, about 61.44 GB in decimal units or 57.2 GiB in binary units. "About 61 GB" is a reasonable rounded estimate if you state the convention.
 
-With two full copies, vectors alone need 122.88 GB across the deployment. Do not invent a universal index-overhead multiplier. Measure the actual index and decide which parts must be in memory. State the precision assumption explicitly before doing the arithmetic.
+This is not the total index or machine memory requirement. IDs, graph links or cluster lists, ACL metadata, deleted entries, text storage and operational headroom add space. Different index implementations keep different portions in memory or on disk. Measure a representative index rather than applying one universal multiplier.
+
+Two full replicas double the storage for those copies. A blue-green embedding migration may temporarily need both old and new indexes as well. Copies are an explicit capacity decision, not free reliability.
+
+If you propose lower precision, name the representation and test retrieval quality. The number of dimensions alone does not tell you bytes per vector. Keep vector capacity, document text storage and model-serving memory as separate estimates.
 
 Diagram: vector-memory-budget
 
 ### S6. Quantization: smaller vectors
-- **float16:** half the memory, almost no recall loss.
-- **int8:** a quarter of the memory, a small recall loss.
-- **Product quantization (PQ):** splits each vector into pieces and stores a short code per piece. Often 30x smaller or more, with more recall loss.
-- **Binary:** 1 bit per dimension, 32x smaller. Use it only with re-scoring.
+**Quantization** represents vector values with fewer bits. It saves space by keeping less numerical detail, not by deleting dimensions.
 
-The common pattern: search the small vectors for the top 100 candidates, then re-score those with full-precision vectors. You keep most of the recall for a fraction of the memory.
+A 768-dimensional float32 vector uses 3,072 bytes. At int8, its 768 values use 768 bytes before scales and metadata. Approximation can change similarity scores and neighbor order.
+
+- **Scalar quantization:** encode each coordinate with fewer bits.
+- **Product quantization:** split coordinates into groups and store a code for each group's closest learned representative.
+
+One option is compressed candidate search followed by higher-precision re-scoring. Include that extra copy in the memory budget. Test lost recall and latency on your data; there is no universal "small" quality loss.
+
+#### Deep dive: Compression trades numerical detail for a smaller index
+**Scalar quantization** stores each coordinate using a lower-bit encoding. A toy example maps 0.146 to a nearby representable value such as 0.15. The error is small for that value, but two very close neighbors can swap order after approximation.
+
+Rounding the printed number while still storing float32 does not save memory. The encoding must actually use fewer bits. For 768 coordinates, float32 takes 768 × 4 = 3,072 bytes; int8 takes 768 × 1 = 768 bytes before scales, identifiers and index overhead. The vector still represents 768 dimensions.
+
+**Product quantization**, or PQ, compresses groups of coordinates. Imagine a group of eight float32 values, which uses 32 bytes. Train a codebook of 256 representative eight-value patterns. For each group, store a one-byte code selecting its nearest representative. The codebook is shared and also uses space. The group is approximated, not preserved exactly.
+
+Search can estimate distances from those compact codes rather than reconstruct every full vector. Stronger compression can lose useful distinctions. The result depends on the corpus, codebook training and encoding settings, not just the compression ratio.
+
+One serving design retrieves candidates using compressed vectors, then re-scores a shortlist with higher-precision originals. This may recover some ordering accuracy, but cannot rescue evidence absent from the shortlist. Retaining originals also reduces the total memory saving.
+
+Compare against exact full-precision search and labeled answer evidence. Measure neighbor recall, evidence recall, latency and total storage, including codebooks and any original-vector copy. Do not delete arbitrary coordinates as a substitute: dimension reduction requires a method the encoder supports.
 
 ### S7. Exact vs approximate search
-Exact search compares the query with every vector. It's perfect, and fine for small collections, but too slow at 100M vectors.
+**ANN means approximate nearest-neighbor search.** It finds promising nearby vectors without comparing the query with every vector.
 
-Approximate nearest neighbor (ANN) indexes check only a small part of the data and still find most true neighbors.
-- **Recall@10 = 95%** means the index found, on average, 9.5 of the true top 10.
-- Every ANN index trades **recall, latency and memory**. You tune for two; you pay with the third.
+**Exact search** checks every eligible vector under the chosen metric. It finds exact neighbors, but that does not guarantee relevant evidence. Its work grows with the collection.
+
+**Approximate search** explores a smaller part of the index. It can be faster, but may miss some exact neighbors. Graphs and clusters are two ways to reduce the search work.
+
+If ANN finds 9 of the exact top 10 neighbors, neighbor recall@10 is 90%. Measure recall, latency and memory together. The next slides explain graph-based HNSW and cluster-based IVF.
+
+#### Deep dive: Approximate search needs a measurable reference
+**Exact nearest-neighbor search** compares a query with every eligible vector under a chosen metric. It returns the exact nearest vectors for that representation. It does not guarantee the passages are relevant or factually correct.
+
+**Approximate nearest-neighbor search**, often shortened to ANN, explores less of the collection to reduce work. It may miss some exact neighbors. The tradeoff is search speed and resource use versus retrieval accuracy.
+
+For one test query, suppose exact search returns five IDs: A, B, C, D and E. ANN returns A, B, C, F and G. Neighbor recall@5 against that reference is 3/5. This differs from evidence recall, which asks whether the passages support a human-labeled answer.
+
+Build an exact reference on a representative sample, then tune the ANN index against it. Measure latency under expected concurrency and with actual permission filters. Unfiltered single-query benchmarks can hide result starvation after access checks.
+
+Exact search can be perfectly sensible for a small filtered collection or an evaluation baseline. ANN becomes useful when the measured cost of scanning eligible vectors is too high. Choose from observed workload needs rather than assuming every vector collection requires a complex index.
 
 ### S8. HNSW: a graph you walk
-HNSW stacks layers of graphs: a few long links at the top, dense links at the bottom. A search starts at the top, walks toward the query, and drops down a layer at a time.
-- **M:** links per node. Higher means better recall and more memory.
-- **efSearch:** candidates explored per query. Higher means better recall and more latency.
-- **efConstruction:** build effort. Higher means a better graph and a slower build.
+**HNSW means hierarchical navigable small world.** It is a graph-based ANN algorithm, not an embedding model.
 
-Strengths: high recall at low latency, easy inserts. Weaknesses: the graph lives in memory, and deletes are usually only marked, then cleaned up later.
+Each node is a vector; links connect nearby vectors. Search follows promising links instead of checking every vector. Sparse upper layers move across the collection; denser lower layers refine nearby candidates.
+
+- **M:** links per node. More links cost storage and can improve connectivity.
+- **efSearch:** candidates explored per query. More exploration can improve recall at higher latency.
+- **efConstruction:** build effort. More effort can improve the graph but slows indexing.
+
+Graph storage, filters and deletions depend on the implementation. Test recall and latency with your workload.
 Diagram: three stacked layers of dots (3, then 6, then 12 dots) with thin links. A gold path zigzags from a top-layer dot down through each layer to the dot nearest a star labeled "Query".
 
-#### Deep dive: Tune recall and latency together
-HNSW search explores a graph instead of comparing the query with every vector. Searching a wider candidate set can find better neighbors, but consumes more work per request.
+#### Deep dive: Walk a graph from broad navigation to nearby candidates
+**Hierarchical navigable small world**, or HNSW, is a graph-based ANN method. Vectors are nodes with links to nearby nodes. Sparse upper layers help move across the collection; denser lower layers refine the search near promising candidates.
 
-For example, measure a search setting at two exploration budgets against exact nearest neighbors on a manageable sample. Suppose recall improves from 92% to 97%, while p95 search latency rises from 18 to 42 ms. The right choice depends on your quality floor and the retrieval latency budget.
+Imagine finding a building using a few major roads first, then local streets. The search keeps candidates that seem closer to the query and explores their neighbors. It avoids visiting every vector, but a limited exploration budget can miss a better route.
 
-Graph construction settings affect memory, build time and recall too. Keep construction and query-time knobs separate when explaining what you can change without rebuilding.
+Two settings matter conceptually. More links per node can improve connectivity while increasing storage and build cost. A larger search candidate budget explores more possibilities, often improving recall at the cost of latency. Names and exact behavior vary by implementation.
+
+Graph links add memory beyond the vectors themselves. Updates, deletions, filtering and persistence also depend on the store. Check how your implementation handles deleted nodes and rebuilds; do not promise that deleting a row instantly removes every trace from every copy.
+
+Tune on the queries and access filters you will serve. If strict filtering leaves few permitted neighbors, evaluate filtered recall and latency explicitly. A fast graph walk that returns no allowed evidence is not a successful retrieval.
 
 Read more: [HNSW algorithm paper](https://arxiv.org/abs/1603.09320)
 
 ### S9. IVF: search only nearby clusters
-IVF groups vectors into clusters with k-means, for example 4,096 clusters. Each vector goes into the list of its nearest cluster center.
+**IVF means inverted file index.** It groups vectors into clusters and searches selected groups instead of the whole collection.
 
-At question time, it finds the closest few centers and scans only their lists.
-- **nlist:** number of clusters. More clusters means shorter lists to scan.
-- **nprobe:** clusters scanned per query. Higher means better recall and more latency.
+A clustering method such as **k-means** repeatedly assigns vectors to nearby centers and updates those centers. Each resulting list stores one cluster's vectors.
 
-IVF uses less memory than HNSW and pairs well with PQ (IVF-PQ) for billion-scale sets. Its weakness: a true neighbor in a cluster you didn't scan is missed.
-Diagram: dots in 6 clusters, each with a center marker. A star labeled "Query". The 2 nearest clusters are outlined in gold with the label "nprobe = 2". One dot just across the border in an unscanned cluster is labeled "Missed".
+At query time, find nearby centers and scan their lists.
+- **nlist:** number of clusters. More clusters can shorten lists.
+- **nprobe:** lists searched. More probes can improve recall but add work.
+
+A relevant vector in an unsearched list can be missed. IVF can combine with product quantization to save space. Measure actual memory, filtered recall and latency rather than assuming one index always wins.
+Diagram: a plane of vector dots grouped into six shaded circles. A query star is near two clusters, which are outlined in gold. Other clusters are dimmed. A true neighbor in an unsearched cluster is marked.
+
+#### Deep dive: Search a few coarse clusters instead of the whole collection
+An **inverted file index**, or IVF, partitions vectors into coarse clusters, often learned with a clustering method such as k-means. Each cluster has a representative centroid and a list of assigned vectors.
+
+At query time, find nearby centroids and search their lists. If one million vectors are evenly split into 1,000 lists, probing 10 lists examines roughly 10,000 vectors before other optimizations. That is an illustrative average. Real lists can be uneven and filters can change the work.
+
+Probing more lists generally improves the chance of finding exact neighbors but costs more search time. Probing too few can miss a relevant vector near a cluster boundary. Quantization can further compress the vectors within each list, introducing another quality tradeoff.
+
+The coarse clusters must be trained on representative data. If new documents differ substantially from the training distribution, lists may become unbalanced or less useful. Monitor recall and list sizes as the corpus changes.
+
+Compare settings against an exact reference and downstream evidence labels. Choose a probe count that meets quality and latency targets under load. The cluster count and probe count are tuning choices, not facts you can infer from document count alone.
 
 ### S10. Picking a vector store
-- **A library (FAISS, hnswlib):** fastest, but you build storage, updates, filters and scaling yourself.
-- **Postgres with pgvector:** vectors next to your data, with SQL filters and transactions. Great when you already run Postgres and the data fits on one machine.
-- **A vector database (Pinecone, Weaviate, Qdrant, Milvus):** built-in sharding, filtering and managed scaling.
-- **A search engine (Elasticsearch, OpenSearch):** strong keyword search plus vector search in one place, which helps hybrid retrieval (Topic 3).
+Choose from the operations and workload you need:
+- **A vector library:** search algorithms; your application owns the surrounding storage and serving contract.
+- **A relational store with vector search:** can keep vectors, filters and transactional data together.
+- **A dedicated vector service:** compare filtering, durability, scaling and operating options.
+- **A search engine with vector support:** can combine lexical and vector retrieval.
 
-Interview tip: state the needs first (scale, filters, update rate, latency, team skills), then pick a tool.
+Test current permissions, updates, deletes, backups, latency and index rebuilds. Capabilities depend on the implementation and deployment.
+
+No tool is the right answer by name alone. State requirements, measure tradeoffs and justify the choice.
+
+#### Deep dive: Choose the operational contract, not a fashionable database
+A vector library provides search algorithms. A production store may also provide durable writes, metadata filters, replication, backups and access control. These are different responsibilities; a fast benchmark does not prove the entire storage contract.
+
+List the operations your RAG system needs: upsert a versioned chunk, filter by tenant and ACL, remove revoked content, fetch cited text, survive a node failure and rebuild after corruption. Give each an explicit freshness or availability requirement.
+
+Then test candidates with a realistic corpus and query mix. A relational database with vector search can simplify transactions and joins. A dedicated search service may suit larger search workloads or particular filtering needs. A standalone library may work when your application owns persistence and updates.
+
+For example, a great unfiltered ANN result is insufficient if an ACL filter takes too long or cannot meet the revoke window. Likewise, durable source text stored elsewhere needs a consistent mapping from search IDs to current versions.
+
+Ask about backup restoration, rolling upgrades and index rebuild time before committing. Accept any justified implementation that meets the measured contract. There is no vendor name that replaces those checks.
 
 ### S11. Filters and multi-tenant data
 Real queries almost always need filters: customer, permissions, product, date.
@@ -123,6 +248,17 @@ Real queries almost always need filters: customer, permissions, product, date.
 
 Permissions belong in the search itself, never only in the prompt.
 Diagram: two side-by-side funnels. Left, "Filter after": Top 10, then Filter, then "1 result" with a red X. Right, "Filter during": Search with filter, then "10 results" in gold.
+
+#### Deep dive: Permission filtering changes the search problem
+A **tenant** separates organizations. An **ACL**, or access control list, describes who may access a document. Both need to constrain retrieval. A tenant match alone does not authorize every employee to read every document in that tenant.
+
+With post-filtering, a search might retrieve 20 attractive passages and discard 19 as forbidden. The one remaining passage may be insufficient even though useful allowed passages exist farther down the ranking. This is result starvation.
+
+Filtering before or during candidate search can keep the search focused on allowed evidence. The available methods and performance depend on the index. Test whether the filtering path retains adequate recall rather than relying only on an API accepting a filter parameter.
+
+Keep an authoritative permission check close to prompt construction when the index can lag revocations. A blocked passage must not enter the context, cache or citation preview. If permission verification is unavailable, do not silently fall back to an unfiltered search.
+
+Create tests with users in overlapping and nested groups, an access revoke during a query and a warm cached result. Verify both non-disclosure and useful retrieval. Security and relevance must hold together.
 
 ### S12. Changing embedding models
 A new model means a new vector space. Every document must be re-embedded; you can't mix old and new vectors.
@@ -135,12 +271,16 @@ A safe migration:
 
 Store the model name and version with every vector, so a mismatch is caught early.
 
-#### Deep dive: Migrate the whole retrieval contract
-Suppose the old encoder outputs 768 dimensions and the replacement outputs 1,024. The new query vector cannot be searched against the old document vectors. Matching dimensions alone would not make two different embedding spaces compatible either.
+#### Deep dive: Migrate embeddings without mixing incompatible spaces
+Treat an embedding change as an index migration. The new query encoder and document representation must agree. Matching vector dimensions do not make two embedding spaces compatible.
 
-Version the encoder, preprocessing and index together. Backfill a new index while change events update both versions. At cutover, route the query encoder and its matching index as one unit.
+Build a new versioned index while the old index continues serving. Backfill source chunks through the new encoder, recording source versions and a checkpoint. Apply new document changes to both paths, or replay a change log after the bulk backfill so updates are not lost.
 
-Compare the new system on the same held-out questions and permission tests before switching reads. Keep the old pair for rollback. Include a plan for documents edited or deleted while the backfill is running.
+Use shadow queries to compare retrieval without affecting the user's answer. Test relevance, permissions, deletions and latency. A migration that improves semantic matches but serves revoked documents fails even if its average recall rises.
+
+Cut over the query encoder and index together. Keep a routing version so each request uses a consistent pair. Retain the old pair briefly for rollback and make sure rollback still respects current permissions and source deletions.
+
+Budget the temporary storage and embedding throughput for both indexes. Re-embedding the whole corpus competes with daily freshness work and model quotas. A resumable batch job with idempotent writes is safer than restarting millions of chunks after one worker failure.
 
 ### S13. Interview checklist
 When asked "How would you store and search the vectors?", cover:

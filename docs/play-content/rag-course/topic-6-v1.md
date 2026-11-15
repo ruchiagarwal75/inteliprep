@@ -15,6 +15,17 @@ The LLM turns the question and the context into the final answer. A good RAG ans
 
 Generation can't fix bad retrieval, but it can ruin good retrieval.
 
+#### Deep dive: Judge the answer on several separate obligations
+A useful RAG answer must address the question, stay supported by evidence and preserve the details needed for a decision. These obligations can fail independently.
+
+For "Can contractors claim chairs?", "Contractors have an equipment allowance" may be relevant and grounded in one sentence, yet incomplete if it omits the furniture exclusion. "No, because furniture is excluded" can be correct and useful if the current permitted policy supports it.
+
+**Faithfulness** asks whether claims follow from supplied evidence. **Correctness** asks whether the answer is actually right for the task. An answer can faithfully repeat an obsolete policy and still be wrong. **Completeness** asks whether it covers the required parts and exceptions.
+
+Use labeled examples that distinguish these failures. Do not award full credit merely because the answer contains a citation or sounds fluent. A citation may point to related text that does not support the claim.
+
+The generator needs selected evidence and clear instructions, but evaluation must check the final claims. Decide which errors require abstention, correction or human review based on their impact.
+
 ### S2. Choosing and routing models
 - **Quality:** reasoning, following instructions, and sticking to the context.
 - **Latency:** time to first token and tokens per second.
@@ -24,13 +35,35 @@ Generation can't fix bad retrieval, but it can ruin good retrieval.
 A common pattern: a router sends easy questions to a small, fast model and hard ones to a large model. Test both on your own question set.
 Diagram: "Question" into a "Router" box. Two arrows out: the top one to "Small model" (label "80% of questions, fast and cheap"), the bottom one to a gold "Large model" (label "20%, multi-step"). Both into "Answer".
 
+#### Deep dive: Route by measured task needs and include the routing mistakes
+Model selection is a quality, latency and cost decision. A larger model may handle complex evidence better, but it cannot recover a missing source or repair an authorization failure.
+
+Compare candidates on representative tasks: a direct policy lookup, a multi-source comparison, a conflicting-version case and a no-answer question. Include support and citation quality, not just writing style.
+
+Routing can send simple cases to a cheaper model and difficult cases to a stronger one. The router itself can make mistakes. If it labels a subtle exception as easy, the system may fail exactly where quality matters most.
+
+Define a fallback triggered by observable checks, such as incomplete source coverage or invalid output. Bound retries and escalation so one difficult request cannot call several expensive models indefinitely.
+
+Measure end-to-end cost per successful answer, including router calls, retries and verification. A lower price per token can still cost more if it requires longer prompts or frequent retries. Keep the chosen model and routing version in safe trace metadata for regression analysis.
+
 ### S3. Sampling settings
-- **Temperature:** randomness. Use a low value (0 to 0.3) for factual answers. Higher values add variety and more made-up details.
-- **Top-p:** limits choices to the most likely tokens. Usually tune temperature or top-p, not both.
+- **Temperature:** changes how strongly sampling favors likely tokens. Lower settings reduce variation; supported ranges depend on the model.
+- **Top-p:** samples within a set reaching a chosen cumulative probability. Usually tune temperature or top-p, not both.
 - **Max output tokens:** caps length and cost. Set it per use case.
 - **Stop sequences:** end the output cleanly at a marker.
 
 Low temperature reduces randomness, but it doesn't stop hallucination. Grounding and good context do.
+
+#### Deep dive: Sampling controls variation, not factual access
+A generative model assigns scores to possible next tokens. **Temperature** changes how sharply sampling favors the highest-scoring choices. Lower settings generally reduce variation; higher settings spread probability more widely. Exact behavior and supported ranges depend on the model.
+
+**Top-p**, or nucleus sampling, limits choices to a set whose cumulative probability reaches a configured amount. It controls the candidate set rather than directly checking facts. Some models expose only part of this sampling configuration.
+
+If the context says furniture is excluded, a lower-temperature answer may phrase that rule more consistently. If the exclusion is missing, lower temperature can produce the same unsupported answer repeatedly. Deterministic-sounding output is not proof of truth.
+
+Choose settings on evaluated tasks and keep them fixed while comparing other changes. Test answer completeness, support and valid formatting. Avoid tuning several settings at once without a clear comparison.
+
+For factual tasks, evidence selection and support checks usually matter more than trying to eliminate hallucinations through sampling settings. Use variation when the product needs it, not as a substitute for a safety or correctness boundary.
 
 ### S4. Hallucination in RAG
 Even with good context, a model can:
@@ -39,6 +72,17 @@ Even with good context, a model can:
 - Answer confidently when the context doesn't cover the question.
 
 Defenses: strict grounding rules, an "I don't know" path, citations, and a faithfulness check. Measure the hallucination rate on a question set. Don't assume it's zero.
+
+#### Deep dive: Locate unsupported claims before changing the model
+In RAG, a hallucination is often an unsupported claim in the final answer. Its source can be earlier than generation: missing evidence, an obsolete document, a lost exception or a wrong summary.
+
+Trace the specific claim. If retrieval found only the employee allowance, the generator may incorrectly generalize it to contractors. If context compression removed "furniture excluded", the original passage was good but the final evidence was incomplete.
+
+If the complete exception reaches the prompt and the model still says chairs are allowed, inspect generation, instructions and claim verification. Each failure suggests a different fix. Increasing model size first can mask a retrieval defect without removing it.
+
+Build answerable and unanswerable examples with source versions and expected claims. Measure supported-claim rate and the ability to abstain. Check whether partial answers preserve uncertainty instead of filling missing details with plausible guesses.
+
+A safe correction can retrieve additional evidence, narrow the answer or say the available sources do not establish the requested detail. Keep retries bounded and avoid rewriting the same unsupported answer until it merely sounds more convincing.
 
 ### S5. Citations you can trust
 - Ask the model to cite chunk IDs after each claim: "Refunds take 5 days [2]."
@@ -49,21 +93,36 @@ Defenses: strict grounding rules, an "I don't know" path, citations, and a faith
 A citation that points to the wrong document is worse than none. It creates false trust.
 Diagram: an answer box with two sentences, each ending in a citation marker, [1] and [2]. Arrows lead to two source cards. Card 1 has a green check and the label "Supports the claim". Card 2 has a red X and the label "Says something else".
 
-#### Deep dive: Check the claim, not just the existence of a link
-The answer says, "Contractors can expense a chair up to 300 units [S2]." Source S2 is real, but only covers employees. The citation resolves correctly and still does not support the answer.
+#### Deep dive: A valid source ID is only the first citation check
+Citation validation has several layers. Does the ID exist in the current request's source set? Does the linked passage support the nearby claim? Is it the applicable version? Can the user still open it?
 
-Split the answer into claims and inspect the cited evidence for each one. Check worker type, dates, amounts and exclusions. If support is missing, remove or revise the claim, retrieve missing evidence, or state the limit of the answer.
+For "Contractors can claim chairs [2]", source 2 might exist but actually exclude furniture. The citation is syntactically valid and semantically wrong. Counting citations would miss this failure.
 
-Track source-ID validity separately from claim support. A perfect link-validity score can coexist with misleading answers. Use high-risk cases to decide whether an automated check needs human review.
+Split important answers into claims and map each claim to supporting spans. Preserve headings and qualifiers so the checker can interpret the passage. Multi-source claims may need more than one citation.
+
+Render links using trusted source metadata rather than arbitrary URLs generated by the model. Recheck authorization when opening a cited document; permissions may change after answer generation.
+
+For a missing or unsupported citation, correct the claim, find actual support or withhold that part of the answer. Do not attach the nearest-looking passage just to satisfy a citation format. Evaluate support accuracy and coverage separately.
 
 ### S6. Checking faithfulness
 From cheap to costly:
-- **Rules:** every sentence needs a citation, and every number in the answer must appear in the context.
+- **Rules:** verify source IDs, quoted values and units. Check derived numbers against the supporting inputs and arithmetic.
 - **Entailment (NLI) model:** a small model checks whether each claim follows from its cited chunk.
 - **LLM judge:** a second model compares the answer with the context and flags unsupported claims.
 
 Run every check on your question set, and the costly ones on a sample in production. When a check fails, regenerate, remove the claim, or say you're not sure.
 Diagram: "Answer" splits into three "Claim" boxes. Each claim plus its cited chunk goes into a gold "Check" box. Outputs: two "Supported" (green check) and one "Unsupported" (red X) leading to "Remove or regenerate".
+
+#### Deep dive: Check support claim by claim, including valid calculations
+A faithfulness check asks whether an answer's claims follow from the supplied evidence. First identify the claims, then compare each with the relevant source span. A fluent overall paragraph can contain one unsupported number or exception.
+
+Some checks are deterministic. Verify source IDs, dates, units and quoted amounts. Other checks need semantic judgment, such as whether a paraphrase preserves "only" or "unless". Natural-language inference models and language-model judges can help, but both make mistakes.
+
+A number need not appear verbatim to be supported. If the source says 50 units per month and the answer correctly calculates 600 per year, verify the arithmetic and the assumption that the rule applies for all twelve months. Rejecting every new number would reject legitimate reasoning.
+
+Use human-labeled support examples to assess false positives and missed errors. Include negation, tables and multiple-source deductions. A judge's explanation is not proof that its decision is correct.
+
+Decide what to do after a failed check: revise a specific claim, retrieve missing evidence or abstain. Bound the correction loop and log safe failure categories for diagnosis.
 
 ### S7. Structured output
 When the answer feeds code (a form, a ticket, a UI card), ask for JSON that matches a schema.
@@ -73,22 +132,37 @@ When the answer feeds code (a form, a ticket, a UI card), ask for JSON that matc
 
 Structured output makes citations, confidence and follow-up actions easy to render and test.
 
-### S8. Streaming and latency
-Users judge speed by the time to the first token, not the total time.
+#### Deep dive: Valid JSON can contain a false answer
+Structured output constrains shape. A schema can require an answer string, a list of source IDs and a status such as "answered" or "insufficient evidence". This makes parsing predictable.
 
-Example budget: rewrite 300 ms + retrieval 50 ms + re-rank 80 ms + the LLM's first token 400 ms = about 830 ms before text appears.
+It does not make the content true. A response can be valid JSON while claiming chairs are covered and citing a passage that excludes them. Schema validation and evidence validation are separate checks.
+
+Validate the model output at the network boundary. Reject unexpected fields or invalid IDs as appropriate. Then check source membership, support and any product policies before rendering or acting on the result.
+
+Render strings safely as text. Never turn a model field directly into executable HTML, SQL or an unrestricted URL. If the assistant takes actions, use a separate authorized tool contract rather than trusting a JSON field that says "approved".
+
+Test malformed, truncated, refused and perfectly formatted but unsupported outputs. A useful failure path keeps the user's request and explains that the answer could not be completed, rather than exposing a raw validation error.
+
+### S8. Streaming and latency
+Users notice both time to first token and time to a complete answer.
+
+Illustrative budget: rewrite 300 ms + retrieval 50 ms + re-rank 80 ms + the LLM's first token 400 ms = about 830 ms before text appears.
 
 Then tokens stream, for example at 50 per second, so a 300-token answer takes 6 more seconds.
 
 Stream tokens to the UI, show sources early, and keep prompts short. Long prompts slow the first token.
 Diagram: a horizontal timeline. Segments: "Rewrite 300 ms", "Retrieve 50", "Re-rank 80", "LLM first token 400". A gold marker at the end of these reads "First word at 830 ms". After it, a long striped segment labeled "Streaming, 6 s".
 
-#### Deep dive: Decide what is safe to stream before validation
-Streaming makes the response feel faster, but text is visible as soon as you send it. A final check cannot take back a secret that already appeared on screen.
+#### Deep dive: Measure first output and completed answers separately
+**Time to first token**, or TTFT, is how long the user waits before generation begins to appear. Full-answer latency includes the remaining output. A fast first word followed by a long stall is still a poor experience.
 
-Enforce permissions before the model sees evidence. For sensitive outputs, buffer an answer or a meaningful segment until the required checks pass. For lower-risk content, incremental checks may fit the product, but the risk must be explicit.
+Streaming can make progress visible while the answer is produced. It also creates a safety decision: some output checks run before any text is shown; others require a completed sentence or answer. Define what can be streamed safely and what must wait.
 
-Also plan for a disconnect: keep a stable request ID, mark the partial answer as incomplete and let the client recover the saved result when available. Blindly retrying generation can create two different answers and a second charge.
+If the connection drops, give the request a stable ID. The client should know whether it can resume, fetch the completed answer or retry without producing duplicate turns and extra charges.
+
+Measure retrieval, queueing, prefill, decode and network time separately, then report end-to-end distributions. Short benchmark outputs do not represent long answers under peak concurrency.
+
+When a stream fails partway through, mark the answer incomplete and offer a clear retry or continuation. Do not present an unfinished sentence or missing citation as a completed, checked answer.
 
 ### S9. Saying "I don't know" well
 A good refusal is a feature:
@@ -98,12 +172,16 @@ A good refusal is a feature:
 
 Track the refusal rate. A rise can come from retrieval misses, outages or stricter policy. A near-zero rate can hide guessing. Diagnose the reason and check both unnecessary refusals and unsupported answers.
 
-#### Deep dive: Separate missing evidence from a system outage
-"I couldn't find a current contractor policy" is a retrieval outcome. "Search is temporarily unavailable" is an operational failure. "You don't have access" is an authorization outcome.
+#### Deep dive: Explain the limit without revealing protected information
+An assistant may be unable to answer because evidence is missing, access is restricted or a dependency is unavailable. Those are different situations and should not all become a confident guess.
 
-Use different internal reason codes so the team fixes the right cause. Give the user a safe, useful next step without exposing the existence of restricted documents. Never turn a search outage into a confident answer from model memory.
+If permitted sources do not answer the question, say what is missing and offer a useful next step. For example, "I found the allowance but not an approved furniture rule" is useful when that statement itself is permitted.
 
-Evaluate refusals on both answerable and unanswerable questions. A system that refuses every difficult question may appear safe while being unusable. Measure unsupported-answer errors and unnecessary refusals together.
+Do not reveal that a restricted salary document exists or summarize its title to explain a refusal. Permission handling should avoid exposing protected metadata as well as content.
+
+A service outage should be described as a temporary availability problem, with a retry path when safe. It is not evidence that no policy exists. Keep error categories separate so operations can diagnose the cause.
+
+Evaluate abstention on answerable and unanswerable questions. Too many refusals make a safe system unhelpful; too few create unsupported answers. A good response states the evidence limit plainly and keeps the user moving.
 
 ### S10. Cost control
 Cost depends on token counts, model prices and extra calls. Long RAG prompts can make input expensive; long answers or high output prices can make output dominate instead.
@@ -114,12 +192,16 @@ Cost depends on token counts, model prices and extra calls. Long RAG prompts can
 
 Semantic caching risk: similar questions from different users may need different answers. Put the user's role and permissions in the cache key.
 
-#### Deep dive: Estimate cost using the work a request actually triggers
-For a worked example, suppose the answer call uses 6,000 input tokens and 400 output tokens. At hypothetical prices of 1 unit per million input tokens and 5 units per million output tokens, that call costs 0.006 + 0.002 = 0.008 units.
+#### Deep dive: Count the entire answer pipeline, including retries
+Cost per answer includes more than generation. Embedding a query, rewriting it, reranking passages, verifying claims and retrying failed calls can all add cost.
 
-Then add query rewriting, re-ranking, retries and any claim-checking calls. Record usage from failed calls when the provider supplies it; missing usage is unknown, not free.
+Use explicit illustrative prices when teaching the calculation. If a request uses 4,000 input tokens at $1 per million and 500 output tokens at $4 per million, generation costs $0.004 + $0.002 = $0.006. These are example rates, not a quoted provider price.
 
-Use the actual configured model's prices when planning a product. Compare cost per successfully supported answer, not only cost per attempted request. Cheap answers that are wrong or repeatedly retried can cost more overall.
+Add retrieval infrastructure and other model calls separately. A second generation attempt roughly adds that attempt's actual usage; a failed call with missing usage is unknown, not automatically free.
+
+Reduce unnecessary work before changing answer quality. Deduplicate context, bound query fan-out, cap output length and cache computation only within valid permission and version boundaries. Test whether a cheaper route preserves important exceptions.
+
+Report average and tail cost per successful answer along with failure rate. An apparently cheap request that often fails or needs manual correction may be the more expensive product choice.
 
 ### S11. Guardrails on the output
 Before showing an answer, check:
@@ -128,6 +210,17 @@ Before showing an answer, check:
 - **Format:** valid schema, valid citations and length limits.
 
 Block high-risk failures and explain why. Let low-risk ones through, and log them. Topic 9 goes deeper.
+
+#### Deep dive: Separate policy enforcement from output formatting
+Output guardrails can check several risks: unsupported claims, disallowed content, personal data leakage and unsafe links. These checks need different signals and should not become one unexplained "safe" score.
+
+A data-loss check might catch an account number copied from a source. A support checker might catch an invented deadline. HTML encoding prevents a returned string from executing in the browser. None of these replaces document authorization.
+
+Decide which checks must run before streaming. A later detector cannot retract sensitive text the user already saw. For tasks where delayed checks are acceptable, make the incomplete or unverified state clear.
+
+Test false positives as well as misses. A legitimate security lesson may quote an attack phrase; blocking every such phrase prevents useful answers. Use context and policy rather than keyword matching alone.
+
+When a check fails, return a useful safe response or narrow the answer. Keep diagnostic categories and request IDs in logs without copying full private answers into general-purpose logging.
 
 ### S12. Interview checklist
 When asked "How do you generate a reliable answer?", cover:

@@ -14,16 +14,38 @@ A demo answers one person from one laptop. Production must:
 
 This topic covers the system around the RAG pipeline.
 
+#### Deep dive: A working request is not yet a reliable service
+A demo proves one question can complete. Production must handle overlapping requests, document updates, slow dependencies, permission changes and failures without unbounded work or stale evidence.
+
+Separate the online answer path from background ingestion. A document upload should not block every query while parsing and embedding finish. A query should know which published index and permission version it uses.
+
+Bound concurrency and queues. If arrivals exceed processing capacity, an unlimited queue turns a short overload into minutes of waiting. Define admission limits, deadlines and a clear overloaded response.
+
+For example, a model slowdown increases the number of in-flight answers even if question rate stays constant. That can exhaust connections or memory elsewhere in the service. Capacity planning needs latency and concurrency, not only requests per second.
+
+Use realistic load and dependency failures when testing. Track end-to-end success, freshness and support quality. A fast healthy path does not show whether the system degrades safely when retrieval or authorization becomes unavailable.
+
 ### S2. The serving architecture
 A typical request path:
 1. **API gateway:** sign-in checks and rate limits.
 2. **RAG service:** rewrite, retrieve, re-rank, build the prompt.
 3. **Vector and keyword indexes,** often both.
-4. **Re-ranker service,** usually on GPUs.
+4. **Re-ranker service,** sized and hosted for its measured workload.
 5. **LLM:** a hosted API or self-hosted GPUs.
 
-Separately, an ingestion pipeline keeps the indexes fresh through a queue. Keep the online path stateless, so you can add servers as traffic grows.
+Separately, an ingestion pipeline keeps the indexes fresh through a queue. Serving workers can be stateless; keep history, versions and request outcomes in durable stores.
 Diagram: two rows. Top row, "Online": Client, Gateway, RAG service, then two boxes stacked ("Indexes" and "Re-ranker"), then LLM, with a return arrow "Streamed answer" to Client. Bottom row, "Offline": Sources, Queue, Ingestion workers, with an arrow up into the gold "Indexes" box shared by both rows.
+
+#### Deep dive: Keep synchronous serving and asynchronous ingestion separate
+The online path authenticates the user, retrieves allowed evidence, ranks it, builds context and streams an answer. It needs a request deadline and a bounded amount of work.
+
+The background path reads source changes, parses content, creates chunks, computes embeddings and publishes updated indexes. It needs durable checkpoints, retries and idempotent writes so a worker restart does not duplicate or lose documents.
+
+Some serving components can be stateless workers, but conversation history, task status and index versions still need durable stores. A restarted worker should not invent a new conversation or forget which answer was already produced.
+
+Use backpressure when ingestion or inference falls behind. A queue can absorb a brief burst, but it does not create unlimited processing capacity. Monitor queue age as well as queue length.
+
+Give authorization its own explicit failure behavior. If permission verification is unavailable, do not continue with unrestricted evidence to keep answers flowing. Reliability means preserving the security contract while explaining temporary unavailability.
 
 ### S3. Freshness: how stale is OK?
 Set a freshness target per source. For example:
@@ -34,6 +56,17 @@ Set a freshness target per source. For example:
 Measure **index lag**: the time from a source edit until the change is searchable. Alert when it misses the target.
 Diagram: a timeline. "Doc edited", then "Event", then "Queue", then "Embed", then "Searchable". A gold bracket spans from "Doc edited" to "Searchable", labeled "Index lag (target: 5 min)".
 
+#### Deep dive: Measure freshness from source change to visible behavior
+Freshness is the delay between a source change and the user seeing its effect. It includes connector polling, queueing, parsing, embedding, index publication and cache invalidation.
+
+If a policy edit occurs at 10:00 and becomes searchable at 10:08, the end-to-end lag is eight minutes. An embedding worker finishing in one minute does not prove a one-minute freshness target if the connector polls every hour.
+
+Document updates, deletions and permission revocations can require different deadlines. A stale paragraph may be tolerable for a low-risk task; returning text after access is revoked may violate the security contract.
+
+Track a source version through the pipeline. Publish a coherent version so retrieval does not combine new text with old permissions. For revocations, consider a current access check before context construction while index metadata catches up.
+
+Report lag distributions and worst delayed sources, not only average worker speed. A quiet connector with a broken checkpoint can leave one collection stale while the rest of the pipeline looks healthy.
+
 ### S4. Streaming updates
 - Prefer change events (webhooks, change data capture) over full re-crawls.
 - Put changes on a queue, so bursts don't overload the embedding service.
@@ -41,21 +74,36 @@ Diagram: a timeline. "Doc edited", then "Event", then "Queue", then "Embed", the
 - Use document and source-version identities. Publish a complete new version, then retire old chunks using the store's actual consistency guarantees (Topic 1).
 - Run a regular reconciliation job to catch missed events.
 
-#### Deep dive: Handle a delayed update after a delete
-An update for policy-7 version 12 sits in a queue. The source deletes the document at version 13. Later, a retried version-12 job completes. A simple upsert could make the deleted content searchable again.
+#### Deep dive: Use versions and idempotency to survive replayed changes
+Change feeds may deliver duplicates, arrive out of order or pause during an outage. Treat events as updates to versioned state rather than assuming one perfect delivery per edit.
 
-Keep a monotonic source version or a deletion tombstone and reject writes older than the latest accepted event. Make retries idempotent using a stable event or version identity. Reconcile the index with the source to find missed changes.
+An idempotent upsert uses a stable document and chunk identity so replaying the same version produces the same result. Version checks prevent an old delayed update from overwriting a newer document.
 
-Track the time until the new state is searchable, not merely when the queue accepted the event. A successful write acknowledgement may precede search visibility in some indexes.
+A **tombstone** records a deletion so replayed older events cannot resurrect removed content. Propagate deletion to vector and keyword indexes, caches and source mappings. Keep the source-of-truth rules explicit.
+
+Persist a checkpoint only after the intended change is durable. If a worker crashes halfway through a document, retrying should finish or replace that version safely. Publishing a document atomically avoids exposing a mix of old and new chunks.
+
+Test downtime and replay with permission changes included. A recovered pipeline must catch up without briefly making deleted or revoked evidence available. Queue throughput alone does not prove correct recovery.
 
 ### S5. Scaling the vector index
 When one machine isn't enough:
-- **Sharding:** split the vectors across machines. Each query goes to every shard, and the results are merged. The slowest shard sets the latency.
+- **Sharding:** split the vectors across machines. Queries merge the relevant shards' results. Fan-out, skew and the slowest participating shard can affect latency.
 - **Replication:** copy each shard, so more machines can serve reads and one can fail safely.
 - **Tenant partitions:** large customers get their own shard or namespace.
 
 Do the memory math first (Topic 2): 100M vectors x 768 dimensions x 4 bytes is about 307 GB raw, before index overhead.
 Diagram: "Query" into a "Router", which fans out to 4 shard columns. Each column shows a shard box with a lighter replica box behind it. All 4 feed a gold "Merge top k" box.
+
+#### Deep dive: Shards divide data; replicas copy it
+A **shard** stores part of the collection. A **replica** stores another copy of a shard for availability or read capacity. These choices change query fan-out, memory and failure handling.
+
+If every query needs all shards, the service must merge their candidates. The slowest participating shard can dominate latency. Tenant routing or known partitions can reduce fan-out, but only when they still include all relevant permitted evidence.
+
+For an illustrative 300 GB vector payload split evenly over six shards, each holds about 50 GB before overhead. Two full copies require about 600 GB of raw payload across the deployment. Real distributions may be skewed by tenant or document size.
+
+Test filtered retrieval and hot tenants. Equal document counts do not guarantee equal query load. A large tenant or frequently requested source can overload one shard while others are idle.
+
+Plan rebalancing, rebuilds and node loss. Replication does not automatically make updates, permission changes or failover consistent. Specify which version a query can read and how stale copies are prevented from leaking revoked content.
 
 ### S6. Caching
 Cache at several layers:
@@ -65,12 +113,16 @@ Cache at several layers:
 
 Every cache needs an expiry, and must be cleared or versioned when the index or prompt changes. A stale cache quietly undoes all your freshness work.
 
-#### Deep dive: Make a cache hit pass the current access check
-Two employees ask the same question. One can read a restricted handbook section and the other cannot. A query-only answer cache would reuse the first answer for the second employee.
+#### Deep dive: Cache keys must include the facts that change the answer
+Different caches save different work: query embeddings, retrieval candidates, reranker scores, prompt computation or full answers. Their validity rules are not interchangeable.
 
-Scope cached work to a trusted tenant and permission context, with policy versions or an equivalent current authorization check. Also track the document and prompt versions that the cached result depends on. Group names alone can be too broad if document-level exceptions exist.
+A safe retrieval or answer key may need tenant, normalized query, user or permission scope, source/index version and model/prompt version. The exact key depends on what was cached. User ID alone does not protect against that user's later access revoke.
 
-Test a hit after a revoke and after a policy edit. Expiry is a freshness tool, not a substitute for meeting the promised permission-revocation deadline.
+For example, a cached answer generated from a restricted policy must not reach another user. Even for the same user, recheck current access or invalidate the entry when permissions change. Cache hits cannot bypass authorization.
+
+Use TTLs as one freshness control, not the only revoke mechanism when the target is stricter. A five-minute TTL cannot meet a one-minute revoke requirement by itself.
+
+Measure hit rate and saved work alongside stale-result and permission tests. A cache that rarely hits but is easy to validate may be better than a broad shared answer cache with unclear security boundaries.
 
 Diagram: permission-revoke-race
 
@@ -81,12 +133,16 @@ Example p95 budget: rewrite 250 ms, embed 30, retrieve 60, re-rank 120, build pr
 
 Tactics: run keyword and vector search in parallel, put a timeout on every call, and skip optional steps (like query rewriting) when you're running late.
 
-#### Deep dive: A sum of stage p95s is not an end-to-end p95
-Stage budgets help allocate a deadline. They do not automatically describe the percentile of the total request. Slow stages can occur on different requests, and queueing or retries can dominate the tail.
+#### Deep dive: Tail latency describes the whole request distribution
+The p95 latency is a value at or below which roughly 95% of measured requests finish. It does not describe the slowest 5%, and it is different from the average.
 
-For example, if retrieval has an 80 ms allowance and re-ranking has 120 ms, a request that already spent 180 ms upstream may have to skip optional re-ranking. Pass a remaining deadline, not a fresh full timeout at every hop.
+Stage percentiles do not add into an end-to-end percentile. The slowest retrieval requests may not be the slowest generation requests. Dependencies and shared overload can also correlate delays. Measure the full request directly.
 
-Trace total time to first token and full-answer time separately. Load-test the complete path at expected concurrency and measure its p95 directly. Include cancellations so abandoned requests stop consuming downstream work where possible.
+Use stage budgets to guide engineering. For an illustrative one-second first-token goal, allocate time to authentication, retrieval, reranking, prompt construction and model prefill, with room for network and queueing. Test whether the actual end-to-end distribution meets it.
+
+Keep conditions visible: concurrency, input/output lengths, cache warmth and errors. Excluding timed-out requests can make latency look better while the service becomes less reliable.
+
+When p95 rises, traces help locate queueing and dependency waits. Optimize the measured bottleneck rather than the stage with the most interesting algorithm.
 
 ### S8. Rate limits and capacity
 LLM providers limit requests and tokens per minute.
@@ -95,12 +151,16 @@ LLM providers limit requests and tokens per minute.
 - Spread load across regions or providers for headroom.
 - Protect yourself too: per-user limits stop one user, or one script, from using the whole quota.
 
-#### Deep dive: Capacity is limited by tokens as well as requests
-Assume 12 questions per second at peak and 5,000 total tokens per question for this example. That is 60,000 tokens per second, or 3.6 million per minute, before retries and optional calls.
+#### Deep dive: Tokens and in-flight work can limit capacity before QPS does
+A model service can limit requests per second, tokens per minute and concurrent requests separately. Staying below one limit does not guarantee staying below the others.
 
-Check input and output limits separately when the provider enforces them separately. Then allow headroom for bursts, concurrent requests and longer-than-average prompts. A request-per-minute limit alone misses this bottleneck.
+For an illustrative 100 requests per second at 4,000 input and 500 output tokens each, traffic is about 27 million tokens per minute. Check how the provider counts input, output and reserved tokens rather than assuming one combined quota.
 
-Use bounded queues and admission control. When the remaining deadline is too short, reject clearly or degrade optional work instead of building an unbounded backlog. A second provider is useful only if its privacy, quality and failover behavior also meet the requirements.
+Concurrency grows with response time. At a stable 10 requests per second and an average five-second response, roughly 50 requests are in flight. A slowdown to ten seconds roughly doubles that number if arrivals continue.
+
+Bound queues and use per-user or tenant budgets. Retry transient failures with limited attempts and jitter, which spreads retry timing. Retrying every rejected request immediately can amplify overload.
+
+Track rejected work, queue age and token usage. Give users a clear retry time when available. A capacity plan should explain which limit is reached first and how the product degrades without dropping security checks.
 
 ### S9. Graceful degradation
 When a part fails, return something useful instead of an error:
@@ -112,12 +172,34 @@ When a part fails, return something useful instead of an error:
 Timeouts and circuit breakers stop one slow dependency from stalling every request.
 Diagram: a staircase going down from left to right with 5 steps: gold "Full answer", then "No re-rank" (label "re-ranker down"), "Keyword only" (label "vector search slow"), "Backup model" (label "LLM down"), "Links only" (label "everything down").
 
+#### Deep dive: Decide the safe reduced service before an outage
+Graceful degradation keeps a useful subset of behavior when a dependency fails. It needs an explicit contract; "fall back" alone does not explain what the user receives.
+
+If a reranker fails, a tested original retrieval order may still support an answer. If vector search fails, keyword search might work for some queries. If neither path finds supporting evidence, do not replace retrieval with an unsupported confident answer.
+
+Authorization is different. A failed permission check must not degrade into unrestricted search or context. Explain temporary unavailability and preserve the user's request where safe.
+
+Use timeouts within an overall deadline. A **circuit breaker** temporarily stops calls to a dependency failing repeatedly, allowing it time to recover. Pair it with bounded probes and a known fallback rather than an endless retry loop.
+
+Test each outage with evidence and permission assertions. A degraded answer should state limits when relevant, such as only one source being available. Availability metrics alone cannot show whether the fallback remained correct and safe.
+
 ### S10. Multi-tenant isolation
 In a B2B product, many customers share one system.
 - Every chunk carries a tenant ID, and every query filters on it, in the data layer, not in the prompt.
 - Large tenants can get their own index. Small ones share, with strict filters.
 - Track rate limits and cost per tenant.
 - Test isolation: a query from tenant A must never return tenant B's chunks, even with a prompt bug.
+
+#### Deep dive: Separate organization isolation from individual permissions
+Multi-tenant isolation prevents one organization from accessing another's data or consuming all shared resources. Individual ACLs still decide what each user may read within their organization.
+
+A shared index with tenant filters can work if every path enforces them. Separate indexes or deployments can offer stronger isolation at higher operational cost. Choose based on security, residency and workload requirements, then test the chosen boundary.
+
+Carry a server-verified tenant identity through retrieval, caches, citations and logs. Do not trust a client-supplied tenant ID without authorization. A correctly filtered query can still leak through a broadly keyed answer cache.
+
+Budget concurrency, tokens and ingestion work per tenant to reduce noisy-neighbor effects. One large document backfill should not starve every other tenant's interactive questions.
+
+Test cross-tenant requests, nested groups, revocations and diagnostic access. Isolation includes metadata and operational tools, not only the final answer text.
 
 ### S11. Observability
 Trace every request:
@@ -126,6 +208,17 @@ Trace every request:
 - Alerts: index lag, error spikes and cost spikes.
 
 Mask personal data in logs, and set a retention period.
+
+#### Deep dive: Trace decisions without copying the entire private conversation
+Observability connects one request to its stages and versions. A trace ID can link authentication, retrieval, reranking, generation and verification timings without storing every source passage.
+
+Useful metadata includes index and prompt versions, candidate IDs and ranks, token counts, cache status, failure categories and freshness lag. Keep access to even these identifiers controlled when they can reveal sensitive document names or relationships.
+
+Separate operational signals from content diagnostics. General logs should not contain secrets, raw credentials or full private answers. When a text sample is needed to debug support quality, use explicit access controls, redaction, sampling and retention.
+
+Alert on meaningful symptoms such as permission-check failures, rising queue age, stale connectors and unsupported-answer rates. A healthy model endpoint does not prove the whole RAG product is healthy.
+
+Use traces to reconstruct the first failed boundary in a bad answer. Monitoring should help explain a specific failure and support a regression test, not create a second uncontrolled store of confidential documents.
 
 ### S12. Interview checklist
 When asked "How would you run this in production?", cover:

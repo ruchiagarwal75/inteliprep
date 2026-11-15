@@ -1,4 +1,10 @@
 import {
+  EmbeddingDimensionsDiagram,
+  VectorMetricExampleDiagram,
+  PdfTextOrOcrDiagram,
+  ChunkStrategyOptionsDiagram,
+} from "./course-diagram-foundations";
+import {
   ChunkBoundaryCaseDiagram,
   PermissionRevokeRaceDiagram,
 } from "./course-diagram-depth";
@@ -12,6 +18,22 @@ import {
 } from "./course-diagram-depth-debug";
 
 export const RAG_DEPTH_DIAGRAMS = {
+  "embedding-dimensions": {
+    art: EmbeddingDimensionsDiagram,
+    alt: "In a two-dimensional teaching example, chair claims and furniture reimbursement are nearby, while password reset is farther away. Real embeddings have many learned coordinates, not human-named topic axes.",
+  },
+  "vector-metric-example": {
+    art: VectorMetricExampleDiagram,
+    alt: "For query [1, 0], passage A [1, 0] has cosine 1, dot product 1 and distance 0. Passage B [2, 1] has cosine about 0.89, dot product 2 and distance about 1.41. Cosine ranks A first; raw dot product ranks B first because vector length matters.",
+  },
+  "pdf-text-or-ocr": {
+    art: PdfTextOrOcrDiagram,
+    alt: "PDFs with embedded text use text extraction. Scanned pages use optical character recognition, highlighted in gold. Both paths need headings, table structure and reading order verified.",
+  },
+  "chunk-strategy-options": {
+    art: ChunkStrategyOptionsDiagram,
+    alt: "Four chunking strategies cut the same text differently: fixed size, recursive boundaries, document structure and semantic topic shifts. Gold highlights a section kept together by structure-aware chunking.",
+  },
   "chunk-boundary-case": {
     art: ChunkBoundaryCaseDiagram,
     alt: "The contractor heading and the no-chair-allowance rule stay in one gold chunk, allowing an answer that preserves the exclusion.",

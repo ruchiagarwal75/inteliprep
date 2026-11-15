@@ -14,6 +14,17 @@ Measure retrieval on its own:
 
 Build a test set of 100 to 200 real questions with their right chunks before you tune anything. Topic 7 goes deeper on evaluation.
 
+#### Deep dive: Find the first place the supporting evidence disappears
+Generation can explain only the evidence it receives, plus whatever unsupported knowledge it invents. If the current contractor exception never reaches the model, a better writing prompt cannot reliably reconstruct it.
+
+Follow a failed question through four checkpoints. Does the source contain the answer? Did ingestion preserve it in a searchable passage? Did retrieval return that passage? Did context assembly keep it? Only then inspect whether generation used it correctly.
+
+For example, search may return the general equipment allowance but miss a furniture exclusion in the next paragraph. The answer can sound reasonable while being wrong. The first fix may be a better chunk boundary or adjacent-section fetch, rather than a larger generator.
+
+Build a small set of questions with labeled supporting passages and current source versions. Measure whether that evidence enters the retrieved shortlist and the final context separately. A high retrieval score does not help if a later budget cut removes the decisive sentence.
+
+This is a quality ceiling, not a promise that finding the passage guarantees a good answer. Generation can still omit exceptions, cite the wrong source or combine incompatible rules. Keep retrieval and answer checks separate so you know which change helped.
+
 ### S2. Dense search: matching meaning
 Dense search embeds the query and finds the nearest chunk vectors.
 
@@ -26,6 +37,17 @@ Weak at:
 - Negation: "not covered" can sit close to "covered".
 - Very short queries that carry little meaning.
 
+#### Deep dive: Use semantic matches, but preserve exact constraints
+Dense retrieval represents questions and passages as learned vectors. It can connect a paraphrase such as "How do I reclaim a purchase?" with a passage titled "Expense reimbursement" even when few words overlap.
+
+That strength does not make every close passage useful. "Employees qualify" and "Contractors do not qualify" may be semantically close because both discuss eligibility. A short error code or policy identifier can also carry more meaning than the surrounding natural language.
+
+For an exact code like ERR-204, check whether dense search retrieves that code rather than a similarly worded error. Keep identifiers, negations and dates in your evaluation set. A general language similarity score is not a correctness check.
+
+Embed the question with the intended query encoder and search eligible document vectors. Return original text, IDs and source versions for later checks. Avoid treating the vector itself as evidence.
+
+If the dense path misses exact terms, add complementary lexical retrieval or a structured filter when justified. Measure the combined candidate set. Do not replace all keyword matching merely because embeddings handle paraphrases well.
+
 ### S3. Keyword search: BM25
 BM25 scores a chunk by the query words it contains:
 - Rare words count more than common ones. "ERR_4012" matters more than "the".
@@ -36,6 +58,17 @@ Good at exact terms, codes, names and acronyms. Weak at synonyms. It's cheap, fa
 
 Learned sparse models such as SPLADE add related words to each chunk, which closes part of the synonym gap.
 
+#### Deep dive: Why a rare exact term can beat a broad semantic match
+**BM25** is a lexical ranking method. It rewards matching query terms while accounting for how common they are, how often they occur in a document and the document's length.
+
+A rare term such as a specific error code is often more informative than "help" appearing throughout the corpus. Repeating a term helps only up to a point: BM25 uses term-frequency saturation, so saying "payroll" a hundred times does not make a passage a hundred times more relevant. Length normalization reduces the advantage of long documents containing many incidental matches.
+
+Imagine searching "P-204 contractor chair". A passage containing P-204 and the contractor exception may outrank a general furniture page. This exact-term behavior complements dense search, which may find related wording but overlook the identifier.
+
+Tokenization and analyzers matter. Hyphens, case, stemming and language handling can change which terms match. Test product codes and abbreviations using the actual production analyzer.
+
+BM25 still cannot prove that a sentence supports an answer. A passage mentioning both permission and denial might match every word while expressing the opposite rule. Use retrieval to find candidates, then check meaning and source authority.
+
 ### S4. Hybrid search
 Run keyword and dense search in parallel and merge the two lists. They can catch different misses. Compare the combined system with each baseline on your own questions.
 
@@ -44,12 +77,16 @@ Two ways to merge:
 - **Reciprocal Rank Fusion (RRF):** uses ranks only. Simple, robust and a strong default.
 Diagram: Query splits into two boxes, "Keyword (BM25)" and "Dense (vectors)". Each produces a short ranked list. Both lists flow into a gold "Merge (RRF)" box, then "Top results".
 
-#### Deep dive: See why two retrievers can complement each other
-The employee asks, "Does policy EQ-17 cover a desk for temps?" Keyword search can match EQ-17 exactly. Dense search can connect "temps" with "contractors" and "desk" with "office furniture".
+#### Deep dive: Combine complementary searches before selecting evidence
+Hybrid retrieval runs lexical and semantic search, then combines their candidates. The lexical path catches exact names and codes; the dense path catches paraphrases. The aim is to reduce each path's misses.
 
-Merge the two candidate lists after applying the same trusted access boundary. Deduplicate by stable chunk identity, not by title: two documents can share a title and have different permissions or versions.
+Suppose dense search returns the general contractor policy and keyword search returns the exact P-204 exception. Merge the lists by stable chunk ID and source version. Otherwise the same passage can take several slots simply because both retrievers found it.
 
-Then test whether the combined list improves the error-code and paraphrase slices. Hybrid retrieval adds work and candidates; it earns its place only if those gains justify the latency and operating cost on your data.
+Do not add raw scores blindly. A lexical score of 8 and a cosine score of 0.8 are not measurements on the same scale. Use a tested fusion method, such as rank fusion, or calibrate a combined ranking with appropriate labels.
+
+Apply tenant and permission constraints to both retrieval paths. A safe vector search followed by an unrestricted keyword query still leaks evidence into the candidate pool or prompt.
+
+Evaluate dense-only, lexical-only and hybrid on the same held-out questions. Measure evidence recall, latency and failure slices. More candidates increase reranking and context costs. Keep the hybrid path when its additional evidence is worth that cost, rather than assuming two searches must always outperform one.
 
 ### S5. RRF, step by step
 Each document gets 1 / (k + rank) from every list it appears in. k is often 60.
@@ -62,12 +99,16 @@ With k = 60:
 In this example, support from both lists puts A and B ahead of C. Fusion ranks candidates; it does not prove relevance.
 Diagram: three columns. "Keyword": 1 Doc A, 2 Doc C, 3 Doc B. "Dense": 1 Doc B, 2 Doc A. "RRF": 1 Doc A, 2 Doc B, 3 Doc C, with Doc A and Doc B in gold.
 
-#### Deep dive: Keep fusion scores separate from answer confidence
-With a rank constant of 60, a chunk ranked first in one list and fourth in another receives 1/61 + 1/64, about 0.0320. A chunk ranked second in only one list receives 1/62, about 0.0161.
+#### Deep dive: Calculate reciprocal rank fusion without confusing it with confidence
+**Reciprocal rank fusion**, or RRF, combines positions from several ranked lists. For each passage, add 1 divided by a smoothing constant plus its rank in each list. A passage missing from a list contributes nothing from that list.
 
-The first chunk wins this comparison because both retrievers contributed. The number 0.0320 is a fusion score, not a 3.2% confidence or a probability of a correct answer.
+Using an illustrative constant of 60, passage A ranked first in dense search and tenth in keyword search gets 1/61 + 1/70, about 0.0307. Passage B ranked second in both gets 2/62, about 0.0323. B wins because both retrievers place it near the top.
 
-The rank constant is also different from the number of chunks returned. Explain which knob you are changing. A highly ranked but unauthorized or superseded chunk must still be excluded regardless of its fusion score.
+The constant controls how strongly rank differences matter. It is a configuration choice, not a probability threshold. A fused score of 0.03 does not mean 3% relevance or answer confidence.
+
+Deduplicate by passage identity before presenting candidates downstream. Keep source versions so obsolete and current chunks are not accidentally treated as the same evidence.
+
+RRF avoids comparing incompatible raw score scales, but it ignores the size of the original score gaps. Test its shortlist against labeled evidence and the downstream reranker. If a retriever systematically returns irrelevant passages, rank fusion cannot make that retriever trustworthy.
 
 Read more: [Reciprocal rank fusion formula](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion)
 
@@ -79,12 +120,34 @@ Users type messy queries. Fix them before you search:
 
 Each rewrite is an extra LLM call, often a few hundred ms. Use a small, fast model.
 
+#### Deep dive: Rewrite the question without inventing its meaning
+A query rewrite makes an ambiguous conversational request searchable. After "Tell me about contractor leave", the follow-up "What about part-time?" may need the earlier topic to become "part-time contractor leave policy".
+
+The rewrite must preserve the user's actual constraints. It should not turn "Can contractors claim chairs?" into "employee furniture allowance", drop a negative or add a country the user never mentioned.
+
+Keep the original question and rewrite together in the trace. Evaluate whether the rewrite retrieves better evidence and whether it changes the intended question. Useful tests include abbreviations, exact error codes, multi-turn references and conflicting conversation context.
+
+A model can produce a fluent rewrite that is wrong. If the reference is unclear, ask a clarifying question or search multiple plausible interpretations with bounded cost. Do not silently resolve a high-impact ambiguity.
+
+The generator still answers the user's original request. A retrieval rewrite is a search aid, not a new instruction or a replacement user intent. Apply permission constraints after rewriting just as you would for any other search.
+
 ### S7. Multi-query and decomposition
 - **Multi-query:** write 3 to 5 versions of the question, search each, merge with RRF. Better recall for vague questions.
 - **Decomposition:** split a compound question into parts. "Compare the 2025 and 2026 parental leave policies" becomes one search per year.
 
 Run the searches in parallel. Added latency is the rewrite call plus the slowest search, not the sum of all searches.
 Diagram: Question, then "LLM rewrite", then three query boxes side by side, each into its own "Search" box, all merging into a gold "RRF merge" box, then "Results".
+
+#### Deep dive: Separate alternative wording from a multi-part research task
+**Multi-query retrieval** searches several phrasings of one intent. "Expense claim for a chair" and "contractor furniture reimbursement" may uncover complementary wording. Merge and deduplicate their results before reranking.
+
+**Decomposition** splits a genuinely multi-part request. "Compare contractor equipment policy in two regions" needs evidence for each region, then a comparison. Retrieving only one side creates a misleading answer even if that side is correct.
+
+These methods increase fan-out. Three rewrites across two retrievers create six searches before reranking. Bound the number of queries, set a request deadline and share a candidate budget. More parallel work can worsen tail latency and overload dependencies.
+
+Another technique generates a hypothetical answer-like passage and searches with its embedding. That text can help retrieval, but it is invented. Never treat it as a source or cite it as factual evidence.
+
+Use labels for each required sub-answer so you can detect incomplete coverage. If one branch fails, explain the missing part rather than blending partial results into a confident whole. Add complexity only when measured query failures justify it.
 
 ### S8. Filters and boosts
 Metadata turns "similar" into "relevant right now":
@@ -93,6 +156,17 @@ Metadata turns "similar" into "relevant right now":
 - **Filters from the question:** "2026 pricing" becomes year = 2026, using rules or a small LLM call.
 
 Old and new versions of a page look almost the same to an embedding. Only metadata can tell them apart.
+
+#### Deep dive: Hard filters decide eligibility; boosts decide preference
+A hard filter removes ineligible evidence. Tenant boundaries, user permissions and an explicitly requested region are examples. A soft boost changes preference among evidence that is already allowed, such as favoring an approved policy source.
+
+Do not represent a permission rule as a low score. A forbidden salary file must be excluded, even if it is the only document that matches the question. Likewise, a failed permission service must not trigger an unfiltered fallback.
+
+Freshness is more subtle. A recently edited discussion thread is not automatically more authoritative than an older approved policy. Model source authority and effective version explicitly before adding recency preferences.
+
+For a concrete test, give two users the same query but different document access. Neither the retrieved candidates, context nor cached answer should expose the other's restricted evidence. Then revoke access while a result is cached and repeat the query.
+
+Evaluate the quality effect too. Filters can leave too few candidates or exclude relevant documents with missing metadata. Fix the metadata and retrieval strategy rather than weakening the security rule to improve recall.
 
 ### S9. How many results?
 Retrieve wide, then narrow:
@@ -105,12 +179,16 @@ Too few, and the right chunk sits just past the cutoff. Too many, and you pay fo
 Be careful with fixed score cutoffs. Scores aren't comparable across queries, so a fixed threshold can drop good results.
 Diagram: a funnel with four levels: "1M chunks", "100 candidates" (Retrieve), "10" (Re-rank), "5 in the prompt" in gold.
 
-#### Deep dive: Choose a candidate budget from the misses
-Imagine the right contractor-policy chunk appears at rank 37 before re-ranking. Sending only the first 20 candidates makes it unreachable for the re-ranker. Raising the final prompt size from five to ten does not fix that miss.
+#### Deep dive: Choose separate budgets for retrieval and the final prompt
+The number of retrieved candidates and the number of passages shown to the model solve different problems. A larger retrieval shortlist can improve evidence recall. A smaller, selected prompt can reduce distraction, tokens and latency.
 
-Increase the retrieval candidate budget, then check how many additional questions become answerable and what happens to re-ranking latency. Record both the candidate count and the final context-token count: they are separate budgets.
+Suppose the supporting exception ranks 18th. Fetching only ten candidates guarantees that a later reranker cannot rescue it. Fetching 50 may include it, but placing all 50 in the prompt can bury the rule among irrelevant text.
 
-Use per-slice results too. If the extra candidates mostly help exact policy IDs, a keyword change may be more efficient than expanding every request.
+Measure recall as you increase the shortlist size. Then measure reranker cost and answer quality as you vary the final context budget. Use the same held-out questions so a quality gain is not merely a different test mix.
+
+Set budgets in both passages and tokens. Five short passages and five entire manuals are not equivalent. Preserve enough neighboring context to understand headings, references and exceptions.
+
+If no eligible evidence is good enough, filling every prompt slot is not the goal. A clear no-answer response is better than padding context with weak matches. Pick a cutoff and fallback based on labeled answerable and unanswerable queries.
 
 ### S10. Routing: search the right place
 Real systems have several sources: docs, tickets, code, a SQL database.
@@ -119,6 +197,17 @@ Real systems have several sources: docs, tickets, code, a SQL database.
 - "How many refunds did we issue last week?" goes to SQL. Vector search can't count.
 
 Searching every source every time adds latency and noise.
+
+#### Deep dive: Route to likely sources without hiding the answer
+Routing selects which collections or services to search. A request about a ticket ID may go to tickets; a policy question may go to approved documents. It can reduce work, but a wrong route can exclude the only supporting source.
+
+For "Why was contractor access removed?", evidence might live in a policy page and an incident ticket. A single collection label may be too narrow. Search multiple likely sources when the question spans them, while keeping the fan-out bounded.
+
+Use explicit metadata where reliable, such as a known ticket identifier. If a model chooses a route, test ambiguous questions and provide a fallback for low-confidence or empty retrieval. Routing confidence is not the same as answer confidence.
+
+Every searched collection must enforce the same user identity and access rules. A cross-source search should not gain broader credentials merely because one connector is easier to call.
+
+Measure route recall: how often did routing include a source containing the needed evidence? End-to-end retrieval can look poor even when each individual search engine works well, simply because the router never called the right one.
 
 ### S11. Debugging bad retrieval
 When an answer is wrong, check retrieval first:
@@ -129,15 +218,16 @@ When an answer is wrong, check retrieval first:
 
 Trace request IDs, safe evidence references, scores and pipeline versions. Keep raw text only under a restricted debugging and retention policy.
 
-#### Deep dive: Trace the first point where the evidence disappears
-For one failed handbook question, inspect the source version and chunk ID at each boundary.
+#### Deep dive: Debug using passage IDs and versions at each boundary
+Start with one reproducible failed question and the user's permitted source set. Save enough safe identifiers to reconstruct the path: source version, chunk IDs, index version, retrieval ranks and the passages selected for context.
 
-1. Missing from the index: inspect ingestion or permission policy first.
-2. Indexed but absent from the candidate list: inspect filters, query formulation and recall.
-3. Present at rank 37 but dropped before the prompt: inspect candidate limits and re-ranking.
-4. Present in the prompt but misquoted: inspect generation and claim support.
+If the source is missing, investigate the connector and ingestion checkpoint. If the source exists but the exception disappeared, inspect extraction and chunking. If the passage is indexed but absent from candidates, inspect the query, filters, search settings and index freshness.
 
-Change one stage and replay the same case before comparing aggregate metrics. Keep a request ID and versioned evidence references in traces. Restrict and minimize any raw text retained for debugging.
+If the right passage reaches the shortlist but not the prompt, inspect reranking, deduplication and token budgeting. If it reaches the prompt and the answer is still wrong, inspect generation and support checks.
+
+For example, a permission filter with an outdated group list can either exclude useful evidence or admit forbidden material. An embedding change cannot repair that metadata problem.
+
+Use access-controlled diagnostic samples rather than logging every full question, document and prompt. IDs and timings often locate the first failure without copying sensitive text into a second system. Turn the reproduced case into a regression test before changing the pipeline.
 
 Diagram: retrieval-debug-case
 

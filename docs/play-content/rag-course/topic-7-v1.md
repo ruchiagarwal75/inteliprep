@@ -15,6 +15,17 @@ Evaluate in two layers:
 Keep them separate. When a score drops, you'll know which half to fix.
 Diagram: "Question" into a "Retrieval" box, then "Chunks", then a "Generation" box, then "Answer". Under Retrieval, a gold tag "recall@k, MRR". Under Generation, a gold tag "faithfulness, correctness".
 
+#### Deep dive: Separate finding evidence from writing a supported answer
+A single overall quality score can hide the stage that broke. Ingestion may lose table headings, retrieval may miss an exception, or generation may invent a detail despite receiving the right passage.
+
+Evaluate the pipeline at useful boundaries. Check whether the source was ingested correctly, whether the needed evidence reaches candidates and context, and whether the final answer is correct and supported. Keep the same question and source versions across these checks.
+
+For a contractor chair question, a retrieval miss and an unsupported answer may look identical to the user. The fixes differ. Better generation cannot reliably repair a missing exclusion; better retrieval cannot guarantee the model follows it.
+
+Use a small reviewed set first, with answerable and unanswerable questions. Include permission cases separately because one leak can matter more than a small average quality gain.
+
+When a change improves an end-to-end score, inspect which stage improved and which slices regressed. This helps you keep the gain without silently trading away safety or freshness.
+
 ### S2. Building a test set
 Start with 100 to 300 real questions. Give each one:
 - the IDs of the right chunks, for retrieval
@@ -24,12 +35,34 @@ Good sources: real user logs (with personal data removed), support tickets, and 
 
 Include hard cases: questions the docs can't answer, multi-part questions, questions that need the newest version, and restricted content. Keep a held-out set that you never tune against.
 
+#### Deep dive: Build an evaluation case that can be reproduced
+An evaluation case needs more than a question and a sample answer. Record the relevant source version, supporting passage IDs, expected claims, answerability and the user's permission context.
+
+For "Can contractors claim chairs?", the label should identify the furniture exclusion and the applicable audience. If the source changes, you can tell whether the answer is wrong or the test is stale.
+
+Include different question types and difficult slices: exact identifiers, tables, multi-source comparisons, missing evidence, conflicting versions and restricted documents. Balance common user tasks with high-impact edge cases.
+
+Keep development and held-out cases separate. Repeatedly tuning a prompt against the same examples makes the measured result less representative. Group near-duplicate documents or queries so they do not leak across the split.
+
+Use clear labeling instructions and review disagreements. Two human reviewers may interpret a vague policy differently. That disagreement is useful evidence that the task or source needs clarification, not a reason to pretend the gold answer is perfectly objective.
+
 ### S3. Synthetic questions
 When real questions are scarce, an LLM can write them from your chunks: "Write a question this paragraph answers."
 - Fast and cheap, even for thousands.
 - But they tend to reuse the chunk's own words, so retrieval looks easier than it really is.
 - Fix: ask for paraphrased, realistic questions, and mix in real ones.
 - Review a sample by hand before trusting the set.
+
+#### Deep dive: Synthetic examples help coverage but can make the test too easy
+A model can generate questions from source passages to expand an evaluation set. This is useful for coverage, but the questions may copy source wording and be easier to retrieve than real user questions.
+
+For example, a source heading "Contractor furniture exclusion" may generate a question using those exact words. A real user may ask "Can I expense my desk?" The synthetic set can overstate both keyword and semantic retrieval quality.
+
+Generate variations, then review answerability and evidence with independent labels. Add real, privacy-safe user questions and difficult no-answer cases. Do not assume a generated reference answer is correct merely because it was produced from a document.
+
+Keep the source versions and generation method so cases can be audited. Avoid training and evaluating on near-identical generated questions from the same source family.
+
+Use synthetic cases to propose tests, not to certify the system alone. Measure performance separately on synthetic and human-written slices so an easy generated majority does not conceal real-world failures.
 
 ### S4. Retrieval metrics
 - **Recall@k:** of the right chunks for a question, the share found in the top k. With one right chunk per question, this equals hit rate@k.
@@ -40,14 +73,18 @@ When real questions are scarce, an LLM can write them from your chunks: "Write a
 Retrieval metrics need no LLM, so they're fast and cheap to run on every change.
 Diagram: a ranked list of 5 result boxes, numbered 1 to 5. Box 2 is gold and labeled "Right chunk". On the right: "Hit@5: yes" and "Reciprocal rank: 1/2 = 0.5".
 
-#### Deep dive: Use a tiny test set to locate a bottleneck
-Suppose all ten test questions have known answers. The required evidence is indexed for eight. Retrieval finds it for six. Generation produces a supported answer for five of those six.
+#### Deep dive: Know what each retrieval metric divides by
+Suppose a question has three labeled relevant passages: A, B and C. The top five results contain A and C plus three irrelevant passages. **Precision@5** is 2/5. **Recall@5** is 2/3. Different denominators answer different questions.
 
-- End-to-end success is 5/10, or 50%.
-- Retrieval hit rate is 6/10, or 60%, across the full test set.
-- Generation succeeds on 5/6, about 83%, conditional on receiving the evidence.
+**Hit rate@5** gives this question a hit because at least one relevant passage appears. Across ten questions, seven with a hit produce a 70% hit rate. It does not mean 70% of all relevant passages were retrieved.
 
-The conditional generation score is not the end-to-end score. Fix the two ingestion misses and two retrieval misses as well. If questions need several chunks, also measure how many of those required chunks were retrieved, not just whether one was found.
+**Reciprocal rank** is 1 divided by the first relevant result's rank. If the first relevant passage is third, the value is 1/3. **MRR** averages this across questions, with zero when no relevant result appears within the evaluated range.
+
+**Normalized discounted cumulative gain**, or NDCG, rewards highly relevant results near the top using graded labels and a discount for lower positions. It compares the observed ranking with an ideal ranking under those labels. State the cutoff and relevance scale.
+
+Choose metrics that match the task. One useful passage may suffice for a lookup; a comparison may need several. Keep no-answer queries separate when recall has no relevant-document denominator. Incomplete labels can also make a good newly found passage look falsely irrelevant.
+
+To locate a pipeline bottleneck, count every answerable question through the same funnel. If 8 of 10 have indexed evidence, 6 retrieve it and 5 receive supported answers, end-to-end success is 5/10. Generation succeeds on 5/6 of the retrieved cases. Reporting only that conditional rate hides the earlier losses.
 
 Diagram: eval-case
 
@@ -60,6 +97,17 @@ Diagram: eval-case
 
 Faithful isn't the same as correct. An answer can faithfully repeat an outdated chunk and still be wrong.
 
+#### Deep dive: A correct answer can still have weak support
+Answer evaluation needs separate labels for correctness, support and completeness. A model might answer correctly from general knowledge while citing an irrelevant passage. That is not reliable grounding for private or changing policies.
+
+Conversely, an answer may faithfully repeat an outdated policy and be wrong for today's question. Track the applicable source version so you can distinguish generation error from stale evidence.
+
+For a multi-part question, check each requested part. "Contractors have an allowance" misses a question about furniture exclusions even if the sentence is true. A short answer can score well only if it covers the required decision and qualifiers.
+
+Evaluate citation existence, claim support and source coverage. A citation count alone cannot show whether claims are supported. Include safe abstention when permitted evidence is insufficient.
+
+Keep a small rubric with concrete examples of partial and incorrect answers. Human reviewers and automated judges need the same distinctions. Report the separate dimensions rather than collapsing every failure into a vague quality score.
+
 ### S6. LLM as a judge
 Grading thousands of answers by hand doesn't scale, so teams use an LLM judge.
 - Give it a narrow rubric, and ask for a score plus a one-line reason. For example: "Is every claim supported by the context? Yes or no."
@@ -68,12 +116,16 @@ Grading thousands of answers by hand doesn't scale, so teams use an LLM judge.
 - Calibrate: have people label 50 to 100 cases, and check how often the judge agrees before you trust it.
 Diagram: "Question + context + answer" and "Rubric" both feed a gold "Judge LLM" box, which outputs "Score + reason". Beside it, "Human labels" and the judge's scores feed an "Agreement: 90%" box.
 
-#### Deep dive: Check where your judge disagrees with people
-A judge agrees with human labels on 90 of 100 answers. That 90% figure hides what matters: are the ten disagreements mostly unsafe answers labeled acceptable, or useful answers labeled unacceptable?
+#### Deep dive: Treat an automated judge as a measurement tool with errors
+A language-model judge scores outputs using instructions and examples. It can assess semantic support more flexibly than exact string matching, but it is not an independent source of truth.
 
-Review both directions, including short answers, refusals, conflicting sources and prompt injections. Write the evaluation rubric so it names the claim and supporting evidence, rather than rewarding confident phrasing or length.
+Judges may prefer fluent, longer answers, overlook subtle exceptions or favor a familiar style. They can also be influenced by instructions hidden inside the answer being judged. Treat the candidate answer and retrieved evidence as untrusted data.
 
-Keep a held-out human-labeled set and version the judge prompt and model. A changed judge can move the chart even when the application did not change. Do not compare scores produced under different judging rules as if they were one experiment.
+Calibrate the judge against a reviewed human-labeled set. Measure agreement, missed unsafe answers and false failures by task slice. Inspect disagreements rather than choosing a judge because its scores seem plausible.
+
+Use stable judge instructions and record versions. Changing the judge can change reported quality even when the product has not changed. Compare systems with the same judge and cases when possible.
+
+For critical permission tests, use deterministic assertions alongside semantic judgment. An automated judge should not be the only control deciding whether forbidden text leaked. Sample production cases with appropriate access and privacy limits for continued human review.
 
 ### S7. Regression gates
 Run the eval set on every meaningful change: prompt, model, chunking, embeddings, re-ranker.
@@ -83,28 +135,36 @@ Run the eval set on every meaningful change: prompt, model, chunking, embeddings
 - Slice by question type: lookups, multi-part, no-answer, recent changes. One average can hide a broken slice.
 Diagram: three pairs of horizontal bars, "Before" and "After". "Recall@10: 92% to 93%" (fine). "Faithfulness: 95% to 91%" in red with a gold stamp "Gate: blocked". "Latency p95: 1.2 s to 1.2 s" (fine).
 
-#### Deep dive: Turn a regression into a concrete release decision
-Run the old and new systems on the same held-out questions. Suppose the new chunker fixes six cases and breaks eight. The overall score falls by two points on a 100-question set, but the paired failures tell you more than the average.
+#### Deep dive: Make release gates reflect the errors you cannot accept
+A regression gate is a repeatable check a change must pass before rollout. It connects evaluation results to a release decision rather than merely generating a report.
 
-Inspect whether those eight include permission leaks, outdated policies or low-risk wording issues. A privacy regression should block release even if many easy questions improved.
+Define the cases, source versions, metrics and acceptance thresholds. Some checks are hard boundaries, such as no cross-user document leakage. Other checks can allow a measured quality or latency tradeoff within an agreed budget.
 
-Set quality floors and latency or cost limits before looking at the result. Include sampling uncertainty and human review where labels are ambiguous. A release gate is a product decision backed by evidence, not a universal percentage.
+Compare the new and current versions on the same questions. Inspect slices such as tables, languages, no-answer queries and revoked access. A small overall gain does not excuse a serious regression hidden in a rare slice.
+
+Keep the held-out set separate from the examples repeatedly used for prompt tuning. Add newly discovered production failures to a reviewed regression set without pretending the expanded set is directly comparable to an older score.
+
+When a gate fails, review the cause or roll back. Avoid changing thresholds just to pass a preferred release. A useful gate records why a tradeoff was accepted and who owns the resulting risk.
 
 ### S8. Online evaluation
 Offline sets get stale. Watch real traffic too:
 - **Explicit feedback:** thumbs up or down, and "report a wrong answer".
-- **Implicit signals:** copying the answer or clicking a citation (good), rephrasing right away or asking for a human (bad).
+- **Behavioral signals:** copies, citation clicks and follow-ups are clues, not proof of correctness or failure.
 - **A/B tests:** send a slice of traffic to the new version, and compare task success, not just clicks.
 - **Sampled judging:** run the judge on a small random sample of live answers each day.
 
 Feed real failures back into the test set.
 
-#### Deep dive: Do not mistake engagement for correctness
-An employee might click a citation because the answer is useful, because it seems wrong, or because the task requires checking the policy. A copied answer can also be incorrect.
+#### Deep dive: Behavior is a clue; it is not proof that an answer was right
+Offline evaluation measures controlled cases. Online evaluation asks whether the product helps real users under actual traffic. Both matter, and they measure different things.
 
-Use these signals to find cases for review, not as automatic ground-truth labels. Collect optional explicit feedback and sample real tasks with the right privacy controls.
+Clicks on citations, copied answers and follow-up questions are behavioral signals. A citation click may mean curiosity or suspicion. Copying an answer does not prove it is correct. A follow-up may show productive exploration rather than failure.
 
-In an experiment, choose a task-success measure and guardrails such as unsupported claims, unnecessary refusals and latency. Watch important slices, including new documents and restricted content. Feed confirmed failures into a separate regression set without repeatedly tuning against your held-out evaluation set.
+Use explicit feedback and reviewed samples where appropriate. For an experiment, assign users or sessions consistently and choose a primary outcome plus safety and service guardrails. Avoid comparing a new version during quiet hours with an old version during peak traffic.
+
+Track answerability, errors, latency and cost alongside satisfaction. A system that refuses almost everything may avoid bad answers while being useless. A confident system may get positive reactions before users discover incorrect details.
+
+Protect private text when sampling. Keep access-controlled, minimized evidence and a retention policy. Online learning should improve the product without turning every question and answer into unrestricted analytics data.
 
 ### S9. Don't fool yourself with noise
 Small test sets give noisy numbers.
@@ -112,6 +172,17 @@ Small test sets give noisy numbers.
 - Compare versions on the same questions, and look at which ones flipped.
 - Use low temperature to reduce sampling variation, but do not assume deterministic results. Repeat cases when variation could change the release decision.
 - For A/B tests, pick the main metric and the sample size before you start.
+
+#### Deep dive: Compare the same cases and look at the uncertainty
+A small evaluation set can swing from a few changed answers. If a system improves from 80 to 82 correct out of 100 questions, that difference alone does not prove a stable gain.
+
+Use paired comparisons: run both versions on the same questions and inspect which cases changed. Report uncertainty with an appropriate interval or resampling method rather than presenting every percentage point as exact.
+
+Separate randomness from systematic failure. Repeat selected cases when generation is variable, but do not keep rerunning only the failures until a version looks good. Fix the procedure before comparing results.
+
+Keep important slices visible. A large easy-query majority can hide a regression on rare, high-impact policy questions. Report counts as well as rates so a 100% result on two cases is not mistaken for strong evidence.
+
+Use evaluation to decide what to investigate next. When the observed gain is uncertain, gather more representative labels or simplify the change rather than claiming a precise improvement the sample cannot support.
 
 ### S10. Cost and latency belong in the report
 Quality isn't the only number. For every version, record:
@@ -121,12 +192,34 @@ Quality isn't the only number. For every version, record:
 
 A version that gains 1 point of faithfulness but doubles the cost may not ship. Put everything in one report, so the trade-offs are visible.
 
+#### Deep dive: Compare quality, cost and latency under the same conditions
+A release can improve answer quality while making the system too slow or expensive. Measure the full request, including query rewriting, retrieval, reranking, generation, verification and retries.
+
+Report latency distributions such as p50 and p95, not only an average. Include peak concurrency, input lengths and cache conditions. A warm-cache single-user result does not describe first-time requests under load.
+
+Cost per answer should include every model call with known usage. Separate missing usage from zero cost. Also distinguish cost per request from cost per successful, supported answer.
+
+Use the same case set and workload to compare versions. If a new context strategy sends fewer tokens but omits exceptions, it is not a straightforward efficiency win. Show the quality change beside the token savings.
+
+Set service and budget guardrails alongside quality gates. A useful report lets you see whether the chosen operating point fits the product, rather than hiding tradeoffs behind one overall score.
+
 ### S11. Common eval mistakes
 - Tuning on the test set until it scores well, then seeing no gain in production.
 - Only testing questions that have answers, so refusals are never checked.
 - Trusting an LLM judge that was never compared with people.
 - Changing the test set and the system at the same time, so scores can't be compared.
 - Reporting one average and hiding a broken slice.
+
+#### Deep dive: Check whether the benchmark rewards the behavior you need
+An evaluation can look strong for the wrong reason. Easy questions, copied source wording, stale references and leaked training examples all inflate confidence without proving the product works.
+
+Inspect the denominators. Hit rate asks whether at least one relevant result appears; recall asks how much labeled evidence was found. Calling one metric by another name changes what the score appears to mean.
+
+Include no-answer cases and permission failures. A test set containing only answerable public questions cannot measure safe abstention or access isolation. A model that always answers may look excellent on that restricted benchmark.
+
+Freeze a held-out set before tuning and track source versions. If every prompt change is optimized against the same hundred questions, improvement can reflect memorization of the test rather than better general behavior.
+
+Finally, inspect concrete outputs. Metric summaries are useful for trends, but a few traceable failures often reveal a missing exception, a bad chunk boundary or a permission bug that an aggregate number obscures.
 
 ### S12. Interview checklist
 When asked "How do you know your RAG system works?", cover:
