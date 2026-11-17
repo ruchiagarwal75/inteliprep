@@ -54,6 +54,9 @@
     "vitest": "^5.0.3"
   },
   "overrides": {
+    "@excalidraw/excalidraw": {
+      "sass": "1.79.0"
+    },
     "nanoid@^3.0.0": "3.3.20",
     "nanoid@^4.0.0": "5.1.16",
     "nanoid@^5.0.0": "5.1.16",
