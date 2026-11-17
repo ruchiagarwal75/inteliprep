@@ -39,7 +39,7 @@ export function InterviewTimer({
         {ended ? "Ended" : formatInterviewTime(remainingSeconds)}
       </span>
       {!ended && gate && !gate.timeReady && (
-        <span className="w-full text-xs text-[var(--ink-muted)]">
+        <span className="interview-scoring-note w-full text-xs text-[var(--ink-muted)]">
           Scores need at least {scoringMinimumInWords(durationMinutes ?? 45)}.{" "}
           {DESIGN_EXPLANATION_RULE}
         </span>

@@ -2,7 +2,7 @@
 
 import { configureWhiteboardAssets } from "@/lib/whiteboard-assets";
 import dynamic from "next/dynamic";
-import { useRef, useSyncExternalStore } from "react";
+import { useRef, useSyncExternalStore, type ReactNode } from "react";
 import { useTheme } from "@/components/theme-provider";
 import { themeColor } from "@/lib/theme-colors";
 import type { WhiteboardScene } from "@/lib/whiteboard-snapshot";
@@ -31,6 +31,7 @@ type WhiteboardProps = {
   onInitialize: (scene: WhiteboardScene) => void;
   readOnly?: boolean;
   initialScene?: WhiteboardScene;
+  headerControls?: ReactNode;
 };
 
 const subscribePalette = () => () => {};
@@ -42,6 +43,7 @@ export function Whiteboard({
   onInitialize,
   readOnly = false,
   initialScene,
+  headerControls,
 }: WhiteboardProps) {
   const initialized = useRef(false);
   const savedBackground = useRef(initialScene?.appState.viewBackgroundColor);
@@ -61,6 +63,7 @@ export function Whiteboard({
         <h2 className="text-sm font-medium">
           {readOnly ? "Final whiteboard" : "Whiteboard"}
         </h2>
+        {headerControls}
       </header>
       <div className="min-h-0 flex-1">
         {background && (

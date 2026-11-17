@@ -63,9 +63,15 @@ for (const zoom of [1, 0.9, 1.1])
       await expect
         .poll(() => page.evaluate(() => devicePixelRatio))
         .toBeCloseTo(zoom, 2);
+      const started = page.waitForResponse(
+        (response) =>
+          response.url().endsWith("/api/interview/start") &&
+          response.request().method() === "POST",
+      );
       await page
         .getByRole("button", { name: "Start interview", exact: true })
         .click();
+      expect((await started).status()).toBe(200);
       await page.waitForURL(/\/interview\/[a-f0-9-]+$/);
       const measurements = [];
       for (const viewport of [
@@ -77,6 +83,14 @@ for (const zoom of [1, 0.9, 1.1])
         await canvas.waitFor();
         const box = await canvas.boundingBox();
         if (!box) throw Error("Canvas missing");
+        await page
+          .getByRole("button", { name: "Focus whiteboard", exact: true })
+          .click();
+        await expect(page.locator("#panel-chat")).toBeHidden();
+        await page
+          .getByRole("button", { name: "Show chat", exact: true })
+          .click();
+        await expect(page.locator("#panel-chat")).toBeVisible();
         await page.mouse.click(box.x + 80, box.y + 130);
         await page.keyboard.press("Escape");
         await page.keyboard.press("ControlOrMeta+a");

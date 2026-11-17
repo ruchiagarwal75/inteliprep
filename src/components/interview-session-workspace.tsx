@@ -18,6 +18,7 @@ import type { useInterviewStarter } from "@/components/use-interview-starter";
 import type { SavedInterview } from "@/lib/saved-interview";
 import { useInterviewTimer } from "@/components/use-interview-timer";
 import { useTimedWhiteboard } from "@/components/use-timed-whiteboard";
+import { useWhiteboardFocus } from "@/components/use-whiteboard-focus";
 
 export function InterviewSessionWorkspace({
   saved,
@@ -53,6 +54,8 @@ export function InterviewSessionWorkspace({
   const [endTarget, setEndTarget] = useState<HTMLDivElement | null>(null);
   const [activePanel, setActivePanel] = useState<"board" | "chat">("chat");
   const [unread, setUnread] = useState(false);
+  const clearUnread = useCallback(() => setUnread(false), []);
+  const focus = useWhiteboardFocus(clearUnread);
   const activePanelRef = useRef(activePanel);
   const timer = useInterviewTimer(
     interview?.timing,
@@ -167,7 +170,8 @@ export function InterviewSessionWorkspace({
       )}
       <LaptopNote />
       <div
-        className={`grid min-h-0 flex-1 gap-2 ${hasEnded ? "grid-cols-1" : "min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"}`}
+        className={`interview-panels grid min-h-0 flex-1 gap-2 ${hasEnded ? "interview-panels-ended grid-cols-1" : ""}`}
+        data-focus={!hasEnded && focus.focused}
       >
         <div
           id="panel-board"
@@ -176,6 +180,22 @@ export function InterviewSessionWorkspace({
           className={`min-h-0 min-w-0 ${hasEnded ? "hidden" : activePanel === "board" ? "block" : "hidden min-[900px]:block"}`}
         >
           <Whiteboard
+            headerControls={
+              <button
+                type="button"
+                className="whiteboard-focus-toggle practice-secondary"
+                aria-label={
+                  focus.focused ? "Exit whiteboard focus" : "Focus whiteboard"
+                }
+                aria-pressed={focus.focused}
+                aria-controls="panel-chat"
+                aria-keyshortcuts="Alt+Shift+F"
+                title="Toggle whiteboard focus (Alt+Shift+F)"
+                onClick={focus.toggle}
+              >
+                {focus.focused ? "Exit Focus" : "Focus"}
+              </button>
+            }
             initialScene={initialScene}
             onChange={onSceneChange}
             onInitialize={(scene) => {
@@ -223,7 +243,12 @@ export function InterviewSessionWorkspace({
                 ?.brief?.[interview?.level ?? "mid"]
             }
             onAssistantMessage={() => {
-              if (activePanelRef.current === "board") setUnread(true);
+              if (
+                window.matchMedia("(min-width: 900px)").matches
+                  ? focus.focusedRef.current
+                  : activePanelRef.current === "board"
+              )
+                setUnread(true);
             }}
             onEndChange={(ended) => {
               setHasEnded(ended);
@@ -240,6 +265,24 @@ export function InterviewSessionWorkspace({
             }}
           />
         </div>
+        {!hasEnded && focus.focused && (
+          <button
+            type="button"
+            className="whiteboard-show-chat practice-secondary"
+            aria-label={
+              unread ? "Show chat, new interviewer reply" : "Show chat"
+            }
+            aria-controls="panel-chat"
+            onClick={focus.toggle}
+          >
+            Show chat
+            {unread && (
+              <span className="whiteboard-unread" role="status">
+                New reply
+              </span>
+            )}
+          </button>
+        )}
       </div>
     </main>
   );
