@@ -29,6 +29,7 @@ export function GuestStart({ nonce }: { nonce?: string }) {
   const root = useRef<HTMLDivElement>(null);
   const widget = useRef<string>(undefined);
   const key = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const unavailable = !key && process.env.NODE_ENV !== "development";
   const open = useCallback(
     async (token?: string) => {
       setBusy(true);
@@ -69,7 +70,7 @@ export function GuestStart({ nonce }: { nonce?: string }) {
       <h1>Try your first topics</h1>
       <p>Your progress starts here. No sign-in needed.</p>
       {busy && <p role="status">Opening Play...</p>}
-      {!key && process.env.NODE_ENV !== "development" && (
+      {unavailable && (
         <p role="status">
           Guest practice is not ready yet. You can sign in to play.
         </p>
@@ -93,6 +94,7 @@ export function GuestStart({ nonce }: { nonce?: string }) {
           className="practice-secondary"
           disabled={busy}
           onClick={() => {
+            setError("");
             if (widget.current) window.turnstile?.reset(widget.current);
             else if (key) window.location.reload();
             else if (process.env.NODE_ENV === "development") void open();
@@ -101,9 +103,11 @@ export function GuestStart({ nonce }: { nonce?: string }) {
           Retry
         </button>
       )}
-      <Link className="practice-secondary" href="/sign-in">
-        Sign in
-      </Link>
+      {!busy && (Boolean(error) || unavailable) && (
+        <Link className="practice-secondary" href="/sign-in">
+          Sign in
+        </Link>
+      )}
     </section>
   );
 }

@@ -22,7 +22,7 @@ test("guest starts without sign-in, quizzes without AI and links the same UUID",
     (route) =>
       route.fulfill({
         contentType: "application/javascript",
-        body: "window.turnstile={render:function(el,opts){setTimeout(function(){opts.callback('ci-only-token')},30);return 'stub'},remove:function(){},reset:function(){}};",
+        body: "window.turnstile={render:function(el,opts){var finish=document.createElement('button');finish.type='button';finish.textContent='Complete browser check';finish.onclick=function(){opts.callback('ci-only-token')};el.append(finish);return 'stub'},remove:function(){},reset:function(){}};",
       }),
   );
   const before = await modelCalls(page);
@@ -32,6 +32,15 @@ test("guest starts without sign-in, quizzes without AI and links the same UUID",
     .first()
     .click();
   await expect(page).toHaveURL(/\/play$/);
+  await expect(
+    page.getByRole("button", { name: "Complete browser check", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Complete browser check", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: /Level up for the AI engineer role/ }),
   ).toBeVisible({ timeout: 30000 });
