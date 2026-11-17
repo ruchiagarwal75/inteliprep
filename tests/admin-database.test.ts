@@ -316,17 +316,33 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
           secondUser = randomUUID();
         await tx`insert into auth.users (id,aud,role,email,created_at,updated_at,is_anonymous)
           values (${secondUser},'authenticated','authenticated',${"viewer-test-" + secondUser + "@example.invalid"},now(),now(),false)`;
-        await trackAppViewer(browserA, undefined, false);
+        await trackAppViewer({ visitorId: browserA, local: false });
         expect((await adminVisitors(true)).anonymousBrowsers).toBe(
           visitsBefore.anonymousBrowsers + 1,
         );
-        await trackAppViewer(browserA, userId, false);
-        await trackAppViewer(browserB, userId, false);
-        await trackAppViewer(browserB, userId, false);
+        await trackAppViewer({
+          visitorId: browserA,
+          session: { id: userId, kind: "account" },
+          local: false,
+        });
+        await trackAppViewer({
+          visitorId: browserB,
+          session: { id: userId, kind: "account" },
+          local: false,
+        });
+        await trackAppViewer({
+          visitorId: browserB,
+          session: { id: userId, kind: "account" },
+          local: false,
+        });
         expect((await adminVisitors(true)).identifiedAccounts).toBe(
           visitsBefore.identifiedAccounts + 1,
         );
-        await trackAppViewer(browserA, secondUser, false);
+        await trackAppViewer({
+          visitorId: browserA,
+          session: { id: secondUser, kind: "account" },
+          local: false,
+        });
         const visitsAfter = await adminVisitors(true);
         expect(visitsAfter.identifiedAccounts).toBe(
           visitsBefore.identifiedAccounts + 2,
@@ -352,10 +368,20 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
           throw Error("IP fixture configuration unavailable");
         const ipA = randomUUID().replaceAll("-", "").repeat(2);
         const ipB = randomUUID().replaceAll("-", "").repeat(2);
-        await recordIpVisitor(ipA, false);
-        await recordIpVisitor(ipA, false);
-        await recordIpVisitor(ipA, true);
-        await recordIpVisitor(ipB, true);
+        const connectionA = {
+          hash: ipA,
+          rawIp: "192.0.2.1",
+          countryCode: "US",
+        };
+        const connectionB = {
+          hash: ipB,
+          rawIp: "192.0.2.2",
+          countryCode: "IN",
+        };
+        await recordIpVisitor(connectionA, false);
+        await recordIpVisitor(connectionA, false);
+        await recordIpVisitor(connectionA, true);
+        await recordIpVisitor(connectionB, true);
         const ipAfter = await ipVisitorMetrics(true);
         if (ipAfter.status !== "ready")
           throw Error("Missing IP fixture metrics");
@@ -373,7 +399,7 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
         if (expiredIp.status !== "ready")
           throw Error("Missing recent IP metrics");
         expect(expiredIp.last7Days).toBe(ipAfter.last7Days - 1);
-        await recordIpVisitor(ipA, false);
+        await recordIpVisitor(connectionA, false);
         const [timing] =
           await tx`select first_seen_at<now()-interval '9 days' as preserved,
           last_seen_at>=now()-interval '1 minute' as updated from interview_admin.app_ip_visitors where ip_hash=${ipA} and not is_test`;
@@ -387,8 +413,22 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
         vi.stubEnv("ADMIN_TEST_USER_IDS", "");
         const ownerBrowser = randomUUID(),
           sharedIp = randomUUID().replaceAll("-", "").repeat(2);
-        await trackAppViewer(ownerBrowser, adminId, false, sharedIp);
-        await trackAppViewer(ownerBrowser, undefined, false, sharedIp);
+        const sharedConnection = {
+          hash: sharedIp,
+          rawIp: "192.0.2.3",
+          countryCode: "US",
+        };
+        await trackAppViewer({
+          visitorId: ownerBrowser,
+          session: { id: adminId, kind: "account" },
+          local: false,
+          connection: sharedConnection,
+        });
+        await trackAppViewer({
+          visitorId: ownerBrowser,
+          local: false,
+          connection: sharedConnection,
+        });
         expect(await ipVisitorMetrics(false)).toMatchObject({
           status: "ready",
           total: 0,
@@ -397,7 +437,12 @@ it.skipIf(process.env.INTELIPREP_ADMIN_DB_TEST !== "1")(
           status: "ready",
           total: 1,
         });
-        await trackAppViewer(randomUUID(), userId, false, sharedIp);
+        await trackAppViewer({
+          visitorId: randomUUID(),
+          session: { id: userId, kind: "account" },
+          local: false,
+          connection: sharedConnection,
+        });
         expect(await ipVisitorMetrics(false)).toMatchObject({
           status: "ready",
           total: 1,

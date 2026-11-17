@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { requestVisitorIpHash, visitorIpConfigured } from "@/lib/visitor-ip";
+import {
+  requestVisitorConnection,
+  visitorIpConfigured,
+} from "@/lib/visitor-ip";
+const requestVisitorIpHash = (input: Request) =>
+  requestVisitorConnection(input)?.hash;
 const request = (ip: string, header = "x-vercel-forwarded-for") =>
   new Request("https://mockmeai.com/api/monitoring/viewer", {
     headers: { [header]: ip },
@@ -35,6 +40,21 @@ it.each(["", "not-an-ip", "192.0.2.1, 192.0.2.2", "fe80::1%eth0"])(
     expect(requestVisitorIpHash(request(ip))).toBeUndefined();
   },
 );
+it("returns the canonical raw address and a validated platform country only on the server", () => {
+  const input = request("::ffff:192.0.2.7");
+  input.headers.set("x-vercel-ip-country", "us");
+  expect(requestVisitorConnection(input)).toEqual({
+    hash: requestVisitorIpHash(input),
+    rawIp: "192.0.2.7",
+    countryCode: "US",
+  });
+  for (const country of ["USA", "US,IN", "", "XX", "ZZ", "<script>"]) {
+    input.headers.set("x-vercel-ip-country", country);
+    expect(requestVisitorConnection(input)?.countryCode).toBeNull();
+  }
+  vi.stubEnv("VERCEL", "");
+  expect(requestVisitorConnection(input)).toBeUndefined();
+});
 it("ignores forwarded headers outside Vercel and does not invent an address", () => {
   expect(
     requestVisitorIpHash(request("192.0.2.1", "x-forwarded-for")),

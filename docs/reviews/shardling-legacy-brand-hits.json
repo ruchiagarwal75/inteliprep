@@ -2410,5 +2410,23 @@
     "line": 41,
     "text": "expect(response.cookies.get(\"inteliprep-auth\")?.value).toBe(",
     "reason": "Guest-cookie regression tests preserve the existing Auth cookie name. This is an internal identifier, not displayed brand copy."
+  },
+  {
+    "path": "supabase/migrations/20261117202406_visitor_connection_countries.sql",
+    "line": 25,
+    "text": "grant select,insert,update on interview_admin.app_account_countries to mockmeai_reporting;",
+    "reason": "Existing restricted database role, preserved for grants and RLS. This is not product branding."
+  },
+  {
+    "path": "supabase/migrations/20261117202406_visitor_connection_countries.sql",
+    "line": 28,
+    "text": "to mockmeai_reporting using (true) with check (true);",
+    "reason": "Existing restricted database role, preserved for grants and RLS. This is not product branding."
+  },
+  {
+    "path": "tests/visitor-countries-database.test.ts",
+    "line": 59,
+    "text": "await db.operator.unsafe(`alter role mockmeai_reporting noinherit;",
+    "reason": "Existing restricted database role, preserved for grants and RLS. This is not product branding."
   }
 ]

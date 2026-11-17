@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { candidateIdentity } from "@/lib/candidate-auth";
+import { candidateSession } from "@/lib/candidate-auth";
 import { readJsonBody, ApiRequestError } from "@/lib/api-request";
 import { checkRequestLimit } from "@/lib/request-limits";
 import { deferReporting } from "@/lib/reporting-write";
 import { trackAppViewer } from "@/lib/viewer-tracking";
 import { logServerEvent, withServerContext } from "@/lib/server-events";
 import { isAutomatedViewer } from "@/lib/viewer-automation";
-import { requestVisitorIpHash } from "@/lib/visitor-ip";
+import { requestVisitorConnection } from "@/lib/visitor-ip";
 export const runtime = "nodejs";
 const input = z.object({ visitorId: z.uuid() }).strict();
 
@@ -42,14 +42,19 @@ export async function POST(request: Request) {
         });
       else {
         failureStage = "visitor_identity";
-        const userId = await candidateIdentity();
+        const session = await candidateSession();
         const local = ["localhost", "127.0.0.1", "[::1]"].includes(
           url.hostname,
         );
         failureStage = "visitor_ip";
-        const ipHash = requestVisitorIpHash(request);
+        const connection = requestVisitorConnection(request);
         deferReporting(() =>
-          trackAppViewer(parsed.data.visitorId, userId, local, ipHash),
+          trackAppViewer({
+            visitorId: parsed.data.visitorId,
+            session,
+            local,
+            connection,
+          }),
         );
         response = new Response(null, { status: 204, headers });
       }

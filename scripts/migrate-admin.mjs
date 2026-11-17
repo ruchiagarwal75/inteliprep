@@ -203,6 +203,15 @@ try {
         ),
       ),
     );
+    await tx.unsafe(
+      readFileSync(
+        new URL(
+          "../supabase/migrations/20261117202406_visitor_connection_countries.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
     const legacy = [
       ...new Set(
         (process.env.MOCKMEAI_INVITED_EMAILS ?? "")

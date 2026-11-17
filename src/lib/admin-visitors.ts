@@ -7,6 +7,10 @@ import {
   ipVisitorMetrics,
   type IpVisitorMetrics,
 } from "@/lib/ip-visitor-tracking";
+import {
+  adminVisitorCountries,
+  type VisitorCountryMetrics,
+} from "@/lib/admin-visitor-countries";
 export type AdminVisitors = {
   total: number;
   newLast7Days: number;
@@ -17,13 +21,14 @@ export type AdminVisitors = {
   generatedAt: string;
   environment: string;
   ipComparison: IpVisitorMetrics;
+  countries: VisitorCountryMetrics;
 };
 export async function adminVisitors(
   includeExcluded = false,
 ): Promise<AdminVisitors> {
   await requireAdminIdentity();
   const sql = reportingDb();
-  const [state, counts, accounts, ipComparison] = await Promise.all([
+  const [state, counts, accounts, ipComparison, countries] = await Promise.all([
     sql<
       { since: Date; now: Date }[]
     >`select viewer_tracking_started_at as since,now() from interview_admin.reporting_state`,
@@ -36,6 +41,7 @@ export async function adminVisitors(
       select count(*)::int as "identifiedAccounts",count(*) filter(where first_seen_at>=now()-interval '7 days')::int as "identifiedAccountsLast7Days"
       from interview_admin.app_visitor_accounts where ${recordScope(includeExcluded)}`,
     ipVisitorMetrics(includeExcluded),
+    adminVisitorCountries(includeExcluded),
   ]);
   if (!state[0]?.since || !counts[0] || !accounts[0])
     throw Error("Visitor reporting unavailable");
@@ -46,5 +52,6 @@ export async function adminVisitors(
     generatedAt: state[0].now.toISOString(),
     environment: reportingEnvironment(),
     ipComparison,
+    countries,
   };
 }

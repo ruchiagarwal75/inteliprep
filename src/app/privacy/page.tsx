@@ -97,21 +97,25 @@ export default function PrivacyPage() {
         environment, an admin/test exclusion flag and an account reference when
         you are signed in. We also record each verified account&apos;s first
         visit once per environment, so multiple browsers do not inflate the
-        account count. Known automated clients are excluded using browser
-        automation signals and request user-agent checks; user-agent strings are
-        not stored. Another browser or cleared storage can count again in the
-        browser records. There is no session replay or third-party analytics
-        integration.
+        account count. We separately record a guest or registered account&apos;s
+        first known connection country, account type, visit times and test flag.
+        Country estimates come from Vercel and can reflect a VPN or proxy. Known
+        automated clients are excluded using browser automation signals and
+        request user-agent checks; user-agent strings are not stored. Another
+        browser or cleared storage can count again in the browser records. There
+        is no session replay or third-party analytics integration.
       </p>
       <p>
         For a separate connection-count comparison, the server reads the IP
-        address supplied by Vercel and stores a keyed hash of it, first and most
-        recent visit times, environment and a test-activity flag. Raw IP
-        addresses are not stored or intentionally logged by this app. The
-        comparison does not prove how many people visited. These pseudonymous
-        records remain until the operator removes them, like other operational
-        reporting. We do not store browsing trails or device fingerprints for
-        this comparison.
+        address supplied by Vercel and stores a keyed hash, the raw address,
+        estimated country, first and most recent visit times, environment and a
+        test-activity flag. Raw addresses are restricted to server reporting and
+        are cleared by a daily cleanup after 30 days without a recorded visit.
+        They are not included in browser responses or intentionally logged.
+        Country summaries, hashes and visit times remain until the operator
+        removes them. No account ID is attached to the stored raw IP. This
+        comparison does not prove how many people visited. We do not store
+        browsing trails or device fingerprints for this comparison.
       </p>
       <p>
         Server logs contain limited diagnostic metadata such as request IDs,

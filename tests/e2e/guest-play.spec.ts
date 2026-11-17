@@ -192,9 +192,11 @@ test("guest cannot call paid APIs, open mock/admin or lose a session to identity
     await expect(page).toHaveURL(/\/sign-in/);
   }
   await page.getByRole("button", { name: /Google/ }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    /already.*account|cannot.*link/i,
-  );
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: /already.*account|cannot.*link/i }),
+  ).toBeVisible();
   const cookies = await context.cookies();
   expect(
     cookies.some(

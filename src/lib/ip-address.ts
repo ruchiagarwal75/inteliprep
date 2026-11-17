@@ -1,5 +1,5 @@
 import { isIP } from "node:net";
-/** Canonical full address for comparisons; never persist or log this value. */
+/** Canonical full address. Only private visitor reporting may persist it; never log it. */
 export function canonicalIp(value: string): string | undefined {
   const version = isIP(value);
   if (!version) return;

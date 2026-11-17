@@ -62,7 +62,11 @@ export async function startReportingFixture(key, cert) {
       await operator`insert into auth.users(id,email,is_anonymous) values (${account.id},${account.anonymous ? null : account.email},${Boolean(account.anonymous)})`;
     for (const name of [
       "20261106214658_interview_admin_reporting.sql",
+      "20261107221500_app_viewer_reporting.sql",
       "20261108003142_reporting_least_privilege.sql",
+      "20261109180853_identified_app_visitors.sql",
+      "20261109184934_ip_visitor_comparison.sql",
+      "20261117202406_visitor_connection_countries.sql",
       "20261109194452_practice_feedback.sql",
       "20261111073325_feedback_input_preference.sql",
       "20261109230144_short_interview_scoring.sql",
@@ -97,6 +101,10 @@ export async function startReportingFixture(key, cert) {
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
       );
+    await operator`insert into interview_admin.app_account_countries
+      (environment,user_id,account_kind,country_code,is_test) values
+      ('test',${fixtureAccounts.guestBlocked.id},'guest','IN',true),
+      ('test',${fixtureAccounts.invited.id},'account','US',true)`;
     for (const [name, account] of Object.entries(fixtureAccounts))
       if (name !== "openBeta")
         await operator`insert into interview_admin.beta_invites(email,approved) values (${account.email},${name !== "uninvited"})`;

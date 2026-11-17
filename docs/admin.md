@@ -299,7 +299,8 @@ the tracking request; isolated CI clears the reporting connection entirely.
 
 This measures browsers, not exact people. Clearing storage or switching browsers
 can count a person again; blocked storage and failed requests can miss visits.
-There are no raw IP records, browsing trails, referrers, heartbeats or session replay.
+Browser records contain no raw IPs, browsing trails, referrers, heartbeats or session replay.
+The separate IP comparison below retains raw addresses temporarily.
 Nothing before tracking started is backfilled. Missing database data is displayed
 as unavailable, not zero.
 
@@ -325,12 +326,13 @@ the IP comparison fails.
 
 The server reads only Vercel's `x-vercel-forwarded-for` when `VERCEL=1`, validates
 and canonicalizes IPv4/IPv6, and computes an HMAC-SHA256 pseudonym. Arbitrary
-client IP fields and forwarded headers outside Vercel are not accepted. The raw
-address is never put in application logs, SQL, browser responses or reporting.
-The private RLS-protected table stores only environment, hash, first/last server
-timestamps and an admin/test classification. No account ID or device fingerprint
-is stored in this table. Records remain until operator removal; the hash is
-pseudonymous, not a claim of fully anonymous data.
+client IP fields and forwarded headers outside Vercel are not accepted.
+The private RLS-protected table stores the raw `inet` address, country code,
+environment, hash, first and last server timestamps, and an admin/test flag.
+Raw addresses never enter application logs or browser responses. No account ID
+or device fingerprint is stored in this table. Daily cleanup clears raw addresses
+after 30 days without a recorded visit. Hashes, country codes and visit times
+remain until operator removal. Hashes are pseudonymous data.
 
 Known automation is skipped before recording. Admin/test events are classified
 from verified identity/local testing; an existing excluded browser also stays
@@ -340,6 +342,46 @@ Including admin/test activity counts each address only once across both groups.
 Signed-out testing in an unidentified browser can still count, so QA must opt out.
 First/last timestamps are server-owned and repeat visits preserve the original
 first-seen value. No periodic heartbeat or additional tracking requests are added.
+
+### Enable country reporting and raw IP retention
+
+1. Apply `20261117202406_visitor_connection_countries.sql` using the operator
+   connection, or run `npm run db:admin`. The migration adds nullable IP fields
+   and the private `app_account_countries` table. Existing counts and rows remain.
+2. Configure a server-only, sensitive `CRON_SECRET` of at least 32 characters in
+   Vercel Production. Generate a dedicated value with `openssl rand -hex 32`.
+   Keep the existing `VISITOR_IP_HASH_SECRET` unchanged.
+3. Deploy the code and `vercel.json` together. Vercel calls
+   `/api/cron/visitor-ip-retention` daily at 09:17 UTC with its bearer secret.
+   The handler rejects missing or invalid authorization. Preview deployments
+   do not run scheduled jobs. The production job clears expired addresses
+   across environments in the shared database. A deployment without a valid
+   `CRON_SECRET` continues hash and country reporting but does not store raw IPs.
+4. Check the job response and logs after deployment. It returns only the number
+   of addresses cleared. A missing secret or database failure returns 503.
+5. Open **App reach**, then **Countries**, in the admin dashboard. Counts separate
+   guest and registered accounts by their first known connection country.
+
+The viewer endpoint obtains `candidateSession()` from verified Auth claims.
+It stores each account's first available `x-vercel-ip-country`, the account kind,
+server visit times, and the existing exclusion flag. A missing country appears
+as **Unknown** and can be filled on a later visit. Guest-to-Google linking changes
+the same country record to registered without adding another account. A stale
+guest session cannot change a registered record back to guest.
+
+Guest country records are separate from `app_visitor_accounts`, so the existing
+registered-account counter is unchanged. This avoids joining raw IPs to account
+IDs and lets country reports survive IP cleanup. Both tables deny `anon` and
+`authenticated` access; the runtime reporting role has no schema-management rights.
+The admin API returns country totals only, never raw addresses or IP hashes.
+
+Older accounts gain country information when they return. Old IP hashes cannot
+be backfilled. Country is an estimate of the connection, which a VPN or proxy
+can change. Daily cleanup uses a 30-day cutoff rather than deleting IP-count rows.
+
+Run `npx vitest run tests/visitor-countries-database.test.ts` to verify persistence,
+deduplication, exclusions, guest upgrades, retention and browser-role isolation
+against a disposable local Postgres database. No hosted credentials are used.
 
 ## Restricted runtime database role
 

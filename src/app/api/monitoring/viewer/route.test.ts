@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   track: vi.fn(),
   log: vi.fn(),
 }));
-vi.mock("@/lib/candidate-auth", () => ({ candidateIdentity: mocks.identity }));
+vi.mock("@/lib/candidate-auth", () => ({ candidateSession: mocks.identity }));
 vi.mock("@/lib/request-limits", () => ({ checkRequestLimit: mocks.limit }));
 vi.mock("@/lib/viewer-tracking", () => ({ trackAppViewer: mocks.track }));
 vi.mock("@/lib/reporting-write", () => ({
@@ -48,34 +48,67 @@ it.each(["vercel-screenshot/1.0", "HeadlessChrome/130.0.0.0", "Googlebot/2.1"])(
 );
 it("accepts an anonymous first visit and derives the optional account identity on the server", async () => {
   expect((await POST(request())).status).toBe(204);
-  expect(mocks.track).toHaveBeenCalledWith(id, undefined, false, undefined);
-  mocks.identity.mockResolvedValue("99999999-9999-4999-8999-999999999999");
+  expect(mocks.track).toHaveBeenCalledWith({
+    visitorId: id,
+    session: undefined,
+    local: false,
+    connection: undefined,
+  });
+  const session = {
+    id: "99999999-9999-4999-8999-999999999999",
+    kind: "account",
+  };
+  mocks.identity.mockResolvedValue(session);
   await POST(request());
-  expect(mocks.track).toHaveBeenLastCalledWith(
-    id,
-    "99999999-9999-4999-8999-999999999999",
-    false,
-    undefined,
-  );
+  expect(mocks.track).toHaveBeenLastCalledWith({
+    visitorId: id,
+    session,
+    local: false,
+    connection: undefined,
+  });
 });
-it("accepts IP identity only from the platform, hashes it, and never accepts it in client JSON", async () => {
+it("derives private connection metadata only from the platform, never client JSON", async () => {
   vi.stubEnv("VERCEL", "1");
   vi.stubEnv("VISITOR_IP_HASH_SECRET", "fixture-key-".repeat(4));
   const input = request();
   input.headers.set("x-vercel-forwarded-for", "192.0.2.7");
+  input.headers.set("x-vercel-ip-country", "US");
   expect((await POST(input)).status).toBe(204);
-  expect(mocks.track).toHaveBeenLastCalledWith(
-    id,
-    undefined,
-    false,
-    expect.stringMatching(/^[a-f0-9]{64}$/u),
-  );
-  expect(JSON.stringify(mocks.track.mock.calls)).not.toContain("192.0.2.7");
+  expect(mocks.track).toHaveBeenLastCalledWith({
+    visitorId: id,
+    session: undefined,
+    local: false,
+    connection: {
+      hash: expect.stringMatching(/^[a-f0-9]{64}$/u),
+      rawIp: "192.0.2.7",
+      countryCode: "US",
+    },
+  });
+  expect(JSON.stringify(mocks.log.mock.calls)).not.toContain("192.0.2.7");
   mocks.track.mockClear();
   expect((await POST(request({ visitorId: id, ip: "192.0.2.7" }))).status).toBe(
     400,
   );
   expect(mocks.track).not.toHaveBeenCalled();
+});
+it("passes the verified guest identity without trusting a client-provided country or kind", async () => {
+  const session = { id, kind: "guest" };
+  mocks.identity.mockResolvedValue(session);
+  const response = await POST(request());
+  expect(response.status).toBe(204);
+  expect(await response.text()).toBe("");
+  expect(mocks.track).toHaveBeenLastCalledWith({
+    visitorId: id,
+    session,
+    local: false,
+    connection: undefined,
+  });
+  for (const field of [
+    { countryCode: "US" },
+    { session },
+    { rawIp: "192.0.2.7" },
+  ])
+    expect((await POST(request({ visitorId: id, ...field }))).status).toBe(400);
 });
 it("rejects smuggled account IDs, client timestamps and invalid identifiers", async () => {
   for (const body of [

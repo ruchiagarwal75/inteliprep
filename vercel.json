@@ -3,5 +3,8 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "installCommand": "npm ci",
-  "git": { "deploymentEnabled": { "main": true, "beta": true } }
+  "git": { "deploymentEnabled": { "main": true, "beta": true } },
+  "crons": [
+    { "path": "/api/cron/visitor-ip-retention", "schedule": "17 9 * * *" }
+  ]
 }

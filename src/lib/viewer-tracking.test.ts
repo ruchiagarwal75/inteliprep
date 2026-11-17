@@ -20,7 +20,15 @@ it("does not fail account reporting or leak an address when optional IP storage 
     .mockResolvedValueOnce([])
     .mockRejectedValueOnce(Error("private database diagnostic"));
   await expect(
-    trackAppViewer(viewer, undefined, false, "a".repeat(64)),
+    trackAppViewer({
+      visitorId: viewer,
+      local: false,
+      connection: {
+        hash: "a".repeat(64),
+        rawIp: "192.0.2.1",
+        countryCode: "US",
+      },
+    }),
   ).resolves.toBeUndefined();
   expect(log).toHaveBeenCalled();
   expect(JSON.stringify(log.mock.calls)).not.toContain(
@@ -35,18 +43,26 @@ it("uses a stable pseudonym and separates admin, development, and ordinary produ
   expect(viewerHash(viewer)).toMatch(/^[a-f0-9]{64}$/u);
   vi.stubEnv("VERCEL_ENV", "production");
   vi.stubEnv("ADMIN_USER_ID", "99999999-9999-4999-8999-999999999999");
-  await trackAppViewer(viewer, undefined, false);
+  await trackAppViewer({ visitorId: viewer, local: false });
   expect(query.mock.calls.at(-1)?.at(-1)).toBe(false);
-  await trackAppViewer(viewer, "99999999-9999-4999-8999-999999999999", false);
+  await trackAppViewer({
+    visitorId: viewer,
+    session: { id: "99999999-9999-4999-8999-999999999999", kind: "account" },
+    local: false,
+  });
   expect(query.mock.calls.at(-1)?.at(-1)).toBe(true);
-  await trackAppViewer(viewer, undefined, true);
+  await trackAppViewer({ visitorId: viewer, local: true });
   expect(query.mock.calls.at(-1)?.at(-1)).toBe(true);
 });
 
 it("skips new browser rows when the shared budget is exhausted but retains verified account reporting", async () => {
   budget.mockResolvedValueOnce(false);
   query.mockClear();
-  await trackAppViewer(viewer, "11111111-1111-4111-8111-111111111111", false);
+  await trackAppViewer({
+    visitorId: viewer,
+    session: { id: "11111111-1111-4111-8111-111111111111", kind: "account" },
+    local: false,
+  });
   const statements = query.mock.calls.map((call) => String(call[0]));
   expect(
     statements.some((text) =>

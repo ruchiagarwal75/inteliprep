@@ -3,7 +3,11 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { reportingDb } from "@/lib/reporting-db";
 import { reportingEnvironment } from "@/lib/admin-config";
-import { visitorIpConfigured } from "@/lib/visitor-ip";
+import {
+  visitorIpConfigured,
+  visitorIpRetentionSecret,
+  type VisitorConnection,
+} from "@/lib/visitor-ip";
 import { logServerEvent } from "@/lib/server-events";
 
 export type IpVisitorMetrics =
@@ -15,17 +19,31 @@ export type IpVisitorMetrics =
     }
   | { status: "unavailable" };
 
-export async function recordIpVisitor(hash: string, isTest: boolean) {
+export async function recordIpVisitor(
+  { hash, rawIp, countryCode }: VisitorConnection,
+  isTest: boolean,
+) {
   if (!/^[a-f0-9]{64}$/u.test(hash))
     throw new Error("Invalid IP comparison identifier");
   const sql = reportingDb();
+  const retainedIp = visitorIpRetentionSecret() ? rawIp : null;
   const [known] =
     await sql`select 1 from interview_admin.app_ip_visitors where environment=${reportingEnvironment()} and ip_hash=${hash} and is_test=${isTest}`;
   if (!known && !(await reserveViewerRow("ip", `${hash}:${isTest}`))) return;
-  await sql`insert into interview_admin.app_ip_visitors as existing (environment,ip_hash,is_test)
-    values (${reportingEnvironment()},${hash},${isTest})
+  await sql`insert into interview_admin.app_ip_visitors as existing (environment,ip_hash,is_test,raw_ip,country_code)
+    values (${reportingEnvironment()},${hash},${isTest},${retainedIp}::inet,${countryCode})
     on conflict (environment,ip_hash,is_test) do update
-      set last_seen_at=greatest(existing.last_seen_at,now())`;
+      set last_seen_at=greatest(existing.last_seen_at,now()),raw_ip=excluded.raw_ip,
+        country_code=coalesce(excluded.country_code,existing.country_code)`;
+}
+
+/** The daily cron clears addresses while preserving hashes, dates and country summaries. */
+export async function purgeExpiredVisitorIps() {
+  const sql = reportingDb();
+  const rows = await sql`update interview_admin.app_ip_visitors set raw_ip=null
+    where raw_ip is not null and last_seen_at < now()-interval '30 days'
+    returning 1`;
+  return rows.length;
 }
 
 /** Only used behind the existing fresh owner authorization. Failure never hides account counts. */
