@@ -5,15 +5,24 @@ import { readFileSync } from "node:fs";
 
 export const fixtureOrigin = "https://127.0.0.1:4444";
 const jwtSecret = "mockmeai-ci-only-auth-fixture-not-a-production-key";
+const upgradedGuests = new Set();
 function session(account, provider = "google") {
+  const anonymous = Boolean(
+    account.anonymous && !upgradedGuests.has(account.id),
+  );
+  const actualProvider = account.anonymous ? "anonymous" : provider;
   const user = {
     ...account,
     aud: "authenticated",
     role: "authenticated",
     created_at: new Date().toISOString(),
-    app_metadata: { provider, providers: [provider] },
+    email: anonymous ? undefined : account.email,
+    app_metadata: {
+      provider: actualProvider,
+      providers: anonymous ? [] : account.anonymous ? ["google"] : [provider],
+    },
     user_metadata: { full_name: "Browser Smoke" },
-    is_anonymous: false,
+    is_anonymous: anonymous,
   };
   const now = Math.floor(Date.now() / 1000);
   const data = [
@@ -27,7 +36,7 @@ function session(account, provider = "google") {
       iss: fixtureOrigin + "/auth/v1",
       iat: now,
       exp: now + 3600,
-      is_anonymous: false,
+      is_anonymous: anonymous,
       app_metadata: user.app_metadata,
     },
   ]
@@ -78,6 +87,7 @@ function inputData(body) {
 }
 export function startFixtureService(key, cert, reporting) {
   let modelCalls = 0;
+  let anonymousSignups = 0;
   const service = createServer(
     { key: readFileSync(key), cert: readFileSync(cert) },
     async (req, res) => {
@@ -114,7 +124,52 @@ export function startFixtureService(key, cert, reporting) {
           200,
           await reporting.playAnswer(url.searchParams.get("attempt")),
         );
-      if (url.pathname === "/fixture/stats") return json(200, { modelCalls });
+      if (url.pathname === "/fixture/guest-events")
+        return json(
+          200,
+          await reporting.guestEvents(url.searchParams.get("account")),
+        );
+      if (url.pathname === "/fixture/stats")
+        return json(200, { modelCalls, anonymousSignups });
+      if (url.pathname === "/auth/v1/signup" && req.method === "POST") {
+        anonymousSignups++;
+        return json(200, session(accounts.guestPlay));
+      }
+      if (url.pathname === "/auth/v1/user/identities/authorize") {
+        const user = authenticatedUser(req.headers.authorization);
+        const name = Object.entries(accounts).find(
+          ([, account]) => account.id === user?.id,
+        )?.[0];
+        if (!user?.is_anonymous || !name) return json(401, {});
+        return json(200, {
+          url: `${fixtureOrigin}/fixture/google?account=${name}`,
+        });
+      }
+      if (url.pathname === "/fixture/google") {
+        const account = url.searchParams.get("account");
+        res
+          .writeHead(302, {
+            Location:
+              account === "guestConflict"
+                ? "http://localhost:3100/auth/callback?error=server_error&error_code=identity_already_exists"
+                : `http://localhost:3100/auth/callback?code=guest-${account}`,
+          })
+          .end();
+        return;
+      }
+      if (
+        url.pathname === "/auth/v1/token" &&
+        url.searchParams.get("grant_type") === "pkce"
+      ) {
+        let raw = "";
+        for await (const chunk of req) raw += chunk;
+        const { auth_code } = JSON.parse(raw);
+        const account = accounts[String(auth_code).replace(/^guest-/u, "")];
+        if (!account?.anonymous) return json(400, {});
+        upgradedGuests.add(account.id);
+        await reporting.upgradeGuest(account.id);
+        return json(200, session(account));
+      }
       if (url.pathname === "/fixture/welcome")
         return json(
           200,

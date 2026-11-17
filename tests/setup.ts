@@ -1,5 +1,8 @@
 import { beforeEach, vi } from "vitest";
-import { requireCandidateIdentity } from "@/lib/candidate-auth";
+import {
+  requireCandidateIdentity,
+  candidateSession,
+} from "@/lib/candidate-auth";
 
 // Transactional email is a boundary, just like Auth. Dedicated outbox tests
 // unmock it and use isolated Postgres plus a stubbed sender.
@@ -19,6 +22,10 @@ vi.mock("@/lib/candidate-auth", async (original) => ({
   requireCandidateIdentity: vi.fn(
     async () => "11111111-1111-4111-8111-111111111111",
   ),
+  candidateSession: vi.fn(async () => ({
+    id: "11111111-1111-4111-8111-111111111111",
+    kind: "account" as const,
+  })),
 }));
 vi.mock("@/lib/candidate-context", async (original) => {
   const actual = await original<typeof import("@/lib/candidate-context")>();
@@ -39,6 +46,12 @@ process.env.INTERVIEW_RESUME_SECRET =
 beforeEach(() => {
   if (vi.isMockFunction(requireCandidateIdentity)) {
     vi.mocked(requireCandidateIdentity).mockResolvedValue(testCandidate);
+  }
+  if (vi.isMockFunction(candidateSession)) {
+    vi.mocked(candidateSession).mockImplementation(async () => ({
+      id: await requireCandidateIdentity(),
+      kind: "account",
+    }));
   }
   const state = globalThis as typeof globalThis & {
     inteliprepRequestCounters?: Map<string, unknown>;

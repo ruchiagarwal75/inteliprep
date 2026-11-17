@@ -3,6 +3,7 @@ import { playEndpoint } from "@/lib/play/api";
 import { readJsonBody } from "@/lib/api-request";
 import { courseLesson, seeCourseSlide } from "@/lib/play/course/visits";
 import { MAX_COURSE_SLIDES } from "@/lib/play/course/slides-public";
+import { requireGuestTopic } from "@/lib/play/guest-context";
 const inputSchema = z
   .object({
     level: z.number().int().min(0).max(9),
@@ -25,6 +26,7 @@ export const POST = playEndpoint(
     const input = inputSchema.safeParse(await readJsonBody(request, 1024));
     if (!input.success)
       return Response.json({ error: "Choose a valid slide." }, { status: 400 });
+    requireGuestTopic("rag-course", input.data.level);
     return Response.json(
       await seeCourseSlide(
         userId,
@@ -43,5 +45,6 @@ export const GET = playEndpoint("/api/play/slides", async (request, userId) => {
     .safeParse(new URL(request.url).searchParams.get("level"));
   if (!level.success)
     return Response.json({ error: "Choose a valid topic." }, { status: 400 });
+  requireGuestTopic("rag-course", level.data);
   return Response.json(await courseLesson(userId, level.data));
 });

@@ -2350,5 +2350,65 @@
     "line": 24,
     "text": "\"create schema if not exists interview_admin; create view interview_admin.registered_users as select id,id::text||'@example.invalid' as email from auth.users;grant usage on schema interview_admin to mockmeai_reporting;grant select on interview_admin.registered_users to mockmeai_reporting;\",",
     "reason": "Isolated test fixture using the existing database role. Not user-facing copy."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 83,
+    "text": "jar.set(\"inteliprep-auth\", \"original-guest-session\");",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 115,
+    "text": "expect(jar.get(\"inteliprep-auth\")).toBe(\"original-guest-session\");",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 122,
+    "text": "jar.set(\"inteliprep-auth\", \"different-user-cookie\");",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 123,
+    "text": "jar.set(\"inteliprep-auth.0\", \"different-user-chunk\");",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 138,
+    "text": "expect(jar.get(\"inteliprep-auth\")).toBe(\"original-guest-session\");",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "src/app/auth/callback/route.test.ts",
+    "line": 139,
+    "text": "expect(jar.has(\"inteliprep-auth.0\")).toBe(false);",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "tests/e2e/guest-play.spec.ts",
+    "line": 40,
+    "text": "c.name.startsWith(\"inteliprep-auth\") && !c.name.includes(\"code-verifier\"),",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "tests/e2e/guest-play.spec.ts",
+    "line": 119,
+    "text": "(c) => c.name === \"inteliprep-auth\" && c.value.includes(\"base64-\"),",
+    "reason": "Guest Play uses existing Auth cookie, database role and RLS setting names. Test fixtures and operator setup preserve these identifiers; none is displayed as product branding."
+  },
+  {
+    "path": "src/lib/play/guest-cookie.test.ts",
+    "line": 30,
+    "text": "response.cookies.set(\"inteliprep-auth\", \"original-session\");",
+    "reason": "Guest-cookie regression tests preserve the existing Auth cookie name. This is an internal identifier, not displayed brand copy."
+  },
+  {
+    "path": "src/lib/play/guest-cookie.test.ts",
+    "line": 41,
+    "text": "expect(response.cookies.get(\"inteliprep-auth\")?.value).toBe(",
+    "reason": "Guest-cookie regression tests preserve the existing Auth cookie name. This is an internal identifier, not displayed brand copy."
   }
 ]

@@ -11,6 +11,12 @@ import { usePlayRewards } from "./play-rewards";
 import { DrillCard } from "./drill-card";
 import { RoundSummaryCard } from "./round-summary";
 import { FirstTopicRating } from "./first-topic-rating";
+import {
+  GuestQuizPrompt,
+  GuestSignInPrompt,
+  useGuestAccount,
+} from "./guest-account";
+import { GUEST_TOPIC_COUNT } from "@/lib/play/guest-policy";
 type Submission =
   | { kind: "idle" }
   | { kind: "checking"; answer: DrillAnswer }
@@ -22,6 +28,7 @@ export function DrillRunner({
   sessionId: string;
   topic: string;
 }) {
+  const { guest, markSeen } = useGuestAccount();
   const { request, userId } = useCandidateAccount(),
     router = useRouter(),
     rewards = usePlayRewards(),
@@ -165,6 +172,7 @@ export function DrillRunner({
   }
   async function next() {
     if (!view || locked.current) return;
+    if (guest && view.status === "graded") markSeen();
     if (view.status === "graded" && view.summary) {
       locked.current = true;
       setSummary(view.summary);
@@ -209,6 +217,12 @@ export function DrillRunner({
     return (
       <>
         <RoundSummaryCard summary={summary} />
+        {guest &&
+          summary.passed &&
+          summary.level !== null &&
+          summary.level >= GUEST_TOPIC_COUNT - 1 && (
+            <GuestSignInPrompt reason="limit" />
+          )}
         {summary.mode === "level" && <FirstTopicRating sessionId={sessionId} />}
       </>
     );
@@ -232,6 +246,7 @@ export function DrillRunner({
         : undefined;
   return (
     <>
+      <GuestQuizPrompt answered={view.status === "graded"} />
       {loadError && <p role="alert">{loadError}</p>}
       {refreshed && (
         <p role="status">

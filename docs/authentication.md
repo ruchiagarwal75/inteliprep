@@ -189,16 +189,18 @@ Reference: [Google's OAuth branding settings](https://support.google.com/cloud/a
 ## November security follow-up
 
 Invitation membership now also requires the verified JWT's immutable
-`app_metadata.provider` to equal `google`. Editable profile metadata cannot grant
-access. The independently authorized admin bypass is unchanged. Install the
-additive Google-only migration with `npm run db:admin` before releasing the code.
+`app_metadata.provider` to equal `google`, or its trusted `providers` list to
+contain `google` after a guest upgrade. Anonymous users never pass the invite
+check. Editable profile metadata cannot grant access. The independently
+authorized admin bypass is unchanged. Install the linked-Google migration with `npm run db:admin` before releasing the code.
 Existing invitations, interviews and saved history are preserved.
 
 Operator checklist: Supabase Dashboard, IntelliPrep, Authentication, Sign In /
-Providers. Keep Google enabled. Disable Email/password, Phone, Anonymous sign-ins
-and every other provider. Save and test both an invited Google account and an
-uninvited account. These are dashboard steps; no provider, credential or JWT
-expiry setting was changed by this patch.
+Providers. Keep Google enabled. Guest Play additionally needs anonymous sign-ins,
+manual identity linking and CAPTCHA. Follow [Guest Play setup](guest-play.md)
+before enabling them. Keep Email/password, Phone and other providers disabled.
+Test a new Google account, a linked guest and an explicitly revoked account.
+These are owner dashboard steps; no hosted configuration was changed by this patch.
 
 We chose an online `getUser()` check for interview start and end operations, in
 addition to verified claims and the current invitation check. Freeze/explicit exit

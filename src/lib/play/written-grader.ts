@@ -2,6 +2,7 @@ import { PlayGradingError } from "./grading-error";
 import { needsAiGrade } from "./grading-policy";
 import { AiBudgetError } from "@/lib/ai-budget-config";
 import "server-only";
+import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import { z } from "zod";
 import { zodTextFormat } from "openai/helpers/zod";
 import { observedModelRequest } from "@/lib/observed-model-request";
@@ -22,6 +23,7 @@ export async function gradeWrittenAnswer(
   answer: Extract<DrillAnswer, { type: "pick_probe" | "tradeoff" }>,
   signal?: AbortSignal,
 ): Promise<DrillGrade> {
+  await requireCandidateIdentity({ revalidateUser: true });
   if (!needsAiGrade(drill, answer))
     return {
       correct: false,

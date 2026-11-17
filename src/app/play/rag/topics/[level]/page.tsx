@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { playAccountId } from "@/lib/play/access";
+import { guestPlayPage } from "@/lib/play/access";
 import { courseLesson } from "@/lib/play/course/visits";
 import { PlayError } from "@/lib/play/errors";
 import { CourseSlides } from "@/components/play/course-slides";
@@ -14,9 +14,11 @@ export default async function CourseTopicPage({
   params: Promise<{ level: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await playAccountId(),
-    level = Number((await params).level);
+  const level = Number((await params).level);
   if (!Number.isSafeInteger(level) || level < 0 || level > 9) notFound();
+  const account = await guestPlayPage(`/play/rag/topics/${level}`);
+  if (!account) return null;
+  const user = account.id;
   const lesson = await courseLesson(user, level).catch((cause: unknown) => {
     if (cause instanceof PlayError && [403, 404].includes(cause.status))
       return { error: cause };

@@ -12,6 +12,7 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({
+    get: () => undefined,
     getAll: () => [
       { name: "inteliprep-auth", value: "fixture" },
       { name: "inteliprep-auth.0", value: "fixture" },
@@ -20,11 +21,18 @@ vi.mock("next/headers", () => ({
     delete: auth.removeCookie,
   }),
 }));
+vi.mock("@/lib/candidate-invites", async (original) => ({
+  ...(await original<typeof import("@/lib/candidate-invites")>()),
+  requireCandidateInvite: vi.fn(async () => {}),
+}));
 import { GET as callback } from "@/app/auth/callback/route";
 import { POST as signOut } from "@/app/auth/sign-out/route";
 
 beforeEach(() => {
-  auth.exchange.mockResolvedValue({ error: null });
+  auth.exchange.mockResolvedValue({
+    data: { user: { id: "verified-user", is_anonymous: false } },
+    error: null,
+  });
 });
 afterEach(() => {
   auth.exchange.mockReset();

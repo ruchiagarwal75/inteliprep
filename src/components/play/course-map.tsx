@@ -20,6 +20,8 @@ import { PixelSprite } from "./pixel-sprite";
 import { PIXEL_ART } from "./pixel-art";
 import { Stars } from "./stars";
 import styles from "./course-map.module.css";
+import { useGuestAccount } from "./guest-account";
+import { guestTopicAllowed } from "@/lib/play/guest-policy";
 
 type CourseNode = (typeof RAG_COURSE_NODES)[number];
 const labels = {
@@ -51,13 +53,16 @@ export function CourseMap({
   preserveTopicOne = false,
   bossState,
 }: ComponentProps<typeof CoursePath> & { bossState: RagBossState["state"] }) {
+  const { guest } = useGuestAccount();
   const access = preserveTopicOne ? [...started, 1] : started;
   const current = nextCourseLevel(passed, access);
   const [selected, setSelected] = useState<CourseNode>(
     current ?? RAG_COURSE_NODES[9],
   );
   const complete = passed.includes(selected.level);
-  const open = courseLevelOpen(selected.level, passed, access);
+  const needsAccount =
+    guest && !guestTopicAllowed(RAG_COURSE_ID, selected.level);
+  const open = courseLevelOpen(selected.level, passed, access) && !needsAccount;
   return (
     <section className={styles.overview} aria-label="RAG learning map">
       <p className={styles.hint}>Choose a topic to see its details.</p>
@@ -78,10 +83,12 @@ export function CourseMap({
         <ol className={styles.stops} aria-label="RAG course map stops">
           {RAG_COURSE_NODES.map((node, index) => {
             const done = passed.includes(node.level);
-            const available = courseLevelOpen(node.level, passed, access);
+            const available =
+              courseLevelOpen(node.level, passed, access) &&
+              (!guest || guestTopicAllowed(RAG_COURSE_ID, node.level));
             const state = done
               ? "passed"
-              : current?.level === node.level
+              : available && current?.level === node.level
                 ? "current"
                 : available
                   ? "open"
@@ -183,6 +190,10 @@ export function CourseMap({
                 </Link>
               )}
             </div>
+          ) : needsAccount ? (
+            <Link className="practice-primary" href="/sign-in?guest=limit">
+              Sign in to unlock this topic
+            </Link>
           ) : (
             <p>Pass Topic {selected.level - 1} to unlock.</p>
           )}

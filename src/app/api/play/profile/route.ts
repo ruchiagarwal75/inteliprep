@@ -21,4 +21,5 @@ export const POST = withApiRequest(
       return Response.json({ error: "Sign in to practice" }, { status: 401 });
     return Response.json(await updatePlayer(userId, parsed.data));
   },
+  { allowPlayGuest: true },
 );

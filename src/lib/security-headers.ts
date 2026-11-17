@@ -23,6 +23,9 @@ export function pageContentSecurityPolicy(nonce: string) {
     /* Missing auth configuration must not weaken the policy. */
   }
   const dev = process.env.NODE_ENV === "development";
+  const captcha = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    ? " https://challenges.cloudflare.com"
+    : "";
   return [
     restrictions,
     "default-src 'self'",
@@ -31,9 +34,9 @@ export function pageContentSecurityPolicy(nonce: string) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
-    `connect-src 'self' ${authOrigin}${dev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
+    `connect-src 'self' ${authOrigin}${captcha}${dev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
     "worker-src 'self' blob:",
-    "frame-src 'none'",
+    `frame-src${captcha || " 'none'"}`,
     "media-src 'none'",
   ].join("; ");
 }

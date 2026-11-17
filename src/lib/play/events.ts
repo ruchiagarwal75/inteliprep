@@ -4,6 +4,10 @@ import { randomUUID } from "node:crypto";
 import type { PlayTransaction } from "./database";
 import { excludedUserIds, reportingEnvironment } from "@/lib/admin-config";
 export type PlayEvent =
+  | "guest_started"
+  | "guest_first_drill_done"
+  | "guest_prompt_shown"
+  | "guest_signed_in"
   | "drill_started"
   | "drill_submitted"
   | "level_passed"

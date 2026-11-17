@@ -5,6 +5,9 @@ import { randomUUID } from "node:crypto";
 import { setReportingUser } from "@/lib/reporting-context";
 import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import { withCandidateIdentity } from "@/lib/candidate-context";
+import { requirePlayIdentity } from "@/lib/play/identity";
+import { withPlayGuest } from "@/lib/play/guest-context";
+import { GUEST_API_ROUTES } from "@/lib/play/guest-policy";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
 import { assertBetaReady, BetaUnavailableError } from "@/lib/beta-config";
@@ -70,7 +73,7 @@ export function withApiRequest(
   kind: RequestKind,
   route: string,
   handler: (request: Request, requestId: string) => Promise<Response>,
-  options?: { deferLimit?: boolean },
+  options?: { deferLimit?: boolean; allowPlayGuest?: boolean },
 ) {
   return async (request: Request): Promise<Response> => {
     const requestId = randomUUID();
@@ -91,12 +94,17 @@ export function withApiRequest(
           );
         assertBetaReady();
         failureStage = "identity_or_invite";
+        const play =
+          options?.allowPlayGuest && GUEST_API_ROUTES.has(route)
+            ? await requirePlayIdentity()
+            : undefined;
         const candidateId =
-          kind === "clientError"
+          kind === "clientError" || kind === "guestStart"
             ? undefined
-            : await requireCandidateIdentity({
+            : (play?.id ??
+              (await requireCandidateIdentity({
                 revalidateUser: kind === "start" || kind === "end",
-              });
+              })));
         setReportingUser(candidateId);
         const expectedAccount = request.headers.get("X-Interview-Account");
         if (expectedAccount && candidateId !== expectedAccount) {
@@ -108,9 +116,14 @@ export function withApiRequest(
         }
         const run = async () => {
           failureStage = "request_limit";
+          const guestRetry =
+            play?.kind === "guest"
+              ? (await checkRequestLimit(request, "guestPlayIp", true)) ||
+                (await checkRequestLimit(request, "guestPlay"))
+              : 0;
           const retry = options?.deferLimit
-            ? 0
-            : await checkRequestLimit(request, kind);
+            ? guestRetry
+            : guestRetry || (await checkRequestLimit(request, kind));
           if (!retry) failureStage = "handler";
           return retry
             ? Response.json(
@@ -124,7 +137,9 @@ export function withApiRequest(
               );
         };
         response = candidateId
-          ? await withCandidateIdentity(candidateId, run)
+          ? await withCandidateIdentity(candidateId, () =>
+              withPlayGuest(play?.kind === "guest", run),
+            )
           : await run();
       } catch (cause) {
         failure = cause;

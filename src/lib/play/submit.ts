@@ -7,6 +7,11 @@ import { playerTotals } from "./totals";
 import { needsAiGrade } from "./grading-policy";
 import { reserveAiGrade } from "./ai-usage";
 import { recordPlayEvent } from "./events";
+import {
+  currentPlayGuest,
+  requireGuestTopic,
+  GuestAccessError,
+} from "./guest-context";
 import { recordDrillReadiness } from "./readiness-store";
 import { nextCombo, drillXp } from "./game-rules";
 import { rewardDrill, rewardRound, grantPoints } from "./rewards";
@@ -29,6 +34,13 @@ export async function submitRoundAnswer(
 ) {
   const claim = await withPlayer(userId, async (sql) => {
     let attempt = await storedAttempt(sql, userId, attemptId);
+    requireGuestTopic(attempt.topic, attempt.level);
+    if (
+      currentPlayGuest() &&
+      (attempt.private_variant.definition.type !== "spot_flaw" ||
+        !attempt.private_variant.definition.course)
+    )
+      throw new GuestAccessError();
     const round = await storedRound(sql, userId, attempt.session_id);
     if (await refreshUnanswered(sql, userId, round))
       attempt = await storedAttempt(sql, userId, attemptId);
@@ -151,6 +163,11 @@ export async function submitRoundAnswer(
         correct: result.correct,
         timeMs: claim.timeMs,
       });
+      if (currentPlayGuest())
+        await recordPlayEvent(sql, userId, "guest_first_drill_done", userId, {
+          topic: attempt.topic,
+          type: attempt.private_variant.definition.type,
+        });
       const [queued] =
         await sql`select step from practice_game.review_queue where user_id=${userId} and drill_id=${attempt.drill_id}`;
       const current = queued

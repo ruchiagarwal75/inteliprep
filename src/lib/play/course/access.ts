@@ -3,6 +3,11 @@ import { withPlayer } from "../database";
 import { storedAttempt, storedRound } from "../round-store";
 import { PlayError } from "../errors";
 import { RAG_COURSE_ID } from "./metadata";
+import {
+  requireGuestTopic,
+  currentPlayGuest,
+  GuestAccessError,
+} from "../guest-context";
 export function requireCourseTopic(topic: string) {
   if (topic !== RAG_COURSE_ID)
     throw new PlayError(
@@ -14,6 +19,13 @@ export function requireCourseTopic(topic: string) {
 export async function requireCourseAttempt(userId: string, id: string) {
   return withPlayer(userId, async (sql) => {
     const attempt = await storedAttempt(sql, userId, id);
+    requireGuestTopic(attempt.topic, attempt.level);
+    if (
+      currentPlayGuest() &&
+      (attempt.private_variant.definition.type !== "spot_flaw" ||
+        !attempt.private_variant.definition.course)
+    )
+      throw new GuestAccessError();
     requireCourseTopic(attempt.topic);
     if (
       attempt.private_variant.definition.type !== "spot_flaw" ||
@@ -23,7 +35,11 @@ export async function requireCourseAttempt(userId: string, id: string) {
   });
 }
 export async function requireCourseRound(userId: string, id: string) {
-  return withPlayer(userId, async (sql) =>
-    requireCourseTopic((await storedRound(sql, userId, id)).topic),
-  );
+  return withPlayer(userId, async (sql) => {
+    const round = await storedRound(sql, userId, id);
+    if (currentPlayGuest() && round.mode !== "level")
+      throw new GuestAccessError();
+    requireGuestTopic(round.topic, round.level ?? -1);
+    requireCourseTopic(round.topic);
+  });
 }

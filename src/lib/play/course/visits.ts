@@ -4,12 +4,14 @@ import { PlayError } from "../errors";
 import { courseLevelOpen } from "./path-access";
 import { courseTopic } from "./content";
 import { RAG_COURSE_ID } from "./metadata";
+import { requireGuestTopic } from "../guest-context";
 
 async function lessonAccess(
   sql: PlayTransaction,
   userId: string,
   level: number,
 ) {
+  requireGuestTopic(RAG_COURSE_ID, level);
   const topic = courseTopic(level);
   if (!topic) throw new PlayError("This topic is coming soon.", 404);
   const rows =

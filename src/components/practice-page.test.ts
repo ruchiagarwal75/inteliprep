@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it, vi } from "vitest";
 vi.mock("@/lib/candidate-auth", () => ({
   candidateIdentity: async () => undefined,
+  candidateSession: async () => undefined,
 }));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {
@@ -15,6 +16,7 @@ it("gives a fresh signed-out browser Home without opening a session", async () =
   expect(html).toContain("Start free");
   expect(html).toContain("Level up for the AI engineer role.");
   expect(html).toContain('href="/sign-in"');
+  expect(html).toContain('href="/play"');
   expect(html).not.toContain("Time left");
   expect(html).not.toContain("Stage 1");
 });

@@ -9,10 +9,12 @@ import {
 } from "@/lib/candidate-invites";
 
 /** Verify the signature; never authorize using getSession() or user_metadata. */
-export async function candidateIdentity(options?: {
+export type CandidateSession = { id: string; kind: "guest" | "account" };
+
+export async function candidateSession(options?: {
   requireInvite?: boolean;
   revalidateUser?: boolean;
-}): Promise<string | undefined> {
+}): Promise<CandidateSession | undefined> {
   const client = await supabaseServer();
   try {
     const { data, error } = await client.auth.getClaims();
@@ -25,7 +27,7 @@ export async function candidateIdentity(options?: {
         throw new CandidateAuthError(503);
       return undefined;
     }
-    if (data?.claims.is_anonymous === true) return undefined;
+    const anonymous = data?.claims.is_anonymous === true;
     const id: unknown = data?.claims.sub;
     const verified =
       typeof id === "string" &&
@@ -43,14 +45,19 @@ export async function candidateIdentity(options?: {
           throw new CandidateAuthError(503);
         return;
       }
-      if (fresh.user?.id !== verified || fresh.user.is_anonymous) return;
+      if (
+        fresh.user?.id !== verified ||
+        Boolean(fresh.user.is_anonymous) !== anonymous
+      )
+        return;
     }
+    if (verified && anonymous) return { id: verified, kind: "guest" };
     if (verified) observeSignedIn(verified, data?.claims.session_id);
     if (verified && options?.requireInvite) {
       await requireCandidateInvite(verified, data?.claims.email, client);
       observeAccountAccess(verified, data?.claims.email);
     }
-    return verified;
+    return verified ? { id: verified, kind: "account" } : undefined;
   } catch (cause) {
     if (
       cause instanceof CandidateAuthError ||
@@ -59,6 +66,15 @@ export async function candidateIdentity(options?: {
       throw cause;
     throw new CandidateAuthError(503);
   }
+}
+
+/** Paid features and all existing callers continue to reject anonymous users. */
+export async function candidateIdentity(options?: {
+  requireInvite?: boolean;
+  revalidateUser?: boolean;
+}): Promise<string | undefined> {
+  const session = await candidateSession(options);
+  return session?.kind === "account" ? session.id : undefined;
 }
 
 export async function requireCandidateIdentity(options?: {

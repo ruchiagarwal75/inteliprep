@@ -8,6 +8,7 @@ import {
 import { withPlayer } from "@/lib/play/database";
 import { reserveAiGrade } from "@/lib/play/ai-usage";
 import { recordPlayEvent } from "@/lib/play/events";
+import { requireCandidateIdentity } from "@/lib/candidate-auth";
 let db: Awaited<ReturnType<typeof startPlayPostgres>>,
   runtime: ReturnType<typeof postgres>;
 vi.mock("@/lib/reporting-db", () => ({ reportingDb: () => runtime }));
@@ -27,9 +28,11 @@ it("enforces 150 reservations across concurrent requests, resets by UTC day and 
   await expect(
     withPlayer(user, (sql) => reserveAiGrade(sql, user, now)),
   ).rejects.toMatchObject({ status: 429, retryAfter: 10 });
+  vi.mocked(requireCandidateIdentity).mockResolvedValue(other);
   expect(
     await withPlayer(other, (sql) => reserveAiGrade(sql, other, now)),
   ).toBe(1);
+  vi.mocked(requireCandidateIdentity).mockResolvedValue(user);
   expect(
     await withPlayer(user, (sql) =>
       reserveAiGrade(sql, user, new Date("2026-11-12T00:00:00Z")),
@@ -56,4 +59,22 @@ it("deduplicates analytics retries and keeps a transaction usable after tracking
   expect(
     await db.operator`select * from practice_game.play_events where ref_id='test'`,
   ).toHaveLength(1);
+});
+
+it("persists and deduplicates every guest event without answer text", async () => {
+  const events = [
+    "guest_started",
+    "guest_first_drill_done",
+    "guest_prompt_shown",
+    "guest_signed_in",
+  ] as const;
+  await withPlayer(user, async (sql) => {
+    for (const event of events) {
+      await recordPlayEvent(sql, user, event, "guest-test");
+      await recordPlayEvent(sql, user, event, "guest-test");
+    }
+  });
+  const rows =
+    await db.operator`select event from practice_game.play_events where user_id=${user} and ref_id='guest-test' order by event`;
+  expect(rows.map((row) => row.event)).toEqual([...events].sort());
 });

@@ -53,6 +53,7 @@ const env = {
   NODE_EXTRA_CA_CERTS: cert,
   NEXT_PUBLIC_SUPABASE_URL: fixtureOrigin,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_fixture",
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: "ci-stub-only-turnstile",
   ADMIN_USER_ID: "99999999-9999-4999-8999-999999999999",
   INTERVIEW_RESUME_SECRET:
     "ci-only-stable-resume-key-with-no-production-validity",

@@ -156,3 +156,22 @@ it("observes onboarding only after the account access check succeeds", async () 
   expect(await requireCandidateIdentity()).toBe(id);
   expect(observe).toHaveBeenCalledWith(id, "new@example.test");
 });
+
+it("lets verified guests enter Play without invite checks or onboarding email", async () => {
+  const { candidateSession } = await import("./candidate-auth");
+  const id = "11111111-1111-4111-8111-111111111111";
+  claims.mockResolvedValue({
+    data: { claims: { sub: id, is_anonymous: true } },
+    error: null,
+  });
+  expect(await candidateSession({ requireInvite: true })).toEqual({
+    id,
+    kind: "guest",
+  });
+  expect(rpc).not.toHaveBeenCalled();
+  expect(observe).not.toHaveBeenCalled();
+  await expect(requireCandidateIdentity()).rejects.toMatchObject({
+    status: 401,
+  });
+  expect(rpc).not.toHaveBeenCalled();
+});

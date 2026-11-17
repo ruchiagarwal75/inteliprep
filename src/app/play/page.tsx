@@ -1,6 +1,6 @@
 import { RAG_COURSE_ID, RAG_COURSE_NODES } from "@/lib/play/course/metadata";
 import Link from "next/link";
-import { playAccountId } from "@/lib/play/access";
+import { guestPlayPage } from "@/lib/play/access";
 import { playerSnapshot } from "@/lib/play/player";
 import { PLAY_TOPICS } from "@/lib/play/catalog";
 import { BRAND } from "@/lib/brand";
@@ -12,8 +12,11 @@ import { redirect } from "next/navigation";
 import { welcomeRequired } from "@/lib/play/welcome-store";
 export const dynamic = "force-dynamic";
 export default async function PlayPage() {
-  const userId = await playAccountId();
-  if (await welcomeRequired(userId)) redirect("/play/welcome");
+  const account = await guestPlayPage("/play");
+  if (!account) return null;
+  const userId = account.id;
+  if (account.kind === "account" && (await welcomeRequired(userId)))
+    redirect("/play/welcome");
   let snapshot: Awaited<ReturnType<typeof playerSnapshot>> | undefined;
   try {
     snapshot = await playerSnapshot(userId);

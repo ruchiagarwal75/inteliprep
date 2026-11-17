@@ -20,7 +20,15 @@ import { createVariant, publicQuestion } from "./question";
 import { roundView, storedRound } from "./round-store";
 import { recordPlayEvent } from "./events";
 import { PlayError } from "./errors";
+import {
+  currentPlayGuest,
+  requireGuestTopic,
+  GuestAccessError,
+} from "./guest-context";
 export async function startRound(userId: string, input: StartRoundInput) {
+  if (currentPlayGuest() && input.mode !== "level")
+    throw new GuestAccessError();
+  requireGuestTopic(input.topic, input.mode === "level" ? input.level : -1);
   return withPlayer(userId, async (sql) => {
     const topic = playTopic(input.topic);
     if (!topic?.available)

@@ -12,6 +12,9 @@ import { BossCleared } from "./boss-cleared";
 import type { RagBossState } from "@/lib/rag-boss-public";
 import { CourseMap } from "./course-map";
 import mapStyles from "./course-map.module.css";
+import { useGuestAccount } from "./guest-account";
+import { GUEST_TOPIC_COUNT } from "@/lib/play/guest-policy";
+import { GUEST_SIGN_IN_MESSAGE } from "@/lib/play/guest-policy";
 
 export function CourseWorldView({
   progress,
@@ -28,17 +31,22 @@ export function CourseWorldView({
   primerUnlock: boolean;
   view: "map" | "path";
 }) {
+  const { guest } = useGuestAccount();
   return (
     <>
       <Link className="practice-link" href="/play">
         All worlds
       </Link>
       <WorldBanner title="RAG" unit="topics" {...progress} />
-      <p>All 10 RAG topics are open in this beta.</p>
+      <p>
+        {guest
+          ? `Try the first ${GUEST_TOPIC_COUNT} topics without signing in.`
+          : "All 10 RAG topics are open in this beta."}
+      </p>
       <Link className="practice-secondary" href="/play/rag/notebook">
         Notebook
       </Link>
-      {reviews > 0 && (
+      {!guest && reviews > 0 && (
         <section className="practice-surface">
           <h2>Review</h2>
           <p>{reviews} questions are due.</p>
@@ -75,7 +83,17 @@ export function CourseWorldView({
             sessionId={boss.result.sessionId}
           />
         )}
-        <BossNode boss={boss} />
+        {guest ? (
+          <section className="practice-surface">
+            <h2>Mock interview</h2>
+            <p>{GUEST_SIGN_IN_MESSAGE}</p>
+            <Link className="practice-secondary" href="/sign-in?guest=1">
+              Sign in for mock interviews
+            </Link>
+          </section>
+        ) : (
+          <BossNode boss={boss} />
+        )}
       </CourseUnlock>
     </>
   );

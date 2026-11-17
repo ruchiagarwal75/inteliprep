@@ -4,7 +4,12 @@ import { pageMetadata } from "@/lib/site-metadata";
 import { LegalLinks } from "@/components/legal-links";
 import { redirect } from "next/navigation";
 import { GoogleSignIn } from "@/components/google-sign-in";
-import { candidateIdentity } from "@/lib/candidate-auth";
+import { candidateSession } from "@/lib/candidate-auth";
+import { headers } from "next/headers";
+import { isInAppBrowser } from "@/lib/in-app-browser";
+import { InAppSignInBanner } from "@/components/in-app-sign-in-banner";
+import { GUEST_SIGN_IN_MESSAGE } from "@/lib/play/guest-policy";
+import { GuestPromptEvent } from "@/components/play/guest-account";
 import { supabaseServer } from "@/lib/supabase-server";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
@@ -19,12 +24,13 @@ export const dynamic = "force-dynamic";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; guest?: string }>;
 }) {
   const params = await searchParams;
   const returnTo = params.next === "/admin" ? "/admin" : undefined;
   let unavailable = false;
   let id: string | undefined;
+  let guest = false;
   try {
     if (returnTo) {
       // Revoked admin sessions must show sign-in, not loop on a still-signed JWT.
@@ -32,7 +38,12 @@ export default async function SignInPage({
       if (error && (!error.status || error.status >= 500))
         throw new CandidateAuthError(503);
       id = error || data.user?.is_anonymous ? undefined : data.user?.id;
-    } else id = await candidateIdentity({ requireInvite: true });
+      guest = Boolean(data.user?.is_anonymous);
+    } else {
+      const account = await candidateSession({ requireInvite: true });
+      id = account?.kind === "account" ? account.id : undefined;
+      guest = account?.kind === "guest";
+    }
   } catch (cause) {
     if (cause instanceof CandidateInviteError) redirect("/not-invited");
     if (!(cause instanceof CandidateAuthError) && !returnTo) throw cause;
@@ -56,8 +67,16 @@ export default async function SignInPage({
         />
         <h1 className="mb-3 text-2xl font-semibold">Sign in to practice</h1>
         <p className="text-muted mb-6">
-          {BRAND.tagline} Sign in to start a practice round.
+          {guest
+            ? GUEST_SIGN_IN_MESSAGE
+            : `${BRAND.tagline} Sign in for mock interviews and more topics.`}
         </p>
+        {isInAppBrowser((await headers()).get("user-agent") ?? "") && (
+          <InAppSignInBanner guest={guest} />
+        )}
+        {guest && params.guest === "limit" && (
+          <GuestPromptEvent reason="limit" />
+        )}
         {unavailable ? (
           <p role="alert">
             Sign-in is temporarily unavailable. Please try again later.
@@ -65,12 +84,16 @@ export default async function SignInPage({
         ) : (
           <GoogleSignIn
             returnTo={returnTo}
+            guest={guest}
             failure={
               params.error === "connection"
                 ? "connection"
-                : params.error === "1"
-                  ? "generic"
-                  : undefined
+                : params.error === "link_exists" ||
+                    params.error === "link_failed"
+                  ? params.error
+                  : params.error === "1"
+                    ? "generic"
+                    : undefined
             }
           />
         )}

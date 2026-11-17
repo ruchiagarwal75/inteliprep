@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { playAccountId } from "@/lib/play/access";
+import { guestPlayPage } from "@/lib/play/access";
 import { playerSnapshot } from "@/lib/play/player";
 import { CourseWorld } from "@/components/play/course-world";
 import { startedCourseLevels } from "@/lib/play/course/visits";
@@ -12,7 +12,9 @@ export default async function TopicPage({
   params: Promise<{ topic: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const userId = await playAccountId();
+  const account = await guestPlayPage(`/play/${(await params).topic}`);
+  if (!account) return null;
+  const userId = account.id;
   if ((await params).topic !== "rag") notFound();
   const [snapshot, started, boss] = await Promise.all([
     playerSnapshot(userId),

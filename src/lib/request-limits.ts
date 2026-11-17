@@ -19,6 +19,10 @@ export const REQUEST_LIMITS = {
   feedback: [5, 30, 60],
   mockInterest: [20, 100, 200],
   play: [120, 1200, 10000],
+  guestStart: [3, 15, 30],
+  guestSession: [2, 5, 10],
+  guestPlay: [60, 600, 3000],
+  guestPlayIp: [180, 1800, 6000],
 } as const;
 export type RequestKind = keyof typeof REQUEST_LIMITS;
 type Counter = { count: number; expiresAt: number };
@@ -28,8 +32,8 @@ const state = globalThis as typeof globalThis & {
 const counters = (state.inteliprepRequestCounters ??= new Map());
 
 /** Vercel sets this header; forwarded headers from local clients are untrusted. */
-export function requestIdentity(request: Request): string {
-  const candidate = currentCandidateId();
+export function requestIdentity(request: Request, forceIp = false): string {
+  const candidate = !forceIp && currentCandidateId();
   if (candidate) {
     const secret = process.env.INTERVIEW_RESUME_SECRET;
     if (usesSharedStore() && !secret) throw new BetaUnavailableError();
@@ -61,8 +65,12 @@ for i, key in ipairs(KEYS) do
 end
 return 0`;
 
-export function requestLimitWindows(request: Request, kind: RequestKind) {
-  const identity = requestIdentity(request);
+export function requestLimitWindows(
+  request: Request,
+  kind: RequestKind,
+  forceIp = false,
+) {
+  const identity = requestIdentity(request, forceIp);
   const prefix = `${redisNamespace()}:limit:${kind}:${identity}`;
   const windows: { key: string; limit: number; ms: number }[] = [
     { key: `${prefix}:minute`, limit: REQUEST_LIMITS[kind][0], ms: 60_000 },
@@ -88,6 +96,7 @@ export function requestLimitWindows(request: Request, kind: RequestKind) {
 export async function checkRequestLimit(
   request: Request,
   kind: RequestKind,
+  forceIp = false,
 ): Promise<number> {
   // Local start quotas can be enabled explicitly for UI testing. Model-call limits remain active.
   if (
@@ -98,7 +107,7 @@ export async function checkRequestLimit(
     process.env.INTELIPREP_DEV_START_LIMITS !== "on"
   )
     return 0;
-  const windows = requestLimitWindows(request, kind);
+  const windows = requestLimitWindows(request, kind, forceIp);
   if (usesSharedStore()) {
     const result = await redisCommand([
       "EVAL",

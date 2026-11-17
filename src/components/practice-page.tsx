@@ -1,6 +1,6 @@
 import { PlayLanding } from "@/components/play/play-landing";
 import { redirect } from "next/navigation";
-import { candidateIdentity } from "@/lib/candidate-auth";
+import { candidateIdentity, candidateSession } from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
 import { problemBriefs } from "@/lib/problems";
@@ -21,7 +21,11 @@ export async function PracticePage({
 }) {
   let userId: string | undefined;
   try {
-    userId = await candidateIdentity({ requireInvite: true });
+    if (view === "home") {
+      const session = await candidateSession({ requireInvite: true });
+      if (session?.kind === "guest") redirect("/play");
+      userId = session?.id;
+    } else userId = await candidateIdentity({ requireInvite: true });
   } catch (cause) {
     if (cause instanceof CandidateInviteError) redirect("/not-invited");
     if (!(cause instanceof CandidateAuthError)) throw cause;

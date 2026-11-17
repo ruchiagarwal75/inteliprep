@@ -10,6 +10,10 @@ import { PlayFrame } from "./play-frame";
 import type { PlayerSnapshot } from "@/lib/play/player";
 import { playerSnapshot } from "@/lib/play/player";
 import { PlayerBootstrap } from "./player-bootstrap";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { GuestAccountProvider } from "./guest-account";
+import { guestPromptSeen } from "@/lib/play/guest-events";
 export async function PlayShell({
   userId,
   active = "play",
@@ -17,6 +21,7 @@ export async function PlayShell({
   points,
   streak,
   snapshot: suppliedSnapshot,
+  guest = false,
 }: {
   userId: string;
   active?: "play" | "mock" | "progress";
@@ -24,6 +29,7 @@ export async function PlayShell({
   points?: number;
   streak?: number;
   snapshot?: PlayerSnapshot;
+  guest?: boolean;
 }) {
   let unavailable = false;
   let initializeTimeZone = false;
@@ -41,34 +47,51 @@ export async function PlayShell({
   }
   return (
     <CandidateAccountProvider userId={userId}>
-      <PlayRewardsProvider
-        initial={
-          points !== undefined && streak !== undefined
-            ? { points, streak, dailyGoal, xpLevel }
-            : undefined
-        }
+      <GuestAccountProvider
+        guest={guest}
+        seen={guest ? await guestPromptSeen(userId).catch(() => true) : true}
       >
-        <PlayFrame active={active}>
-          <div className="practice-shell">
-            {initializeTimeZone && <PlayerBootstrap />}
-            <header className="practice-nav">
-              <Brand />
-              <CandidateProfileMenu />
-            </header>
-            <ModeNav active={active} points={points} streak={streak} />
-            <div className={styles.content}>
-              {unavailable && (
-                <p role="status" className={styles.note}>
-                  Practice progress is unavailable right now. You can still use
-                  Mock. Please try Play again in a moment.
-                </p>
-              )}
-              {children}
+        <PlayRewardsProvider
+          initial={
+            points !== undefined && streak !== undefined
+              ? { points, streak, dailyGoal, xpLevel }
+              : undefined
+          }
+        >
+          <PlayFrame active={active}>
+            <div className="practice-shell">
+              {initializeTimeZone && <PlayerBootstrap />}
+              <header className="practice-nav">
+                <Brand />
+                {guest ? (
+                  <div className="header-controls">
+                    <ThemeToggle />
+                    <Link
+                      className="practice-secondary"
+                      href="/sign-in?guest=1"
+                    >
+                      Sign in
+                    </Link>
+                  </div>
+                ) : (
+                  <CandidateProfileMenu />
+                )}
+              </header>
+              <ModeNav active={active} points={points} streak={streak} />
+              <div className={styles.content}>
+                {unavailable && (
+                  <p role="status" className={styles.note}>
+                    Practice progress is unavailable right now. You can still
+                    use Mock. Please try Play again in a moment.
+                  </p>
+                )}
+                {children}
+              </div>
+              <LegalLinks />
             </div>
-            <LegalLinks />
-          </div>
-        </PlayFrame>
-      </PlayRewardsProvider>
+          </PlayFrame>
+        </PlayRewardsProvider>
+      </GuestAccountProvider>
     </CandidateAccountProvider>
   );
 }

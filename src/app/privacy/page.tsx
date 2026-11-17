@@ -11,6 +11,9 @@ export default function PrivacyPage() {
       </p>
       <h2>Your account and browser history</h2>
       <p>
+        Guest progress is stored with an anonymous account until you sign in.
+      </p>
+      <p>
         Play stores your drill answers and results, level progress, points,
         streaks, time zone, badges, readiness and review schedule with your
         account on the server. These records sync when you sign in. Signing out

@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { playTopic } from "@/lib/play/catalog";
 import { DrillRunner } from "@/components/play/drill-runner";
+import { guestPlayPage } from "@/lib/play/access";
+import { requireCourseRound } from "@/lib/play/course/access";
+import { withPlayGuest, GuestAccessError } from "@/lib/play/guest-context";
+import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export default async function DrillPage({
   params,
@@ -14,7 +18,17 @@ export default async function DrillPage({
   const { topic } = await params,
     { session } = await searchParams;
   if (!playTopic(topic)?.available) notFound();
+  const account = await guestPlayPage(`/play/${topic}/drill`);
+  if (!account) return null;
   const id = z.uuid().safeParse(session);
+  if (id.success && account.kind === "guest") {
+    try {
+      await withPlayGuest(true, () => requireCourseRound(account.id, id.data));
+    } catch (cause) {
+      if (cause instanceof GuestAccessError) redirect("/sign-in?guest=limit");
+      throw cause;
+    }
+  }
   return (
     <>
       {id.success ? (

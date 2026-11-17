@@ -16,6 +16,8 @@ import { PIXEL_ART } from "./pixel-art";
 import { GameGuide } from "./game-guide";
 import { ChestNode } from "./chest-node";
 import styles from "./level-path.module.css";
+import { useGuestAccount } from "./guest-account";
+import { guestTopicAllowed } from "@/lib/play/guest-policy";
 
 export function CoursePath({
   passed,
@@ -30,6 +32,7 @@ export function CoursePath({
   started?: number[];
   preserveTopicOne?: boolean;
 }) {
+  const { guest } = useGuestAccount();
   const access = preserveTopicOne ? [...started, 1] : started;
   const currentLevel = nextCourseLevel(passed, access)?.level;
   const track = (mobile: boolean, segments = RAG_COURSE_NODES.length - 1) => {
@@ -66,7 +69,9 @@ export function CoursePath({
       <ol className={styles.path} aria-label="RAG course topics">
         {RAG_COURSE_NODES.map((node, index) => {
           const complete = passed.includes(node.level),
-            open = courseLevelOpen(node.level, passed, access);
+            open =
+              courseLevelOpen(node.level, passed, access) &&
+              (!guest || guestTopicAllowed(RAG_COURSE_ID, node.level));
           const state = complete
             ? "passed"
             : open && node.level === currentLevel
@@ -162,9 +167,18 @@ export function CoursePath({
                     {complete ? "Practice again" : "Learn"}
                   </Link>
                 )}
-                {!open && node.available && (
-                  <span>Pass Topic {node.level - 1} to unlock.</span>
-                )}
+                {!open &&
+                  node.available &&
+                  (guest && !guestTopicAllowed(RAG_COURSE_ID, node.level) ? (
+                    <Link
+                      className="practice-secondary"
+                      href="/sign-in?guest=limit"
+                    >
+                      Sign in to unlock
+                    </Link>
+                  ) : (
+                    <span>Pass Topic {node.level - 1} to unlock.</span>
+                  ))}
               </div>
               {state === "current" && (
                 <div className={styles.guide}>

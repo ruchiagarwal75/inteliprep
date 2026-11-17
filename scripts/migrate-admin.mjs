@@ -192,6 +192,17 @@ try {
         ),
       ),
     );
+    await tx.unsafe(
+      migrationBody(
+        readFileSync(
+          new URL(
+            "../supabase/migrations/20261117015144_guest_google_invite_check.sql",
+            import.meta.url,
+          ),
+          "utf8",
+        ),
+      ),
+    );
     const legacy = [
       ...new Set(
         (process.env.MOCKMEAI_INVITED_EMAILS ?? "")

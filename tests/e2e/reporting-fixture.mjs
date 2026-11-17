@@ -59,7 +59,7 @@ export async function startReportingFixture(key, cert) {
       create table auth.users(id uuid primary key,email text,created_at timestamptz default now(),is_anonymous boolean default false,deleted_at timestamptz);
       `);
     for (const account of Object.values(fixtureAccounts))
-      await operator`insert into auth.users(id,email) values (${account.id},${account.email})`;
+      await operator`insert into auth.users(id,email,is_anonymous) values (${account.id},${account.anonymous ? null : account.email},${Boolean(account.anonymous)})`;
     for (const name of [
       "20261106214658_interview_admin_reporting.sql",
       "20261108003142_reporting_least_privilege.sql",
@@ -91,6 +91,8 @@ export async function startReportingFixture(key, cert) {
       "20261115012705_first_topic_ratings.sql",
       "20261115052442_topic_rating_visibility.sql",
       "20261115081547_play_mock_beta_access.sql",
+      "20261117015144_guest_google_invite_check.sql",
+      "20261117022458_play_guest_events.sql",
     ])
       await operator.unsafe(
         readFileSync(resolve("supabase/migrations", name), "utf8"),
@@ -171,6 +173,20 @@ export async function startReportingFixture(key, cert) {
   }
   let stopping;
   return {
+    guestEvents: async (name) => {
+      const account = fixtureAccounts[name];
+      if (!account?.anonymous) throw Error("Missing synthetic guest");
+      const rows =
+        await operator`select event from practice_game.play_events where user_id=${account.id} and event like 'guest_%' order by event`;
+      return rows.map((row) => row.event);
+    },
+    upgradeGuest: async (id) => {
+      const account = Object.values(fixtureAccounts).find(
+        (account) => account.id === id && account.anonymous,
+      );
+      if (!account) throw Error("Missing synthetic guest");
+      await operator`update auth.users set is_anonymous=false,email=${account.email} where id=${id}`;
+    },
     connection:
       "postgres://mockmeai_reporting:ci-only-reporting-fixture@127.0.0.1:55432/postgres",
     agePlayRound: async (id) => {
@@ -225,7 +241,7 @@ export async function startReportingFixture(key, cert) {
     isInvited: async (user) =>
       operator.begin(async (tx) => {
         await tx.unsafe("set local role authenticated");
-        await tx`select set_config('request.jwt.claims',${JSON.stringify({ sub: user.id, email: user.email, app_metadata: user.app_metadata })},true)`;
+        await tx`select set_config('request.jwt.claims',${JSON.stringify({ sub: user.id, email: user.email, is_anonymous: user.is_anonymous, app_metadata: user.app_metadata })},true)`;
         const [row] = await tx`select public.is_beta_invited() as approved`;
         return row.approved;
       }),

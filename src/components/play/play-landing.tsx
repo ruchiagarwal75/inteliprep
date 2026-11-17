@@ -23,7 +23,7 @@ export function PlayLanding() {
             <p className="practice-eyebrow">AI engineer practice</p>
             <h1>{BRAND.tagline}</h1>
             <p>{BRAND.pitch}</p>
-            <Link className="practice-primary" href="/sign-in">
+            <Link className="practice-primary" href="/play">
               Start free
             </Link>
           </div>

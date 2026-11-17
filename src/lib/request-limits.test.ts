@@ -133,3 +133,31 @@ it("skips local-development start quotas by default but never bypasses deployed 
     ),
   ).toBe(60);
 });
+
+it("limits guest creation by IP and session independently", async () => {
+  for (let i = 0; i < REQUEST_LIMITS.guestStart[0]; i++)
+    expect(await checkRequestLimit(request, "guestStart", true)).toBe(0);
+  expect(await checkRequestLimit(request, "guestStart", true)).toBeGreaterThan(
+    0,
+  );
+  await withCandidateIdentity("guest-browser-a", async () => {
+    for (let i = 0; i < REQUEST_LIMITS.guestSession[0]; i++)
+      expect(await checkRequestLimit(request, "guestSession")).toBe(0);
+    expect(await checkRequestLimit(request, "guestSession")).toBeGreaterThan(0);
+  });
+  expect(
+    await withCandidateIdentity("guest-browser-b", () =>
+      checkRequestLimit(request, "guestSession"),
+    ),
+  ).toBe(0);
+});
+it("shares an IP bucket between separate guest users without storing the raw IP", () => {
+  vi.stubEnv("VERCEL", "1");
+  const r = new Request(request.url, {
+    headers: { "x-vercel-forwarded-for": "192.0.2.12" },
+  });
+  const a = withCandidateIdentity("guest-a", () => requestIdentity(r, true));
+  const b = withCandidateIdentity("guest-b", () => requestIdentity(r, true));
+  expect(a).toBe(b);
+  expect(a).not.toContain("192.0.2.12");
+});

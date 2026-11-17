@@ -2,6 +2,21 @@ import { bossAccounts } from "./boss-fixture.mjs";
 import { welcomeAccounts } from "./welcome-fixture.mjs";
 // Each independent story has its own account and real request-limit budget.
 export const fixtureAccounts = {
+  guestPlay: {
+    id: "f0770000-0000-4000-8000-000000000001",
+    email: "guest-play@example.invalid",
+    anonymous: true,
+  },
+  guestBlocked: {
+    id: "f0770000-0000-4000-8000-000000000002",
+    email: "guest-blocked@example.invalid",
+    anonymous: true,
+  },
+  guestConflict: {
+    id: "f0770000-0000-4000-8000-000000000003",
+    email: "guest-conflict@example.invalid",
+    anonymous: true,
+  },
   mockTrial: {
     id: "f0550000-0000-4000-8000-000000000001",
     email: "mock-trial@example.invalid",

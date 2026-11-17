@@ -1,4 +1,5 @@
 import "server-only";
+import { requireCandidateIdentity } from "@/lib/candidate-auth";
 import type { PlayTransaction } from "./database";
 import { PLAY_LIMITS } from "./config";
 import { PlayError } from "./errors";
@@ -8,6 +9,8 @@ export async function reserveAiGrade(
   userId: string,
   now = new Date(),
 ) {
+  if ((await requireCandidateIdentity({ revalidateUser: true })) !== userId)
+    throw new PlayError("Sign in to check this answer.", 401);
   const day = now.toISOString().slice(0, 10);
   const rows =
     await sql`insert into practice_game.daily_ai_usage(user_id,day,calls) values(${userId},${day},1) on conflict(user_id,day) do update set calls=daily_ai_usage.calls+1 where daily_ai_usage.calls<${PLAY_LIMITS.aiGradesPerUserPerDay} returning calls`;

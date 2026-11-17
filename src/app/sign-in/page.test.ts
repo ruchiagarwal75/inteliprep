@@ -13,9 +13,10 @@ vi.mock("@/lib/supabase-server", () => ({
   supabaseServer: async () => ({ auth: { getUser: mocks.getUser } }),
 }));
 vi.mock("@/lib/candidate-auth", () => ({
-  candidateIdentity: mocks.claims,
+  candidateSession: mocks.claims,
   requireCandidateIdentity: vi.fn(),
 }));
+vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
 afterEach(() => vi.clearAllMocks());
 it("shows login instead of redirecting a revoked admin session on its stale claims", async () => {
@@ -41,7 +42,7 @@ it("returns a freshly authenticated user only to the fixed admin route", async (
   expect(mocks.redirect).toHaveBeenCalledWith("/admin");
 });
 it("does not accept an external sign-in destination", async () => {
-  mocks.claims.mockResolvedValue("verified-user");
+  mocks.claims.mockResolvedValue({ id: "verified-user", kind: "account" });
   await expect(
     SignInPage({
       searchParams: Promise.resolve({ next: "https://attacker.example" }),
