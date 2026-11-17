@@ -2,8 +2,11 @@
 
 Guests use Supabase anonymous Auth. Progress, XP and stars use the same user UUID
 as registered accounts. `GUEST_TOPIC_COUNT` in `src/lib/play/guest-policy.ts`
-currently opens Topic 0 and Topic 1. Later topics, reviews, gap cards, the intro,
-Mock, the boss, Progress and admin require a real account.
+currently opens Topic 0 and Topic 1. Brand-new guests see the existing welcome
+intro first, including when they enter through a topic link. Completing or
+skipping it is saved on their anonymous account and survives a Google upgrade.
+Guests with existing practice progress continue without an automatic replay.
+Later topics, reviews, gap cards, Mock, the boss, Progress and admin require a real account.
 
 A guest Google sign-in uses `linkIdentity`, never `signInWithOAuth`. The callback
 accepts only the original guest UUID. If Google already belongs to another
@@ -23,7 +26,8 @@ signing out before linking can make anonymous progress inaccessible.
   supplies settings. Neither invokes a model itself.
 - `/api/play/{activity,chest,next,profile,round,slides,topic-rating}` and
   `/api/play/{prompt,welcome,welcome/start,boss/cleared}` do not call a model.
-  The latter four are still real-account-only. Chest is scoped to allowed topics;
+  Welcome start and finish also allow guests and make no AI calls. Prompt and
+  boss remain real-account-only. Chest is scoped to allowed topics;
   currently no chest exists in Topics 0 or 1.
 - No `/play` page calls a provider. Actual mock calls are behind the existing
   real-account guards on `/api/interview/start`, `/api/chat` and

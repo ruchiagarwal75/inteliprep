@@ -118,7 +118,7 @@ export async function startReportingFixture(key, cert) {
     await seedWelcomeFixtures(operator);
     // Established stories skip onboarding. Welcome stories have isolated fresh accounts.
     for (const [name, account] of Object.entries(fixtureAccounts))
-      if (!name.startsWith("welcome"))
+      if (!name.startsWith("welcome") && !account.anonymous)
         await operator`insert into practice_game.welcome_state(user_id,welcome_seen_at) values(${account.id},now()) on conflict do nothing`;
     // Existing course stories represent returning players. New primer QA accounts
     // are deliberately not seeded, so the real fresh-player gate is exercised.

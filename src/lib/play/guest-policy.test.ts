@@ -10,6 +10,7 @@ it("opens only the configured free topics and required pages", () => {
   expect(GUEST_TOPIC_COUNT).toBe(2);
   for (const path of [
     "/play",
+    "/play/welcome",
     "/play/rag",
     "/play/rag/drill",
     "/play/rag/topics/0",
@@ -20,7 +21,6 @@ it("opens only the configured free topics and required pages", () => {
     "/play/rag/topics/2",
     "/play/rag/topics/10",
     "/play/rag/gap/permissions",
-    "/play/welcome",
     "/play/chat",
     "/mock",
     "/interview/new",
@@ -38,9 +38,12 @@ it("guests cannot opt into paid APIs through the Play adapter", () => {
     "/api/interview/end",
     "/api/play/prompt",
     "/api/play/boss/cleared",
-    "/api/play/welcome",
   ])
     expect(GUEST_API_ROUTES.has(path)).toBe(false);
+});
+it("allows the non-AI welcome commands for guests", () => {
+  expect(GUEST_API_ROUTES.has("/api/play/welcome")).toBe(true);
+  expect(GUEST_API_ROUTES.has("/api/play/welcome/start")).toBe(true);
 });
 it("checks guest scope in a request-local context without restricting real accounts", () => {
   withPlayGuest(true, () => {

@@ -1,7 +1,10 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { POST as start } from "@/app/api/play/welcome/start/route";
 import { POST as finish } from "@/app/api/play/welcome/route";
-import { requireCandidateIdentity } from "@/lib/candidate-auth";
+import {
+  requireCandidateIdentity,
+  candidateSession,
+} from "@/lib/candidate-auth";
 import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
 import { PlayError } from "@/lib/play/errors";
@@ -77,4 +80,18 @@ it("accepts bounded strict commands only for the verified account", async () => 
   expect(
     (await finish(request("", { runId: id, action: "skip", panel: 1 }))).status,
   ).toBe(404);
+});
+it("starts and finishes the intro using the verified anonymous account ID", async () => {
+  const guestId = crypto.randomUUID();
+  vi.mocked(candidateSession).mockResolvedValue({ id: guestId, kind: "guest" });
+  vi.mocked(requireCandidateIdentity).mockRejectedValue(
+    new CandidateAuthError(),
+  );
+  expect(
+    (await start(request("/start", { requestId: id, replay: false }))).status,
+  ).toBe(200);
+  expect(open).toHaveBeenCalledExactlyOnceWith(guestId, false, id);
+  const payload = { runId: id, action: "skip", panel: 1 };
+  expect((await finish(request("", payload))).status).toBe(200);
+  expect(save).toHaveBeenCalledExactlyOnceWith(guestId, payload);
 });

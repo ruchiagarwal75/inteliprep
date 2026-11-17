@@ -17,6 +17,11 @@ export const fixtureAccounts = {
     email: "guest-conflict@example.invalid",
     anonymous: true,
   },
+  guestWelcome: {
+    id: "f0770000-0000-4000-8000-000000000004",
+    email: "guest-welcome@example.invalid",
+    anonymous: true,
+  },
   mockTrial: {
     id: "f0550000-0000-4000-8000-000000000001",
     email: "mock-trial@example.invalid",

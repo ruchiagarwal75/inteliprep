@@ -41,9 +41,16 @@ test("guest starts without sign-in, quizzes without AI and links the same UUID",
   await page
     .getByRole("button", { name: "Complete browser check", exact: true })
     .click();
+  await expect(page).toHaveURL(/\/play\/welcome$/);
+  await expect(
+    page.getByRole("heading", { name: "WELCOME, ENGINEER", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: /Level up for the AI engineer role/ }),
   ).toBeVisible({ timeout: 30000 });
+  await page.reload();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   const cookieBefore = (await context.cookies()).filter(
     (c) =>
       c.name.startsWith("inteliprep-auth") && !c.name.includes("code-verifier"),
@@ -110,6 +117,54 @@ test("guest starts without sign-in, quizzes without AI and links the same UUID",
     "guest_signed_in",
     "guest_started",
   ]);
+  expect(errors).toEqual([]);
+});
+test("a new guest completes welcome from a topic link and only sees it once", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "guestWelcome");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const before = await modelCalls(page);
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/play/rag/topics/0");
+  await expect(page).toHaveURL(/\/play\/welcome$/);
+  await expect(
+    page.getByRole("heading", { name: "WELCOME, ENGINEER", exact: true }),
+  ).toBeVisible();
+  // Reopening an unfinished intro uses the same account-owned run.
+  await page.reload();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  for (let step = 0; step < 12; step++) {
+    if (
+      await page
+        .getByRole("button", { name: "Go to Play", exact: true })
+        .count()
+    )
+      break;
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+  }
+  const finished = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/play/welcome") &&
+      response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: "Go to Play", exact: true }).click();
+  expect((await finished).status()).toBe(200);
+  await expect(page).toHaveURL(/\/play$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: /Level up for the AI engineer role/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.goto("/play/welcome");
+  await expect(page).toHaveURL(/\/play$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.goto("/play/rag/topics/0");
+  await expect(page).toHaveURL(/\/play\/rag\/topics\/0$/);
+  expect(await modelCalls(page)).toBe(before);
   expect(errors).toEqual([]);
 });
 test("guest cannot call paid APIs, open mock/admin or lose a session to identity conflicts", async ({

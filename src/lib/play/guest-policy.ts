@@ -13,7 +13,8 @@ export function guestTopicAllowed(topic: string, level: number) {
 }
 
 export function guestPageAllowed(path: string) {
-  if (["/play", "/play/rag", "/play/rag/drill"].includes(path)) return true;
+  if (["/play", "/play/welcome", "/play/rag", "/play/rag/drill"].includes(path))
+    return true;
   const level = /^\/play\/rag\/topics\/(\d+)$/u.exec(path)?.[1];
   return level !== undefined && guestTopicAllowed("rag-course", Number(level));
 }
@@ -29,4 +30,6 @@ export const GUEST_API_ROUTES: ReadonlySet<string> = new Set([
   "/api/play/topic-rating",
   "/api/play/guest/prompt",
   "/api/play/guest/link",
+  "/api/play/welcome",
+  "/api/play/welcome/start",
 ]);

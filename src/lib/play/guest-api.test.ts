@@ -28,13 +28,24 @@ it.each([
   "/api/interview/resume",
   "/api/play/prompt",
   "/api/play/boss/cleared",
-  "/api/play/welcome",
 ])("denies anonymous access to %s before its handler", async (route) => {
   const handler = vi.fn().mockResolvedValue(Response.json({ ok: true }));
   const api = withApiRequest("play", route, handler, { allowPlayGuest: true });
   expect((await api(request(route))).status).toBe(401);
   expect(handler).not.toHaveBeenCalled();
 });
+it.each(["/api/play/welcome", "/api/play/welcome/start"])(
+  "allows the non-AI intro command %s for the verified guest",
+  async (route) => {
+    const handler = vi.fn(async () => {
+      expect(currentPlayGuest()).toBe(true);
+      return Response.json({ saved: true });
+    });
+    const response = await playEndpoint(route, handler)(request(route));
+    expect(response.status).toBe(200);
+    expect(handler).toHaveBeenCalledExactlyOnceWith(expect.any(Request), id);
+  },
+);
 it("allows a free guest action but enforces topic boundaries and rate limits", async () => {
   const api = playEndpoint("/api/play/round", async () => {
     expect(currentPlayGuest()).toBe(true);
