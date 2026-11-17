@@ -7,6 +7,12 @@ const fixture = "https://127.0.0.1:4444";
 test("automated browsing does not generate visitor events", async ({
   page,
 }) => {
+  await page.route("https://challenges.cloudflare.com/turnstile/**", (route) =>
+    route.fulfill({
+      contentType: "application/javascript",
+      body: "window.turnstile = { render: () => 'ci-only', remove: () => {} };",
+    }),
+  );
   const events: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname === "/api/monitoring/viewer")
@@ -14,7 +20,10 @@ test("automated browsing does not generate visitor events", async ({
   });
   await page.goto("/");
   await page.getByRole("link", { name: "Start free", exact: true }).click();
-  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(page).toHaveURL(/\/play$/);
+  await expect(
+    page.getByRole("heading", { name: "Try your first topics", exact: true }),
+  ).toBeVisible();
   expect(events).toEqual([]);
 });
 test("sign-in links the same anonymous browser on a non-entry page", async ({
