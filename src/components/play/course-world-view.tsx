@@ -87,7 +87,7 @@ export function CourseWorldView({
           <section className="practice-surface">
             <h2>Mock interview</h2>
             <p>{GUEST_SIGN_IN_MESSAGE}</p>
-            <Link className="practice-secondary" href="/sign-in?guest=1">
+            <Link className="practice-secondary" href="/sign-in">
               Sign in for mock interviews
             </Link>
           </section>

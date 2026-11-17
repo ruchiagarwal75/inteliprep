@@ -1,32 +1,27 @@
 "use client";
 import { z } from "zod";
-import { oauthCallbackUrl } from "./oauth-callback";
-import { supabaseBrowser } from "./supabase-browser";
+export type GoogleSignInMode = "sign-in" | "save-guest";
 export async function beginGoogleSignIn(input: {
-  origin: string;
-  guest: boolean;
+  mode: GoogleSignInMode;
   returnTo?: "/admin";
 }) {
-  if (input.guest) {
-    const response = await fetch("/api/play/guest/link", {
+  const response = await fetch(
+    input.mode === "save-guest" ? "/api/play/guest/link" : "/auth/google",
+    {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: "{}",
+      body: JSON.stringify(
+        input.mode === "sign-in" && input.returnTo
+          ? { next: input.returnTo }
+          : {},
+      ),
       signal: AbortSignal.timeout(15000),
-    });
-    if (!response.ok) throw Error("Google account linking failed");
-    return z
-      .object({
-        url: z.url().refine((value) => new URL(value).protocol === "https:"),
-      })
-      .parse(await response.json()).url;
-  }
-  const { error } = await supabaseBrowser().auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: oauthCallbackUrl(input.origin, input.returnTo),
-      scopes: "openid email profile",
     },
-  });
-  if (error) throw error;
+  );
+  if (!response.ok) throw Error("Google sign-in failed");
+  return z
+    .object({
+      url: z.url().refine((value) => new URL(value).protocol === "https:"),
+    })
+    .parse(await response.json()).url;
 }

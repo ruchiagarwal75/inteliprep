@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { signIn } from "./fixture-auth";
+import { authCookieOptions } from "../../src/lib/supabase-config";
 import {
   openPlayLevel,
   playView,
@@ -85,7 +86,9 @@ test("guest starts without sign-in, quizzes without AI and links the same UUID",
   await page.goto("/play/rag/topics/2");
   await expect(page).toHaveURL(/\/sign-in\?guest=limit/);
   await expect(
-    page.getByText("Sign in to save your XP and unlock the next topics."),
+    page.getByText(
+      "Create an account to keep this guest session's XP and unlock the next topics.",
+    ),
   ).toBeVisible();
   await page.getByRole("button", { name: /Google/ }).click();
   await expect(page).toHaveURL(/\/play$/);
@@ -167,7 +170,7 @@ test("a new guest completes welcome from a topic link and only sees it once", as
   expect(await modelCalls(page)).toBe(before);
   expect(errors).toEqual([]);
 });
-test("guest cannot call paid APIs, open mock/admin or lose a session to identity conflicts", async ({
+test("guest restrictions hold and an existing Google account can sign in after a link conflict", async ({
   page,
   context,
 }) => {
@@ -193,9 +196,9 @@ test("guest cannot call paid APIs, open mock/admin or lose a session to identity
   }
   await page.getByRole("button", { name: /Google/ }).click();
   await expect(
-    page
-      .getByRole("alert")
-      .filter({ hasText: /already.*account|cannot.*link/i }),
+    page.getByRole("status").filter({
+      hasText: "You already have an account with this Google login.",
+    }),
   ).toBeVisible();
   const cookies = await context.cookies();
   expect(
@@ -211,6 +214,80 @@ test("guest cannot call paid APIs, open mock/admin or lose a session to identity
       })
     ).status(),
   ).toBe(200);
+  expect(await modelCalls(page)).toBe(before);
+  // The retry is a normal OAuth sign-in, not another link attempt.
+  await page
+    .getByRole("button", { name: "Continue with Google", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/play$/);
+  await page.goto("/mock");
+  await expect(
+    page.getByRole("heading", { name: "Mock interviews", exact: true }),
+  ).toBeVisible();
+  expect(
+    (await context.cookies()).some((c) => c.name === "shardling-guest-link"),
+  ).toBe(false);
+  expect(await modelCalls(page)).toBe(before);
+});
+
+test("ordinary guest sign-in uses the existing account even with an unfinished guest link", async ({
+  page,
+  context,
+}) => {
+  await signIn(context, "guestConflict");
+  const before = await modelCalls(page);
+  // Keep a guest-owned round to prove that sign-in never transfers its ownership.
+  for (let index = 0; index < 10; index++) {
+    const slide = await context.request.post("/api/play/slides", {
+      headers: { origin },
+      data: { level: 0, index },
+    });
+    expect(slide.status()).toBe(200);
+  }
+  const started = await context.request.post("/api/play/round", {
+    headers: { origin },
+    data: {
+      topic: "rag-course",
+      mode: "level",
+      level: 0,
+      requestId: crypto.randomUUID(),
+      timeZone: "America/Los_Angeles",
+    },
+  });
+  expect(started.status()).toBe(200);
+  const round = await started.json();
+  const authName = authCookieOptions().name;
+  const originalCookies = (await context.cookies()).filter(
+    (c) => c.name === authName || c.name.startsWith(`${authName}.`),
+  );
+  const linking = await context.request.post("/api/play/guest/link", {
+    headers: { origin },
+    data: {},
+  });
+  expect(linking.status()).toBe(200);
+  expect(
+    (await context.cookies()).some((c) => c.name === "shardling-guest-link"),
+  ).toBe(true);
+  await page.goto("/sign-in");
+  await expect(
+    page.getByRole("heading", { name: "Sign in to practice" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create account with Google" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Continue with Google", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/play$/);
+  const other = await context.request.get(
+    `/api/play/round?sessionId=${round.sessionId}`,
+  );
+  expect(other.status()).toBe(404);
+  await context.addCookies(originalCookies);
+  const retained = await context.request.get(
+    `/api/play/round?sessionId=${round.sessionId}`,
+  );
+  expect(retained.status()).toBe(200);
   expect(await modelCalls(page)).toBe(before);
 });
 test("webview sign-in explains the browser restriction at phone width", async ({

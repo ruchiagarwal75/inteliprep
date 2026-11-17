@@ -145,6 +145,19 @@ export function startFixtureService(key, cert, reporting) {
           url: `${fixtureOrigin}/fixture/google?account=${name}`,
         });
       }
+      if (url.pathname === "/auth/v1/authorize") {
+        const callback = new URL(url.searchParams.get("redirect_to"));
+        if (
+          url.searchParams.get("provider") !== "google" ||
+          callback.origin !== "http://localhost:3100" ||
+          callback.pathname !== "/auth/callback" ||
+          !url.searchParams.get("code_challenge")
+        )
+          return json(400, {});
+        callback.searchParams.set("code", "signin-invited");
+        res.writeHead(302, { Location: callback.href }).end();
+        return;
+      }
       if (url.pathname === "/fixture/google") {
         const account = url.searchParams.get("account");
         res
@@ -164,6 +177,8 @@ export function startFixtureService(key, cert, reporting) {
         let raw = "";
         for await (const chunk of req) raw += chunk;
         const { auth_code } = JSON.parse(raw);
+        if (auth_code === "signin-invited")
+          return json(200, session(accounts.invited));
         const account = accounts[String(auth_code).replace(/^guest-/u, "")];
         if (!account?.anonymous) return json(400, {});
         upgradedGuests.add(account.id);

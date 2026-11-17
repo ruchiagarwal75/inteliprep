@@ -66,10 +66,7 @@ export async function PlayShell({
                 {guest ? (
                   <div className="header-controls">
                     <ThemeToggle />
-                    <Link
-                      className="practice-secondary"
-                      href="/sign-in?guest=1"
-                    >
+                    <Link className="practice-secondary" href="/sign-in">
                       Sign in
                     </Link>
                   </div>

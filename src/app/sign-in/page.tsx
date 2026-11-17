@@ -8,7 +8,6 @@ import { candidateSession } from "@/lib/candidate-auth";
 import { headers } from "next/headers";
 import { isInAppBrowser } from "@/lib/in-app-browser";
 import { InAppSignInBanner } from "@/components/in-app-sign-in-banner";
-import { GUEST_SIGN_IN_MESSAGE } from "@/lib/play/guest-policy";
 import { GuestPromptEvent } from "@/components/play/guest-account";
 import { supabaseServer } from "@/lib/supabase-server";
 import { CandidateAuthError } from "@/lib/supabase-config";
@@ -50,6 +49,11 @@ export default async function SignInPage({
     unavailable = true;
   }
   if (id) redirect(returnTo ?? "/play");
+  const saveGuest =
+    guest &&
+    !returnTo &&
+    ["1", "limit"].includes(params.guest ?? "") &&
+    params.error !== "link_exists";
   return (
     <main className="bg-surface flex min-h-dvh items-center justify-center p-6">
       <div className="bg-background border-border w-full max-w-md rounded-2xl border p-8 shadow-sm">
@@ -65,10 +69,14 @@ export default async function SignInPage({
           unoptimized
           className={brandStyles.signInIcon}
         />
-        <h1 className="mb-3 text-2xl font-semibold">Sign in to practice</h1>
+        <h1 className="mb-3 text-2xl font-semibold">
+          {saveGuest ? "Save your guest progress" : "Sign in to practice"}
+        </h1>
         <p className="text-muted mb-6">
           {guest
-            ? GUEST_SIGN_IN_MESSAGE
+            ? saveGuest
+              ? "Create an account to keep this guest session's XP and unlock the next topics."
+              : "Sign in to open your saved account and progress. This guest session's XP will stay separate."
             : `${BRAND.tagline} Sign in for mock interviews and more topics.`}
         </p>
         {isInAppBrowser((await headers()).get("user-agent") ?? "") && (
@@ -85,6 +93,7 @@ export default async function SignInPage({
           <GoogleSignIn
             returnTo={returnTo}
             guest={guest}
+            mode={saveGuest ? "save-guest" : "sign-in"}
             failure={
               params.error === "connection"
                 ? "connection"

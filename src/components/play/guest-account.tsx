@@ -63,7 +63,7 @@ export function GuestSignInPrompt({
       <GuestPromptEvent reason={reason} />
       <p>{GUEST_SIGN_IN_MESSAGE}</p>
       <Link className="practice-primary" href="/sign-in?guest=1">
-        Sign in with Google
+        Save progress with Google
       </Link>{" "}
       {onDismiss && (
         <button className="practice-secondary" onClick={onDismiss}>

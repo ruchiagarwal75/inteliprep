@@ -8,11 +8,19 @@ skipping it is saved on their anonymous account and survives a Google upgrade.
 Guests with existing practice progress continue without an automatic replay.
 Later topics, reviews, gap cards, Mock, the boss, Progress and admin require a real account.
 
-A guest Google sign-in uses `linkIdentity`, never `signInWithOAuth`. The callback
-accepts only the original guest UUID. If Google already belongs to another
-account, the guest stays signed in and sees an explanation. There is no account
-switch, progress merge or data deletion. Clearing cookies, changing browsers or
-signing out before linking can make anonymous progress inaccessible.
+Normal `/sign-in` uses `signInWithOAuth`, including when the browser has a guest
+session. It opens the selected Google account and its saved progress. The server
+clears any unfinished guest-link marker before starting OAuth, keeping the guest
+auth cookies until the exchange succeeds. Admin return destinations remain fixed.
+
+Saving guest progress is an explicit `/sign-in?guest=1` or `guest=limit` choice.
+It uses `linkIdentity`, and its callback accepts only the original guest UUID.
+If Google already belongs to another account, the guest session stays intact and
+the retry offers normal sign-in rather than attempting the same link again.
+Both screens offer a link to the other choice. Signing in to an existing account
+does not merge guest XP or change ownership of guest data. Clearing cookies,
+changing browsers or replacing the guest session can make anonymous progress
+inaccessible; the sign-in screen explains that guest XP stays separate.
 
 ## Model audit
 

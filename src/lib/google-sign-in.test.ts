@@ -1,47 +1,41 @@
 import { afterEach, expect, it, vi } from "vitest";
-const oauth = vi.hoisted(() => vi.fn());
-vi.mock("./supabase-browser", () => ({
-  supabaseBrowser: () => ({ auth: { signInWithOAuth: oauth } }),
-}));
 import { beginGoogleSignIn } from "./google-sign-in";
-afterEach(() => {
-  vi.unstubAllGlobals();
-  oauth.mockReset();
-});
-it("links a guest and never falls back to a different OAuth user", async () => {
+afterEach(() => vi.unstubAllGlobals());
+
+it.each([
+  { mode: "sign-in", route: "/auth/google" },
+  { mode: "save-guest", route: "/api/play/guest/link" },
+] satisfies { mode: "sign-in" | "save-guest"; route: string }[])(
+  "uses the explicit $mode intent without falling back to the other operation",
+  async ({ mode, route }) => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(
+        Response.json({ url: "https://auth.example.test/authorize" }),
+      );
+    vi.stubGlobal("fetch", fetcher);
+    expect(await beginGoogleSignIn({ mode })).toBe(
+      "https://auth.example.test/authorize",
+    );
+    expect(fetcher).toHaveBeenCalledWith(
+      route,
+      expect.objectContaining({ method: "POST", body: "{}" }),
+    );
+    fetcher.mockResolvedValue(Response.json({}, { status: 409 }));
+    await expect(beginGoogleSignIn({ mode })).rejects.toThrow();
+    expect(fetcher.mock.calls.every(([path]) => path === route)).toBe(true);
+  },
+);
+it("passes the fixed admin return destination and rejects unsafe provider URLs", async () => {
   const fetcher = vi
     .fn()
-    .mockResolvedValue(
-      Response.json({ url: "https://auth.example.test/authorize" }),
-    );
+    .mockResolvedValue(Response.json({ url: "http://unsafe.example.test" }));
   vi.stubGlobal("fetch", fetcher);
-  expect(
-    await beginGoogleSignIn({
-      origin: "https://beta.example.test",
-      guest: true,
-    }),
-  ).toBe("https://auth.example.test/authorize");
-  expect(fetcher).toHaveBeenCalledWith(
-    "/api/play/guest/link",
-    expect.objectContaining({ method: "POST", body: "{}" }),
-  );
-  fetcher.mockResolvedValue(Response.json({}, { status: 409 }));
   await expect(
-    beginGoogleSignIn({ origin: "https://beta.example.test", guest: true }),
+    beginGoogleSignIn({ mode: "sign-in", returnTo: "/admin" }),
   ).rejects.toThrow();
-  expect(oauth).not.toHaveBeenCalled();
-});
-it("keeps ordinary OAuth on the host where sign-in started", async () => {
-  oauth.mockResolvedValue({ error: null });
-  await beginGoogleSignIn({
-    origin: "https://beta.example.test",
-    guest: false,
-  });
-  expect(oauth).toHaveBeenCalledWith(
-    expect.objectContaining({
-      options: expect.objectContaining({
-        redirectTo: "https://beta.example.test/auth/callback",
-      }),
-    }),
+  expect(fetcher).toHaveBeenCalledWith(
+    "/auth/google",
+    expect.objectContaining({ body: '{"next":"/admin"}' }),
   );
 });
