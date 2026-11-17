@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { signIn } from "./fixture-auth";
 import { modelCalls } from "./course-evidence";
-test("beta keeps both catalog groups visible but offers only the RAG mock", async ({
+test("beta shows both catalog groups and requires approval for other mocks", async ({
   page,
   context,
 }) => {
@@ -25,10 +25,18 @@ test("beta keeps both catalog groups visible but offers only the RAG mock", asyn
     await expect(
       rendered(page.locator("[data-available-problem]")),
     ).toHaveCount(1);
-    for (const button of await rendered(
-      page.locator("[data-locked-problem] button"),
-    ).all())
-      await expect(button).toBeDisabled();
+    for (const problem of await rendered(
+      page.locator("[data-locked-problem]"),
+    ).all()) {
+      await expect(
+        problem.getByRole("button", {
+          name: /Request beta access|Check access status/u,
+        }),
+      ).toBeEnabled();
+      await expect(
+        problem.getByRole("link", { name: /Start trial|Choose mock/u }),
+      ).toHaveCount(0);
+    }
     await expect(
       page.getByRole("link", { name: "Choose mock", exact: true }),
     ).toHaveAttribute(
