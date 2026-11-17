@@ -23,6 +23,9 @@ test("optional depth works with the keyboard and does not change the slide or st
   await expect(
     note.getByRole("link", { name: "The original RAG paper" }),
   ).toHaveAttribute("href", "https://arxiv.org/abs/2005.11401");
+  await expect(
+    note.getByRole("link", { name: "The original RAG paper" }),
+  ).toHaveAttribute("rel", "noopener noreferrer");
   await summary.press("Enter");
   await expect(note).not.toHaveAttribute("open");
   await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -64,9 +67,11 @@ test("worked examples and vector diagrams are readable in both themes at desktop
           page.getByRole("heading", { name: "RAG notebook", exact: true }),
         ).toBeVisible();
         await setTheme(page, theme);
-        const note = rendered(page.locator("[data-course-depth]")).filter({
-          has: page.locator(`[data-course-diagram="${sample.kind}"]`),
-        });
+        const note = rendered(
+          page.locator(
+            `[data-course-depth][data-depth-diagram="${sample.kind}"]`,
+          ),
+        );
         await note.locator("summary").click();
         const diagram = note.getByRole("img");
         await diagram.scrollIntoViewIfNeeded();

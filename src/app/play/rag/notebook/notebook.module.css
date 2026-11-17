@@ -38,6 +38,11 @@
 .slides {
   padding-left: 24px;
 }
+.diagramPlaceholder {
+  min-height: 252px;
+  margin: 16px auto;
+  background: var(--pixel-panel);
+}
 .slides li {
   margin-bottom: 24px;
 }

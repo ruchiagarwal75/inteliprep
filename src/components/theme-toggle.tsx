@@ -1,6 +1,11 @@
 "use client";
 import { useTheme } from "@/components/theme-provider";
+import { useSyncExternalStore } from "react";
+const subscribe = () => () => {};
+const ready = () => true;
+const server = () => false;
 export function ThemeToggle() {
+  const interactive = useSyncExternalStore(subscribe, ready, server);
   const { theme, toggle } = useTheme();
   const label =
     theme === "light" ? "Switch to dark mode" : "Switch to light mode";
@@ -11,6 +16,7 @@ export function ThemeToggle() {
       aria-label={label}
       title={label}
       onClick={toggle}
+      disabled={!interactive}
     >
       <svg
         width="20"

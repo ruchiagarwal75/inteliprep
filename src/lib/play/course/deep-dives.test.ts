@@ -30,8 +30,9 @@ it("keeps short teaching separate from optional examples, diagrams and HTTPS ref
   expect(html).toContain("<details");
   expect(html).not.toContain(" open=");
   expect(html).toContain("<summary>");
-  expect(html).toContain('rel="noopener noreferrer"');
-  expect(html).toContain('data-course-diagram="eval-case"');
+  expect(html).toContain('data-depth-diagram="eval-case"');
+  expect(html).not.toContain("A worked example.");
+  expect(html).not.toContain('data-course-diagram="eval-case"');
 });
 
 it("rejects malformed notes and unsafe links while accepting older saved teaching payloads", () => {

@@ -65,7 +65,7 @@ for (const theme of ["light", "dark"])
           );
         }
         if (route.includes("/notebook")) {
-          expect(bytes).toBeLessThan(100000);
+          expect(bytes, route).toBeLessThan(100000);
           const level = new URL(route, "http://localhost").searchParams.get(
             "topic",
           );
