@@ -5,10 +5,12 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { LegalLinks } from "@/components/legal-links";
 import { HomeMascot } from "@/components/mascot-moments";
 import ScalingStory from "@/components/scaling-story/ScalingStory";
+import { HomeWelcome } from "./home-welcome";
 import styles from "./play.module.css";
 export function PlayLanding() {
   return (
     <main className="practice-page mascot-home-page">
+      <HomeWelcome />
       <div className="practice-shell">
         <header className="practice-nav">
           <Brand />
@@ -23,7 +25,7 @@ export function PlayLanding() {
             <p className="practice-eyebrow">AI engineer practice</p>
             <h1>{BRAND.tagline}</h1>
             <p>{BRAND.pitch}</p>
-            <Link className="practice-primary" href="/play">
+            <Link className="practice-primary" href="/play" data-home-start>
               Start free
             </Link>
           </div>

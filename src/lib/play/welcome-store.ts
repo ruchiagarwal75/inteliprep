@@ -7,7 +7,11 @@ import { PlayError } from "./errors";
 import type { WelcomeFinish } from "./welcome-public";
 import { recordPlayEvent } from "./events";
 
-async function required(sql: PlayTransaction, userId: string) {
+async function required(
+  sql: PlayTransaction,
+  userId: string,
+  homeIntroSeen = false,
+) {
   await sql`insert into practice_game.welcome_state(user_id) values(${userId}) on conflict do nothing`;
   const [row] = await sql`select welcome_seen_at is not null as seen,
    exists(select 1 from practice_game.play_sessions) or
@@ -18,13 +22,13 @@ async function required(sql: PlayTransaction, userId: string) {
    exists(select 1 from practice_game.badges) or
    exists(select 1 from practice_game.topic_readiness where state<>'not_tested') as progressed
    from practice_game.welcome_state where user_id=${userId}`;
-  if (row?.progressed && !row.seen)
+  if ((homeIntroSeen || row?.progressed) && !row?.seen)
     await sql`update practice_game.welcome_state set welcome_seen_at=now() where user_id=${userId}`;
-  return !row?.seen && !row?.progressed;
+  return !homeIntroSeen && !row?.seen && !row?.progressed;
 }
 /** Profile/time-zone initialization alone is not practice progress. */
-export const welcomeRequired = cache((userId: string) =>
-  withPlayer(userId, (sql) => required(sql, userId)),
+export const welcomeRequired = cache((userId: string, homeIntroSeen = false) =>
+  withPlayer(userId, (sql) => required(sql, userId, homeIntroSeen)),
 );
 export async function openWelcome(
   userId: string,

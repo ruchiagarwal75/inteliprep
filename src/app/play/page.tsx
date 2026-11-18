@@ -9,13 +9,13 @@ import { PIXEL_ART } from "@/components/play/pixel-art";
 import { TopicIcon } from "@/components/play/topic-icon";
 import styles from "@/components/play/play.module.css";
 import { redirect } from "next/navigation";
-import { welcomeRequired } from "@/lib/play/welcome-store";
+import { welcomeRequiredForBrowser } from "@/lib/play/welcome-entry";
 export const dynamic = "force-dynamic";
 export default async function PlayPage() {
   const account = await guestPlayPage("/play");
   if (!account) return null;
   const userId = account.id;
-  if (account.kind === "account" && (await welcomeRequired(userId)))
+  if (account.kind === "account" && (await welcomeRequiredForBrowser(userId)))
     redirect("/play/welcome");
   let snapshot: Awaited<ReturnType<typeof playerSnapshot>> | undefined;
   try {

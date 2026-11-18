@@ -5,6 +5,7 @@ vi.mock("@/lib/candidate-auth", () => ({
   candidateSession: async () => undefined,
 }));
 vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
   redirect: (path: string) => {
     throw new Error(`redirect:${path}`);
   },
@@ -17,6 +18,7 @@ it("gives a fresh signed-out browser Home without opening a session", async () =
   expect(html).toContain("Level up for the AI engineer role.");
   expect(html).toContain('href="/sign-in"');
   expect(html).toContain('href="/play"');
+  expect(html).not.toContain("WELCOME, ENGINEER");
   expect(html).not.toContain("Time left");
   expect(html).not.toContain("Stage 1");
 });

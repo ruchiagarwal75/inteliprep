@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useCandidateAccount } from "@/components/candidate-account-context";
+import type { WelcomeFinish } from "@/lib/play/welcome-public";
 import { WELCOME_PANELS } from "@/lib/play/welcome-copy";
 import { WelcomeScene } from "./welcome-scene";
 import styles from "./welcome-intro.module.css";
 import { useWelcomeMotion, trapWelcomeFocus } from "./welcome-accessibility";
-export function WelcomeIntro({ runId }: { runId: string }) {
-  const { request } = useCandidateAccount();
+export function WelcomeIntro({
+  onFinish,
+}: {
+  onFinish: (ending: Omit<WelcomeFinish, "runId">) => Promise<void>;
+}) {
   const [cursor, setCursor] = useState({ panel: 0, beat: 0, chars: 0 });
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -24,6 +27,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
     const before = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      if (node?.open) node.close();
       document.body.style.overflow = before;
     };
   }, []);
@@ -76,13 +80,7 @@ export function WelcomeIntro({ runId }: { runId: string }) {
     setBusy(true);
     setError("");
     try {
-      const response = await request("/api/play/welcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ runId, action, panel: cursor.panel + 1 }),
-      });
-      if (!response.ok) throw Error("save");
-      window.location.replace("/play");
+      await onFinish({ action, panel: cursor.panel + 1 });
     } catch {
       lock.current = false;
       setBusy(false);
@@ -172,14 +170,18 @@ export function WelcomeIntro({ runId }: { runId: string }) {
           </button>
           {last ? (
             <button
-              className="practice-primary"
+              className={`practice-primary ${styles.primary}`}
               disabled={busy}
               onClick={() => void finish("complete")}
             >
               Go to Play
             </button>
           ) : (
-            <button className="practice-primary" disabled={busy} onClick={next}>
+            <button
+              className={`practice-primary ${styles.primary}`}
+              disabled={busy}
+              onClick={next}
+            >
               Next
             </button>
           )}

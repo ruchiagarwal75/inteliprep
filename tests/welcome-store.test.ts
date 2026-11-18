@@ -85,6 +85,19 @@ it("denies another account's run and invalid finish payloads", async () => {
     }).success,
   ).toBe(false);
 });
+it("remembers a home intro for the account without granting progress or fabricating account intro events", async () => {
+  const id = crypto.randomUUID();
+  await db.operator`insert into auth.users(id) values(${id})`;
+  expect(await welcomeRequired(id, true)).toBe(false);
+  expect(await welcomeRequired(id)).toBe(false);
+  expect(await openWelcome(id, false)).toBeNull();
+  const [counts] = await db.operator`select
+    (select count(*)::int from practice_game.welcome_runs where user_id=${id}) as runs,
+    (select count(*)::int from practice_game.play_events where user_id=${id}) as events,
+    (select count(*)::int from practice_game.points_ledger where user_id=${id}) as rewards,
+    (select count(*)::int from practice_game.level_progress where user_id=${id}) as levels`;
+  expect(counts).toEqual({ runs: 0, events: 0, rewards: 0, levels: 0 });
+});
 it("keeps onboarding rows private and read-only to browsers", async () => {
   const rows =
     await db.operator`select c.relname,c.relrowsecurity,has_table_privilege('authenticated',c.oid,'INSERT') as write from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='practice_game' and c.relname in ('welcome_state','welcome_runs')`;

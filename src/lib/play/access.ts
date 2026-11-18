@@ -6,7 +6,7 @@ import { CandidateAuthError } from "@/lib/supabase-config";
 import { CandidateInviteError } from "@/lib/candidate-invites";
 import { candidateSession } from "@/lib/candidate-auth";
 import { guestPageAllowed } from "./guest-policy";
-import { welcomeRequired } from "./welcome-store";
+import { welcomeRequiredForBrowser } from "./welcome-entry";
 async function readPlayAccountId() {
   try {
     return await requireCandidateIdentity();
@@ -34,7 +34,10 @@ export async function guestPlayPage(path: string) {
   const account = await guestPlayAccount();
   if (account?.kind === "guest") {
     if (!guestPageAllowed(path)) redirect("/sign-in?guest=limit");
-    if (path !== "/play/welcome" && (await welcomeRequired(account.id)))
+    if (
+      path !== "/play/welcome" &&
+      (await welcomeRequiredForBrowser(account.id))
+    )
       redirect("/play/welcome");
   }
   return account;

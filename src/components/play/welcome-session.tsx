@@ -37,7 +37,21 @@ export function WelcomeSession({ replay }: { replay: boolean }) {
       active = false;
     };
   }, [request, replay, retry]);
-  if (runId) return <WelcomeIntro key={runId} runId={runId} />;
+  if (runId)
+    return (
+      <WelcomeIntro
+        key={runId}
+        onFinish={async (ending) => {
+          const response = await request("/api/play/welcome", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ runId, ...ending }),
+          });
+          if (!response.ok) throw Error("save");
+          window.location.replace("/play");
+        }}
+      />
+    );
   return (
     <section aria-label="Welcome">
       <p role={error ? "alert" : "status"}>

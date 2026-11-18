@@ -92,6 +92,11 @@ export default function PrivacyPage() {
         share Redis&apos;s two-hour expiry.
       </p>
       <p>
+        A first-party preference cookie remembers when you finish or skip the
+        home-page welcome intro. It does not create an account or store learning
+        progress.
+      </p>
+      <p>
         A first-party random ID in localStorage lets us count a browser&apos;s
         first visit. We store a hash of that ID, its first-visit time,
         environment, an admin/test exclusion flag and an account reference when

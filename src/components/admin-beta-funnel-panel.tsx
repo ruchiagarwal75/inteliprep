@@ -92,7 +92,8 @@ export function AdminBetaFunnelPanel({
           <p>
             Recorded intro actions in this range and environment. Includes
             replay. The first topic counts once per account. Older activity was
-            not collected.
+            not collected. Home-page intros shown before an account exists are
+            not included.
           </p>
           <dl className="flex flex-wrap gap-6">
             {WELCOME_METRICS.map(([key, label]) => (

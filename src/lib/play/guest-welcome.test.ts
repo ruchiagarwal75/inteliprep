@@ -1,9 +1,9 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { candidateSession } from "@/lib/candidate-auth";
 import { guestPlayPage } from "./access";
-import { welcomeRequired } from "./welcome-store";
+import { welcomeRequiredForBrowser as welcomeRequired } from "./welcome-entry";
 
-vi.mock("./welcome-store", () => ({ welcomeRequired: vi.fn() }));
+vi.mock("./welcome-entry", () => ({ welcomeRequiredForBrowser: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn((path: string) => {
     throw new Error(`redirect:${path}`);

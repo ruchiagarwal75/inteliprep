@@ -2,9 +2,17 @@
 
 Guests use Supabase anonymous Auth. Progress, XP and stars use the same user UUID
 as registered accounts. `GUEST_TOPIC_COUNT` in `src/lib/play/guest-policy.ts`
-currently opens Topic 0 and Topic 1. Brand-new guests see the existing welcome
-intro first, including when they enter through a topic link. Completing or
-skipping it is saved on their anonymous account and survives a Google upgrade.
+currently opens Topic 0 and Topic 1. First-time home visitors see the welcome
+intro before starting guest practice or completing the browser check. Skip stays
+on home; Go to Play opens `/play`, including its browser check. The functional
+`shardling-home-intro=v1` cookie remembers either ending for a year. It grants
+no account access, XP, stars or topic progress. After verified guest sign-in,
+onboarding remembers that preference on the account so the intro does not repeat.
+Known automated clients retain the landing page without the modal. Direct guest
+entries without the home preference still receive the intro before a first topic.
+Completing or skipping that account intro is saved on the anonymous account and
+survives a Google upgrade. The existing intro event counts cover account-owned
+runs; public home views are not recorded as account impressions or completions.
 Guests with existing practice progress continue without an automatic replay.
 Later topics, reviews, gap cards, Mock, the boss, Progress and admin require a real account.
 

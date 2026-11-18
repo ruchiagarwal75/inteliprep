@@ -206,6 +206,19 @@
   justify-content: space-between;
   align-items: center;
 }
+.dialog .actions .primary {
+  min-height: 52px;
+  padding: 12px 16px;
+  background: var(--pixel-violet);
+  color: var(--pixel-on-world);
+  border: 2px solid var(--pixel-violet);
+  border-bottom: 8px solid var(--pixel-violet-edge);
+  border-radius: 0;
+  clip-path: var(--pixel-cut);
+  box-shadow: none;
+  font: 400 12px/1.6 var(--font-play-pixel);
+  text-transform: uppercase;
+}
 .error {
   position: absolute;
   bottom: 4px;
@@ -271,7 +284,7 @@
   .actions {
     align-items: center;
   }
-  .actions :global(.practice-primary) {
+  .dialog .actions .primary {
     font-size: 10px;
     min-height: 48px;
   }

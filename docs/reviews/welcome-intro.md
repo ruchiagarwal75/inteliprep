@@ -1,5 +1,12 @@
 # Welcome intro
 
+The current entry point is the public home page for new browsers. It reuses the
+same story before authentication, with a functional seen preference and no
+automatic guest-account creation. After Skip or completion, entering Play saves
+the seen preference for the verified account without creating a second intro
+run. Account-owned intros remain the fallback for direct entries and explicit
+replays. The implementation notes below describe the original account flow.
+
 ## Read first
 
 Google sign-in returns to `/play`. The Play shell initializes a profile and time

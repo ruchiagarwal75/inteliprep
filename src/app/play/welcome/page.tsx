@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { guestPlayPage } from "@/lib/play/access";
-import { welcomeRequired } from "@/lib/play/welcome-store";
+import { welcomeRequiredForBrowser } from "@/lib/play/welcome-entry";
 import { WelcomeSession } from "@/components/play/welcome-session";
 export const dynamic = "force-dynamic";
 export default async function WelcomePage({
@@ -10,6 +10,6 @@ export default async function WelcomePage({
   if (!account) return null;
   const userId = account.id;
   const replay = (await searchParams).replay === "1";
-  if (!replay && !(await welcomeRequired(userId))) redirect("/play");
+  if (!replay && !(await welcomeRequiredForBrowser(userId))) redirect("/play");
   return <WelcomeSession replay={replay} />;
 }
